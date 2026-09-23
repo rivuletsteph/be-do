@@ -59,6 +59,8 @@ a shape check only and never for a page the user will see.
 - `scripts/look_behind.py` — the reader and builder
 - `scripts/day_pie.py` — the day's minutes, one slice each
 - `scripts/bedo_common.py` — the pieces the builders share
+- `scripts/calendar_sync.py` — plans the dusk sync of linked calendar events
+  from the stream; never writes the calendar itself
 - `scripts/typical_time.py` — median durations from the user's own past rows,
   run occasionally against the weekly CSV archives, not on every build
 - `assets/look_behind_engine.html` — the page, nothing personal in it
@@ -67,6 +69,7 @@ a shape check only and never for a page the user will see.
   that gets shared. It is gitignored.
 - `assets/look_behind_local.example.json` — the same shape, empty. This is the
   one that travels when the skill is shared.
+- `tests/test_calendar_sync.py` — runs the sync planner over a fixture
 - `tests/test_canon.py` — runs the builder against a fixture written backwards
   from the canon page and checks every computed section. Run it after any change
   to the builder.
@@ -144,7 +147,40 @@ contents never pass through the chat.
    the Drive connector would pass the whole page through the chat. There, skip it
    and say so in one line: the published page and `/mnt/user-data/outputs/` are
    the copies of record.
-7. **Log the step**: one row for the look behind, dusk, with the page URL as its
+7. **Sync the calendar from the stream.** The stream is the record of what
+   happened; the calendar mirrors it. Every row tied to an event carries the
+   event's link in its `event` field, and at the dusk close each linked event
+   takes the row's status as its title prefix (⬜ → ✅ / ✖️) and, when the row
+   holds a real span, its real times. The script plans; the chat writes.
+   ```
+   python3 scripts/calendar_sync.py --list --day YYYY-MM-DD \
+     --local assets/look_behind_local.json --stream w##.json [--stream w##-prev.json]
+   ```
+   Fetch each listed event fresh with `get_event` (its `calendar_id` and
+   `event_id` are in the list) and save them to `events.json` with the
+   calendar id added to each as `calendarId`. Save `list_calendars` to
+   `calendars.json`. Then:
+   ```
+   python3 scripts/calendar_sync.py --plan --day YYYY-MM-DD \
+     --local assets/look_behind_local.json --stream w##.json [--stream w##-prev.json] \
+     --events events.json --calendars calendars.json --out sync-plan.json
+   ```
+   Make each change in `changes` with `update_event`, passing exactly the
+   `update` object it names — **`notificationLevel` is always `NONE`** — and
+   nothing else. Say what moved in one line.
+
+   What it leaves alone, by design, and lists under `unchanged`:
+   - an event on a calendar not in `sync_calendars`, or one someone else organises
+   - an event linked by a row **about** it rather than its own row — a row
+     rescheduling or preparing for it. Only a row timed to the event moves it,
+     so closing the phone call never marks the appointment done.
+   - two rows on one event that disagree — named, for the user's word
+   - an all-day event's dates, and the times of any row with no real span
+
+   For what was **scheduled**, the calendar is authoritative; for what
+   **happened**, the stream wins. This step is what keeps the two agreeing.
+   `tests/test_calendar_sync.py` checks the plan; run it after any change.
+8. **Log the step**: one row for the look behind, dusk, with the page URL as its
    deliverable.
 
 ## What the builder decides, so you don't have to
