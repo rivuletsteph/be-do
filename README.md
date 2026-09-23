@@ -9,6 +9,10 @@ together, so a skill runs in any project or none.
 | the day ahead | `bedo-day-ahead` | `day_ahead_local.json` |
 | the day behind | `bedo-look-behind` | `look_behind_local.json` |
 
+This repository is the version store: skill work happens here and nowhere else,
+and the settings files in the table above are gitignored — they hold one
+person's own ids and never ship.
+
 ## Local settings — `day_ahead_local.json`
 
 Nothing personal lives in the builder or the engine. Names, calendar labels,
