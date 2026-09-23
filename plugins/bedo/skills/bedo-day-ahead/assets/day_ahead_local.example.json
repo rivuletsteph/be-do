@@ -1,0 +1,44 @@
+{
+  "self_person": "",
+  "self_calendar": "",
+  "other_calendars": [],
+  "own_practices": [],
+  "weighing_phrases": [],
+  "week_word_title": "",
+  "week_zero_sunday": "YYYY-MM-DD",
+  "week_zero_number": 0,
+  "map_end": "YYYY-MM-DD",
+  "utc_offset_hours": 0,
+  "rhythms_base": "",
+  "rhythms_table": "",
+  "artifact_url": "",
+  "drive_name_example": "",
+  "note_records": {},
+  "fields": {
+    "stream": {
+      "title": "",
+      "key": "",
+      "details": "",
+      "when": "",
+      "end": "",
+      "target": "",
+      "status": "",
+      "practice": "",
+      "person": "",
+      "rhythm": "",
+      "waiting": "",
+      "queue": ""
+    },
+    "rhythms": {
+      "name": "",
+      "code": "",
+      "type": "",
+      "status": "",
+      "target": "",
+      "parent": "",
+      "emoji": "",
+      "dest": "",
+      "goal": ""
+    }
+  }
+}

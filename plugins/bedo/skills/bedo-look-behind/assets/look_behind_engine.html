@@ -1,0 +1,295 @@
+<meta charset="utf-8">
+<title>The Day Behind</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+:root{
+  --ground:#F5F4F7; --ink:#1C1A24; --soft:#4A4658; --muted:#7A7589; --faint:#A9A4B6; --rule:#E1DEE8; --tint:#ECE9F2; --link:#3E7FD0; --be:#8E3FCF; --tend:#BCC4F8; --grow:#0FA8CC; --grow-ink:#0B86A5; --do-ink:#5F6BD0; --be-ink:#7A30B8; --core-rim:#CFC8E4;
+  --sans:"Manrope","Segoe UI",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --ground:#141219; --ink:#F1EFF6; --soft:#C9C4D6; --muted:#9B95AB; --faint:#6A6479; --rule:#2B2735; --tint:#1E1B26; --link:#9BC4F5; --be:#9A4BDB; --tend:#C3CAFA; --grow:#2EC4E8; --grow-ink:#5ED6F2; --do-ink:#AEB8FA; --be-ink:#C58CF0; --core-rim:#FFFFFF; }
+}
+:root[data-theme="dark"]{ --ground:#141219; --ink:#F1EFF6; --soft:#C9C4D6; --muted:#9B95AB; --faint:#6A6479; --rule:#2B2735; --tint:#1E1B26; --link:#9BC4F5; --be:#9A4BDB; --tend:#C3CAFA; --grow:#2EC4E8; --grow-ink:#5ED6F2; --do-ink:#AEB8FA; --be-ink:#C58CF0; --core-rim:#FFFFFF; }
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:620px;margin:0 auto;padding-block:32px 48px;padding-inline:16px;display:flex;flex-direction:column}
+.chip{font-family:var(--mono);font-size:.72rem;color:var(--faint)}
+.date{font-size:clamp(2rem,8vw,2.75rem);font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:10px 0 0}
+.title{font-size:clamp(1.3rem,4.8vw,1.55rem);font-weight:600;line-height:1.25;color:var(--soft);margin:8px 0 0;letter-spacing:-.01em}
+section{padding-block:22px;border-top:1px solid var(--rule)}
+header{padding-bottom:22px}
+.label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 0 12px}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+li{display:grid;grid-template-columns:1.9rem 1fr;align-items:baseline}
+.story{gap:10px}
+.story li{font-size:1.05rem;font-weight:500;line-height:1.4}
+.hl{gap:8px;background:var(--tint);border-radius:14px;padding:14px 16px}
+.hl li{font-size:1rem;font-weight:600;line-height:1.4}
+.photos:empty{display:none}
+.photos{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.photos a{display:block;width:88px;aspect-ratio:1;max-width:100%;border-radius:10px;overflow:hidden;background:var(--rule)}
+.photos img{width:100%;height:100%;object-fit:cover;display:block}
+#list{gap:12px}
+#list li{font-size:.95rem;font-weight:500;line-height:1.4}
+.sub{display:block;font-family:var(--mono);font-size:.7rem;font-weight:400;color:var(--muted);margin-top:3px;line-height:1.4}
+li a{color:inherit;text-decoration-color:var(--faint);text-underline-offset:4px}
+li a:focus-visible{outline:2px solid var(--link);outline-offset:2px;border-radius:3px}
+li.open span:last-child{border-bottom:1px dashed var(--rule);height:1.1em}
+.bar{display:flex;height:14px;border-radius:999px;overflow:hidden;background:var(--rule)}
+.bar span{display:block;height:100%}
+.bar span+span{box-shadow:inset 1px 0 0 rgba(255,255,255,.45)}
+.barlab{display:flex;justify-content:space-between;font-size:.82rem;font-weight:600;color:var(--soft);margin:6px 0 16px;font-variant-numeric:tabular-nums}
+.barlab b{font-weight:800;color:var(--ink)}
+.barlab{flex-wrap:wrap;gap:4px 12px}
+.barlab>span{white-space:nowrap}
+.lbe,.lbe b{color:var(--be-ink);font-weight:800;letter-spacing:.06em}
+.ldo,.ldo b{color:var(--do-ink);font-weight:700}
+.lgr,.lgr b{color:var(--grow-ink);font-weight:800}
+.be{background:var(--be)} .tend{background:var(--tend)} .grow{background:var(--grow)}
+.sw{display:inline-block;width:.75em;height:.75em;border-radius:50%;vertical-align:-1px;margin-right:4px}
+.bal-note{font-size:.72rem;color:var(--muted);margin:0}
+details.wheel{margin-top:14px}
+details.wheel summary{cursor:pointer;font-size:.8rem;font-weight:700;color:var(--muted);list-style:none}
+details.wheel summary::-webkit-details-marker{display:none}
+details.wheel summary:focus-visible{outline:2px solid var(--link);outline-offset:2px;border-radius:4px}
+.wl{font-family:var(--sans);font-size:10px;font-weight:600;fill:var(--soft)}
+.wheelwrap{display:flex;flex-direction:column;gap:18px;margin-top:10px}
+.wheelwrap>svg{width:100%;max-width:440px;height:auto;margin:0 auto;display:block}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px 20px}
+.lic{display:inline-flex;align-items:center}
+.pair{border-left:2px solid;padding-left:10px;display:flex;flex-direction:column;gap:4px}
+.lrow{display:grid;grid-template-columns:1.4rem 3.4rem 1fr auto;gap:6px;align-items:baseline;font-size:.8rem}
+.lnm{font-weight:700}.ldf{color:var(--muted);font-size:.72rem}.lvl{font-weight:700;font-variant-numeric:tabular-nums}
+.eff{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.effn{font-size:2rem;font-weight:800;letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums}
+.effl{font-size:.9rem;font-weight:600;color:var(--soft)}
+.effdots{display:flex;gap:6px;margin:8px 0 10px}
+.effdots i{display:block;width:26px;height:8px;border-radius:999px;background:var(--rule)}
+.effdots i.met{background:linear-gradient(90deg,var(--be),var(--grow))} .effdots i.car{background:repeating-linear-gradient(135deg,var(--tend) 0 3px,var(--rule) 3px 6px)}
+.dest{margin-top:0;display:flex;flex-direction:column;gap:14px}
+.dest h4{margin:0 0 6px;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);display:flex;gap:8px;align-items:center}
+.dg{font-size:1.1rem;letter-spacing:0;text-transform:none}
+.subs{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px;font-size:.74rem;color:var(--soft)}
+.dest ul{gap:6px}.dest li{grid-template-columns:1fr auto;font-size:.92rem;font-weight:500}
+.dest .drv{display:block;font-size:.72rem;color:var(--muted);font-weight:500}
+.dest .min{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.usual{margin:2px 0 6px;font-size:.9rem;font-weight:700;color:var(--grow-ink)}
+.contrib{display:flex;flex-direction:column;gap:18px;margin-top:16px}
+.ctl{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--grow-ink);margin:0 0 8px}
+.ctl span{color:var(--soft);letter-spacing:0;text-transform:none;font-weight:700;margin-left:6px}
+.deliv{gap:6px}.deliv li{grid-template-columns:1.6rem 1fr;font-size:.92rem;font-weight:500}
+.pmain{display:grid;grid-template-columns:minmax(220px,1fr) minmax(220px,1fr);gap:20px;align-items:center}
+@media (max-width:620px){.pmain{grid-template-columns:1fr}}
+.pie{position:relative;width:100%;max-width:320px;margin:0 auto}
+.pie svg{width:100%;height:auto;display:block}
+.pie path{stroke:var(--ground);stroke-width:2;cursor:pointer;transition:opacity .15s}
+.pie.focus path{opacity:.28}.pie.focus path.on{opacity:1}
+.pc{position:absolute;inset:0;display:grid;place-items:center;text-align:center;pointer-events:none}
+.pc b{display:block;font-size:clamp(1.6rem,6vw,2.2rem);font-weight:800;letter-spacing:-.02em;line-height:1}
+.pc span{color:var(--muted);font-size:.82rem}
+.plg{gap:2px}
+.plg li{display:block}
+.plg button{width:100%;display:grid;grid-template-columns:14px 1fr auto;gap:10px;align-items:baseline;background:none;border:0;border-radius:10px;padding:6px 8px;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.plg button:hover,.plg button[aria-pressed="true"]{background:var(--tint)}
+.plg button:focus-visible{outline:2px solid var(--link);outline-offset:1px}
+.psw{width:12px;height:12px;border-radius:4px;align-self:center}
+.pie path.gapw{fill:var(--ground);stroke:var(--muted);stroke-width:1.2;stroke-dasharray:3 3}
+.psw.gapsw{border:1.5px dashed var(--muted)}
+.psw.hat{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.55) 0 2px,transparent 2px 5px)!important}
+.tile.miss{box-shadow:inset 3px 0 0 #E0703E}.tile .st{font-size:.7rem;font-weight:700;margin-left:6px}
+.pn{font-weight:700;font-size:.92rem}.pw{display:block;color:var(--muted);font-size:.76rem;font-weight:500}
+.ph{font-weight:800;font-size:.88rem;font-variant-numeric:tabular-nums}
+.three{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:0 0 18px}
+.tile{background:var(--tint);border-radius:12px;padding:12px 14px}
+.tile .k{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.tile b{display:block;font-size:1.15rem;font-weight:800;margin-top:2px}
+.tile small{display:block;color:var(--muted);font-size:.76rem;margin-top:2px;line-height:1.35}
+.who{display:flex;flex-wrap:wrap;gap:8px}
+.person{display:inline-flex;align-items:center;gap:8px;background:var(--tint);border-radius:999px;padding:6px 14px 6px 6px;font-weight:700;font-size:.95rem}
+.person i{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--be);color:#fff;font-style:normal;font-size:.8rem;font-weight:800}
+.person small{font-weight:500;color:var(--muted);font-size:.78rem}
+.foot{font-family:var(--mono);font-size:.68rem;color:var(--faint);padding-top:18px;border-top:1px solid var(--rule)}
+</style>
+ 
+<div class="wrap">
+  <header>
+    <div class="chip" id="chip"></div>
+    <h1 class="date" id="date"></h1>
+    <p class="title" id="title"></p>
+  </header>
+  <section aria-label="the day">
+    <ul class="story" id="story"></ul>
+  </section>
+  <section aria-label="who was there">
+    <p class="label">who was in your day</p>
+    <div class="who" id="who"></div>
+  </section>
+  <section aria-label="highlights">
+    <p class="label">highlights</p>
+    <ul class="hl" id="hl"></ul>
+    <div class="photos" id="photos"></div>
+  </section>
+  <section aria-label="how the day went">
+    <p class="label">how the day went</p>
+    <div class="pmain">
+      <div class="pie" id="pie">
+        <svg viewBox="-110 -110 220 220" role="img" aria-labelledby="pieT"><title id="pieT"></title><defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#fff"/><rect width="2.2" height="6" fill="#000"/></pattern><mask id="hatchmask" maskUnits="userSpaceOnUse" x="-110" y="-110" width="220" height="220"><rect x="-110" y="-110" width="220" height="220" fill="#fff" fill-opacity=".55"/><rect x="-110" y="-110" width="220" height="220" fill="url(#hatch)"/></mask></defs><g id="slices"></g></svg>
+        <div class="pc"><div><b id="cVal"></b><span id="cLab"></span></div></div>
+      </div>
+      <ul class="plg" id="plg"></ul>
+    </div>
+    <p class="bal-note" style="margin-top:10px"><b id="unl"></b></p>
+  </section>
+  <section aria-label="balance">
+    <p class="label">balance</p>
+    <div class="bar" role="img" id="bar1"></div>
+    <div class="barlab" id="lab1"></div>
+    <p class="bal-note" id="balnote"></p>
+    <details class="wheel" open><summary>open the wheel &#9662;</summary><div id="wheel"></div></details>
+  </section>
+  <section aria-label="effectiveness">
+    <p class="label">effectiveness</p>
+    <div class="eff"><span class="effn" id="effn"></span><span class="effl" id="effl"></span></div>
+    <p class="usual" id="usual"></p>
+    <p class="bal-note" id="effnote"></p>
+    <div class="contrib">
+      <div class="ct"><p class="ctl">moved</p><div id="moved"></div></div>
+      <div class="ct"><p class="ctl">follow-through <span id="ftn"></span></p><div class="effdots" id="effdots" aria-hidden="true"></div><ul id="list"></ul></div>
+    </div>
+  </section>
+  <div class="foot" id="foot"></div>
+</div>
+ 
+<script>
+const DATA = /*__DATA__*/null;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+document.getElementById("chip").textContent = DATA.chip;
+document.getElementById("date").textContent = DATA.date;
+document.getElementById("title").textContent = DATA.title;
+const st = document.getElementById("story");
+DATA.story.forEach(([g,t]) => st.insertAdjacentHTML("beforeend", `<li><span aria-hidden="true">${g}</span><span>${esc(t)}</span></li>`));
+document.getElementById("who").innerHTML = DATA.who.map(p => `<span class="person"><i aria-hidden="true">${esc(p.name[0])}</i>${esc(p.name)}${p.when?`<small>${esc(p.when)}</small>`:""}</span>`).join("");
+const hl = document.getElementById("hl");
+DATA.highlights.forEach(h => hl.insertAdjacentHTML("beforeend", `<li><span aria-hidden="true">${h.glyph}</span><span>${esc(h.text)}</span></li>`));
+const ph = document.getElementById("photos");
+DATA.photos.slice(0,5).forEach(p => ph.insertAdjacentHTML("beforeend", `<a href="${esc(p.url)}"><img src="${p.thumb}" alt="${esc(p.alt||"")}"></a>`));
+const ul = document.getElementById("list");
+DATA.intentions.forEach(i => {
+  const t = i.url ? `<a href="${esc(i.url)}">${esc(i.set)}</a>` : esc(i.set);
+  const sub = [i.at, i.sub].filter(Boolean).map(esc).join(" \u00B7 ");
+  ul.insertAdjacentHTML("beforeend", `<li><span aria-hidden="true">${i.glyph}</span><span>${t}<span class="sub">${sub}</span></span></li>`);
+});
+for (let n = DATA.intentions.length; n < DATA.slotsMax; n++)
+  ul.insertAdjacentHTML("beforeend", `<li class="open" aria-label="open slot"><span></span><span></span></li>`);
+ 
+const B = DATA.balance, BE = ["heart","mind","body","spirit"], DO = ["water","air","earth","fire"];
+const sum = a => a.reduce((x,k)=>x+B.domains[k],0);
+const be = sum(BE), tt = B.tending, gg = B.growing, un = sum(DO) - tt - gg, all = be + tt + gg + un;
+// largest-remainder rounding so the three parts always add to 100
+const parts = [be, tt + un, gg].map(v => v/all*100), fl = parts.map(Math.floor);
+let left = 100 - fl.reduce((a,b)=>a+b,0);
+parts.map((v,i)=>[v-fl[i],i]).sort((a,b)=>b[0]-a[0]).slice(0,left).forEach(([,i])=>fl[i]++);
+const [pb, pt, pg] = fl;
+document.getElementById("bar1").innerHTML = `<span class="be" style="width:${pb}%"></span><span class="tend" style="width:${pt}%"></span><span class="grow" style="width:${pg}%"></span>`;
+document.getElementById("bar1").setAttribute("aria-label", `being ${pb} percent, tending ${pt} percent, growing ${pg} percent`);
+document.getElementById("lab1").innerHTML = `<span class="lbe">BE <b>${pb}</b></span><span class="ldo">DO <b>${pt+pg}</b> &nbsp;<span class="sw tend"></span>tending <b>${pt}</b> &nbsp;<span class="lgr"><span class="sw grow"></span>growing <b>${pg}</b></span></span>`;
+document.getElementById("balnote").textContent = B.note;
+// the wheel, after the 13 Sep build: each mirrored pair is one line through the centre, be to the left, do to the right,
+// outlined in a deeper shade of its own colour. Spoke width grows with the window (after The Wheel and the Core).
+const WIDTH = { day:13, week:19, month:25, season:32, year:40 }, WIN = "day";
+const DOM = {
+  heart:{c:"#3E7FD0",d:"#245693",g:"\u{1FA77}",a:247.5,f:"connection · love · care"},
+  water:{c:"#9BC4F5",d:"#4C95ED",g:"\u{1F30A}",a:67.5, f:"connecting · advocacy · community"},
+  mind: {c:"#BE4A88",d:"#822F5C",g:"\u{1F9E0}",a:292.5,f:"thinking · planning · learning"},
+  air:  {c:"#F49CC8",d:"#EB4E9D",g:"\u{1F4A8}",a:112.5,f:"systems · technical · digital"},
+  body: {c:"#4E9E62",d:"#31643E",g:"\u{1F938}‍♀️",a:202.5,f:"health · movement · rest"},
+  earth:{c:"#97D8A3",d:"#58C06B",g:"\u{1F30E}",a:22.5, f:"tending · maintaining · admin"},
+  spirit:{c:"#EFA038",d:"#C17410",g:"\u{1F496}",a:337.5,f:"meaning · values · joy"},
+  fire: {c:"#F7CE72",d:"#F2B120",g:"\u{1F525}",a:157.5,f:"creating · transforming · play"}
+};
+const ICON = {
+  heart: `<path d="M10 17.2 3.4 10.8A3.9 3.9 0 0 1 10 5.6a3.9 3.9 0 0 1 6.6 5.2Z"/>`,
+  water: `<path d="M2 8.5c2-2.2 4-2.2 6 0s4 2.2 6 0 3-1.4 4-1M2 13.5c2-2.2 4-2.2 6 0s4 2.2 6 0 3-1.4 4-1" fill="none" stroke-width="2.2" stroke-linecap="round"/>`,
+  mind:  `<path d="M10 3.2c-1.6-1-3.8-.3-4.3 1.5-2 .1-3 2.2-2.1 3.8-1.2 1.3-.8 3.6 1 4.2.1 2 2.2 3.1 3.9 2.2.6.9 1.5 1.3 1.5 1.3s.9-.4 1.5-1.3c1.7.9 3.8-.2 3.9-2.2 1.8-.6 2.2-2.9 1-4.2.9-1.6-.1-3.7-2.1-3.8C13.8 2.9 11.6 2.2 10 3.2Z"/><path d="M10 3.4v12.8" fill="none" stroke-width="1.2"/>`,
+  air:   `<path d="M2 7.5h9.5a2.5 2.5 0 1 0-2.4-3.2M2 11h13.5a2.5 2.5 0 1 1-2.4 3.2M2 14.5h6" fill="none" stroke-width="2.2" stroke-linecap="round"/>`,
+  body:  `<circle cx="10" cy="3.8" r="2.2"/><path d="M4 7.8 10 9l6-1.2M10 9v3.6M10 12.6 6.2 17.4M10 12.6l3.8 4.8" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`,
+  earth: `<circle cx="10" cy="10" r="7.4"/><path d="M2.8 10h14.4M10 2.6c-2.6 2.2-2.6 12.6 0 14.8M10 2.6c2.6 2.2 2.6 12.6 0 14.8" fill="none" stroke-width="1.1"/>`,
+  spirit:`<path d="M10 1.8 11.9 8.1 18.2 10 11.9 11.9 10 18.2 8.1 11.9 1.8 10 8.1 8.1Z"/>`,
+  fire:  `<path d="M10 18.2c-3.6 0-6-2.4-6-5.6 0-2.6 1.7-4.2 3-5.8.2 1.4.9 2.4 1.8 2.8C8.4 6.4 9.9 3.8 12.2 1.8c-.2 2.6.8 4.2 2 5.8 1 1.4 1.8 2.9 1.8 5 0 3.2-2.4 5.6-6 5.6Z"/>`
+};
+const icon = (k, size) => `<svg viewBox="0 0 20 20" width="${size}" height="${size}" aria-hidden="true" style="overflow:visible"><g fill="${DOM[k].c}" stroke="${DOM[k].d}" stroke-width="1" stroke-linejoin="round">${ICON[k]}</g></svg>`;
+const wicon = (k, x, y, size) => `<g transform="translate(${(x-size/2).toFixed(1)} ${(y-size/2).toFixed(1)}) scale(${size/20})" fill="${DOM[k].c}" stroke="${DOM[k].d}" stroke-width="1" stroke-linejoin="round"><title>${k} ${Math.round(B.domains[k]||0)}</title>${ICON[k]}</g>`;
+const PAIRS = [["body","earth"],["heart","water"],["mind","air"],["spirit","fire"]];
+const vtot = Object.values(B.domains).reduce((a,b)=>a+b,0) || 1, cx = 150, cy = 130, w = WIDTH[WIN];
+const shMax = Math.max(...Object.values(B.domains))/vtot, TOP = Math.max(0.3, Math.ceil(shMax*10)/10);
+const R0 = 12, RO = 98, rOf = sh => R0 + (RO-R0)*Math.min(sh,TOP*1.12)/TOP;
+const wpt = (deg, r) => { const t = deg*Math.PI/180; return [(cx + r*Math.sin(t)).toFixed(1), (cy - r*Math.cos(t)).toFixed(1)]; };
+let svg = `<svg viewBox="0 0 300 260" role="img" aria-label="the eight domains, being on the left, doing on the right">
+<circle cx="${cx}" cy="${cy}" r="98" fill="none" stroke="var(--rule)" stroke-width="1" stroke-dasharray="1 5" stroke-linecap="round"/>
+${Array.from({length:Math.round(TOP*10)-1},(_,i)=>(i+1)/10).map(f=>`<circle cx="${cx}" cy="${cy}" r="${rOf(f).toFixed(1)}" fill="none" stroke="var(--faint)" stroke-opacity=".45" stroke-width=".8" stroke-dasharray="1 4" stroke-linecap="round"/>`).join("")}
+<line x1="${cx}" y1="32" x2="${cx}" y2="228" stroke="var(--rule)" stroke-width="1"/>
+<text class="wl" x="4" y="134" style="fill:var(--be-ink);font-weight:800;letter-spacing:.14em">BE</text><text class="wl" x="296" y="134" text-anchor="end" style="fill:var(--do-ink);font-weight:800;letter-spacing:.14em">DO</text>`;
+const order = Object.keys(DOM).sort((x,y)=>B.domains[y]-B.domains[x]); // longest drawn first, short spokes stay on top
+for (const k of order) { const v = B.domains[k]||0, cap = (w+5)/2, L = Math.max(rOf(v/vtot) - cap, 0.01), [x,y] = wpt(DOM[k].a, L); // the rounded tip lands exactly on the value
+  svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${DOM[k].d}" stroke-width="${w+5}" stroke-linecap="round"/>`;
+  svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${DOM[k].c}" stroke-width="${w}" stroke-linecap="round"><title>${k} ${Math.round(v)}</title></line>`; }
+svg += `<defs><radialGradient id="dwarf"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EDEBFF"/></radialGradient>
+<radialGradient id="halo"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".95"/><stop offset=".35" stop-color="#F3F0FF" stop-opacity=".55"/><stop offset="1" stop-color="#E4DEFF" stop-opacity="0"/></radialGradient></defs>
+<circle cx="${cx}" cy="${cy}" r="24" fill="url(#halo)"/><circle cx="${cx}" cy="${cy}" r="8" fill="url(#dwarf)" stroke="var(--core-rim)" stroke-width=".8"/>`;
+for (const k in DOM) { const [x,y] = wpt(DOM[k].a, 114); svg += wicon(k, +x, +y, 17); }
+svg += `</svg>`;
+let leg = `<div class="legend">`;
+for (const [be, dv] of PAIRS) { leg += `<div class="pair" style="border-left-color:${DOM[be].c}">`;
+  for (const k of [dv, be]) leg += `<div class="lrow"><span class="lic">${icon(k,15)}</span><span class="lnm" style="color:${DOM[k].d}">${k}</span><span class="ldf">${DOM[k].f}</span><span class="lvl">${Math.round((B.domains[k]||0)/vtot*100)}%</span></div>`;
+  leg += `</div>`; }
+leg += `</div>`;
+document.getElementById("wheel").innerHTML = `<div class="wheelwrap">${svg}<p class="bal-note" style="text-align:center">rings every 10% of the day \u00B7 the outer ring is ${Math.round(TOP*100)}%</p>${leg}</div>`;
+ 
+// effectiveness, in the user's words: the time put into things that moves the ball forward on drives that feed destinations.
+// Tending (the dishes) is not scored here; it holds up the secure base that gates this reading.
+const E = DATA.effectiveness, allw = E.destinations.flatMap(d=>d.work), mins = allw.reduce((a,w)=>a+(w.min||0),0), untimed = allw.filter(w=>!w.min).length;
+const hm = m => m >= 60 ? `${Math.floor(m/60)} h ${String(m%60).padStart(2,"0")}` : `${m} min`;
+if (E.secure === "secure") {
+  document.getElementById("effn").textContent = hm(mins);
+  document.getElementById("effl").textContent = "moved your destinations forward";
+  document.getElementById("effnote").textContent = (untimed ? `${untimed} step with no time logged is listed but not counted. ` : "") + "Scored because the day started from a secure base.";
+} else {
+  document.getElementById("effn").textContent = "\u2014";
+  document.getElementById("effl").textContent = "not scored today";
+  document.getElementById("effnote").textContent = "The foundation needed the energy today.";
+}
+document.getElementById("usual").textContent = E.usualMin ? `${Math.round(mins/E.usualMin*100)}% of your effectiveness baseline (${hm(E.usualMin)})` : `effectiveness baseline still forming \u00B7 ${E.baselineDays} of ${E.baselineNeeded} clean days`;
+document.getElementById("moved").innerHTML = `<div class="dest">` + E.destinations.map(d => `<div><h4><span class="dg">${d.glyph||""}</span>${esc(d.name)}</h4><ul>` +
+  d.work.map(w => `<li><span>${w.url ? `<a href="${esc(w.url)}">${esc(w.text)}</a>` : esc(w.text)}<span class="drv">${esc(w.drive)}</span>${w.done ? `<span class="subs">${w.done.map(x=>`<span>\u2713 ${esc(x)}</span>`).join("")}</span>` : ""}</span><span class="min">${w.min ? w.min + " min" : ""}</span></li>`).join("") +
+  `</ul></div>`).join("") + `</div>`;
+const set = DATA.intentions.length, met = DATA.intentions.filter(i=>i.glyph==="\u2705").length, car = DATA.intentions.filter(i=>i.glyph==="\u25B6\uFE0F").length;
+document.getElementById("ftn").textContent = `${met} of ${set} met` + (car ? ` \u00B7 ${car} carried` : "");
+document.getElementById("effdots").innerHTML = DATA.intentions.map(i => `<i class="${i.glyph==="\u2705"?"met":i.glyph==="\u25B6\uFE0F"?"car":""}"></i>`).join("");
+ 
+// how the day went: midnight to midnight. Each slice is solid for logged minutes and striped where the minutes are estimated from the day's rows.
+const PIE = DATA.pie, fmtm = m => { m=Math.round(m); const h=Math.floor(m/60), r=m%60; return h ? (r ? `${h} h ${String(r).padStart(2,"0")}` : `${h} h`) : `${r} min`; };
+// the pie's accessible name is the day it is drawing, not the day it was built on
+document.getElementById("pieT").textContent = `${DATA.date} · 24 hours`;
+{ const used = PIE.reduce((a,d)=>a+d.logged+d.est,0); PIE.forEach(d=>{ if(d.rest) d.est = 1440-used; d.m = d.logged+d.est; });
+  const R=100, r=58, pp=(a,rad)=>[rad*Math.sin(a),-rad*Math.cos(a)]; let a0=0; const g=document.getElementById("slices");
+  const arc=(d,m,est)=>{ if(m<=0) return; const a1=a0+m/1440*2*Math.PI, big=a1-a0>Math.PI?1:0, [x0,y0]=pp(a0,R),[x1,y1]=pp(a1,R),[x2,y2]=pp(a1,r),[x3,y3]=pp(a0,r);
+    const el=document.createElementNS("http://www.w3.org/2000/svg","path");
+    el.setAttribute("d",`M${x0} ${y0}A${R} ${R} 0 ${big} 1 ${x1} ${y1}L${x2} ${y2}A${r} ${r} 0 ${big} 0 ${x3} ${y3}Z`); el.style.fill=d.c; el.dataset.k=d.k;
+    if(est && !d.rest) el.setAttribute("mask","url(#hatchmask)");
+    const t=document.createElementNS("http://www.w3.org/2000/svg","title"); t.textContent=`${d.n}: ${fmtm(m)}${est&&!d.rest?" estimated":""}`; el.appendChild(t); g.appendChild(el); a0=a1; };
+  PIE.forEach(d=>{ arc(d,d.logged,false); arc(d,d.est,true); });
+  const lg=document.getElementById("plg");
+  lg.innerHTML=PIE.map(d=>`<li><button type="button" data-k="${d.k}" aria-pressed="false"><span class="psw" style="background:${d.c}"></span><span><span class="pn">${d.e?d.e+" ":""}${esc(d.n)}</span><span class="pw">${esc(d.w)}</span>${d.rest?"":`<span class="pw">${fmtm(d.logged)} logged${d.est?` · ${fmtm(d.est)} estimated`:""}</span>`}</span><span class="ph">${fmtm(d.m)}</span></button></li>`).join("");
+  const pie=document.getElementById("pie"), cv=document.getElementById("cVal"), cl=document.getElementById("cLab"); let cur=null;
+  const idle=()=>{ cv.textContent="24 h"; cl.textContent="the whole day"; }; idle();
+  const focus=k=>{ cur=(k===cur)?null:k; pie.classList.toggle("focus",!!cur); g.querySelectorAll("path").forEach(p=>p.classList.toggle("on",p.dataset.k===cur));
+    lg.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.k===cur))); const d=PIE.find(x=>x.k===cur);
+    if(d){ cv.textContent=fmtm(d.m); cl.textContent=d.n.toLowerCase(); } else idle(); };
+  g.addEventListener("click",e=>{const p=e.target.closest("path"); if(p) focus(p.dataset.k);});
+  lg.addEventListener("click",e=>{const b=e.target.closest("button"); if(b) focus(b.dataset.k);});
+  const est=PIE.filter(d=>!d.rest).reduce((a,d)=>a+d.est,0);
+  document.getElementById("unl").textContent=`Striped is estimated: ${fmtm(est)}, the median of your own past rows for that practice. Solid is logged.`; }
+document.getElementById("foot").textContent = DATA.read;
+</script>

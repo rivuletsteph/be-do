@@ -1,0 +1,21 @@
+# data — the user's rows, days and catalogue. Never ships.
+*.json
+!*.example.json
+
+# …but a plugin manifest is code, not data, and `*.json` above would swallow it
+# silently: `git add` refuses it and `git status` never mentions it.
+!.claude-plugin/*.json
+!plugins/*/.claude-plugin/*.json
+
+# local
+bedo_local.py
+
+# builds and scratch
+look-behind-*.html
+canon_daily_*.html
+*.bak
+__pycache__/
+_to_delete/
+*_local.json
+.gh-token
+*.json.dump
