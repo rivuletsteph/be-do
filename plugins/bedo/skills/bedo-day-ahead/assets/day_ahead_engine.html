@@ -1,0 +1,231 @@
+<meta charset="utf-8">
+<title>The Day Ahead</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* the day ahead — engine. Nothing personal here: every word about the day comes from DATA. */
+:root{
+  --ground:#14161b; --card:#1b1e25; --card2:#20242c; --ink:#ebe7df; --muted:#a3a2aa; --faint:#72747d; --rule:#2d323c;
+  --accent:#EFA038; --accent-soft:rgba(239,160,56,.13); --dest:#9BC4F5; --dest-soft:rgba(155,196,245,.12);
+  --past:#e08a7a; --past-soft:rgba(224,138,122,.13); --kid:#97D8A3;
+  --serif:"Spectral",Georgia,serif; --sans:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font:15px/1.5 var(--sans);margin:0;padding-inline:16px;padding-block:22px 56px}
+.wrap{max-width:620px;margin:0 auto;display:grid;gap:30px;min-width:0}
+section{min-width:0}
+.chip{font:500 12px/1.3 var(--mono);color:var(--faint);letter-spacing:.02em;margin:0 0 8px;white-space:nowrap;overflow-x:auto}
+h1{font:600 clamp(28px,8vw,36px)/1.08 var(--serif);margin:0;text-wrap:balance}
+.lead{margin:8px 0 0;color:var(--muted);font-size:15px;max-width:60ch}
+h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
+.sub{margin:0 0 12px;color:var(--faint);font-size:12.5px}
+.draft{font:500 10.5px var(--mono);color:var(--accent);border:1px dashed var(--accent);border-radius:999px;padding:1px 8px;margin-left:6px}
+.tag{font:500 10.5px/1 var(--sans);letter-spacing:.06em;text-transform:lowercase;border:1px solid var(--rule);border-radius:999px;padding:4px 9px;color:var(--muted);white-space:nowrap;display:inline-block}
+
+/* the week's word + secure base */
+.frame{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:stretch}
+.word{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:14px 16px}
+.word .k{font:500 11px var(--mono);color:var(--faint);text-transform:lowercase;letter-spacing:.06em}
+.word .w{font:600 30px/1.05 var(--serif);color:var(--accent);margin:4px 0 6px}
+.word q{color:var(--muted);font-size:13px;quotes:none}
+.base{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;max-width:190px}
+.base .k{font:500 11px var(--mono);color:var(--faint);letter-spacing:.06em}
+.base .s{font:600 20px var(--serif);color:var(--kid);margin:4px 0}
+.base q{color:var(--muted);font-size:12px;quotes:none;line-height:1.4}
+@media (max-width:460px){.frame{grid-template-columns:1fr}.base{max-width:none}}
+
+/* the three */
+.three{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.rec{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:13px 15px;display:grid;gap:6px}
+.rec .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rec .kind{font:500 10.5px var(--mono);color:var(--accent);text-transform:lowercase;letter-spacing:.05em}
+.rec .drive{font-size:11.5px;color:var(--dest);margin-left:auto}
+.rec .what{font:500 16px/1.35 var(--sans);margin:0;overflow-wrap:anywhere}
+.rec .why{font-size:13px;color:var(--muted);margin:0;overflow-wrap:anywhere}
+.nextup{margin:10px 0 0;font-size:12.5px;color:var(--faint)}
+.nextup b{font-weight:500;color:var(--muted)}
+
+/* intentions */
+.slots{display:grid;gap:8px;grid-template-columns:repeat(3,1fr)}
+.slot{border:1px dashed var(--rule);border-radius:10px;padding:14px 10px;text-align:center;color:var(--faint);font-size:12.5px}
+.slot b{display:block;font:600 18px var(--serif);color:var(--rule);margin-bottom:2px}
+
+/* map forward */
+.map{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:10px 8px 6px;overflow-x:auto}
+.map svg{display:block;width:100%;height:auto;min-width:320px}
+.map text{font-family:var(--sans);fill:var(--ink)}
+.map .ax{font:400 10px var(--mono);fill:var(--faint)}
+.map .lab{font-size:11.5px;fill:var(--ink)}
+.map .sm{font-size:10px;fill:var(--muted)}
+.dests{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px}
+.dests li{display:flex;gap:8px;align-items:baseline;font-size:13px;color:var(--muted)}
+.dests .n{color:var(--dest);font-weight:500}
+.dests .t{margin-left:auto;font:400 11px var(--mono);color:var(--faint);white-space:nowrap}
+
+/* today and soon */
+.list{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
+.list li{display:grid;grid-template-columns:62px 1fr;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule);font-size:14px;align-items:baseline}
+.list .d{font:500 11px var(--mono);color:var(--accent);white-space:nowrap}
+.list .d.past{color:var(--past)}
+.list .dv{display:block;font-size:11.5px;color:var(--faint);margin-top:1px}
+details.more{margin-top:10px}
+details.more summary{cursor:pointer;color:var(--muted);font-size:13px;list-style:none}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::before{content:"▸ ";color:var(--faint)}
+details.more[open] summary::before{content:"▾ "}
+details.more .list{margin-top:8px}
+summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* fourteen days */
+.days{display:grid;gap:0;border-top:1px solid var(--rule)}
+.day{display:grid;grid-template-columns:62px 1fr;gap:10px;padding:9px 0;border-bottom:1px solid var(--rule)}
+.day .dl{font:500 11.5px/1.35 var(--mono);color:var(--muted)}
+.day.today .dl{color:var(--accent)}
+.day.band{background:linear-gradient(90deg,var(--dest-soft),transparent 70%)}
+.day .items{display:grid;gap:5px;min-width:0}
+.ev{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;font-size:14px}
+.ev .tm{font:400 11px var(--mono);color:var(--faint);min-width:44px}
+.ev .who{font-size:10.5px;color:var(--kid);border:1px solid rgba(151,216,163,.35);border-radius:999px;padding:1px 7px}
+.ev .gap{font-size:10.5px;color:var(--accent);border:1px dashed var(--accent);border-radius:999px;padding:1px 7px}
+.ev .clash{font-size:10.5px;color:var(--past);background:var(--past-soft);border-radius:999px;padding:1px 7px}
+.due{font-size:12.5px;color:var(--muted);padding-left:52px;position:relative;overflow-wrap:anywhere}
+.due::before{content:"due";position:absolute;left:0;font:400 10.5px var(--mono);color:var(--faint);top:1px}
+.open{font-size:12.5px;color:var(--faint)}
+.keyline{display:flex;flex-wrap:wrap;gap:6px 12px;margin:0 0 10px;font-size:11.5px;color:var(--faint)}
+.further{margin-top:12px;background:var(--past-soft);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--ink)}
+.further b{color:var(--past);font-weight:500}
+
+/* sweep */
+.sweep{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.sweep li{display:flex;gap:10px;align-items:baseline;font-size:13.5px;color:var(--muted)}
+.sweep .s{font:400 11px var(--mono);color:var(--faint);white-space:nowrap}
+.sweep .q{margin-left:auto;font-size:11.5px;color:var(--accent);white-space:nowrap}
+
+.prov{font:400 11px/1.5 var(--mono);color:var(--faint);margin:0;border-top:1px solid var(--rule);padding-top:12px}
+@media (prefers-reduced-motion:no-preference){.rec,.day{transition:background .2s}}
+</style>
+
+<div class="wrap" id="page"></div>
+
+<script>const DATA=/*__DATA__*/null;</script>
+<script>
+(function(){
+const D = DATA, $ = (h)=>{const t=document.createElement('template');t.innerHTML=h.trim();return t.content.firstChild;};
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const page = document.getElementById('page');
+if (!D) { page.innerHTML = '<p class="sub">This is the day ahead template. It has no day in it yet &mdash; day_ahead.py fills it with a DATA object when it builds the page.</p>'; return; }
+const day = iso => { const d=new Date(iso+'T12:00:00'); return d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'}).replace(',',''); };
+const short = iso => { const d=new Date(iso+'T12:00:00'); return d.toLocaleDateString('en-US',{weekday:'short',day:'numeric'}).replace(',',''); };
+
+/* header */
+page.append($(`<header>
+  <p class="chip">${esc(D.chip)}${D.draft?' <span class="draft">draft · before your intentions</span>':''}</p>
+  <h1>${esc(D.dateLabel)}</h1>
+  <p class="lead">${esc(D.lead)}</p></header>`));
+
+/* word + secure base */
+if (D.word || D.secure) page.append($(`<section class="frame">
+  ${D.word?`<div class="word"><div class="k">this week's word</div><div class="w">${esc(D.word.word)}</div>${D.word.words?`<q>${esc(D.word.words)}</q>`:''}</div>`:''}
+  ${D.secure?`<div class="base"><div class="k">secure base</div><div class="s">${esc(D.secure.state)}</div>${D.secure.words?`<q>${esc(D.secure.words)}</q>`:''}</div>`:''}
+</section>`));
+
+/* your intentions — empty until you name them */
+const named = D.intentions.filter(Boolean).length;
+page.append($(`<section><h2>your intentions</h2><p class="sub">${named?'named by you this morning — the three below stay be•do\'s recommendation':'yours to name — these stay empty until you do'}</p>
+  <div class="slots">${D.intentions.map((v,i)=>v?`<div class="slot" style="color:var(--ink);border-style:solid"><b style="color:var(--accent)">${i+1}</b>${esc(v)}</div>`:`<div class="slot"><b>${i+1}</b>open</div>`).join('')}</div></section>`));
+
+/* the three */
+const three = $(`<section><h2>three to move</h2><p class="sub">be•do's recommendation — take them, fold them into your own, or leave them</p><ol class="three"></ol></section>`);
+const ol = three.querySelector('ol');
+D.pareto.forEach(p=>ol.append($(`<li class="rec"><div class="top"><span class="kind">${esc(p.kind)}</span><span class="drive">${esc(p.emoji)} ${esc(p.drive)}</span></div>
+  <p class="what">${esc(p.title)}</p><p class="why">${esc(p.why)}</p></li>`)));
+if (D.next && D.next.length) three.append($(`<p class="nextup">if one doesn't fit, next in line: ${D.next.map(n=>`<b>${esc(n.title)}</b>`).join(' · ')}</p>`));
+page.append(three);
+
+/* where they lead — the map forward, drawn only for the three */
+(function(){
+  const M = D.map, W=360, L=10, R=300, NX=336, t0=new Date(M.start+'T12:00:00'), t1=new Date(M.end+'T12:00:00');
+  const X = iso => L + (R-L)*Math.max(0,Math.min(1,(new Date(iso+'T12:00:00')-t0)/(t1-t0)));
+  const lanes = M.lanes, top=34, gap=54, H = top + lanes.length*gap + 14;
+  const destY = {}; M.dests.forEach(d=>{ const ys=lanes.map((l,i)=>l.dest.includes(d.name)?top+18+i*gap:null).filter(v=>v!=null); destY[d.name]=ys.reduce((a,b)=>a+b,0)/ys.length; });
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="the three recommendations, each drawn along its drive to the destination it serves">`;
+  // away stretches
+  M.away.forEach(a=>{ if (new Date(a.b+'T12:00:00')<=t0) return; const x1=X(a.a), x2=X(a.b); s+=`<rect x="${x1}" y="14" width="${Math.max(2,x2-x1)}" height="${H-20}" fill="#9BC4F5" opacity=".10" rx="3"/><text x="${x1+3}" y="${H-8}" class="sm" style="fill:#9BC4F5">${esc(a.title)}</text>`; });
+  // month ticks
+  const m = new Date(t0); m.setDate(1); m.setMonth(m.getMonth()+1);
+  while (m < t1){ const iso=m.toISOString().slice(0,10), x=X(iso); s+=`<line x1="${x}" y1="16" x2="${x}" y2="${H-18}" stroke="#2d323c"/><text x="${x+3}" y="12" class="ax" ${x-L<40?'visibility="hidden"':''}>${m.toLocaleDateString('en-US',{month:'short'}).toLowerCase()}</text>`; m.setMonth(m.getMonth()+1); }
+  s+=`<line x1="${L}" y1="16" x2="${L}" y2="${H-18}" stroke="#EFA038" stroke-width="1.5"/><text x="${L+3}" y="12" class="ax" style="fill:#EFA038">today</text>`;
+  lanes.forEach((l,i)=>{
+    const y = top+18+i*gap, end = l.drive_target ? X(l.drive_target) : R, solid = !!l.drive_target;
+    s+=`<text x="${L+4}" y="${y-9}" class="lab">${esc(l.emoji)} ${esc(l.drive)}</text>`;
+    s+=`<line x1="${L}" y1="${y}" x2="${end}" y2="${y}" stroke="#EFA038" stroke-width="2.5" stroke-linecap="round" ${solid?'':'stroke-dasharray="5 5" opacity=".75"'}/>`;
+    if (solid) s+=`<circle cx="${end}" cy="${y}" r="3.5" fill="#EFA038"/>`;
+    l.dest.forEach(dn=>{ const dy=destY[dn]; if (dy==null) return; const x0 = solid? end : R; s+=`<path d="M${x0} ${y} C ${x0+18} ${y}, ${NX-24} ${dy}, ${NX-12} ${dy}" fill="none" stroke="#9BC4F5" stroke-width="1.4" opacity=".8"/>`; });
+    if (l.step){ const passed = l.step < M.start, x = passed ? L : X(l.step);
+      s+=`<circle cx="${x}" cy="${y}" r="5" fill="${passed?'#14161b':'#EFA038'}" stroke="${passed?'#e08a7a':'#14161b'}" stroke-width="2"/>`;
+      s+=`<text x="${x+8}" y="${y+15}" class="sm" style="fill:${passed?'#e08a7a':'#a3a2aa'}">${passed?'step passed '+esc(short(l.step)):'step '+esc(short(l.step))}</text>`; }
+  });
+  M.dests.forEach(d=>{ const y=destY[d.name]; s+=`<circle cx="${NX}" cy="${y}" r="12" fill="#1b1e25" stroke="#9BC4F5" stroke-width="1.5"/><text x="${NX}" y="${y+4.5}" text-anchor="middle" style="font-size:12px">${esc(d.emoji)}</text>`; });
+  s+='</svg>';
+  const sec = $(`<section><h2>where they lead</h2><p class="sub">each of the three, drawn along its drive to what it serves · solid runs to a drive's own date, dashed is open-ended</p><div class="map">${s}</div><ul class="dests"></ul></section>`);
+  const ul = sec.querySelector('.dests');
+  M.dests.forEach(d=>{ const mine = lanes.filter(l=>l.dest.includes(d.name)).length;
+    ul.append($(`<li><span>${esc(d.emoji)}</span><span><span class="n">${esc(d.name)}</span> — ${mine} of today's three, ${d.feeders} drives in all</span><span class="t">${d.target?'by '+esc(day(d.target)):'no end date'}</span></li>`)); });
+  page.append(sec);
+})();
+
+/* today and soon */
+(function(){
+  const sec = $(`<section><h2>today and soon</h2><p class="sub">dated work in the next three days</p><ul class="list"></ul></section>`);
+  const ul = sec.querySelector('ul');
+  if (!D.soon.length) ul.append($(`<li><span class="d">—</span><span class="open">nothing dated in the next three days</span></li>`));
+  D.soon.forEach(s=>ul.append($(`<li><span class="d">${esc(short(s.date))}</span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}</span></li>`)));
+  if (D.overdue.length){
+    const det = $(`<details class="more"><summary>${D.overdue.length} more with a date already passed — newest first</summary><ul class="list"></ul></details>`);
+    const u2 = det.querySelector('ul');
+    D.overdue.forEach(s=>u2.append($(`<li><span class="d past">${esc(short(s.date))}</span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}</span></li>`)));
+    sec.append(det);
+  }
+  page.append(sec);
+})();
+
+/* the next fourteen days */
+(function(){
+  const sec = $(`<section><h2>the next fourteen days</h2><p class="sub">both calendars, matched against the stream</p>
+    <div class="keyline"><span><span class="gap" style="font-size:10.5px;color:var(--accent);border:1px dashed var(--accent);border-radius:999px;padding:1px 7px">no row yet</span> ${D.gaps} events</span><span><span style="font-size:10.5px;color:var(--past);background:var(--past-soft);border-radius:999px;padding:1px 7px">clash</span> ${D.clashes} events</span></div>
+    <div class="days"></div></section>`);
+  const box = sec.querySelector('.days');
+  // fold runs of band-only days into one line
+  let i=0; const ds=D.days;
+  while (i<ds.length){
+    const d=ds[i];
+    if (d.bands.length && !d.events.length && !d.due.length){
+      let j=i; while (j+1<ds.length && ds[j+1].bands.join()===d.bands.join() && !ds[j+1].events.length && !ds[j+1].due.length) j++;
+      box.append($(`<div class="day band"><div class="dl">${esc(short(d.date))}${j>i?'–<br>'+esc(short(ds[j].date)):''}</div><div class="items"><div class="open" style="color:var(--dest)">${esc(d.bands.join(' · '))} continues</div></div></div>`));
+      i=j+1; continue;
+    }
+    const row = $(`<div class="day${d.today?' today':''}${d.bands.length?' band':''}"><div class="dl">${d.today?'today<br>':''}${esc(short(d.date))}</div><div class="items"></div></div>`);
+    const it = row.querySelector('.items');
+    d.events.forEach(e=>it.append($(`<div class="ev"><span class="tm">${esc(e.when)}</span><span>${esc(e.title)}</span>${e.who!=='you'?`<span class="who">${esc(e.who)}</span>`:''}${e.gap?'<span class="gap">no row yet</span>':''}${(e.clash||[]).map(c=>`<span class="clash">clashes with ${esc(c)}</span>`).join('')}</div>`)));
+    d.due.forEach(t=>it.append($(`<div class="due">${esc(t)}</div>`)));
+    if (!d.events.length && !d.due.length) it.append($(`<div class="open">open</div>`));
+    box.append(row); i++;
+  }
+  if (D.inside && D.inside.length) sec.append($(`<div class="further"><b>further out</b> · ${D.inside.map(x=>`${esc(x.title)} (${esc(x.label)}) falls inside ${esc(x.away)}`).join(' · ')}</div>`));
+  page.append(sec);
+})();
+
+/* still true? */
+if (!D.sunday && D.sweep.length){
+  const sec=$(`<section><h2>still true?</h2><p class="sub">the five oldest things marked in motion</p><ul class="sweep"></ul></section>`);
+  const ul=sec.querySelector('ul');
+  D.sweep.forEach(s=>ul.append($(`<li><span class="s">${esc(short(s.since))}</span><span>${esc(s.title)}</span><span class="q">still true?</span></li>`)));
+  page.append(sec);
+}
+
+/* provenance */
+const P=D.prov;
+page.append($(`<p class="prov">${esc(D.date)} · stream ${esc(P.reads.join(' · '))} · rhythms ${esc(P.rhythms)} · ${P.unique} rows deduped by record id, live base first · ${P.keys} keys, latest row per key · ${P.open} open after the read filter (queue ${P.dropped.queue}, waiting on ${P.dropped.waiting}, media ${P.dropped.media} set aside) · calendars ${esc(P.calendar.window||'')}: ${Object.entries(P.calendar).filter(([k])=>k!=='window').map(([k,v])=>esc(k)+' '+esc(v)).join(', ')}</p>`));
+})();
+</script>

@@ -1,0 +1,84 @@
+{
+  "self_person": "",
+  "week_zero_sunday": "YYYY-MM-DD",
+  "week_zero_number": 0,
+  "utc_offset_hours": 0,
+
+  "rhythms_base": "",
+  "rhythms_table": "",
+  "practices_base": "",
+  "practices_table": "",
+  "connections_base": "",
+  "connections_table": "",
+  "artifact_url": "",
+
+  "noscore_statuses": [],
+  "done_statuses": [],
+  "motion_statuses": [],
+  "zero_practices": [],
+  "zero_practice_groups": [],
+  "zero_when_person_excludes_self": true,
+  "zero_note": "",
+
+  "effort_minute_divisor": 6,
+  "default_effort_band": 1,
+  "tending_types": [],
+  "growing_types": [],
+
+  "highlight_glyphs": {},
+  "intention_practices": [],
+  "slots_max": 3,
+
+  "baseline_days": 0,
+  "baseline_needed": 14,
+
+  "all_day_minutes": 480,
+  "circle_order": [],
+
+  "device_slice": "dev",
+  "device_off": [],
+
+  "pie_max_titles": 4,
+  "pie": [
+    { "k": "bed",  "e": "", "n": "In bed",          "c": "#27306B", "practices": [] },
+    { "k": "move", "e": "", "n": "Moving",          "c": "#2FA39A", "practices": [] },
+    { "k": "food", "e": "", "n": "Food",            "c": "#E0703E", "practices": [] },
+    { "k": "dev",  "e": "", "n": "On a device",     "c": "#8E3FCF", "practices": [] },
+    { "k": "else", "e": "", "n": "Everything else", "c": "#B9B5C4", "rest": true }
+  ],
+
+  "fields": {
+    "stream": {
+      "title": "",
+      "key": "",
+      "details": "",
+      "when": "",
+      "end": "",
+      "status": "",
+      "practice": "",
+      "person": "",
+      "rhythm": "",
+      "wellness": "",
+      "deliv": "",
+      "device": ""
+    },
+    "rhythms": {
+      "name": "",
+      "type": "",
+      "status": "",
+      "emoji": "",
+      "dest": ""
+    },
+    "practices": {
+      "name": "",
+      "band": "",
+      "zero": "",
+      "group": ""
+    },
+    "connections": {
+      "name": "",
+      "short": "",
+      "circles": ""
+    }
+  }
+}
