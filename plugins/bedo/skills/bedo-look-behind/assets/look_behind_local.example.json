@@ -12,6 +12,10 @@
   "connections_table": "",
   "artifact_url": "",
 
+  "calendar_summaries": {},
+  "sync_calendars": [],
+  "time_zone": "",
+
   "noscore_statuses": [],
   "done_statuses": [],
   "motion_statuses": [],
@@ -60,7 +64,10 @@
       "rhythm": "",
       "wellness": "",
       "deliv": "",
-      "device": ""
+      "device": "",
+      "target": "",
+      "event": "",
+      "spent": ""
     },
     "rhythms": {
       "name": "",

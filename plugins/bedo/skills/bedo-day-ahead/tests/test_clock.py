@@ -26,7 +26,7 @@ TODAY = dt.date(2026, 9, 22)       # a Tuesday, so the weekday names are checkab
 SF = dict(title='fldTitle', key='fldKey', details='fldDetails', when='fldWhen',
           end='fldEnd', target='fldTarget', status='fldStatus',
           practice='fldPractice', person='fldPerson', rhythm='fldRhythm',
-          waiting='fldWaiting', queue='fldQueue')
+          waiting='fldWaiting', queue='fldQueue', event='fldEvent')
 RF = dict(name='fldRName', code='fldRCode', type='fldRType', status='fldRStatus',
           target='fldRTarget', parent='fldRParent', emoji='fldREmoji',
           dest='fldRDest', goal='fldRGoal')
@@ -39,6 +39,7 @@ LOCAL = {
     'map_end': '2026-12-31', 'utc_offset_hours': 0,
     'rhythms_base': '', 'rhythms_table': '', 'artifact_url': '',
     'drive_name_example': 'D9 — Example drive', 'note_records': {},
+    'child_calendar': 'other', 'calendar_people': {'other': 'Other'},
     'fields': {'stream': SF, 'rhythms': RF},
 }
 
@@ -55,6 +56,15 @@ STREAM = [{
         SF['rhythm']: 'D9 — Example drive',
         SF['target']: stamp(TODAY + dt.timedelta(days=1), 12, 0),
     },
+}, {
+    # the afternoon event's own row, found by its link and nothing else
+    'id': 'rec00000002', 'createdTime': stamp(TODAY, 6, 5),
+    'cellValuesByFieldId': {
+        SF['title']: 'Something unrelated by name', SF['key']: 'k002',
+        SF['status']: '⬜ intention', SF['practice']: '⚡ action',
+        SF['rhythm']: 'D9 — Example drive',
+        SF['event']: 'https://www.google.com/calendar/event?eid=QUZURVJOT09O',
+    },
 }]
 
 RHYTHMS = [{
@@ -69,25 +79,33 @@ RHYTHMS = [{
 MIDNIGHT = dt.datetime.combine(TODAY, dt.time())
 
 
-def ev(summary, a, b, allday=False):
+def ev(summary, a, b, allday=False, eid=None):
     """An event in the shape the calendar tool hands back."""
     key = 'date' if allday else 'dateTime'
     fmt = (lambda t: t.date().isoformat()) if allday else (lambda t: t.isoformat())
-    return {'summary': summary, 'start': {key: fmt(a)}, 'end': {key: fmt(b)}}
+    e = {'summary': summary, 'start': {key: fmt(a)}, 'end': {key: fmt(b)}}
+    if eid:
+        e['htmlLink'] = f'https://www.google.com/calendar/event?eid={eid}'
+    return e
 
 
 CAL = {'calendars': [{'who': 'you', 'events': [
-    ev('Morning example', MIDNIGHT + dt.timedelta(hours=9, minutes=30),
-       MIDNIGHT + dt.timedelta(hours=10, minutes=30)),
+    # no row yet, and its glyph names a drive: a row is written for it
+    ev('⬜🚐Morning example', MIDNIGHT + dt.timedelta(hours=9, minutes=30),
+       MIDNIGHT + dt.timedelta(hours=10, minutes=30), eid='TU9STklORw'),
     ev('Afternoon example', MIDNIGHT + dt.timedelta(hours=14),
-       MIDNIGHT + dt.timedelta(hours=15)),
+       MIDNIGHT + dt.timedelta(hours=15), eid='QUZURVJOT09O'),
     # runs past midnight, so tomorrow names it by the hour it ends
     ev('Overnight example', MIDNIGHT + dt.timedelta(hours=22),
        MIDNIGHT + dt.timedelta(days=1, hours=1)),
     # a multi-day all-day stay, drawn as a band and named on its first day
     ev('Away example', MIDNIGHT + dt.timedelta(days=3),
        MIDNIGHT + dt.timedelta(days=6), allday=True),
-]}], 'read': {'window': '14 days', 'you': '4/4'}}
+]}, {'who': 'other', 'events': [
+    # the child's event on top of hers: who has him?
+    ev('Child example', MIDNIGHT + dt.timedelta(hours=14, minutes=30),
+       MIDNIGHT + dt.timedelta(hours=15, minutes=30)),
+]}], 'read': {'window': '14 days', 'you': '4/4', 'other': '1/1'}}
 
 
 def dump(records):
@@ -110,7 +128,7 @@ def main():
          '--stream', w('w39.json', dump(STREAM)),
          '--rhythms', w('rhythms.json', dump(RHYTHMS)),
          '--calendar', w('cal.json', CAL),
-         '--template', ENGINE, '--out', out,
+         '--template', ENGINE, '--out', out, '--now', '07:15',
          '--secure', 'secure', '--secure-words', 'an example secure base'],
         capture_output=True, text=True, encoding='utf-8',
         env=dict(os.environ, PYTHONIOENCODING='utf-8'))
@@ -144,6 +162,20 @@ def main():
     # fmt_day, which was always portable — here so the pair stay consistent
     check('a multi-day stay names its last day',
           when_on(3, 'Away example'), 'through Sun 27 Sep')
+
+    # the look-ahead plan, written beside the page
+    P = json.load(open(os.path.join(tmp, 'page.plan.json'), encoding='utf-8'))
+    check('one today row, for the event with no row',
+          [r['event'] for r in P['today_rows']], ['Morning example'])
+    row = P['today_rows'][0]['fields'] if P['today_rows'] else {}
+    check('bucketed off the event glyph', row.get(SF['rhythm']), 'D9 — Example drive')
+    check('keyed at the write, not the event', row.get(SF['key']), '260922_0715')
+    check('targeted at the event', row.get(SF['target']), stamp(TODAY, 9, 30))
+    check('carries the event link', row.get(SF['event']),
+          'https://www.google.com/calendar/event?eid=TU9STklORw')
+    check('the linked event is not rowed again',
+          any(r['event'] == 'Afternoon example' for r in P['today_rows'] + P['today_asks']), False)
+    check("the child's overlap is named", 'child' in [c['kind'] for c in P['conflicts']], True)
 
     # the engine declares its encoding, or every glyph above comes back mojibake
     check('engine declares utf-8', '<meta charset="utf-8">' in html, True)

@@ -75,9 +75,14 @@ contents never pass through the chat.
      week's base (I14). Pass them to the builder live base first (I15).
    - Rhythms: the base and table named in `rhythms_base` and `rhythms_table`
      in the local settings file.
-   - The user's calendars for today plus 14 days: the one labelled `self_calendar`
-     plus each label listed in `other_calendars`, IDs taken from
-     `list_calendars`, never from memory. Leave out the ✖️dropped calendar.
+   - **Every calendar the user named, for today plus 14 days**: the one labelled
+     `self_calendar` plus each label in `other_calendars`. `calendar_summaries`
+     maps each label to the calendar's name as `list_calendars` shows it; take
+     the IDs from `list_calendars` every time, never from memory or a doc. A
+     read-only calendar (`readonly_calendars`) may come back with no events —
+     that is a real read, stated as such. Leave out any calendar not named
+     there (holidays, a dropped-events calendar). *A one-calendar read is how an
+     appointment kept only on the child's calendar went unseen.*
 
    **Where the reads land.** In a claude.ai chat an oversized read saves to
    `/mnt/user-data/tool_results/<tool>_<id>.json`, wrapped as
@@ -96,9 +101,13 @@ contents never pass through the chat.
    `{"calendars":[{"who":"<self_calendar>","events":[…]},{"who":"<an other_calendars label>","events":[…]}],"read":{"window":"…","<self_calendar>":"n/n","<label>":"n/n"}}`.
    The `who` values must match the labels in the local settings file exactly, or
    the builder can't tell the user's events from anyone else's. Each event keeps
-   `summary`, `start` and `end` as the calendar returns them — **all-day dates
-   can stay as `2026-09-20T00:00:00Z`; the builder cuts them to the date.** Add
-   `"recurring": true` when the event has a `recurringEventId`. Before the page
+   `summary`, `start`, `end`, `htmlLink`, `location` and `recurringEventId` as
+   the calendar returns them — **all-day dates can stay as
+   `2026-09-20T00:00:00Z`; the builder cuts them to the date.** Add
+   `"recurring": true` when the event has a `recurringEventId`, and
+   `"transparent": true` when its transparency is `transparent` (an all-day
+   occasion that blocks nothing, which carries no row). **`htmlLink` is not
+   optional**: it is how an event and its row find each other. Before the page
    names an event a gap, check the stream with a `contains` filter on the
    title (I7).
 3. **Secure base.** Today's ⏏️ row, in the user's words. If there isn't one yet,
@@ -110,25 +119,57 @@ contents never pass through the chat.
      --stream w##.json --stream w##-prev.json --rhythms rhythms.json \
      --calendar cal.json --template assets/day_ahead_engine.html \
      --out YYYY-MM-DD-day-ahead.html --secure <state> --secure-words "<their words>" \
-     [--draft]  |  [--intention "…" --intention "…" --intention "…"]
+     --now HH:MM [--draft]  |  [--intention "…" --intention "…" --intention "…"]
    ```
+   `--now` is the local clock read for this write (I12); it keys today's rows.
    If it aborts on a short read, don't build from a partial read. Say which read
    came back short and read it again.
 
    It aborts the same way when the local settings file is missing a field id or
    the clock offset. That is deliberate: a blank id reads every row as empty, and
    the page would look calm and be wrong.
-5. **Publish** to the same artifact, copying the page to
+5. **The plan — the calendar's two horizons.** Beside the page the builder
+   writes `<out>.plan.json`. Draft pass only; the official pass rebuilds the
+   page and leaves the plan alone.
+   - **`today_rows` — written, then shown.** Every event today with no row of
+     its own. The calendar is the record of what is scheduled, so this is
+     recording, not supplying. Each carries its fields by id — title, key,
+     ⬜ intention, ⚡ action, person, datetime (the write), target (the event),
+     the drive read off the event's glyph, and the event link in the stream's
+     `event` field. **Add phase, wellness and device** the usual way (deduced,
+     never asked), then write them in one call and show them as a short list.
+     A row closes ✅ when the event happens.
+   - **`today_asks` — asked, in the one list at the end.** An event whose glyph
+     names no single active drive, or where a row about the same subject is
+     already on today and may be its own. For the second, the answer is usually
+     *link that row*: put the event link on it rather than writing a new one.
+   - **`prep` — drafted, shown, written only on the user's okay.** For each event in the
+     next two weeks (the next one of each recurring series, with a count of the
+     rest), be•do drafts **what it needs prepared** — one short line, read off
+     the event and its drive's open work — and the prep ⬜ row the builder
+     proposes, with its target. **A target the user did not state is supplied, so it
+     is asked** (I3): one numbered list, answered once. Skip anything plainly
+     needing nothing. Written prep rows carry the event link too.
+   - **`conflicts` — named, never resolved.** Overlaps on the user's calendar, a child's
+     event overlapping theirs (who has the child?), a child's event inside a stay
+     elsewhere, a readonly calendar's event over a child's, a day too full
+     (`full_day_hours`, `full_day_events`), and tight travel between two places
+     (`travel_buffer_min`). be•do never schedules.
+   Matching an event to its row goes: the row's `event` link first, then
+   `event_aliases` (the user's own names for a recurring thing), then shared
+   words. **Today is held stricter**: a same-subject row only counts as the
+   event's own if it is timed within the hour; otherwise it becomes an ask.
+6. **Publish** to the same artifact, copying the page to
    `/mnt/user-data/outputs/` first. The link is `artifact_url` in the local
    settings file (title The Day Ahead, favicon 👁️). One living page,
    republished in place, pinned in the sidebar.
-6. **Save the official page** to that week's Drive folder,
+7. **Save the official page** to that week's Drive folder,
    `be•do/<year>-W## <Mon D>/YYYY-MM-DD-day-ahead.html`, and read back a line
    to confirm. The draft isn't saved separately. **A claude.ai chat has no Drive
    commit tool**, and uploading through the Drive connector would pass the whole
    page through the chat. There, skip it and say so in one line: the published
    page and `/mnt/user-data/outputs/` are the copies of record.
-7. **Log the step**: the ◉ 👁️ look ahead row, dawn, with the page URL as its
+8. **Log the step**: the ◉ 👁️ look ahead row, dawn, with the page URL as its
    deliverable and one `[be•do]` line naming the three, the gaps and the clashes.
 
 ## Clock and drive names
@@ -147,8 +188,10 @@ contents never pass through the chat.
 
 ## What the user sees in the chat
 
-One or two lines, not the page again. After the draft: the three, and anything
-the calendar flagged as a clash. After the official pass: one line saying the
+One or two lines, not the page again. After the draft: the three, the today
+rows just written, and anything the calendar flagged as a clash. Then **one
+numbered list** holding every ask — today's asks and the prep drafts with their
+targets — so the user answers once. After the official pass: one line saying the
 page now carries their intentions. The page holds the rest. Don't list the
 overdue pile.
 
@@ -160,7 +203,9 @@ rebuilding.
 
 ## Not built yet
 
-The builder reading Airtable by itself, and firing unattended at dusk.
+The builder reading Airtable by itself, and firing unattended at dusk. The
+other half of the calendar work — mirroring what happened back onto linked
+events — runs at the dusk close, in `bedo-look-behind`.
 
 ## If it can't run here
 

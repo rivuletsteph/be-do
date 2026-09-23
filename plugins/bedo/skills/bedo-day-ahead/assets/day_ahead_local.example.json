@@ -2,6 +2,17 @@
   "self_person": "",
   "self_calendar": "",
   "other_calendars": [],
+  "calendar_summaries": {},
+  "child_calendar": "",
+  "readonly_calendars": [],
+  "calendar_people": {},
+  "event_aliases": {},
+  "work_parents": [],
+  "full_day_hours": 4,
+  "full_day_events": 4,
+  "travel_buffer_min": 45,
+  "stay_hours": 12,
+  "prep_lead_days": 1,
   "own_practices": [],
   "weighing_phrases": [],
   "week_word_title": "",
@@ -27,7 +38,8 @@
       "person": "",
       "rhythm": "",
       "waiting": "",
-      "queue": ""
+      "queue": "",
+      "event": ""
     },
     "rhythms": {
       "name": "",
