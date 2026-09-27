@@ -1,0 +1,54 @@
+{
+ "weekly_name": "w{n} be•do",
+ "stream_table": "tbl…",
+ "week_zero_sunday": "YYYY-MM-DD (a Sunday)",
+ "week_zero_number": 1,
+ "utc_offset_hours": -5,
+ "archive_depth": 3,
+ "system_rhythm": "be•do",
+ "weekly_counts": [
+  "⚡ action check",
+  "📧 clear gmail inbox",
+  "🗺️ map check",
+  "🔅 morning sun",
+  "⚡ intention check",
+  "🤸🏻‍♀️ morning movement",
+  "⭐ highlight",
+  "🪐 evening oura",
+  "🔅 evening sun"
+ ],
+ "tables": {
+  "amendments": [
+   "app…",
+   "tbl…"
+  ],
+  "practices": [
+   "app…",
+   "tbl…"
+  ],
+  "connections": [
+   "app…",
+   "tbl…"
+  ],
+  "emotions": [
+   "app…",
+   "tbl…"
+  ],
+  "rhythms": [
+   "app…",
+   "tbl…"
+  ],
+  "supplies": [
+   "app…",
+   "tbl…"
+  ],
+  "recipes": [
+   "app…",
+   "tbl…"
+  ],
+  "stories": [
+   "app…",
+   "tbl…"
+  ]
+ }
+}
