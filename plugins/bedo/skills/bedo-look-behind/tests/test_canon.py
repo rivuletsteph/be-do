@@ -340,9 +340,15 @@ def main():
         else:
             print(f'  ok   {name}')
 
-    for k in ('chip', 'date', 'title', 'story', 'who', 'highlights', 'photos',
+    for k in ('chip', 'date', 'title', 'story', 'highlights', 'photos',
               'intentions', 'slotsMax', 'read'):
         check(k, D[k], EXPECT[k])
+    # who: 25 Sep 2026 — each person also carries circle, short name and rows
+    # shared, and the order within a circle is by rows shared. The canon checks
+    # who is there and when.
+    check('who', sorted(({'name': p['name'], 'when': p['when']} for p in D['who']),
+                        key=lambda x: x['name']),
+          sorted(EXPECT['who'], key=lambda x: x['name']))
     check('balance.domains', D['balance']['domains'], EXPECT['balance']['domains'])
     check('balance.tending', D['balance']['tending'], EXPECT['balance']['tending'])
     check('balance.growing', D['balance']['growing'], EXPECT['balance']['growing'])

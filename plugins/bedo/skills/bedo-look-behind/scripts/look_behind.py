@@ -42,7 +42,7 @@ import day_pie  # noqa: E402
 # builder's own vocabulary and never change, only the ids behind them do.
 STREAM_KEYS = ('title', 'key', 'details', 'when', 'end', 'status', 'practice',
                'person', 'rhythm', 'wellness', 'deliv')
-OPTIONAL_STREAM_KEYS = ('device',)
+OPTIONAL_STREAM_KEYS = ('device', 'mentioned', 'emotion', 'emoword', 'spent')
 RHYTHM_KEYS = ('name', 'type', 'status', 'emoji', 'dest')
 PRACTICE_KEYS = ('name', 'band', 'zero', 'group')
 CONNECTION_KEYS = ('name', 'short', 'circles')
@@ -213,6 +213,19 @@ def clean_title(t):
     return t.strip()
 
 
+def to_you(t):
+    """be•do's account of a day, turned to speak to her (the page speaks TO
+    her). Sentences about be•do's own bookkeeping are dropped."""
+    sents = [x for x in re.split(r'(?<=[.!?])\s+', t.strip())
+             if x and 'be\u2022do' not in x and not re.search(r'\b(?:written|corrected|marked)\b', x)]
+    t = ' '.join(sents)
+    for a, b in (('She ', 'You '), (' she ', ' you '), (' herself', ' yourself'),
+                 (' her ', ' your '), (' hers', ' yours'), (' her.', ' you.'), (' her,', ' you,')):
+        t = t.replace(a, b)
+    t = re.sub(r'\bCARRIED, your word\.?\s*', '', t).strip()
+    return t[:1].upper() + t[1:]
+
+
 def clock(m):
     """8:40a — minutes from midnight, the way the user writes a time."""
     h, r = divmod(int(m), 60)
@@ -342,8 +355,11 @@ def main():
         pr = norm(r.get('practice'))
         cat = practices.get(pr) or {}
         people = [p.strip() for p in (r.get('person') or '').split(',') if p.strip()]
+        # person = with her or in direct contact; mentioned = came up in that
+        # contact (amendment [id]). Older rows carry no mentioned.
+        ment = [p.strip() for p in (r.get('mentioned') or '').split(',') if p.strip()]
         r = dict(r, _s=s, _e=e, _mins=(e - s) if e else 0, _pr=pr,
-                 _people=people, _title=clean_title(r.get('title')))
+                 _people=people, _mentioned=ment, _title=clean_title(r.get('title')))
         r['_band'] = cat.get('band') or L.get('default_effort_band', 1)
         # Two different questions, and they get different answers.
         #
@@ -363,8 +379,12 @@ def main():
         day_rows.append(r)
     day_rows.sort(key=lambda r: (r['_s'], r['created'] or ''))
 
-    # a container holds other rows; it is an envelope, not an activity
-    _, held = day_pie.containers([dict(r, s=r['_s'], e=r['_e']) for r in day_rows])
+    # a container holds other rows; it is an envelope, not an activity.
+    # V51: A CONTAINER IS NEVER AN ⚡ ACTION — a long stretch of work is the
+    # work, not a frame around it, so actions are kept out of the test.
+    _act = {norm(x) for x in (L.get('action_practices') or ['action'])}
+    _, held = day_pie.containers([dict(r, s=r['_s'], e=r['_e'])
+                                  for r in day_rows if r['_pr'] not in _act])
     held_ids = {r['id'] for r in held}
     for r in day_rows:
         if r['id'] in held_ids:
@@ -372,8 +392,79 @@ def main():
     scoring = [r for r in day_rows if not r['_zero']]
     lived = [r for r in day_rows if not r['_notmine']]
 
+    # ── the day, entry by entry ─────────────────────────────────────────
+    # NOTHING RISES UNLESS IT IS A NAMED KIND OF SIGNAL (26 Sep 2026). The
+    # earlier rule rose anything that wasn't routine, and a day where nearly
+    # every row carries her words rose nearly every row. The kinds that rise
+    # are the ones her system already uses to mark what mattered — they live
+    # in the local settings, so the list is hers to move.
+    #
+    # A CLOSE WITH NO SPAN AND AN OLDER KEY IS BOOKKEEPING, not today. It
+    # leaves the entries and what moved, and is named once as a count.
+    # (V51 already says what moved reads a real span; this applies the same
+    # test to the entries.)
+    rises = {norm(x) for x in (L.get('entry_card_practices') or [])}
+    act_pr = {norm(x) for x in (L.get('action_practices') or ['action'])}
+    moving_st = set(L.get('motion_statuses') or [])
+
+    def key_day(r):
+        """The day a chain was opened, from its key. No key reads as today."""
+        m = re.match(r'(\d{2})(\d{2})(\d{2})_', r.get('key') or '')
+        if not m:
+            return day
+        try:
+            return dt.date(2000 + int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        except ValueError:
+            return day
+
+    def real_span(r):
+        return bool(r['_e'] or r.get('spent'))
+
+    def bookkeeping(r):
+        return (r.get('status') in done_st or r.get('status') in moving_st) \
+            and not real_span(r) and key_day(r) < day
+
+    books = [r for r in lived if bookkeeping(r)]
+    entries = []
+    for r in lived:
+        if bookkeeping(r):
+            continue
+        pr = r['_pr']
+        card = pr in rises or (pr in act_pr and (real_span(r) or key_day(r) == day))
+        m = re.match(r'^([^\w\s]+)', (r.get('practice') or '').strip())
+        e = {'at': clock(r['_s']), 'g': m.group(1) if m else '', 'p': pr,
+             'wd': norm(r.get('wellness'))}
+        if card:
+            words = '\n'.join(ln for ln in her_words(r.get('details')).splitlines()
+                              if not ln.lstrip().startswith('>'))
+            words = re.sub(r'\s+', ' ', words).strip()
+            title = re.sub(r'^[^\w]+', '', r['_title'])
+            emo = r.get('emotion')
+            emo = (emo[0] if isinstance(emo, list) and emo else emo) or ''
+            e.update(card=True, st=(r.get('status') or '').split(' ')[0], t=title,
+                     w=(words[:240].rsplit(' ', 1)[0] + ' \u2026') if len(words) > 240 else
+                       ('' if words == title else words),
+                     rh=r.get('rhythm') or '', emo=(sv(emo) or '')[:1], ew=r.get('emoword') or '',
+                     url=r.get('deliv') or '')
+        entries.append(e)
+    ages = sorted((day - key_day(r)).days for r in books)
+    booked = {'n': len(books), 'oldest': ages[-1] if ages else 0}
+
     # ── balance ──────────────────────────────────────────────────────────
     domains = effort(scoring, L)
+    # what sits under each domain, heaviest first, so the wheel can be opened
+    # and read (25 Sep 2026). Same weight as effort(): minutes over the divisor
+    # for a real span, the practice's band otherwise.
+    div = L.get('effort_minute_divisor') or DIVISOR
+    dom_rows = {k: [] for k in BE + DO}
+    for r in scoring:
+        k = norm(r.get('wellness'))
+        if k in dom_rows:
+            w = (r['_mins'] / div) if r['_mins'] else float(r['_band'])
+            dom_rows[k].append({'t': re.sub(r'^[^\w]+', '', r['_title']),
+                                'w': round(w, 1), 'min': r['_mins'] or None})
+    for k in dom_rows:
+        dom_rows[k].sort(key=lambda x: -x['w'])
     tending, growing = split_do(scoring, rhythms, L)
     note = ' '.join(x for x in (L.get('zero_note') or '',
                                 'Weighted by effort; rows with a real span count their minutes.') if x)
@@ -436,37 +527,90 @@ def main():
     def circle_rank(p):
         c = circles.get(norm(p))
         return order.index(c) if c in order else len(order)
-    who = [{'name': p, 'when': when_of(p)}
-           for p in sorted(first, key=lambda p: (circle_rank(p), first[p]))]
+    # the outer ring: people who came up, hung off whoever they came up with.
+    # A mentioned name with no one but her in person on its row is not drawn.
+    via = {}
+    for r in day_rows:
+        direct = [p for p in r['_people'] if p != self_name]
+        for m in r.get('_mentioned') or []:
+            if m == self_name or m in first:
+                continue
+            for p in direct:
+                via.setdefault(p, [])
+                if m not in via[p]:
+                    via[p].append(m)
+    # grouped by first circle, sized by how many of the day's rows were shared,
+    # as the person text writes them (25 Sep)
+    shared = {p: sum(1 for r in day_rows if p in r['_people']) for p in first}
+    who = [dict({'name': p, 'when': when_of(p),
+                 'circle': circles.get(norm(p)) or '', 'n': shared[p]},
+                **({'via': via[p]} if via.get(p) else {}))
+           for p in sorted(first, key=lambda p: (circle_rank(p), -shared[p], first[p]))]
 
     # ── highlights ───────────────────────────────────────────────────────
     hg = {norm(k): v for k, v in (L.get('highlight_glyphs') or {}).items()}
-    highlights = [{'glyph': hg[r['_pr']], 'text': r['_title']}
+    # one glyph: the practice's own, and the title's leading glyph stripped
+    highlights = [{'glyph': hg[r['_pr']], 'text': re.sub(r'^[^\w]+', '', r['_title'])}
                   for r in day_rows if r['_pr'] in hg]
 
     # ── intentions, and the follow-through ───────────────────────────────
     ip = {norm(x) for x in (L.get('intention_practices') or [])}
     motion = set(L.get('motion_statuses') or [])
+    # One intention check row carries up to three intentions, joined with ' · '
+    # in its title and numbered in her words. Each is its own line on the page
+    # (25 Sep 2026). Each one's outcome is read from the day's ⚡ action check
+    # row, whose title carries a status glyph per intention in the same order;
+    # with no action check, an intention shows no glyph rather than a guess.
+    acp = {norm(x) for x in (L.get('action_check_practices') or ['action check'])}
+    OUTCOME = ('\u2705', '\u25b6\ufe0f', '\u2716\ufe0f', '\u2b1c')   # ✅ ▶️ ✖️ ⬜
+    checks, happened = [], []
+    for r in day_rows:
+        if r['_pr'] in acp:
+            tail = r['_title'].split('\u2014', 1)[-1]
+            checks = [next((g for g in OUTCOME if part.strip().startswith(g)), '')
+                      for part in tail.split('\u00b7')]
+            # a line per intention in the details, glyph first or after an arrow:
+            #   ✅ Show up at the meeting — the check-in ran 10:30 to 11:30 …
+            #   ⚡ movement and the dogs → ✅ met — barre 9:06–9:48 …
+            happened = []
+            for ln in (r.get('details') or '').splitlines():
+                g = next((g for g in OUTCOME if g in ln[:80]), None)
+                if not g or ln.strip().startswith('['):
+                    continue
+                what = ln.split(' \u2014 ', 1)[1] if ' \u2014 ' in ln else ''
+                happened.append((g, to_you(what)))
     intentions = []
     for r in (r for r in day_rows if r['_pr'] in ip):
         st = r.get('status')
+        own = DONE if st in done_st else CARRIED if st in motion else ''
         words = her_words(r.get('details'))
-        sub = (words.splitlines()[0].strip() if words else '')[:120]
-        it = {'set': r['_title'],
-              'glyph': DONE if st in done_st else CARRIED if st in motion else '',
-              'at': clock(r['_s'])}
-        # the engine drops an empty sub or link anyway; leaving the key out
-        # keeps DATA readable when someone opens the page source
-        if sub:
-            it['sub'] = sub
-        if r.get('deliv'):
-            it['url'] = r['deliv']
-        intentions.append(it)
+        items = [t.strip() for t in r['_title'].split('\u00b7') if t.strip()]
+        numbered = [re.sub(r'^\s*\d+[.)]\s*', '', ln).strip()
+                    for ln in re.split(r'(?:^|\s)(?=\d+[.)]\s)', words) if ln.strip()]
+        subs = numbered if len(numbered) == len(items) else []
+        for n, text in enumerate(items):
+            it = {'set': text,
+                  'glyph': (happened[n][0] if len(happened) == len(items) else
+                            checks[n] if len(checks) == len(items) else
+                            own if len(items) == 1 else ''),
+                  'at': clock(r['_s'])}
+            if len(happened) == len(items) and happened[n][1]:
+                it['happened'] = happened[n][1]
+            if subs and subs[n] != text:
+                it['sub'] = subs[n][:120]
+            if r.get('deliv'):
+                it['url'] = r['deliv']
+            intentions.append(it)
 
     # ── what moved a destination forward ─────────────────────────────────
     dests = {}
     for r in lived:
-        if r.get('status') not in done_st:
+        # ✅ done and ▶️ in motion both moved something (V51, what moved); an
+        # in-motion step is marked so the page can say it isn't finished.
+        # A close with no span and an older key is bookkeeping and stays out.
+        if r.get('status') not in done_st and r.get('status') not in motion:
+            continue
+        if bookkeeping(r):
             continue
         dr = rhythms.get(r.get('rhythm') or '')
         if not dr:
@@ -477,9 +621,11 @@ def main():
                 (x for x in rhythms.values() if (x.get('name') or '').endswith(dn)), {})
             d['glyph'] = d['glyph'] or drec.get('emoji') or ''
             item = {'drive': f"{dr.get('emoji') or ''} {dr.get('name') or ''}".strip(),
-                    'text': r['_title'],
+                    'text': re.sub(r'^[^\w]+', '', r['_title']),
                     'min': r['_mins'] or None,
                     'url': r.get('deliv') or None}
+            if r.get('status') in motion:
+                item['motion'] = True
             steps = sub_steps(r.get('details'))
             if steps:
                 item['done'] = steps
@@ -499,8 +645,11 @@ def main():
         'highlights': highlights,
         'photos': [],          # no attachment field in the read — see SKILL.md
         'intentions': intentions,
+        'entries': entries,
+        'books': booked,
+        'circleOrder': L.get('circle_order') or [],
         'balance': {'domains': domains, 'tending': tending, 'growing': growing,
-                    'note': note},
+                    'note': note, 'rows': dom_rows},
         'effectiveness': {
             'secure': a.secure,
             'baselineDays': a.baseline_days if a.baseline_days is not None

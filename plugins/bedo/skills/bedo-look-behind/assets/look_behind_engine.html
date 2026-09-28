@@ -33,6 +33,40 @@ li{display:grid;grid-template-columns:1.9rem 1fr;align-items:baseline}
 .photos img{width:100%;height:100%;object-fit:cover;display:block}
 #list{gap:12px}
 #list li{font-size:.95rem;font-weight:500;line-height:1.4}
+.hap{display:block;font-size:.85rem;font-weight:500;color:var(--ink);margin-top:6px;line-height:1.45}
+.domrows{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.domrows details{background:var(--tint);border-radius:12px;padding:8px 12px}
+.domrows summary{cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:700;font-size:.9rem;list-style:none}
+.domrows summary::-webkit-details-marker{display:none}
+.domrows summary .sw{width:10px;height:10px;border-radius:50%;flex:none}
+.domrows summary small{margin-left:auto;font-weight:500;color:var(--muted);font-size:.75rem}
+.domrows ul{list-style:none;margin:8px 0 2px;padding:0;display:flex;flex-direction:column;gap:4px}
+.domrows li{display:flex;justify-content:space-between;gap:10px;font-size:.85rem;font-weight:500}
+.domrows li span:last-child{font-family:var(--mono);font-size:.72rem;color:var(--muted);white-space:nowrap}
+.domrows details.none summary{color:var(--muted);font-weight:500}
+.entries{display:flex;flex-direction:column;gap:10px}
+.chiprow{display:flex;flex-wrap:wrap;gap:6px;padding-left:4px}
+.echip{font-family:var(--mono);font-size:.72rem;color:var(--muted);border:1px solid var(--rule);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.echip b{font-weight:500;color:var(--soft);margin-right:6px}
+.ecard{background:var(--tint);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
+.ecard .at{font-family:var(--mono);font-size:.72rem;color:var(--muted);padding-top:3px}
+.ecard .hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ecard .pn{font-weight:700;font-size:.95rem}
+.ecard .meta{margin-left:auto;font-family:var(--mono);font-size:.7rem;color:var(--muted);display:flex;gap:8px;align-items:center}
+.ecard .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.ecard .tt{grid-column:2;font-weight:600;font-size:.95rem}
+.ecard .tt a{font-family:var(--mono);font-size:.7rem;font-weight:500;margin-left:6px;color:var(--link)}
+.ecard .ww{grid-column:2;font-size:.88rem;color:var(--soft);line-height:1.5}
+.circles{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:10px}
+.circ{background:var(--tint);border-radius:14px;padding:14px 16px}
+.circl{margin:0 0 10px;font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase}
+.circp{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pchip{display:inline-flex;align-items:baseline;gap:8px;border:1.5px solid;border-radius:999px;padding:5px 14px;font-weight:600;line-height:1.2}
+.pchip small{font-family:var(--mono);font-size:.72rem;font-weight:500;color:var(--muted)}
+.wk{cursor:pointer}.wk.dim{opacity:.25}
+.efilter{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.85rem;color:var(--soft);margin:0 0 10px}
+.efilter .sw{width:10px;height:10px;border-radius:50%}
+.efilter button{margin-left:auto;background:none;border:1px solid var(--rule);border-radius:999px;color:var(--link);font:inherit;font-size:.78rem;padding:3px 12px;cursor:pointer}
 .sub{display:block;font-family:var(--mono);font-size:.7rem;font-weight:400;color:var(--muted);margin-top:3px;line-height:1.4}
 li a{color:inherit;text-decoration-color:var(--faint);text-underline-offset:4px}
 li a:focus-visible{outline:2px solid var(--link);outline-offset:2px;border-radius:3px}
@@ -110,6 +144,9 @@ details.wheel summary:focus-visible{outline:2px solid var(--link);outline-offset
 .person{display:inline-flex;align-items:center;gap:8px;background:var(--tint);border-radius:999px;padding:6px 14px 6px 6px;font-weight:700;font-size:.95rem}
 .person i{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--be);color:#fff;font-style:normal;font-size:.8rem;font-weight:800}
 .person small{font-weight:500;color:var(--muted);font-size:.78rem}
+.pgroup{display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px}
+.via{position:relative;margin-left:10px;border:1px dashed var(--muted);border-radius:999px;padding:3px 10px;font-size:.8rem;font-weight:500;color:var(--muted)}
+.via::before{content:"";position:absolute;left:-11px;top:50%;width:10px;border-top:1px dashed var(--muted)}
 .foot{font-family:var(--mono);font-size:.68rem;color:var(--faint);padding-top:18px;border-top:1px solid var(--rule)}
 </style>
  
@@ -122,14 +159,15 @@ details.wheel summary:focus-visible{outline:2px solid var(--link);outline-offset
   <section aria-label="the day">
     <ul class="story" id="story"></ul>
   </section>
-  <section aria-label="who was there">
-    <p class="label">who was in your day</p>
-    <div class="who" id="who"></div>
-  </section>
   <section aria-label="highlights">
     <p class="label">highlights</p>
     <ul class="hl" id="hl"></ul>
     <div class="photos" id="photos"></div>
+  </section>
+  <section aria-label="who was there">
+    <p class="label">who was in your day</p>
+    <p class="bal-note">Everyone you were with or in touch with, grouped by their first circle and sized by how much of the day you shared.</p>
+    <div class="circles" id="who"></div>
   </section>
   <section aria-label="how the day went">
     <p class="label">how the day went</p>
@@ -149,6 +187,11 @@ details.wheel summary:focus-visible{outline:2px solid var(--link);outline-offset
     <p class="bal-note" id="balnote"></p>
     <details class="wheel" open><summary>open the wheel &#9662;</summary><div id="wheel"></div></details>
   </section>
+  <section aria-label="the day, entry by entry" id="entrysec">
+    <p class="label">the day, entry by entry</p>
+    <p class="efilter" id="efilter" hidden></p>
+    <div class="entries" id="entries"></div>
+  </section>
   <section aria-label="effectiveness">
     <p class="label">effectiveness</p>
     <div class="eff"><span class="effn" id="effn"></span><span class="effl" id="effl"></span></div>
@@ -156,7 +199,7 @@ details.wheel summary:focus-visible{outline:2px solid var(--link);outline-offset
     <p class="bal-note" id="effnote"></p>
     <div class="contrib">
       <div class="ct"><p class="ctl">moved</p><div id="moved"></div></div>
-      <div class="ct"><p class="ctl">follow-through <span id="ftn"></span></p><div class="effdots" id="effdots" aria-hidden="true"></div><ul id="list"></ul></div>
+      <div class="ct"><p class="ctl">follow-through <span id="ftn"></span></p><ul id="list"></ul></div>
     </div>
   </section>
   <div class="foot" id="foot"></div>
@@ -170,7 +213,21 @@ document.getElementById("date").textContent = DATA.date;
 document.getElementById("title").textContent = DATA.title;
 const st = document.getElementById("story");
 DATA.story.forEach(([g,t]) => st.insertAdjacentHTML("beforeend", `<li><span aria-hidden="true">${g}</span><span>${esc(t)}</span></li>`));
-document.getElementById("who").innerHTML = DATA.who.map(p => `<span class="person"><i aria-hidden="true">${esc(p.name[0])}</i>${esc(p.name)}${p.when?`<small>${esc(p.when)}</small>`:""}</span>`).join("");
+// who was in your day — grouped by first circle, sized by rows shared (25 Sep 2026)
+{
+  // circles are coloured by their position in circleOrder, so no circle name lives in the engine
+  const CPAL = ["#5B8DEF","#A77BEA","#E8A13A","#2FA39A","#E0703E","#4E9E62","#9B95AB"], CFALL = "#9B95AB";
+  const order = [...(DATA.circleOrder||[]), ""], groups = {};
+  DATA.who.forEach(p => (groups[p.circle] = groups[p.circle] || []).push(p));
+  const max = Math.max(1, ...DATA.who.map(p => p.n || 1));
+  const keys = [...order.filter(k => groups[k]), ...Object.keys(groups).filter(k => !order.includes(k))];
+  document.getElementById("who").innerHTML = keys.map(k => {
+    const col = CPAL[order.indexOf(k)] || CFALL, ps = groups[k];
+    return `<div class="circ"><p class="circl" style="color:${col}">${esc(k || "no circle yet")} \u00B7 ${ps.length}</p><div class="circp">` +
+      ps.map(p => `<span class="pgroup"><span class="pchip" style="border-color:${col};font-size:${(0.85 + 0.5 * ((p.n||1) / max)).toFixed(2)}rem" title="${esc(p.name)}${p.when ? " \u00B7 " + esc(p.when) : ""}">${esc(p.name)}<small>${p.n || ""}</small></span>` +
+        (p.via || []).map(m => `<span class="via">${esc(m)}</span>`).join("") + `</span>`).join("") + `</div></div>`;
+  }).join("");
+}
 const hl = document.getElementById("hl");
 DATA.highlights.forEach(h => hl.insertAdjacentHTML("beforeend", `<li><span aria-hidden="true">${h.glyph}</span><span>${esc(h.text)}</span></li>`));
 const ph = document.getElementById("photos");
@@ -179,7 +236,7 @@ const ul = document.getElementById("list");
 DATA.intentions.forEach(i => {
   const t = i.url ? `<a href="${esc(i.url)}">${esc(i.set)}</a>` : esc(i.set);
   const sub = [i.at, i.sub].filter(Boolean).map(esc).join(" \u00B7 ");
-  ul.insertAdjacentHTML("beforeend", `<li><span aria-hidden="true">${i.glyph}</span><span>${t}<span class="sub">${sub}</span></span></li>`);
+  ul.insertAdjacentHTML("beforeend", `<li><span aria-hidden="true">${i.glyph}</span><span>${t}<span class="sub">${sub}</span>${i.happened?`<span class="hap">${esc(i.happened)}</span>`:""}</span></li>`);
 });
 for (let n = DATA.intentions.length; n < DATA.slotsMax; n++)
   ul.insertAdjacentHTML("beforeend", `<li class="open" aria-label="open slot"><span></span><span></span></li>`);
@@ -196,6 +253,41 @@ document.getElementById("bar1").innerHTML = `<span class="be" style="width:${pb}
 document.getElementById("bar1").setAttribute("aria-label", `being ${pb} percent, tending ${pt} percent, growing ${pg} percent`);
 document.getElementById("lab1").innerHTML = `<span class="lbe">BE <b>${pb}</b></span><span class="ldo">DO <b>${pt+pg}</b> &nbsp;<span class="sw tend"></span>tending <b>${pt}</b> &nbsp;<span class="lgr"><span class="sw grow"></span>growing <b>${pg}</b></span></span>`;
 document.getElementById("balnote").textContent = B.note;
+// the day, entry by entry — routine sinks to chips, signal rises to cards.
+// Clicking a domain on the wheel shows only that domain's entries (25 Sep 2026).
+let ENTRY_FILTER = "";
+function renderEntries() {
+  if (!DATA.entries) return;
+  const EMO = {"\u{1F7E1}":"#F2C94C","\u{1F7E2}":"#6FCF97","\u{1F534}":"#EB5757","\u{1F535}":"#4C7BD9","⚪":"#BDBDBD"};
+  const list = ENTRY_FILTER ? DATA.entries.filter(e => e.wd === ENTRY_FILTER) : DATA.entries;
+  let html = "", chips = [];
+  const flush = () => { if (chips.length) html += `<div class="chiprow">${chips.join("")}</div>`; chips = []; };
+  list.forEach(e => {
+    if (!e.card) { chips.push(`<span class="echip"><b>${esc(e.at)}</b>${e.g} ${esc(e.p)}</span>`); return; }
+    flush();
+    const meta = [e.rh ? `<span>${esc(e.rh)}</span>` : "", e.ew || e.emo ? `<span>${esc(e.ew)}</span>${EMO[e.emo] ? `<i class="dot" style="background:${EMO[e.emo]}"></i>` : ""}` : ""].join("");
+    html += `<div class="ecard"><span class="at">${esc(e.at)}</span><div class="hd"><span>${e.st}</span><span>${e.g}</span><span class="pn">${esc(e.p)}</span><span class="meta">${meta}</span></div>` +
+      `<div class="tt">${esc(e.t)}${e.url ? `<a href="${esc(e.url)}">↗ link</a>` : ""}</div>` + (e.w ? `<div class="ww">${esc(e.w)}</div>` : "") + `</div>`;
+  });
+  flush();
+  const f = document.getElementById("efilter");
+  if (ENTRY_FILTER) {
+    const n = list.length;
+    f.innerHTML = `<span class="sw" style="background:${DOM[ENTRY_FILTER].c}"></span>showing ${esc(ENTRY_FILTER)} only · ${n} ${n === 1 ? "entry" : "entries"} <button type="button" id="eclear">show the whole day</button>`;
+    f.hidden = false;
+    document.getElementById("eclear").onclick = () => setEntryFilter("");
+  } else { f.hidden = true; f.innerHTML = ""; }
+  const bk = DATA.books;
+  const bkline = (!ENTRY_FILTER && bk && bk.n) ? `<p class="bal-note">caught up on the books \u00B7 ${bk.n} ${bk.n === 1 ? "row" : "rows"} closed today for work done earlier, the oldest ${bk.oldest} days back</p>` : "";
+  document.getElementById("entries").innerHTML = (html || `<p class="bal-note">nothing in ${esc(ENTRY_FILTER)} today</p>`) + bkline;
+}
+function setEntryFilter(k) {
+  ENTRY_FILTER = (k === ENTRY_FILTER) ? "" : k;
+  renderEntries();
+  document.querySelectorAll("[data-k]").forEach(el => el.classList.toggle("dim", !!ENTRY_FILTER && el.dataset.k !== ENTRY_FILTER));
+  if (ENTRY_FILTER) document.getElementById("entrysec").scrollIntoView({behavior: "smooth", block: "start"});
+}
+
 // the wheel, after the 13 Sep build: each mirrored pair is one line through the centre, be to the left, do to the right,
 // outlined in a deeper shade of its own colour. Spoke width grows with the window (after The Wheel and the Core).
 const WIDTH = { day:13, week:19, month:25, season:32, year:40 }, WIN = "day";
@@ -220,7 +312,7 @@ const ICON = {
   fire:  `<path d="M10 18.2c-3.6 0-6-2.4-6-5.6 0-2.6 1.7-4.2 3-5.8.2 1.4.9 2.4 1.8 2.8C8.4 6.4 9.9 3.8 12.2 1.8c-.2 2.6.8 4.2 2 5.8 1 1.4 1.8 2.9 1.8 5 0 3.2-2.4 5.6-6 5.6Z"/>`
 };
 const icon = (k, size) => `<svg viewBox="0 0 20 20" width="${size}" height="${size}" aria-hidden="true" style="overflow:visible"><g fill="${DOM[k].c}" stroke="${DOM[k].d}" stroke-width="1" stroke-linejoin="round">${ICON[k]}</g></svg>`;
-const wicon = (k, x, y, size) => `<g transform="translate(${(x-size/2).toFixed(1)} ${(y-size/2).toFixed(1)}) scale(${size/20})" fill="${DOM[k].c}" stroke="${DOM[k].d}" stroke-width="1" stroke-linejoin="round"><title>${k} ${Math.round(B.domains[k]||0)}</title>${ICON[k]}</g>`;
+const wicon = (k, x, y, size) => `<g data-k="${k}" class="wk" transform="translate(${(x-size/2).toFixed(1)} ${(y-size/2).toFixed(1)}) scale(${size/20})" fill="${DOM[k].c}" stroke="${DOM[k].d}" stroke-width="1" stroke-linejoin="round"><title>${k} ${Math.round(B.domains[k]||0)}</title>${ICON[k]}</g>`;
 const PAIRS = [["body","earth"],["heart","water"],["mind","air"],["spirit","fire"]];
 const vtot = Object.values(B.domains).reduce((a,b)=>a+b,0) || 1, cx = 150, cy = 130, w = WIDTH[WIN];
 const shMax = Math.max(...Object.values(B.domains))/vtot, TOP = Math.max(0.3, Math.ceil(shMax*10)/10);
@@ -234,7 +326,7 @@ ${Array.from({length:Math.round(TOP*10)-1},(_,i)=>(i+1)/10).map(f=>`<circle cx="
 const order = Object.keys(DOM).sort((x,y)=>B.domains[y]-B.domains[x]); // longest drawn first, short spokes stay on top
 for (const k of order) { const v = B.domains[k]||0, cap = (w+5)/2, L = Math.max(rOf(v/vtot) - cap, 0.01), [x,y] = wpt(DOM[k].a, L); // the rounded tip lands exactly on the value
   svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${DOM[k].d}" stroke-width="${w+5}" stroke-linecap="round"/>`;
-  svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${DOM[k].c}" stroke-width="${w}" stroke-linecap="round"><title>${k} ${Math.round(v)}</title></line>`; }
+  svg += `<line data-k="${k}" class="wk" x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${DOM[k].c}" stroke-width="${w}" stroke-linecap="round"><title>${k} ${Math.round(v)} · click to see its entries</title></line>`; }
 svg += `<defs><radialGradient id="dwarf"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EDEBFF"/></radialGradient>
 <radialGradient id="halo"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".95"/><stop offset=".35" stop-color="#F3F0FF" stop-opacity=".55"/><stop offset="1" stop-color="#E4DEFF" stop-opacity="0"/></radialGradient></defs>
 <circle cx="${cx}" cy="${cy}" r="24" fill="url(#halo)"/><circle cx="${cx}" cy="${cy}" r="8" fill="url(#dwarf)" stroke="var(--core-rim)" stroke-width=".8"/>`;
@@ -242,10 +334,12 @@ for (const k in DOM) { const [x,y] = wpt(DOM[k].a, 114); svg += wicon(k, +x, +y,
 svg += `</svg>`;
 let leg = `<div class="legend">`;
 for (const [be, dv] of PAIRS) { leg += `<div class="pair" style="border-left-color:${DOM[be].c}">`;
-  for (const k of [dv, be]) leg += `<div class="lrow"><span class="lic">${icon(k,15)}</span><span class="lnm" style="color:${DOM[k].d}">${k}</span><span class="ldf">${DOM[k].f}</span><span class="lvl">${Math.round((B.domains[k]||0)/vtot*100)}%</span></div>`;
+  for (const k of [dv, be]) leg += `<div class="lrow wk" data-k="${k}"><span class="lic">${icon(k,15)}</span><span class="lnm" style="color:${DOM[k].d}">${k}</span><span class="ldf">${DOM[k].f}</span><span class="lvl">${Math.round((B.domains[k]||0)/vtot*100)}%</span></div>`;
   leg += `</div>`; }
 leg += `</div>`;
-document.getElementById("wheel").innerHTML = `<div class="wheelwrap">${svg}<p class="bal-note" style="text-align:center">rings every 10% of the day \u00B7 the outer ring is ${Math.round(TOP*100)}%</p>${leg}</div>`;
+document.getElementById("wheel").innerHTML = `<div class="wheelwrap">${svg}<p class="bal-note" style="text-align:center">click a domain to see its entries</p><p class="bal-note" style="text-align:center">rings every 10% of the day \u00B7 the outer ring is ${Math.round(TOP*100)}%</p>${leg}</div>`;
+document.querySelectorAll("#wheel [data-k]").forEach(el => el.addEventListener("click", () => setEntryFilter(el.dataset.k)));
+renderEntries();
  
 // effectiveness, in the user's words: the time put into things that moves the ball forward on drives that feed destinations.
 // Tending (the dishes) is not scored here; it holds up the secure base that gates this reading.
@@ -262,11 +356,11 @@ if (E.secure === "secure") {
 }
 document.getElementById("usual").textContent = E.usualMin ? `${Math.round(mins/E.usualMin*100)}% of your effectiveness baseline (${hm(E.usualMin)})` : `effectiveness baseline still forming \u00B7 ${E.baselineDays} of ${E.baselineNeeded} clean days`;
 document.getElementById("moved").innerHTML = `<div class="dest">` + E.destinations.map(d => `<div><h4><span class="dg">${d.glyph||""}</span>${esc(d.name)}</h4><ul>` +
-  d.work.map(w => `<li><span>${w.url ? `<a href="${esc(w.url)}">${esc(w.text)}</a>` : esc(w.text)}<span class="drv">${esc(w.drive)}</span>${w.done ? `<span class="subs">${w.done.map(x=>`<span>\u2713 ${esc(x)}</span>`).join("")}</span>` : ""}</span><span class="min">${w.min ? w.min + " min" : ""}</span></li>`).join("") +
+  d.work.map(w => `<li><span>${w.url ? `<a href="${esc(w.url)}">${esc(w.text)}</a>` : esc(w.text)}<span class="drv">${esc(w.drive)}${w.motion ? " \u00B7 in motion" : ""}</span>${w.done ? `<span class="subs">${w.done.map(x=>`<span>\u2713 ${esc(x)}</span>`).join("")}</span>` : ""}</span><span class="min">${w.min ? w.min + " min" : ""}</span></li>`).join("") +
   `</ul></div>`).join("") + `</div>`;
 const set = DATA.intentions.length, met = DATA.intentions.filter(i=>i.glyph==="\u2705").length, car = DATA.intentions.filter(i=>i.glyph==="\u25B6\uFE0F").length;
 document.getElementById("ftn").textContent = `${met} of ${set} met` + (car ? ` \u00B7 ${car} carried` : "");
-document.getElementById("effdots").innerHTML = DATA.intentions.map(i => `<i class="${i.glyph==="\u2705"?"met":i.glyph==="\u25B6\uFE0F"?"car":""}"></i>`).join("");
+
  
 // how the day went: midnight to midnight. Each slice is solid for logged minutes and striped where the minutes are estimated from the day's rows.
 const PIE = DATA.pie, fmtm = m => { m=Math.round(m); const h=Math.floor(m/60), r=m%60; return h ? (r ? `${h} h ${String(r).padStart(2,"0")}` : `${h} h`) : `${r} min`; };
