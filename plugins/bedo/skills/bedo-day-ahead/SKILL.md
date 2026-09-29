@@ -9,10 +9,22 @@ The 👁️ look ahead step IS this page. When the dawn flow reaches that step,
 build it without being asked. In the user's words: *I'd like to have it linked
 to the Look Ahead practice so it automatically generates.*
 
-**This skill is self-contained.** The builder, the page engine and the user's
-settings travel inside it, so it runs in any project or none. Updating it means
-uploading a new zip of this folder in Settings. Nothing here depends on project
-files.
+**This folder is the skill; what is installed is a loader.** The copy installed
+in claude.ai is two files — a loader `SKILL.md` and the user's own
+`assets/day_ahead_local.json` — and the loader fetches this folder fresh from
+the version store on every run, so a stale copy can never build a page. That
+means:
+
+- **A change here needs no upload.** Push it to the version store and the next
+  run picks it up.
+- **Never upload this folder over the installed skill.** That replaces the
+  loader with a copy that goes stale at the next change. It happened on 28 Sep
+  2026 and was put back the next morning.
+- **Upload only when the settings file or the loader itself changes**, and then
+  upload the two-file loader zip. The loader is personal — it names the user's
+  calendars — so it is kept with their settings, not in the version store.
+
+Nothing here depends on project files, so it runs in any project or none.
 
 **Nothing in this file is anyone's in particular.** Every specific — the user's
 name, their calendars, the bases and tables, the field ids, the page it
@@ -47,8 +59,9 @@ publish to the same link. Log one 👁️ look ahead row and update it in place 
 the official pass.
 
 **Build from the stable release. Don't redesign it.** Changes to the layout are
-a separate be•do work chat that ends with a new zip of this skill (and a new tag
-in `github.com/rivuletsteph/be-do`, which is the version store).
+a separate be•do work chat that ends with a push and a new tag in
+`github.com/rivuletsteph/be-do`, which is the version store — not with a new
+zip; the installed loader fetches the change by itself.
 
 ## The files, inside this skill
 
