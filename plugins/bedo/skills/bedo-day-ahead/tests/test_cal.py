@@ -121,6 +121,10 @@ tmp = setup(kid=dict(KID, events=KID['events'] + [dict(timed('Gone', 23, 9, 10),
 code, out = run(tmp)
 check('a cancelled event is dropped', code == 0 and 'Kid 1/1' in out, out); shutil.rmtree(tmp)
 
+# a read-only calendar with nothing in the window carries no "events" key at all — a real read of nothing
+tmp = setup(kid={'summary': 'Kid', 'timeZone': 'America/Chicago'}); code, out = run(tmp)
+check('a result with no events key is an empty read', code == 0 and 'Kid 0/0' in out, out); shutil.rmtree(tmp)
+
 drift = dict(KID, events=[dict(timed('Drift', 23, 9, 10), id='someone-else')])
 tmp = setup(kid=drift); code, out = run(tmp)
 check('refuses a link that names another event', code != 0 and 'own id' in out, out); shutil.rmtree(tmp)
