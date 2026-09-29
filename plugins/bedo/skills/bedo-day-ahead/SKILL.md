@@ -52,7 +52,11 @@ in `github.com/rivuletsteph/be-do`, which is the version store).
 
 ## The files, inside this skill
 
+- `run_day_ahead.sh` — the runner: `prep` · `cal` · `fetch` · `build`. Reads
+  Airtable directly with the read-only token, so no row passes through the chat.
 - `scripts/day_ahead.py` — the reader and builder
+- `scripts/bedo_cal.py` — the calendar reader: prints what to fetch from the
+  Calendar connector, checks what was saved, writes `cal.json`
 - `assets/day_ahead_engine.html` — the page, nothing personal in it
 - `assets/day_ahead_local.json` — the user's settings, and the only place a
   specific lives. Personal; this copy of the skill is theirs and is not the one
@@ -62,62 +66,87 @@ in `github.com/rivuletsteph/be-do`, which is the version store).
 - `tests/test_clock.py` — runs the builder over a small fixture and checks the
   times it writes. Run it after any change to the builder, and first of all on
   a machine the builder hasn't run on before.
+- `tests/test_cal.py` — drives the calendar reader and checks what it refuses.
 
-Copy them to a working folder from the directory this SKILL.md was read from
-(`cp -r <skill dir>/scripts <skill dir>/assets /home/claude/da/`). Their
-contents never pass through the chat.
+The runner copies them into the working folder fresh from the version store on
+every `prep`; nothing here is used from a project copy. Three things differ by
+machine and each is an override: `LB_DIR` (the working folder, default
+`/home/claude/da`), `LB_LOCAL` (where `day_ahead_local.json` is copied from if
+not already there) and `LB_OUT` (where the finished page is also copied). The
+Airtable token is `bedo_secrets.json` in the working folder or the folder above
+it, never in the repo. Their contents never pass through the chat.
 
 ## Steps for each pass
 
-1. **Read live, complete or abort** (I13, I11). `list_records_for_table` with
-   pageSize 8000 and every field.
-   - The live weekly stream, `w## be•do` resolved by name, then the previous
-     week's base (I14). Pass them to the builder live base first (I15).
-   - Rhythms: the base and table named in `rhythms_base` and `rhythms_table`
-     in the local settings file.
-   - **Every calendar the user named, for today plus 14 days**: the one labelled
-     `self_calendar` plus each label in `other_calendars`. `calendar_summaries`
-     maps each label to the calendar's name as `list_calendars` shows it; take
-     the IDs from `list_calendars` every time, never from memory or a doc. A
-     read-only calendar (`readonly_calendars`) may come back with no events —
-     that is a real read, stated as such. Leave out any calendar not named
-     there (holidays, a dropped-events calendar). *A one-calendar read is how an
-     appointment kept only on the child's calendar went unseen.*
+1. **Read live, complete or abort** (I13, I11) — one command, no rows through
+   the chat:
+   ```
+   LB_DIR=<working folder> bash run_day_ahead.sh prep YYYY-MM-DD
+   ```
+   `prep` clones the version store, then reads straight from Airtable with the
+   read-only token: the live weekly stream `w## be•do` resolved by name, the
+   previous week's base (I14, passed to the builder live first, I15), and
+   rhythms from `rhythms_base` / `rhythms_table`. Each read is paged to the end
+   or the run aborts; a partial file is never written. It ends by printing the
+   **calendar plan**: the 14-day window and, for each calendar the settings
+   name, the exact `list_events` arguments and the file to save the result to.
 
-   **Where the reads land.** In a claude.ai chat an oversized read saves to
-   `/mnt/user-data/tool_results/<tool>_<id>.json`, wrapped as
-   `[{"text": "<json>"}]`. **The builder unwraps that itself** — `cp` the saved
-   file to `w##.json` and pass it. Name the copies by week so the page's
-   provenance line reads `w39 635/635`.
+   *Without the runner* (a surface that can't run Python), the old path still
+   works: `list_records_for_table` with pageSize 8000 and every field, saved
+   oversized results (`/mnt/user-data/tool_results/…`, wrapped
+   `[{"text": "<json>"}]`, which the builder unwraps itself) copied to
+   `w##.json`, and an inline rhythms read written out as
+   `{"records":[…],"metadata":{"totalRecordCount": n, "read_total": N}}`.
+2. **The calendars, through the connector.** This is the one read that still
+   passes through the chat: the Airtable token cannot read Google Calendar, and
+   on 28 Sep the connector was chosen over Google credentials on disk. Fourteen
+   days of two calendars is a few thousand tokens.
+   - `list_calendars` → save the whole result to `cal/calendars.json`.
+   - For **every calendar the settings name** — `self_calendar` plus each label
+     in `other_calendars`, whose names `calendar_summaries` gives as
+     `list_calendars` shows them — `list_events` with the plan's arguments, the
+     id taken from `calendars.json` every time, never from memory or a doc.
+     Save each result to the file the plan names, `cal/<label>.json`: as
+     returned, or trimmed to `summary`, `nextPageToken` and, per event, `id`,
+     `summary`, `status`, `start`, `end`, `htmlLink`, `location`,
+     `recurringEventId`, `transparency`. A result that carries `nextPageToken`
+     is not finished: fetch the next page and save every page as a list.
+   - Then
+     ```
+     bash run_day_ahead.sh cal YYYY-MM-DD
+     ```
+     writes `cal.json` in the shape the builder reads — `who` is the settings
+     label, `recurring` and `transparent` are marked, `htmlLink` is kept because
+     it is how an event and its row find each other — and prints **one line per
+     event. Read those lines against the calendar before building.** The
+     reader refuses a calendar missing from the list, a result whose `summary`
+     is not that calendar's name (the wrong id), a last page still carrying
+     `nextPageToken`, an event outside the window, an event with no link, and
+     a link that names a different event than its id says. It cannot see an
+     event that was never saved; the read-back is for that.
 
-   **A read small enough to come back inline doesn't save to disk.** Rhythms
-   (about 100 rows) does this. Don't re-read hoping it spills. Write
-   `rhythms.json` from the inline result: `{"records":[…],"metadata":
-   {"totalRecordCount": <rows written>, "read_total": <the full read count>}}`,
-   with every active drive, destination and rhythm and the fields the builder
-   reads (name, code, type, status, target, parent, emoji, destination). With
-   `read_total` set, the page states it honestly: `100/100 (46 active rows used)`.
-2. **Write `cal.json`** in the shape the builder reads:
-   `{"calendars":[{"who":"<self_calendar>","events":[…]},{"who":"<an other_calendars label>","events":[…]}],"read":{"window":"…","<self_calendar>":"n/n","<label>":"n/n"}}`.
-   The `who` values must match the labels in the local settings file exactly, or
-   the builder can't tell the user's events from anyone else's. Each event keeps
-   `summary`, `start`, `end`, `htmlLink`, `location` and `recurringEventId` as
-   the calendar returns them — **all-day dates can stay as
-   `2026-09-20T00:00:00Z`; the builder cuts them to the date.** Add
-   `"recurring": true` when the event has a `recurringEventId`, and
-   `"transparent": true` when its transparency is `transparent` (an all-day
-   occasion that blocks nothing, which carries no row). **`htmlLink` is not
-   optional**: it is how an event and its row find each other. Before the page
-   names an event a gap, check the stream with a `contains` filter on the
+   A read-only calendar (`readonly_calendars`) may come back with no events —
+   that is a real read, stated as such. Leave out any calendar not named in
+   the settings (holidays, a dropped-events calendar). *A one-calendar read is
+   how an appointment kept only on the child's calendar went unseen.* Before the
+   page names an event a gap, check the stream with a `contains` filter on the
    title (I7).
 3. **Secure base.** Today's ⏏️ row, in the user's words. If there isn't one yet,
    ask once and log it before building.
 4. **Build:**
    ```
-   cd /home/claude/da
-   python3 scripts/day_ahead.py --today YYYY-MM-DD --local assets/day_ahead_local.json \
+   bash run_day_ahead.sh build YYYY-MM-DD <state> --secure-words "<their words>" --now HH:MM --draft
+   bash run_day_ahead.sh build YYYY-MM-DD <state> --secure-words "<their words>" --now HH:MM \
+     --intention "…" --intention "…" --intention "…"
+   ```
+   Everything after `<state>` goes to `scripts/day_ahead.py` unchanged. Before
+   the official pass, `bash run_day_ahead.sh fetch YYYY-MM-DD` re-reads the live
+   stream (the intention check writes rows); the calendars are reused within
+   the sitting. The direct call, for a surface without the runner:
+   ```
+   python3 scripts/day_ahead.py --today YYYY-MM-DD --local day_ahead_local.json \
      --stream w##.json --stream w##-prev.json --rhythms rhythms.json \
-     --calendar cal.json --template assets/day_ahead_engine.html \
+     --calendar cal.json --template day_ahead_engine.html \
      --out YYYY-MM-DD-day-ahead.html --secure <state> --secure-words "<their words>" \
      --now HH:MM [--draft]  |  [--intention "…" --intention "…" --intention "…"]
    ```
@@ -203,9 +232,13 @@ rebuilding.
 
 ## Not built yet
 
-The builder reading Airtable by itself, and firing unattended at dusk. The
-other half of the calendar work — mirroring what happened back onto linked
-events — runs at the dusk close, in `bedo-look-behind`.
+Firing unattended at dawn. The Airtable reads no longer need a chat, but the
+calendars still do — on 28 Sep the connector was chosen over Google credentials
+on disk — so step 2 needs a chat present. If that decision is ever reversed, a
+Google-API source slots in behind `bedo_cal.py --build`, which reads saved
+results and knows nothing about where they came from. The other half of the
+calendar work — mirroring what happened back onto linked events — runs at the
+dusk close, in `bedo-look-behind`.
 
 ## If it can't run here
 
