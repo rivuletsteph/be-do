@@ -1,0 +1,8 @@
+# A clone on Windows (core.autocrlf=true) would otherwise check the runners out
+# with CRLF endings, and bash cannot run a CRLF script. Python does not care,
+# but the same rule keeps every script byte-identical on every machine.
+*.sh  text eol=lf
+*.py  text eol=lf
+*.md  text eol=lf
+*.html text eol=lf
+*.json text eol=lf
