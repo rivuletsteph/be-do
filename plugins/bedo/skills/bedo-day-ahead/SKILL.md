@@ -23,6 +23,9 @@ means:
 - **Upload only when the settings file or the loader itself changes**, and then
   upload the two-file loader zip. The loader is personal — it names the user's
   calendars — so it is kept with their settings, not in the version store.
+- **A new settings key means a new upload.** The builder comes fresh but the
+  installed settings do not: a key added to `day_ahead_local.json` reaches a
+  claude.ai chat only when the loader zip is uploaded again.
 
 Nothing here depends on project files, so it runs in any project or none.
 

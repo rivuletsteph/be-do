@@ -10,7 +10,9 @@
 #             build 2026-09-28 secure --secure-words "…" --now 07:10 --intention "…" --intention "…"
 #
 # Needs, in the working folder: day_ahead_local.json (or LB_LOCAL pointing at it) and
-# bedo_secrets.json (there, in the folder above it, or at BEDO_SECRETS). The builder,
+# bedo_secrets.json (there, in the folder above it, or at BEDO_SECRETS). Without the
+# token, prep still clones and prints the calendar plan, says the rows must come through
+# the chat, and exits 3 — a phone or cloud chat never has the token. The builder,
 # the engine, the fetcher and the calendar reader come fresh from the version store on
 # every prep.
 #
@@ -48,13 +50,14 @@ secrets_file() {
   for c in "${BEDO_SECRETS:-}" bedo_secrets.json ../bedo_secrets.json; do
     [ -n "$c" ] && [ -f "$c" ] && { echo "$c"; return 0; }
   done
-  echo "bedo_secrets.json not found in $W or above it — put it there or set BEDO_SECRETS" >&2; exit 1
+  return 1
 }
 
 fetch_airtable() {
   need_local
   [ -f scripts/bedo_fetch.py ] || { echo "scripts/bedo_fetch.py missing — run prep first"; exit 1; }
-  SEC=$(secrets_file)
+  # no token is not a crash: a cloud or phone chat never has one. Say so and let the caller carry on.
+  SEC=$(secrets_file) || { echo "NO TOKEN: bedo_secrets.json not found in $W or above it (set BEDO_SECRETS to point at one)" >&2; return 3; }
   rm -rf data
   "$PY" scripts/bedo_fetch.py --day "$DAY" --local day_ahead_local.json --secrets "$SEC" --out data
 }
@@ -71,9 +74,18 @@ if [ "$MODE" = prep ]; then
   # an escape hatch: anything in overlay/ wins over the version store for this run
   if [ -d overlay ]; then cp overlay/*.py scripts/ 2>/dev/null || true
     cp overlay/day_ahead_engine.html . 2>/dev/null || true; fi
-  fetch_airtable
+  RC=0; fetch_airtable || RC=$?
+  [ "$RC" -eq 0 ] || [ "$RC" -eq 3 ] || exit "$RC"      # a short or failed read stops here (I11)
   rm -rf cal && mkdir cal
   "$PY" scripts/bedo_cal.py --plan --today "$DAY" --local day_ahead_local.json --dir cal
+  if [ "$RC" -eq 3 ]; then
+    # the builder, the engine and the calendar plan are all in place; only the rows are missing
+    mkdir -p data
+    echo "NO TOKEN HERE, so Airtable was not read. Read it through the chat instead (SKILL.md step 1,"
+    echo "'Without the runner'): save the live week and the week before as data/w##.json and rhythms as"
+    echo "data/rhythms.json in $W, then run cal and build as usual. This is the expensive path."
+    exit 3
+  fi
 elif [ "$MODE" = cal ]; then
   need_local
   "$PY" scripts/bedo_cal.py --build --today "$DAY" --local day_ahead_local.json --dir cal --out cal.json

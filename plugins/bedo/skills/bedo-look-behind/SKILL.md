@@ -9,10 +9,25 @@ One day, looked back on. The page is the canon build settled 21 Sep 2026: chip
 and date and lead · the story · who was in your day · highlights · how the day
 went · balance · effectiveness. That order, those sections, nothing else.
 
-**This skill is self-contained.** The builder, the page engine and the user's
-settings travel inside it, so it runs in any project or none. Updating it means
-uploading a new zip of this folder in Settings. Nothing here depends on project
-files.
+**This folder is the skill; what is installed is a loader.** The copy installed
+in claude.ai is two files — a loader `SKILL.md` and the user's own
+`assets/look_behind_local.json` — and the loader fetches this folder fresh from
+the version store on every run, so a stale copy can never build a page. That
+means:
+
+- **A change here needs no upload.** Push it to the version store and the next
+  run picks it up.
+- **Never upload this folder over the installed skill.** That replaces the
+  loader with a copy that goes stale at the next change. It happened to the day
+  ahead on 28 Sep 2026 and was put back the next morning.
+- **Upload only when the settings file or the loader itself changes**, and then
+  upload the two-file loader zip. The loader is personal — it names the user's
+  calendars — so it is kept with their settings, not in the version store.
+- **A new settings key means a new upload.** The builder comes fresh but the
+  installed settings do not: a key added to `look_behind_local.json` reaches a
+  claude.ai chat only when the loader zip is uploaded again.
+
+Nothing here depends on project files, so it runs in any project or none.
 
 **Nothing in this file is anyone's in particular.** Every specific — the user's
 name, the bases and tables, the field ids, the practice-to-slice map, the page
@@ -24,8 +39,8 @@ from an earlier chat. The key to read is named below wherever one is wanted.
 `assets/look_behind_local.example.json` is the blank shape.
 
 **Build from the stable release. Don't redesign it.** Changes to the layout are
-a separate be•do work chat that ends with a new zip of this skill and a new tag
-in the version store.
+a separate be•do work chat that ends with a push and a new tag in the version
+store — not with a new zip; the installed loader fetches the change by itself.
 
 ## Two things on this page are the user's, and you write them
 
