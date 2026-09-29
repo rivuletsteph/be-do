@@ -387,6 +387,40 @@ def main():
               ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
                'Saturday', 'Sunday')), False)
 
+    # ── the draft mark ───────────────────────────────────────────────────
+    # words with no draft key are the user's, and the page carries its own day
+    check('no draft key marks nothing', D['draft'], {'lead': False, 'story': False})
+    check('the page carries its day', D['day'], DAY.isoformat())
+    check('the engine can say draft', 'not yet your words' in html, True)
+
+    def rebuild(name, words):
+        o = os.path.join(tmp, name + '.html')
+        rr = subprocess.run([sys.executable, BUILDER, '--day', DAY.isoformat(),
+                             '--local', p_loc, '--stream', p_stream, '--rhythms', p_rhy,
+                             '--practices', p_pra, '--connections', p_con,
+                             '--typical', p_typ, '--words', w(name + '.json', words),
+                             '--template', ENGINE, '--out', o, '--secure', 'secure'],
+                            capture_output=True, text=True, encoding='utf-8',
+                            env=dict(os.environ, PYTHONIOENCODING='utf-8'))
+        data = None
+        if not rr.returncode:
+            data = json.loads(open(o, encoding='utf-8').read()
+                              .split('const DATA = ', 1)[1].split(';\nconst esc', 1)[0])
+        return rr, data
+
+    rr, D2 = rebuild('drafted', dict(WORDS, day=DAY.isoformat(), draft=True))
+    check('a scheduled draft marks both', D2 and D2['draft'], {'lead': True, 'story': True})
+    check('and the builder says whose words they are',
+          "be\u2022do's draft: lead, story" in (rr.stdout or ''), True)
+    check('a draft changes nothing else on the page',
+          D2 and {k: v for k, v in D2.items() if k != 'draft'},
+          {k: v for k, v in D.items() if k != 'draft'})
+    rr, D3 = rebuild('half', dict(WORDS, draft=['story']))
+    check('an edited lead leaves only the story marked', D3 and D3['draft'], {'lead': False, 'story': True})
+    rr, D4 = rebuild('wrongday', dict(WORDS, day=(DAY - dt.timedelta(days=1)).isoformat()))
+    check("another day's words stop the build",
+          (rr.returncode != 0, 'holds the words for' in (rr.stderr or '')), (True, True))
+
     print()
     if fails:
         print(f'{len(fails)} section(s) do not match the canon:')

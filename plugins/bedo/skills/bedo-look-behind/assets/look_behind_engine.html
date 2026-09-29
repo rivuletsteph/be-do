@@ -16,6 +16,8 @@
 body{background:var(--ground);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
 .wrap{max-width:620px;margin:0 auto;padding-block:32px 48px;padding-inline:16px;display:flex;flex-direction:column}
 .chip{font-family:var(--mono);font-size:.72rem;color:var(--faint)}
+.draft{font:500 .66rem var(--mono);color:var(--be-ink);border:1px dashed var(--be-ink);border-radius:999px;padding:1px 8px;margin-left:6px;white-space:nowrap}
+.title[data-draft],.story[data-draft]{border-left:2px dashed var(--be-ink);padding-left:12px}
 .date{font-size:clamp(2rem,8vw,2.75rem);font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:10px 0 0}
 .title{font-size:clamp(1.3rem,4.8vw,1.55rem);font-weight:600;line-height:1.25;color:var(--soft);margin:8px 0 0;letter-spacing:-.01em}
 section{padding-block:22px;border-top:1px solid var(--rule)}
@@ -213,6 +215,14 @@ document.getElementById("date").textContent = DATA.date;
 document.getElementById("title").textContent = DATA.title;
 const st = document.getElementById("story");
 DATA.story.forEach(([g,t]) => st.insertAdjacentHTML("beforeend", `<li><span aria-hidden="true">${g}</span><span>${esc(t)}</span></li>`));
+// a scheduled run drafts the lead and the story; until they are edited or accepted the page says so
+const DRAFT = DATA.draft || {};
+if (DRAFT.lead || DRAFT.story) {
+  const what = DRAFT.lead && DRAFT.story ? "draft" : DRAFT.lead ? "draft lead" : "draft story";
+  document.getElementById("chip").insertAdjacentHTML("beforeend", ` <span class="draft">${what} · not yet your words</span>`);
+  if (DRAFT.lead) document.getElementById("title").setAttribute("data-draft", "");
+  if (DRAFT.story) st.setAttribute("data-draft", "");
+}
 // who was in your day — grouped by first circle, sized by rows shared (25 Sep 2026)
 {
   // circles are coloured by their position in circleOrder, so no circle name lives in the engine
@@ -385,5 +395,5 @@ document.getElementById("pieT").textContent = `${DATA.date} · 24 hours`;
   lg.addEventListener("click",e=>{const b=e.target.closest("button"); if(b) focus(b.dataset.k);});
   const est=PIE.filter(d=>!d.rest).reduce((a,d)=>a+d.est,0);
   document.getElementById("unl").textContent=`Striped is estimated: ${fmtm(est)}, the median of your own past rows for that practice. Solid is logged.`; }
-document.getElementById("foot").textContent = DATA.read;
+document.getElementById("foot").textContent = DATA.read + ((DRAFT.lead || DRAFT.story) ? " · " + [DRAFT.lead && "lead", DRAFT.story && "story"].filter(Boolean).join(" and ") + " drafted, not yet edited" : "");
 </script>

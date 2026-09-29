@@ -69,9 +69,60 @@ The builder **refuses to build without them**. That is deliberate: a page with
 an empty story reads as a day that didn't happen. `--allow-unwritten` exists for
 a shape check only and never for a page the user will see.
 
+### When nobody is there: the draft
+
+A scheduled run has nobody to show the words to. In the user's words, 28 Sep
+2026 (amendment `[id]`): *the look behind may draft its own lead
+and story for a scheduled run, it just needs to be editable.* So:
+
+- **Draft from the digest, by the same rules as above.** The day's rows and the
+  user's own words in them, never the section totals. A draft is not licence to
+  embroider: no feeling the rows don't name, no verdict on the day.
+- **Write it with `scripts/words.py`, marked as a draft:**
+  ```
+  python3 scripts/words.py --day YYYY-MM-DD --file words-YYYY-MM-DD.json --new --draft \
+    --lead "one line naming the day" --line 🚗 "a stretch" --line 🌙 "another"
+  ```
+  The file carries its day, and the builder refuses words written for another
+  one — yesterday's story on today's page is worse than none.
+- **The page says so.** A dashed mark beside the chip, *draft · not yet your
+  words*, a dashed rule down the side of whichever part is drafted, and a line
+  in the footer. Nothing else on the page changes.
+- **A day with too little on it is not drafted.** If the digest holds nothing
+  to name the day by — no rows, or only the flow's own steps — don't draft and
+  don't publish. Log that the page is waiting, and why.
+- **In a chat with the user present, nothing changes.** Write the words, show
+  them, and leave the mark off. The mark is for words nobody saw before they
+  went on the page.
+
+**Editing is one command, and it never re-reads Airtable.** When the user next
+opens a chat and the page still carries a draft, show them the lead and the
+story as they stand and offer to change them. Whatever they say:
+
+```
+bash run_look_behind.sh words YYYY-MM-DD                                    # read them back, numbered
+bash run_look_behind.sh words YYYY-MM-DD --set-lead "their line" --to-page
+bash run_look_behind.sh words YYYY-MM-DD --set-line 2 🌳 "their stretch" --drop-line 4 --to-page
+bash run_look_behind.sh words YYYY-MM-DD --add-line 3 ☕ "a stretch that was missing" --to-page
+bash run_look_behind.sh words YYYY-MM-DD --accept all --to-page             # fine as they are
+```
+
+What they touch, or accept as it stands, stops being a draft; the other part
+keeps its mark until it is touched too. `--to-page` writes the words into the
+page already built. Then publish the page again and replace the Drive copy.
+**Use their words exactly.** An edit is not a prompt to rewrite the rest.
+
+On a machine with no words file, the same command recovers the words from the
+built page first, so a Drive copy of the page is enough to edit from.
+
 ## The files, inside this skill
 
+- `run_look_behind.sh` — the runner: `prep` reads Airtable directly and prints
+  the day's digest, `build` builds, `words` reads the lead and story back or
+  changes them
 - `scripts/look_behind.py` — the reader and builder
+- `scripts/words.py` — the lead and the story as a file: drafted, read back,
+  changed, carried to a built page
 - `scripts/day_pie.py` — the day's minutes, one slice each
 - `scripts/bedo_common.py` — the pieces the builders share
 - `scripts/calendar_sync.py` — plans the dusk sync of linked calendar events
@@ -85,6 +136,8 @@ a shape check only and never for a page the user will see.
 - `assets/look_behind_local.example.json` — the same shape, empty. This is the
   one that travels when the skill is shared.
 - `tests/test_calendar_sync.py` — runs the sync planner over a fixture
+- `tests/test_words.py` — drafts, edits and carries the words to a page, and
+  checks that what was touched stops being a draft
 - `tests/test_canon.py` — runs the builder against a fixture written backwards
   from the canon page and checks every computed section. Run it after any change
   to the builder.
@@ -126,7 +179,9 @@ contents never pass through the chat.
    the file from the inline result as `{"records":[…],"metadata":
    {"totalRecordCount": <rows written>}}`, carrying the fields named under
    `fields` in the local settings.
-2. **Write `words.json`** — the lead and the story, as above.
+2. **Write the words** — the lead and the story, as above, into
+   `words-YYYY-MM-DD.json` with `scripts/words.py --new`. A scheduled run adds
+   `--draft`. (A hand-written `words.json` still builds.)
 3. **Build:**
    ```
    cd /home/claude/lb
@@ -196,7 +251,10 @@ contents never pass through the chat.
    **happened**, the stream wins. This step is what keeps the two agreeing.
    `tests/test_calendar_sync.py` checks the plan; run it after any change.
 8. **Log the step**: one row for the look behind, dusk, with the page URL as its
-   deliverable.
+   deliverable. **When the words are a draft, the row says so** and carries them
+   in its `[be•do]` block — `draft lead: …` and one `draft story:` line per
+   stretch — so any later chat can see what is waiting to be edited without
+   opening the page.
 
 ## What the builder decides, so you don't have to
 
@@ -251,7 +309,10 @@ The page holds the rest.
 - **Photos.** The canon page reserves up to five thumbnails and hides the strip
   when there are none. The stream carries a photo checkbox but no attachment, so
   there is nothing to draw and the page correctly shows none.
-- **The builder reading Airtable by itself**, and firing unattended at dusk.
+- **Firing unattended at dusk.** The pieces are all here — `run_look_behind.sh`
+  reads Airtable by itself, and a scheduled run may draft the lead and the
+  story — but nothing schedules it yet, and publishing, the Drive copy, the
+  calendar sync and the log row still need a session that can reach them.
 
 ## If it can't run here
 

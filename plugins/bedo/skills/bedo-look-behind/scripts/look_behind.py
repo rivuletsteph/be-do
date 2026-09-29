@@ -326,8 +326,16 @@ def main():
 
     # the user's words, written in the chat, not computed here
     W = json.load(open(a.words, encoding='utf-8')) if a.words else {}
+    if W.get('day') and W['day'] != a.day:
+        die(f"{a.words} holds the words for {W['day']}, not {a.day} — "
+            "yesterday's story on today's page is worse than none")
     lead = a.lead or W.get('lead') or ''
     story = [list(x) for x in (W.get('story') or [])]
+    # which of the two are still be•do's draft (a scheduled run, [id]).
+    # `draft` is true for both, or names the parts; a lead passed by hand is nobody's draft
+    dr = W.get('draft')
+    dr = ['lead', 'story'] if dr is True else [dr] if isinstance(dr, str) else list(dr or [])
+    drafted = [p for p in ('lead', 'story') if p in dr and not (p == 'lead' and a.lead)]
     if not a.allow_unwritten and (not lead or not story):
         die("the lead and the story are the user's and are written in the chat. "
             'Pass them with --words (see SKILL.md), or --allow-unwritten for a shape check.')
@@ -639,8 +647,10 @@ def main():
     DATA = {
         'chip': chip,
         'date': f'{day:%A}, {day.day} {day:%B}',
+        'day': day.isoformat(),
         'title': lead,
         'story': story,
+        'draft': {'lead': 'lead' in drafted, 'story': 'story' in drafted},
         'who': who,
         'highlights': highlights,
         'photos': [],          # no attachment field in the read — see SKILL.md
@@ -679,7 +689,8 @@ def main():
         'highlights': len(highlights), 'intentions': len(intentions),
         'destinations': [d['name'] for d in dests.values()],
         'photos': 'none — no attachment field is read',
-        'lead_and_story': 'written' if (lead and story) else 'UNWRITTEN',
+        'lead_and_story': 'UNWRITTEN' if not (lead and story)
+        else ("be•do's draft: " + ', '.join(drafted)) if drafted else 'written',
     }, ensure_ascii=False, indent=1))
 
 

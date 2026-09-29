@@ -3,7 +3,13 @@
 # except the digest the lead and story are written from.
 #
 #   bash run_look_behind.sh prep  YYYY-MM-DD           # fetch + print the day's digest
-#   bash run_look_behind.sh build YYYY-MM-DD <secure>  # after words.json is written
+#   bash run_look_behind.sh build YYYY-MM-DD <secure>  # after the words are written
+#   bash run_look_behind.sh words YYYY-MM-DD [edits…]  # read the lead and story back, or change them
+#
+# The words live in words-YYYY-MM-DD.json, written with scripts/words.py (a scheduled
+# run adds --draft). `words` with no edits prints them numbered; with --set-lead,
+# --set-line, --drop-line, --add-line or --accept it changes them, and --to-page puts
+# them on the page already built, with no second read. words.json still works.
 #
 # Needs, in the working folder: bedo_fetch.py, day_digest.py, bedo_secrets.json,
 # look_behind_local.json. The builder and engine come fresh from the version store
@@ -17,6 +23,7 @@
 set -euo pipefail
 MODE=${1:-}; DAY=${2:-}; SECURE=${3:-}
 W=${LB_DIR:-/home/claude/lb}; cd "$W"
+export PYTHONUTF8=1 PYTHONIOENCODING=utf-8   # Windows python prints cp1252 by default and dies on an emoji
 
 # Windows ships a python3.exe stub that exists but refuses to run, so prove the
 # interpreter works rather than trusting that it is on the path.
@@ -45,7 +52,7 @@ if [ "$MODE" = prep ]; then
   S=be-do-main/plugins/bedo/skills/bedo-look-behind
   rm -rf scripts && cp -r $S/scripts . && cp $S/assets/look_behind_engine.html .
   # an escape hatch: anything in overlay/ wins over the version store for this run
-  if [ -d overlay ]; then cp overlay/look_behind.py scripts/ 2>/dev/null || true
+  if [ -d overlay ]; then cp overlay/*.py scripts/ 2>/dev/null || true
     cp overlay/look_behind_engine.html . 2>/dev/null || true; fi
   rm -rf data
   "$PY" bedo_fetch.py --day "$DAY" --local look_behind_local.json --secrets bedo_secrets.json --out data
@@ -54,13 +61,27 @@ if [ "$MODE" = prep ]; then
 elif [ "$MODE" = build ]; then
   need_local
   STREAMS=$(ls -r data/w*.json | sed 's/^/--stream /' | tr '\n' ' ')
+  # the day's own words file, unless a words.json written since is newer (the older habit)
+  WORDS=words.json
+  if [ -f "words-$DAY.json" ] && { [ ! -f words.json ] || [ "words-$DAY.json" -nt words.json ]; }; then
+    WORDS="words-$DAY.json"; fi
+  [ -f "$WORDS" ] || { echo "no words for $DAY — write words-$DAY.json with scripts/words.py --new (SKILL.md)"; exit 1; }
+  echo "words: $WORDS"
   "$PY" scripts/look_behind.py --day "$DAY" --local look_behind_local.json $STREAMS \
     --rhythms data/rhythms.json --practices data/practices.json --connections data/connections.json \
-    --words words.json --template look_behind_engine.html \
+    --words "$WORDS" --template look_behind_engine.html \
     --out "$DAY-day-behind.html" --secure "$SECURE"
   OUT=${LB_OUT:-/mnt/user-data/outputs}
   if mkdir -p "$OUT" 2>/dev/null; then cp "$DAY-day-behind.html" "$OUT/"
     echo "also copied to $OUT/"; fi
+elif [ "$MODE" = words ]; then
+  [ -f scripts/words.py ] || { echo "scripts/words.py missing — run prep first"; exit 1; }
+  shift 2
+  "$PY" scripts/words.py --day "$DAY" --file "words-$DAY.json" --page "$DAY-day-behind.html" "$@"
+  case " $* " in *" --to-page "*)
+    OUT=${LB_OUT:-/mnt/user-data/outputs}
+    if mkdir -p "$OUT" 2>/dev/null; then cp "$DAY-day-behind.html" "$OUT/"
+      echo "also copied to $OUT/"; fi;; esac
 else
-  echo "usage: run_look_behind.sh prep|build YYYY-MM-DD [secure]"; exit 2
+  echo "usage: run_look_behind.sh prep|build|words YYYY-MM-DD [secure | edits…]"; exit 2
 fi
