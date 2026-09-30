@@ -55,6 +55,29 @@ def weekno(day, zero_sunday, zero_number):
     return zero_number + (day - dt.date.fromisoformat(zero_sunday)).days // 7
 
 
+def offset_check(L, day):
+    """utc_offset_hours is kept by hand and changes twice a year, and a wrong
+    one puts every time on the page an hour out with nothing saying so. When
+    the settings also name a time_zone and this machine has the zone database,
+    say what the zone's offset is on the day being built. Returns the message,
+    or None when they agree or nothing can be checked."""
+    tz, off = L.get("time_zone"), L.get("utc_offset_hours")
+    if not tz or off is None:
+        return None
+    try:
+        from zoneinfo import ZoneInfo
+        z = ZoneInfo(tz)
+    except Exception:
+        return None
+    real = z.utcoffset(dt.datetime.combine(day, dt.time(12))).total_seconds() / 3600
+    if abs(real - float(off)) < 0.01:
+        return None
+    return (f"utc_offset_hours is {off} but {tz} is UTC{real:+g} on {day} — every time on "
+            f"the page would be an hour out. Change utc_offset_hours to {real:g} in the settings "
+            "file (both files, and the loader zip), and move any cron that is not written in "
+            f"{tz}.")
+
+
 # ── colour, derived ───────────────────────────────────────────────────────
 # One rule for the page: a mark's outline is its own colour, a couple of shades
 # down. Listing both shades by hand is how they drift apart.

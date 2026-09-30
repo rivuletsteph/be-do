@@ -34,7 +34,7 @@ aborts.
 import argparse, json, os, re, sys, datetime as dt
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from bedo_common import complete, die, norm, read_dump, sv, weekno  # noqa: E402
+from bedo_common import complete, die, norm, offset_check, read_dump, sv, weekno  # noqa: E402
 import day_pie  # noqa: E402
 
 # The field maps are the base's, not the builder's. install_local() fills them
@@ -323,6 +323,9 @@ def main():
     L = json.load(open(a.local, encoding='utf-8'))
     install_local(L)
     day = dt.date.fromisoformat(a.day)
+    bad = offset_check(L, day)
+    if bad:
+        die('local settings: ' + bad)
 
     # the user's words, written in the chat, not computed here
     W = json.load(open(a.words, encoding='utf-8')) if a.words else {}

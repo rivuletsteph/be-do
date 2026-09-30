@@ -4,17 +4,19 @@
 #
 #   bash run_day_ahead.sh prep  YYYY-MM-DD            # clone, fetch Airtable direct, print the calendar plan
 #   bash run_day_ahead.sh cal   YYYY-MM-DD            # after the chat saved cal/*.json: check them, write cal.json
-#   bash run_day_ahead.sh fetch YYYY-MM-DD            # Airtable only — the official pass re-reads the live stream
+#   bash run_day_ahead.sh fetch YYYY-MM-DD            # Airtable only — re-read the live stream after the intention check
 #   bash run_day_ahead.sh build YYYY-MM-DD <secure> [builder args…]
-#        e.g. build 2026-09-28 secure --secure-words "…" --now 06:40 --draft
-#             build 2026-09-28 secure --secure-words "…" --now 07:10 --intention "…" --intention "…"
+#        e.g. build 2026-09-28 secure --secure-words "…" --now 07:10 --intention "…" --intention "…" --intention "…"
+#        (one build, the final; --draft still marks a hand-run page as "before your intentions")
 #
 # Needs, in the working folder: day_ahead_local.json (or LB_LOCAL pointing at it) and
-# bedo_secrets.json (there, in the folder above it, or at BEDO_SECRETS). Without the
-# token, prep still clones and prints the calendar plan, says the rows must come through
-# the chat, and exits 3 — a phone or cloud chat never has the token. The builder,
-# the engine, the fetcher and the calendar reader come fresh from the version store on
-# every prep.
+# the Airtable token: bedo_secrets.json (there, in the folder above it, or at
+# BEDO_SECRETS), AIRTABLE_PAT, or — in a Claude cloud session (CLAUDE_CODE_REMOTE=true)
+# — none at all, because the environment's API credential is attached by the proxy
+# after the request leaves the VM. Without any of those, prep still clones and prints
+# the calendar plan, says the rows must come through the chat, and exits 3 — a plain
+# claude.ai chat never has the token. The builder, the engine, the fetcher and the
+# calendar reader come fresh from the version store on every prep.
 #
 # Runs anywhere. Three things differ by machine, and each is an override:
 #   LB_DIR    the working folder          (default /home/claude/da)
@@ -56,10 +58,16 @@ secrets_file() {
 fetch_airtable() {
   need_local
   [ -f scripts/bedo_fetch.py ] || { echo "scripts/bedo_fetch.py missing — run prep first"; exit 1; }
-  # no token is not a crash: a cloud or phone chat never has one. Say so and let the caller carry on.
-  SEC=$(secrets_file) || { echo "NO TOKEN: bedo_secrets.json not found in $W or above it (set BEDO_SECRETS to point at one)" >&2; return 3; }
+  # no token is not a crash: a plain claude.ai chat never has one. Say so and let the caller carry on.
+  # In a Claude cloud session there is no file either, and none is needed: the fetch sends no
+  # Authorization header and the environment's API credential is attached by the proxy.
+  SECARGS=()
+  if SEC=$(secrets_file); then SECARGS=(--secrets "$SEC")
+  elif [ -z "${AIRTABLE_PAT:-}" ] && [ "${CLAUDE_CODE_REMOTE:-}" != true ] && [ -z "${BEDO_PROXY_AUTH:-}" ]; then
+    echo "NO TOKEN: bedo_secrets.json not found in $W or above it (set BEDO_SECRETS to point at one)" >&2; return 3
+  fi
   rm -rf data
-  "$PY" scripts/bedo_fetch.py --day "$DAY" --local day_ahead_local.json --secrets "$SEC" --out data
+  "$PY" scripts/bedo_fetch.py --day "$DAY" --local day_ahead_local.json "${SECARGS[@]}" --out data
 }
 
 [ -n "$DAY" ] || { echo "usage: run_day_ahead.sh prep|cal|fetch|build YYYY-MM-DD [secure] [builder args…]"; exit 2; }

@@ -4,11 +4,24 @@ the builders already read. Nothing personal lives here: every id comes from the
 local settings file, and the token from a secrets file that never ships.
 
     python3 bedo_fetch.py --day YYYY-MM-DD --local look_behind_local.json \
-        --secrets bedo_secrets.json --out .
+        [--secrets bedo_secrets.json] --out .
 
 Writes w##.json (the day's week), w##.json (the week before, when its base
 exists), rhythms.json, practices.json, connections.json. Prints one line per
 file. Nothing about the rows passes through a chat.
+
+Where the token comes from, in this order:
+  AIRTABLE_PAT            the environment variable, when set
+  --secrets FILE          {"airtable_pat": "…"}, when the file exists
+  the proxy credential    in a Claude cloud session (CLAUDE_CODE_REMOTE=true)
+                          the environment carries the read-only token as an
+                          API credential for api.airtable.com, and the agent
+                          proxy attaches it after the request has left the
+                          VM. The request goes out with NO Authorization
+                          header, and the token never reaches this script,
+                          the chat, or a log. BEDO_PROXY_AUTH=1 asks for the
+                          same behaviour anywhere else that has such a proxy.
+Nothing else: with none of the three, the run aborts before it reads.
 
 Rules it keeps:
   I11  a read is paged to the end or the run aborts; a partial file is never
@@ -29,13 +42,31 @@ def die(msg):
     sys.exit('ABORT: ' + msg)
 
 
+def credential(secrets_path):
+    """The token, and where it came from — or None when the proxy will attach
+    it. The source is printed; the token never is."""
+    pat = os.environ.get('AIRTABLE_PAT')
+    if pat:
+        return pat, 'AIRTABLE_PAT'
+    if secrets_path and os.path.exists(secrets_path):
+        try:
+            return json.load(open(secrets_path, encoding='utf-8'))['airtable_pat'], secrets_path
+        except (ValueError, KeyError) as ex:
+            die(f'{secrets_path}: not a secrets file ({ex}) — expected {{"airtable_pat": "…"}}')
+    if os.environ.get('CLAUDE_CODE_REMOTE') == 'true' or os.environ.get('BEDO_PROXY_AUTH'):
+        return None, 'the environment API credential, attached by the proxy'
+    die('no token in hand: set AIRTABLE_PAT, pass --secrets <file>, or run in a '
+        'Claude cloud session whose environment carries the credential for api.airtable.com')
+
+
 class Air:
     def __init__(self, pat):
-        self.pat = pat
+        self.pat = pat            # None: send no Authorization header; the proxy adds one
 
     def get(self, path, params=None):
         url = API + path + ('?' + urllib.parse.urlencode(params, doseq=True) if params else '')
-        req = urllib.request.Request(url, headers={'Authorization': 'Bearer ' + self.pat})
+        headers = {'Authorization': 'Bearer ' + self.pat} if self.pat else {}
+        req = urllib.request.Request(url, headers=headers)
         for attempt in range(4):
             try:
                 with urllib.request.urlopen(req, timeout=60) as r:
@@ -45,6 +76,12 @@ class Air:
                 if e.code == 429 and attempt < 3:
                     time.sleep(30)
                     continue
+                if e.code in (401, 403):
+                    die(f'{path}: HTTP {e.code} — token revoked or rotated? Every place that '
+                        'holds it has to change together: the environment API credential, '
+                        'bedo_secrets.json on each laptop, AIRTABLE_PAT where it is set. '
+                        + ('(this run sent no token and expected the proxy to add one)'
+                           if not self.pat else '(this run sent the token it was given)'))
                 die(f'{path}: HTTP {e.code} {e.read()[:200]!r}')
             except urllib.error.URLError as e:
                 die(f'{path}: cannot reach Airtable ({e.reason}) — is api.airtable.com '
@@ -95,14 +132,15 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--day', required=True)
     ap.add_argument('--local', required=True)
-    ap.add_argument('--secrets', required=True)
+    ap.add_argument('--secrets', help='{"airtable_pat": "…"}; optional where AIRTABLE_PAT or '
+                    'the proxy credential is in place')
     ap.add_argument('--out', default='.')
     ap.add_argument('--weekly-name', default='w{n} be•do',
                     help='how a weekly base is named; {n} is the week number')
     a = ap.parse_args()
 
     L = json.load(open(a.local, encoding='utf-8'))
-    pat = os.environ.get('AIRTABLE_PAT') or json.load(open(a.secrets))['airtable_pat']
+    pat, source = credential(a.secrets)
     air = Air(pat)
     F = L['fields']
     day = dt.date.fromisoformat(a.day)
@@ -165,7 +203,7 @@ def main():
     for fn, d in files.items():
         with open(os.path.join(a.out, fn), 'w', encoding='utf-8') as fh:
             json.dump(d, fh, ensure_ascii=False)
-    print(json.dumps({'day': a.day, 'week': n,
+    print(json.dumps({'day': a.day, 'week': n, 'auth': source,
                       'read': {fn.rsplit('.', 1)[0]: d['metadata']['totalRecordCount']
                                for fn, d in files.items()}}, ensure_ascii=False))
 

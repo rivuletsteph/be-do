@@ -30,19 +30,50 @@ without reading Airtable again.
     # no words file on this machine: recover it from the page
     python3 words.py --day D --file words-D.json --page D-day-behind.html --from-page
 
+    # the log row is the channel from the dusk chat to the morning routine:
+    # print the [be•do] block the row carries …
+    python3 words.py --day D --file words-D.json --row-block
+    # … and, the next morning, recover the words from that row in the stream dump
+    python3 words.py --day D --file words-D.json --local look_behind_local.json \
+        --from-stream data/w40.json [--from-stream data/w39.json]
+
 The file: {"day": "YYYY-MM-DD", "lead": "…", "story": [[glyph, text], …],
 "draft": ["lead", "story"], "by": "be•do"}. `draft` names the parts that are
 still be•do's; an empty list means both are the user's. The builder refuses a
 file whose day is not the day it is building.
 
+The row block (SKILL.md step 8). The dusk chat and the morning routine share
+no file; what they share is the stream. The look behind's log row carries the
+words in its [be•do] block, one line each, and the first line names the day
+and whether the page is still a draft:
+
+    [be•do] look behind 2026-09-28 · draft
+    draft lead: A Monday that did everything by loosening its grip
+    draft story: ☕ Coffee on the back patio from before eight …
+    draft story: 🐶 An evening walk with Buddy and Rosa …
+
+The first line says which PAGE the row stands for — `· draft`, the dusk build
+of a day not yet over, or `· final`, the morning build from the whole day's
+rows (`--row-block --final`). The `draft ` prefix on a line says whose WORDS
+they are: a part the user touched or accepted loses it — `lead: …`,
+`story: …` — and a final page can still carry be•do's draft words, marked.
+`--from-stream` finds the row by its first line (never by title or practice,
+which a chat may write differently), the newest matching row wins, and the
+prefixes say which parts are still be•do's. The routine then edits nothing:
+it builds the final from these words as they stand.
+
 Edits are applied in this order whatever order they are typed in: the lead,
 then --set-line, then --drop-line (highest first), then --add-line. Line
 numbers are the ones --show printed.
 """
-import argparse, json, os, sys
+import argparse, json, os, re, sys
 
 PARTS = ('lead', 'story')
 MARK = 'const DATA = '
+# the first line of the log row's [be•do] block, and the words under it
+ROW_HEAD = re.compile(r'^\[be\u2022do\] look behind (\d{4}-\d{2}-\d{2})(?:\s*\u00b7\s*(draft|final))?\s*$', re.M)
+ROW_LEAD = re.compile(r'^(draft )?lead:\s*(.+?)\s*$', re.M)
+ROW_LINE = re.compile(r'^(draft )?story:\s*(\S+)\s+(.+?)\s*$', re.M)
 
 
 def die(msg):
@@ -120,6 +151,57 @@ def from_page(path, day):
                 draft=norm_draft(D.get('draft')), by=None)
 
 
+def row_block(W, page='draft'):
+    """The [be•do] block for the look behind's log row, carrying these words.
+    `page` is which build the row stands for: the dusk draft or the final."""
+    out = [f"[be\u2022do] look behind {W['day']} \u00b7 {page}"]
+    out.append(('draft ' if 'lead' in W['draft'] else '') + 'lead: ' + W['lead'])
+    for g, t in W['story']:
+        out.append(('draft ' if 'story' in W['draft'] else '') + f'story: {g} {t}')
+    return '\n'.join(out)
+
+
+def parse_block(text):
+    """The words out of a details field, or None when it carries no block."""
+    m = ROW_HEAD.search(text or '')
+    if not m:
+        return None
+    body = text[m.end():]
+    lead = ROW_LEAD.search(body)
+    lines = ROW_LINE.findall(body)
+    draft = []
+    if lead and lead.group(1):
+        draft.append('lead')
+    if lines and any(d for d, _, _ in lines):
+        draft.append('story')
+    return dict(day=m.group(1), page=(m.group(2) or 'draft'), lead=(lead.group(2) if lead else ''),
+                story=[[g, t] for _, g, t in lines], draft=draft, by='be\u2022do' if draft else None)
+
+
+def from_stream(paths, day, local):
+    """The words the dusk chat left in the day's log row. Every dump is read,
+    live base first, and among the rows whose block names this day the newest
+    wins (the row may have been written at dusk and updated since)."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from bedo_common import read_dump
+    L = json.load(open(local, encoding='utf-8'))
+    fs = (L.get('fields') or {}).get('stream') or {}
+    if not fs.get('details'):
+        die('local settings: fields.stream.details is needed to read the row')
+    hits = []
+    for p in paths:
+        for r in (read_dump(p) or {}).get('records') or []:
+            c = r.get('cellValuesByFieldId') or {}
+            W = parse_block(c.get(fs['details']))
+            if W and W['day'] == day:
+                hits.append((r.get('createdTime') or '', r['id'], c.get(fs.get('key')), W))
+    if not hits:
+        return None, None
+    hits.sort()
+    created, rid, key, W = hits[-1]
+    return W, dict(id=rid, key=key, created=created)
+
+
 def to_page(path, W):
     html, D, j, end = page_data(path)
     if D.get('day') and D['day'] != W['day']:
@@ -154,6 +236,13 @@ def main():
     ap.add_argument('--lead')
     ap.add_argument('--line', nargs=2, action='append', metavar=('GLYPH', 'TEXT'), default=[])
     ap.add_argument('--from-page', action='store_true', help='recover the words from --page')
+    ap.add_argument('--from-stream', action='append', default=[], metavar='DUMP',
+                    help="recover the words from the day's look-behind log row in a stream dump (needs --local)")
+    ap.add_argument('--local', help='the settings file, for the stream field ids')
+    ap.add_argument('--row-block', action='store_true',
+                    help="print the [be\u2022do] block for the log row, carrying these words")
+    ap.add_argument('--final', action='store_true',
+                    help='with --row-block: the row stands for the final page, not the dusk draft')
     ap.add_argument('--show', action='store_true')
     ap.add_argument('--set-lead')
     ap.add_argument('--set-line', nargs=3, action='append', metavar=('N', 'GLYPH', 'TEXT'), default=[])
@@ -165,12 +254,21 @@ def main():
 
     edits = bool(a.set_lead or a.set_line or a.drop_line or a.add_line or a.accept)
     if a.new:
-        if edits or a.from_page:
-            die('--new writes a fresh file; it does not combine with edits or --from-page')
+        if edits or a.from_page or a.from_stream:
+            die('--new writes a fresh file; it does not combine with edits, --from-page or --from-stream')
         if not a.lead or not a.line:
             die('--new needs --lead and at least one --line')
         W = dict(day=a.day, lead=a.lead.strip(), story=[[g.strip(), t.strip()] for g, t in a.line],
                  draft=list(PARTS) if a.draft else [], by='be•do' if a.draft else None)
+    elif a.from_stream:
+        if not a.local:
+            die('--from-stream needs --local, for the stream field ids')
+        W, row = from_stream(a.from_stream, a.day, a.local)
+        if not W:
+            sys.exit(f'NO ROW: no look-behind log row for {a.day} carries a words block in '
+                     + ', '.join(a.from_stream) + ' — the routine drafts the words itself, marked')
+        print(f"recovered from row {row['id']}" + (f" ({row['key']})" if row.get('key') else '')
+              + f" \u00b7 the row stands for the {W.pop('page')} page")
     elif a.from_page or not os.path.exists(a.file):
         if not (a.page and os.path.exists(a.page)):
             die(f'{a.file} is not here and there is no page to recover it from'
@@ -205,9 +303,12 @@ def main():
     W['draft'] = [p for p in W['draft'] if p not in touched]
 
     check(W)
-    if a.new or edits or a.from_page or not os.path.exists(a.file):
+    if a.new or edits or a.from_page or a.from_stream or not os.path.exists(a.file):
         save(a.file, W)
     show(W, a.file)
+    if a.row_block:
+        print()
+        print(row_block(W, 'final' if a.final else 'draft'))
     if a.to_page:
         if not (a.page and os.path.exists(a.page)):
             die(f'--to-page: no page at {a.page} — build it first')

@@ -111,6 +111,65 @@ def main():
     check('refuses the bare engine', code != 0, out)
 
     print()
+    # ── the log row is the channel from dusk to morning ──
+    code, out = run('--new', '--draft', '--lead', 'A rebuilt day', '--line', '☕', 'Coffee again',
+                    '--line', WALK, 'The walk, invented', '--row-block', file=os.path.join(tmp, 'row.json'))
+    check('the row block is printed', code == 0 and f'[be\u2022do] look behind {DAY} \u00b7 draft' in out
+          and 'draft lead: A rebuilt day' in out and f'draft story: {WALK} The walk, invented' in out, out)
+    block = out[out.index('[be\u2022do] look behind'):].strip()
+    # the dusk chat writes the block into the row; the morning routine reads it back from the dump
+    local = os.path.join(tmp, 'local.json')
+    json.dump({'fields': {'stream': {'details': 'fldDETAILS', 'key': 'fldKEY'}}}, open(local, 'w'))
+    dump = os.path.join(tmp, 'w99.json')
+    older = block.replace('draft lead: A rebuilt day', 'draft lead: An older draft')
+    edited = block.replace('draft lead: A rebuilt day', 'lead: Her own line')   # she touched the lead at dusk
+    json.dump({'records': [
+        {'id': 'rec1', 'createdTime': '2026-09-22T23:00:00.000Z',
+         'cellValuesByFieldId': {'fldKEY': '260922_2300', 'fldDETAILS': 'her words\n\u2014\u2014\u2014\n' + older}},
+        {'id': 'rec2', 'createdTime': '2026-09-23T04:00:00.000Z',
+         'cellValuesByFieldId': {'fldKEY': '260922_2300', 'fldDETAILS': 'her words\n\u2014\u2014\u2014\n' + edited}},
+        {'id': 'rec3', 'createdTime': '2026-09-23T05:00:00.000Z',
+         'cellValuesByFieldId': {'fldKEY': '260921_2300', 'fldDETAILS': block.replace(DAY, '2026-09-21')}},
+    ], 'metadata': {'totalRecordCount': 3}}, open(dump, 'w', encoding='utf-8'), ensure_ascii=False)
+    f2 = os.path.join(tmp, 'from-row.json')
+    code, out = run('--from-stream', dump, '--local', local, file=f2)
+    W2 = json.load(open(f2, encoding='utf-8'))
+    check('the words come back from the newest row for the day', code == 0 and 'recovered from row rec2' in out, out)
+    check('a lead she touched is hers, the story still a draft',
+          W2['lead'] == 'Her own line' and W2['draft'] == ['story'] and W2['story'][1][0] == WALK, str(W2))
+    check("another day's row is not taken", W2['day'] == DAY)
+    code, out = run('--from-stream', dump, '--local', local, day='2026-09-25', file=os.path.join(tmp, 'none.json'))
+    check('no row for the day says NO ROW', code != 0 and 'NO ROW' in out, out)
+    code, out = run('--row-block', '--final', file=f2)
+    check('--final marks the row as the final page, the words still be•do\'s',
+          f'\u00b7 final' in out and 'draft story:' in out and '\nlead: Her own line' in out, out)
+
+    # ── which days still need a final ──
+    LOG = os.path.join(os.path.dirname(HERE), 'scripts', 'look_behind_log.py')
+    json.dump({'fields': {'stream': {'details': 'fldDETAILS', 'key': 'fldKEY'}},
+               'week_zero_sunday': '2026-05-03', 'week_zero_number': 19}, open(local, 'w'))
+    # a final page can still carry be•do's words, marked: the first line says which build, the prefixes whose words
+    final = block.replace(DAY, '2026-09-20').replace('\u00b7 draft', '\u00b7 final')
+    json.dump({'records': [
+        {'id': 'r1', 'createdTime': '2026-09-21T09:00:00.000Z', 'cellValuesByFieldId': {'fldDETAILS': final}},
+        {'id': 'r2', 'createdTime': '2026-09-23T04:00:00.000Z', 'cellValuesByFieldId': {'fldDETAILS': edited}},
+    ], 'metadata': {'totalRecordCount': 2}}, open(os.path.join(tmp, 'w39.json'), 'w', encoding='utf-8'), ensure_ascii=False)
+    r = subprocess.run([sys.executable, LOG, '--today', '2026-09-24', '--local', local,
+                        '--stream', os.path.join(tmp, 'w39.json'), '--cap', '4'],
+                       capture_output=True, text=True, encoding='utf-8')
+    L = json.loads(r.stdout)
+    states = {d['day']: d['state'] for d in L['days']}
+    check('a final day, a draft day, a missing day and yesterday are told apart',
+          states == {'2026-09-20': 'final', '2026-09-21': 'none', '2026-09-22': 'draft', '2026-09-23': 'none'}, str(states))
+    check('to_build is oldest first and leaves the final out',
+          L['to_build'] == ['2026-09-21', '2026-09-22', '2026-09-23'], str(L['to_build']))
+    r = subprocess.run([sys.executable, LOG, '--today', '2026-09-30', '--local', local,
+                        '--stream', os.path.join(tmp, 'w39.json'), '--cap', '3'],
+                       capture_output=True, text=True, encoding='utf-8')
+    L = json.loads(r.stdout)
+    check('a day whose week was not fetched is unreachable, never built',
+          all(d['state'] == 'unreachable' for d in L['days']) and L['to_build'] == [], r.stdout)
+
     if FAILED:
         print('\n'.join('  FAIL ' + x for x in FAILED)); sys.exit(1)
     print('the words can be drafted, changed and carried to the page.')

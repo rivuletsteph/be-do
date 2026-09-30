@@ -122,9 +122,20 @@ built page first, so a Drive copy of the page is enough to edit from.
   changes them
 - `scripts/look_behind.py` — the reader and builder
 - `scripts/words.py` — the lead and the story as a file: drafted, read back,
-  changed, carried to a built page
+  changed, carried to a built page, and carried through the stream from the
+  dusk chat to the morning routine (`--row-block`, `--from-stream`)
+- `scripts/look_behind_log.py` — which days still need their final, read off
+  the look behind's own log rows; the morning routine's first question
+- `MORNING.md` — the morning routine, step by step: what it reads, what it
+  builds, what it may write, and what it does when a day is missing
 - `scripts/day_pie.py` — the day's minutes, one slice each
-- `scripts/bedo_common.py` — the pieces the builders share
+- `scripts/bedo_fetch.py` — reads Airtable directly: the token from
+  `AIRTABLE_PAT`, a secrets file, or — in a Claude cloud session — from the
+  environment's API credential, attached by the proxy so the session never
+  holds it
+- `scripts/bedo_common.py` — the pieces the builders share, including the
+  clock-offset check that refuses to build when `utc_offset_hours` disagrees
+  with `time_zone` on the day being built (daylight saving ends 1 Nov 2026)
 - `scripts/calendar_sync.py` — plans the dusk sync of linked calendar events
   from the stream; never writes the calendar itself
 - `scripts/typical_time.py` — median durations from the user's own past rows,
@@ -146,85 +157,103 @@ Copy them to a working folder from the directory this SKILL.md was read from
 (`cp -r <skill dir>/scripts <skill dir>/assets /home/claude/lb/`). Their
 contents never pass through the chat.
 
+## Where this runs, and what each place can reach
+
+Three surfaces run this skill, and they differ in one thing: where the
+Airtable token is.
+
+- **A Claude Code cloud session** — claude.ai/code on the laptop, the Code tab
+  of the phone app, and a routine — on an environment that carries the
+  read-only token as an **API credential** for `api.airtable.com`. The fetch
+  sends no `Authorization` header and the proxy attaches the token after the
+  request has left the VM; nothing in the session ever holds it. The settings
+  file is there too, synced with the installed skill
+  (`/root/.claude/skills/synced/*/bedo-look-behind/assets/`), and the runner
+  finds it by itself. The Artifact tool publishes; the Airtable, Calendar and
+  Drive connectors write the row, sync the calendar and save the page. **This
+  is the surface the dusk draft and the morning routine are built for.** A
+  routine created from inside a session carries no connectors (checked 29 Sep
+  2026); one created from the claude.ai routines page can.
+- **The laptop**, with `bedo_secrets.json` in the working folder or the folder
+  above it: the same runner, the same commands. `LB_DIR`, `LB_LOCAL` and
+  `LB_OUT` are the three things that differ by machine (runner header).
+- **A plain claude.ai chat** has neither. The runner's `prep` stops at the
+  fetch with *no token in hand*. There, the old path still works — the rows
+  read through the Airtable connector and saved as `data/w##.json` (an
+  oversized read lands in `/mnt/user-data/tool_results/…`, wrapped
+  `[{"text": "<json>"}]`, which the builder unwraps itself) — at ~45k tokens
+  a build. Say so in one line, and prefer a cloud session.
+
 ## Steps
 
-1. **Read live, complete or abort** (I13, I11). `list_records_for_table` with
-   pageSize 8000 and every field.
-   - The weekly stream for the day's week, `w## be•do` resolved by name. If the
-     day sits near a week boundary, read the neighbouring week too and pass both
-     **live base first** (I15). The builder **dedupes by record id before it
-     resolves any chain**, so a row cloned between bases counts once.
-   - Rhythms: the base and table named in `rhythms_base` and `rhythms_table`.
-   - Practices: `practices_base` and `practices_table`, filtered to active.
-     Optional — without it every practice carries `default_effort_band` and
-     nothing is zeroed by catalogue or by group.
-   - Connections: `connections_base` and `connections_table`. **This is the
-     fourth saved read and it is not optional in practice** — it is where the
-     circles come from, and without it the people chips fall back to plain
-     order of appearance. Carry the name, the short name and the circles field.
-     A person sits in several circles and **the first one listed is the one
-     they are grouped by**; the builder takes that one and ignores the rest.
-     It matches on either the full name or the short one, with any glyph in
-     front stripped, because the stream's person field carries whichever one
-     the user typed.
+Every step is one runner command. Nothing about the rows passes through the
+chat except the digest the words are written from.
 
-   **Where the reads land.** In a claude.ai chat an oversized read saves to
-   `/mnt/user-data/tool_results/<tool>_<id>.json`, wrapped as
-   `[{"text": "<json>"}]`. **The builder unwraps that itself** — `cp` the saved
-   file to `w##.json` and pass it. Name the copies by week so the page's
-   provenance line reads `w39 · 635/635`.
-
-   **A read small enough to come back inline doesn't save to disk.** Rhythms,
-   practices and connections all do this. Don't re-read hoping it spills. Write
-   the file from the inline result as `{"records":[…],"metadata":
-   {"totalRecordCount": <rows written>}}`, carrying the fields named under
-   `fields` in the local settings.
-2. **Write the words** — the lead and the story, as above, into
-   `words-YYYY-MM-DD.json` with `scripts/words.py --new`. A scheduled run adds
-   `--draft`. (A hand-written `words.json` still builds.)
-3. **Build:**
+1. **Prep** — `LB_DIR=<working folder> bash run_look_behind.sh prep YYYY-MM-DD`
+   Clones the version store fresh, reads Airtable directly — the day's week
+   `w## be•do` resolved by name, the week before it (I14, passed to the builder
+   live first, I15), rhythms, practices and connections, each paged to the end
+   or the run aborts (I11) — and prints the day's digest: one line per logged
+   row, the user's words above the divider. **On the first day of a new week
+   it aborts until the new base is cloned** (the Sunday close does that): say
+   so and stop; never fall back to the old week's base.
+2. **Words** — the lead and the story, from the digest, by the rules above.
+   With the user present:
    ```
-   cd /home/claude/lb
-   python3 scripts/look_behind.py --day YYYY-MM-DD \
-     --local assets/look_behind_local.json --stream w##.json [--stream w##-prev.json] \
-     --rhythms rhythms.json --practices practices.json --connections connections.json \
-     [--typical typical_time.json] \
-     --words words.json --template assets/look_behind_engine.html \
-     --out YYYY-MM-DD-day-behind.html --secure <state> [--baseline-days N] [--usual-min N]
+   bash run_look_behind.sh words YYYY-MM-DD --new --lead "…" --line 🚗 "…" --line 🌙 "…"
    ```
-   If it aborts on a short read, don't build from a partial read. Say which read
-   came back short and read it again.
-
-   It aborts the same way when the local settings file is missing a field id or
-   the clock offset. That is deliberate: a blank id reads every row as empty, and
-   the page would look calm and be wrong.
-4. **Check what it printed.** The builder prints what it did, and three lines
-   are worth reading before publishing:
-   - `estimates_trimmed_min` above zero means the logged and estimated minutes
-     overran twenty-four hours and estimates were cut to fit. Say so in the chat.
-   - `containers_set_aside` names how many rows held other rows and scored
-     nothing — a trip, a field day. Expected on a travel day, odd on a quiet one.
-   - `destinations` empty on a working day usually means rows are missing a
-     drive, not that nothing moved.
-   - `circles_read` at zero means the connections read didn't arrive and the
-     people chips are in bare order of appearance.
-5. **Publish** to the same artifact, copying the page to `/mnt/user-data/outputs/`
-   first. The link is `artifact_url` in the local settings file. One living page,
-   republished in place.
-6. **Save the page** to that week's Drive folder,
-   `be•do/<year>-W## <Mon D>/YYYY-MM-DD-day-behind.html`, and read back a line to
-   confirm. **A claude.ai chat has no Drive commit tool**, and uploading through
-   the Drive connector would pass the whole page through the chat. There, skip it
-   and say so in one line: the published page and `/mnt/user-data/outputs/` are
-   the copies of record.
-7. **Sync the calendar from the stream.** The stream is the record of what
+   shown to them, and left unmarked. Nobody present, or the day not over yet:
+   add `--draft`. Either way, `bash run_look_behind.sh words YYYY-MM-DD
+   --row-block` prints the `[be•do]` block the log row carries (step 7).
+3. **Secure base** — the day's ⏏️ row is in the digest: `secure`, or the other
+   state as the row names it. **No row:** `secure` is the assumed default
+   since 29 Sep 2026 — the ⏏️ row is no longer written every day, and the other
+   state is written only when the user names a knock-back — so build `secure`
+   and say the row was absent. (Her word on this is still being asked for;
+   until it comes, this is the rule.)
+4. **Build** — `bash run_look_behind.sh build YYYY-MM-DD <state>`
+   Read what it printed (below) before publishing. If it aborts on a short
+   read, don't build from a partial read: read again. It aborts the same way
+   on a missing field id, a missing clock offset, or an offset that disagrees
+   with `time_zone` on that day — all three are the settings file's to fix,
+   never worked around.
+5. **Publish** to the living page: the Artifact tool, `url` set to
+   `artifact_url` from the settings file, the same file path every day. One
+   living page, republished in place; every republish is kept as a version.
+6. **Save the page to Drive**, in the folder of its own week:
+   `be•do/<year>-W## <Mon D>/YYYY-MM-DD-day-behind.html` — the folder named for
+   the week number and its Sunday, no leading zero. Search the folder by name;
+   create a missing one by the same rule and say so; if a file of that name is
+   already there, say what it replaces before replacing it. From the cloud this
+   is the Drive connector — `create_file` with `contentMimeType` `text/html` and
+   conversion off — and the page passes through the chat, about 20k tokens a
+   page (measured 29 Sep 2026: a 57 KB page). `\uXXXX` escapes in the engine's
+   script come out as the characters they name, which renders identically and
+   is not byte-identical; read back the file's size to confirm the save. A
+   surface with no Drive tool skips this and says so in one line.
+7. **Log the step**: one row for the look behind, dusk, the page URL as its
+   deliverable, and in its details, under the divider, **the block from
+   `--row-block`, exactly as printed**:
+   ```
+   [be•do] look behind YYYY-MM-DD · draft
+   draft lead: …
+   draft story: 🚗 …
+   ```
+   The first line is how the morning routine finds the row and knows which
+   build it stands for — `· draft` at dusk, `· final` once the morning has
+   built from the whole day's rows (`--row-block --final`) — never by the
+   row's title or practice, which a chat may write differently. The `draft `
+   prefix on a line says whose words they are: a part the user touches or
+   accepts loses it. When the words change later, rewrite the block in place
+   (`--row-block` again, the rest of the details carried forward verbatim).
+8. **Sync the calendar from the stream.** The stream is the record of what
    happened; the calendar mirrors it. Every row tied to an event carries the
    event's link in its `event` field, and at the dusk close each linked event
    takes the row's status as its title prefix (⬜ → ✅ / ✖️) and, when the row
    holds a real span, its real times. The script plans; the chat writes.
    ```
    python3 scripts/calendar_sync.py --list --day YYYY-MM-DD \
-     --local assets/look_behind_local.json --stream w##.json [--stream w##-prev.json]
+     --local look_behind_local.json --stream data/w##.json [--stream data/w##-prev.json]
    ```
    Fetch each listed event fresh with `get_event` (its `calendar_id` and
    `event_id` are in the list) and save them to `events.json` with the
@@ -232,7 +261,7 @@ contents never pass through the chat.
    `calendars.json`. Then:
    ```
    python3 scripts/calendar_sync.py --plan --day YYYY-MM-DD \
-     --local assets/look_behind_local.json --stream w##.json [--stream w##-prev.json] \
+     --local look_behind_local.json --stream data/w##.json [--stream data/w##-prev.json] \
      --events events.json --calendars calendars.json --out sync-plan.json
    ```
    Make each change in `changes` with `update_event`, passing exactly the
@@ -250,11 +279,39 @@ contents never pass through the chat.
    For what was **scheduled**, the calendar is authoritative; for what
    **happened**, the stream wins. This step is what keeps the two agreeing.
    `tests/test_calendar_sync.py` checks the plan; run it after any change.
-8. **Log the step**: one row for the look behind, dusk, with the page URL as its
-   deliverable. **When the words are a draft, the row says so** and carries them
-   in its `[be•do]` block — `draft lead: …` and one `draft story:` line per
-   stretch — so any later chat can see what is waiting to be edited without
-   opening the page.
+
+**Check what the build printed** before publishing. Three lines are worth
+reading:
+- `estimates_trimmed_min` above zero means the logged and estimated minutes
+  overran twenty-four hours and estimates were cut to fit. Say so in the chat.
+- `containers_set_aside` names how many rows held other rows and scored
+  nothing — a trip, a field day. Expected on a travel day, odd on a quiet one.
+- `destinations` empty on a working day usually means rows are missing a
+  drive, not that nothing moved.
+- `circles_read` at zero means the connections read didn't arrive and the
+  people chips are in bare order of appearance.
+
+## Dusk, on call: the draft
+
+At the end of the dusk flow, in whatever chat is running it, build the day's
+look behind **as a draft** and show it. The day is not over — sleep and the
+late rows land after — and the words are be•do's until the user says
+otherwise, so the mark is right. Steps 1–7 above with `--draft` at step 2;
+the calendar sync (step 8) runs here too, at the dusk close, as before.
+
+If the user edits the words there and then, the parts they touch stop being
+a draft (`words … --set-lead … --to-page`, republish), and the log row's block
+is rewritten to match. The morning routine builds the final from whatever the
+row says in the morning.
+
+## Morning, by itself: the routine
+
+A cloud routine, due at 03:00 in the user's time zone, finishes yesterday's
+look behind: re-reads the rows, takes the words from the dusk row, builds the
+final, publishes, saves. **It builds yesterday, never today**, states the date
+it built in its first line, and if it missed a day builds each missed day in
+order, oldest first. The whole of it is in `MORNING.md`, which the routine
+reads from the version store on every run.
 
 ## What the builder decides, so you don't have to
 
@@ -309,12 +366,14 @@ The page holds the rest.
 - **Photos.** The canon page reserves up to five thumbnails and hides the strip
   when there are none. The stream carries a photo checkbox but no attachment, so
   there is nothing to draw and the page correctly shows none.
-- **Firing unattended at dusk.** The pieces are all here — `run_look_behind.sh`
-  reads Airtable by itself, and a scheduled run may draft the lead and the
-  story — but nothing schedules it yet, and publishing, the Drive copy, the
-  calendar sync and the log row still need a session that can reach them.
+- **A routine with connectors.** A routine created from inside a session
+  carries no connectors, so it can read Airtable (the credential), build and
+  publish (the Artifact tool), but cannot write the log row, save to Drive or
+  sync the calendar until it is created from the claude.ai routines page with
+  those attached. `MORNING.md` says what to do in each case.
 
 ## If it can't run here
 
 If this surface can't save the reads to disk or run Python, say so in one line
-and offer to run it from a Cowork session on the user's laptop, which can.
+and offer to run it from a Claude Code cloud session (the phone app's Code tab
+reaches the same environment as claude.ai/code) or from the laptop, which can.
