@@ -13,6 +13,30 @@ This repository is the version store: skill work happens here and nowhere else,
 and the settings files in the table above are gitignored — they hold one
 person's own ids and never ship.
 
+## Where the Airtable token is
+
+`scripts/bedo_fetch.py` (kept with the look behind, copied by the day ahead's
+runner) reads Airtable directly with a read-only token, and finds it in this
+order: `AIRTABLE_PAT`, a `--secrets` file (`{"airtable_pat": "…"}`, kept outside
+the repo), or — in a Claude Code cloud session, `CLAUDE_CODE_REMOTE=true` —
+none at all. There the environment carries the token as an **API credential**
+for `api.airtable.com`: the fetch sends its requests with no `Authorization`
+header and the agent proxy attaches one after the request has left the VM, so
+the token never reaches the session, a log, a page or a commit. A 401 or 403
+aborts with *token revoked or rotated?* — every place that holds the token
+changes together, or a forgotten one fails loudly. With none of the three the
+fetch aborts before it reads. A plain claude.ai chat has none, and the day
+ahead's runner says so and exits 3.
+
+## The clock offset changes twice a year
+
+`utc_offset_hours` in both settings files is kept by hand: `-5` in daylight
+time, `-6` after 1 Nov 2026. Both builders compare it with `time_zone` on the
+day being built and refuse to build when the two disagree, so a stale offset
+fails loudly instead of putting every time on the page an hour out. A routine's
+cron is written in the zone (`CRON_TZ=America/Chicago 0 3 * * *`) so the clock
+change does not move it.
+
 ## Local settings — `day_ahead_local.json`
 
 Nothing personal lives in the builder or the engine. Names, calendar labels,
@@ -63,6 +87,15 @@ Two sections are not computed. **The lead and the story are the user's**,
 written in the chat from the day's rows and passed in through `--words`. The
 builder refuses to build without them rather than ship a page with a hole where the
 day's own account of itself should be.
+
+`scripts/words.py` keeps them: drafted (`--new --draft`, for a run with nobody
+present), read back, changed, carried to a built page (`--to-page`), and
+carried through the stream from the dusk chat to the morning routine. The look
+behind's log row holds them in its `[be•do]` block — `--row-block` prints it,
+`--from-stream` reads it back out of a stream dump — and the first line of the
+block says which page the row stands for (`· draft` at dusk, `· final` in the
+morning). `scripts/look_behind_log.py` reads those rows to say which days still
+need their final; `MORNING.md` is the routine that builds them.
 
 ## Local settings — `look_behind_local.json`
 

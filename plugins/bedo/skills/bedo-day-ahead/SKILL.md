@@ -1,6 +1,6 @@
 ---
 name: "bedo-day-ahead"
-description: "Build The Day Ahead page from the stable release. Use at the 👁️ look ahead step of the dawn flow, unasked (a draft before the intention check, the official version after it), or when the user asks for the day ahead or the look ahead."
+description: "Build The Day Ahead page from the stable release. Use at the 👁️ look ahead step of the dawn flow, unasked — one build, the final, after the intention check — or when the user asks for the day ahead or the look ahead."
 ---
 
 # The day ahead
@@ -37,29 +37,28 @@ earlier chat. The key to read is named below wherever one is wanted.
 `assets/day_ahead_local.example.json` is the blank shape, and the README
 explains the four keys that aren't self-evident.
 
-## Two passes, in this order
+## One pass, the final
 
-In the user's words: *I'd like for the secure base practice to fire first, then
-look ahead as a draft, then the intention check, and then the look ahead can
-potentially integrate the intentions and produce the official version.*
+**The day ahead is one build, the final. No draft page** (decided 29 Sep
+2026; until then the dawn ran two passes, a draft before the intention check
+and the official version after it). The dawn flow's order is now:
 
-1. **⏏️ secure base** — the user's to set, never deduced. Log their words as the
-   ⏏️ row. **Check the stream for one already written today first**, from any
-   chat: one row per practice. If one exists, use it.
-2. **👁️ look ahead, draft** — build with `--draft`. The page carries a
-   "draft · before your intentions" mark and empty intention slots.
-3. **⚡ intention check** — the user names their own intentions, in their own
+1. **⏏️ secure base** — the user's to set, never deduced. **Check the stream
+   for one already written today first**, from any chat: one row per practice.
+   Since 29 Sep 2026 the ⏏️ row is no longer written every day: `secure` is
+   the assumed default, and the other state is written only when the user
+   names a knock-back. No row means `secure`.
+2. **⚡ intention check** — the user names their own intentions, in their own
    words. They may fold the three into their own framing, or ignore them.
-4. **👁️ look ahead, official** — rebuild with each intention passed as
-   `--intention "…"`, exactly as the user said it, and without `--draft`. Their
-   intentions fill the slots. The three stay be•do's recommendation; don't
-   rewrite them to match the user's intentions.
+3. **👁️ look ahead, the final** — one build, with each intention passed as
+   `--intention "…"`, exactly as the user said it, and without `--draft`. The
+   three stay be•do's recommendation; don't rewrite them to match the user's
+   intentions. The plan file is written on every build, so nothing the draft
+   pass used to produce is lost — today's rows, the asks and the prep drafts
+   come out of this one build.
 
-**The official pass re-reads the live stream** — the intention check nearly
-always writes rows (retargets on the three, the ⚡ intention check row). Rhythms
-and the calendars from the draft can be reused within the sitting. Both passes
-publish to the same link. Log one 👁️ look ahead row and update it in place for
-the official pass.
+`--draft` still exists on the builder and the runner for a hand run that wants
+the "before your intentions" mark; the flow never uses it.
 
 **Build from the stable release. Don't redesign it.** Changes to the layout are
 a separate be•do work chat that ends with a push and a new tag in
@@ -88,11 +87,26 @@ The runner copies them into the working folder fresh from the version store on
 every `prep`; nothing here is used from a project copy. Three things differ by
 machine and each is an override: `LB_DIR` (the working folder, default
 `/home/claude/da`), `LB_LOCAL` (where `day_ahead_local.json` is copied from if
-not already there) and `LB_OUT` (where the finished page is also copied). The
-Airtable token is `bedo_secrets.json` in the working folder or the folder above
-it, never in the repo. Their contents never pass through the chat.
+not already there) and `LB_OUT` (where the finished page is also copied). Their
+contents never pass through the chat.
 
-## Steps for each pass
+**Where the Airtable token is** decides which surface this runs on:
+
+- **A Claude Code cloud session** — claude.ai/code, the Code tab of the phone
+  app, a routine — on an environment carrying the read-only token as an API
+  credential for `api.airtable.com`: the fetch sends no `Authorization` header
+  and the proxy attaches the token after the request leaves the VM. The
+  session never holds it. The settings file is synced there with the installed
+  skill (`/root/.claude/skills/synced/*/bedo-day-ahead/assets/`) and the runner
+  finds it by itself. The calendars come through the Calendar connector, which
+  on this surface returns `htmlLink`, `id`, `recurringEventId` and
+  `transparency` as the reader expects (checked 29 Sep 2026).
+- **The laptop**: `bedo_secrets.json` in the working folder or the folder above
+  it, never in the repo.
+- **A plain claude.ai chat** has neither: `prep` still clones and prints the
+  calendar plan, says the rows must come through the chat, and exits 3.
+
+## Steps
 
 1. **Read live, complete or abort** (I13, I11) — one command, no rows through
    the chat:
@@ -147,35 +161,36 @@ it, never in the repo. Their contents never pass through the chat.
    how an appointment kept only on the child's calendar went unseen.* Before the
    page names an event a gap, check the stream with a `contains` filter on the
    title (I7).
-3. **Secure base.** Today's ⏏️ row, in the user's words. If there isn't one yet,
-   ask once and log it before building.
-4. **Build:**
+3. **Secure base.** Today's ⏏️ row, in the user's words, if there is one;
+   otherwise `secure`, the assumed default, with no words.
+4. **The intention check**, then **one build.** The intention check nearly
+   always writes rows (retargets on the three, the ⚡ intention check row), so
+   re-read the live stream first — `bash run_day_ahead.sh fetch YYYY-MM-DD` —
+   then:
    ```
-   bash run_day_ahead.sh build YYYY-MM-DD <state> --secure-words "<their words>" --now HH:MM --draft
-   bash run_day_ahead.sh build YYYY-MM-DD <state> --secure-words "<their words>" --now HH:MM \
+   bash run_day_ahead.sh build YYYY-MM-DD <state> [--secure-words "<their words>"] --now HH:MM \
      --intention "…" --intention "…" --intention "…"
    ```
-   Everything after `<state>` goes to `scripts/day_ahead.py` unchanged. Before
-   the official pass, `bash run_day_ahead.sh fetch YYYY-MM-DD` re-reads the live
-   stream (the intention check writes rows); the calendars are reused within
-   the sitting. The direct call, for a surface without the runner:
+   Everything after `<state>` goes to `scripts/day_ahead.py` unchanged. The
+   direct call, for a surface without the runner:
    ```
    python3 scripts/day_ahead.py --today YYYY-MM-DD --local day_ahead_local.json \
      --stream w##.json --stream w##-prev.json --rhythms rhythms.json \
      --calendar cal.json --template day_ahead_engine.html \
-     --out YYYY-MM-DD-day-ahead.html --secure <state> --secure-words "<their words>" \
-     --now HH:MM [--draft]  |  [--intention "…" --intention "…" --intention "…"]
+     --out YYYY-MM-DD-day-ahead.html --secure <state> [--secure-words "<their words>"] \
+     --now HH:MM --intention "…" --intention "…" --intention "…"
    ```
    `--now` is the local clock read for this write (I12); it keys today's rows.
    If it aborts on a short read, don't build from a partial read. Say which read
    came back short and read it again.
 
    It aborts the same way when the local settings file is missing a field id or
-   the clock offset. That is deliberate: a blank id reads every row as empty, and
-   the page would look calm and be wrong.
+   the clock offset, or when `utc_offset_hours` disagrees with `time_zone` on
+   the day being built (daylight saving ends 1 Nov 2026). That is deliberate:
+   a blank id reads every row as empty, and the page would look calm and be
+   wrong.
 5. **The plan — the calendar's two horizons.** Beside the page the builder
-   writes `<out>.plan.json`. Draft pass only; the official pass rebuilds the
-   page and leaves the plan alone.
+   writes `<out>.plan.json` on every build; read it from this one.
    - **`today_rows` — written, then shown.** Every event today with no row of
      its own. The calendar is the record of what is scheduled, so this is
      recording, not supplying. Each carries its fields by id — title, key,
@@ -208,14 +223,17 @@ it, never in the repo. Their contents never pass through the chat.
    `/mnt/user-data/outputs/` first. The link is `artifact_url` in the local
    settings file (title The Day Ahead, favicon 👁️). One living page,
    republished in place, pinned in the sidebar.
-7. **Save the official page** to that week's Drive folder,
-   `be•do/<year>-W## <Mon D>/YYYY-MM-DD-day-ahead.html`, and read back a line
-   to confirm. The draft isn't saved separately. **A claude.ai chat has no Drive
-   commit tool**, and uploading through the Drive connector would pass the whole
-   page through the chat. There, skip it and say so in one line: the published
-   page and `/mnt/user-data/outputs/` are the copies of record.
+7. **Save the page** to that week's Drive folder,
+   `be•do/<year>-W## <Mon D>/YYYY-MM-DD-day-ahead.html`, and read back its size
+   to confirm (how, below).
 8. **Log the step**: the ◉ 👁️ look ahead row, dawn, with the page URL as its
    deliverable and one `[be•do]` line naming the three, the gaps and the clashes.
+
+**Saving to Drive from the cloud** is the Drive connector's `create_file`,
+`contentMimeType` `text/html`, conversion off, into the week's folder found by
+name (created by the same rule if missing, and said so). The page passes
+through the chat, about 15k tokens for this page. A surface with no Drive tool
+skips it and says so in one line.
 
 ## Clock and drive names
 
@@ -233,12 +251,11 @@ it, never in the repo. Their contents never pass through the chat.
 
 ## What the user sees in the chat
 
-One or two lines, not the page again. After the draft: the three, the today
-rows just written, and anything the calendar flagged as a clash. Then **one
-numbered list** holding every ask — today's asks and the prep drafts with their
-targets — so the user answers once. After the official pass: one line saying the
-page now carries their intentions. The page holds the rest. Don't list the
-overdue pile.
+One or two lines, not the page again: the three, the today rows just written,
+that the page carries their intentions, and anything the calendar flagged as a
+clash. Then **one numbered list** holding every ask — today's asks and the prep
+drafts with their targets — so the user answers once. The page holds the rest.
+Don't list the overdue pile.
 
 ## The three are recommendations
 
@@ -248,15 +265,13 @@ rebuilding.
 
 ## Not built yet
 
-Firing unattended at dawn. The Airtable reads no longer need a chat, but the
-calendars still do — on 28 Sep the connector was chosen over Google credentials
-on disk — so step 2 needs a chat present. If that decision is ever reversed, a
-Google-API source slots in behind `bedo_cal.py --build`, which reads saved
-results and knows nothing about where they came from. The other half of the
-calendar work — mirroring what happened back onto linked events — runs at the
-dusk close, in `bedo-look-behind`.
+Nothing fires this unattended, by design: the day ahead is on call, built when
+the user reaches the 👁️ look ahead step. The other half of the calendar work —
+mirroring what happened back onto linked events — runs at the dusk close, in
+`bedo-look-behind`.
 
 ## If it can't run here
 
 If this surface can't save the reads to disk or run Python, say so in one line
-and offer to run it from a Cowork session on the user's laptop, which can.
+and offer to run it from a Claude Code cloud session (the phone app's Code tab
+reaches the same environment as claude.ai/code) or from the laptop, which can.

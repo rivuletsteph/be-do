@@ -14,9 +14,10 @@ Usage:
       --calendar cal.json --template day_ahead_engine.html --out page.html \
       [--secure "secure" --secure-words "..."] [--draft] [--intention "..." ×3]
 
-Two passes a morning: the DRAFT runs at the look ahead step, before the user's
-intention check; the OFFICIAL version runs after it, with their intentions
-passed in their own words through --intention. The three stay be•do's either way.
+One build a morning, the final, after the user's intention check, with their
+intentions passed in their own words through --intention (29 Sep 2026; before
+that a draft pass ran first). --draft still marks a hand-run page as "before
+your intentions". The three stay be•do's either way.
 
 Streams are listed LIVE BASE FIRST (I15). Every dump must be complete (I11):
 records returned == totalRecordCount, or the build aborts.
@@ -592,6 +593,28 @@ def install_local(L):
     UTC_OFFSET = dt.timedelta(hours=L['utc_offset_hours'])
 
 
+def offset_check(L, day):
+    """utc_offset_hours is kept by hand and changes twice a year, and a wrong
+    one puts every time on the page an hour out with nothing saying so. When
+    the settings also name a time_zone and this machine has the zone database,
+    compare the two on the day being built. (The same check as the look
+    behind's bedo_common.offset_check; this builder stands alone.)"""
+    tz, off = L.get('time_zone'), L.get('utc_offset_hours')
+    if not tz or off is None:
+        return None
+    try:
+        from zoneinfo import ZoneInfo
+        z = ZoneInfo(tz)
+    except Exception:
+        return None
+    real = z.utcoffset(dt.datetime.combine(day, dt.time(12))).total_seconds() / 3600
+    if abs(real - float(off)) < 0.01:
+        return None
+    return (f'utc_offset_hours is {off} but {tz} is UTC{real:+g} on {day} — every time on '
+            f'the page would be an hour out. Change utc_offset_hours to {real:g} in the settings '
+            'file (both files, and the loader zip).')
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--today', required=True)
@@ -612,6 +635,9 @@ def main():
     L = json.load(open(a.local, encoding='utf-8'))
     install_local(L)
     today = dt.date.fromisoformat(a.today)
+    bad = offset_check(L, today)
+    if bad:
+        die('local settings: ' + bad)
 
     rows, chains, latest, reads = load_stream(a.stream)
     rhythms, nrh = load_rhythms(a.rhythms)

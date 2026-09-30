@@ -11,9 +11,12 @@
 # --set-line, --drop-line, --add-line or --accept it changes them, and --to-page puts
 # them on the page already built, with no second read. words.json still works.
 #
-# Needs, in the working folder: bedo_fetch.py, day_digest.py, bedo_secrets.json,
-# look_behind_local.json. The builder and engine come fresh from the version store
-# every run.
+# Needs, in the working folder: look_behind_local.json (or LB_LOCAL pointing at it, or
+# the installed skill's copy). The builder, engine, fetcher and digest come fresh from
+# the version store every prep. The Airtable token is bedo_secrets.json in the working
+# folder or the folder above it, or AIRTABLE_PAT — or, in a Claude cloud session, none
+# at all: the environment's API credential is attached by the proxy after the request
+# leaves the VM, and the fetch sends no Authorization header (CLAUDE_CODE_REMOTE=true).
 #
 # Runs anywhere. Three things differ by machine, and each is an override:
 #   LB_DIR    the working folder          (default /home/claude/lb)
@@ -22,7 +25,7 @@
 # python3 is used when present, otherwise python.
 set -euo pipefail
 MODE=${1:-}; DAY=${2:-}; SECURE=${3:-}
-W=${LB_DIR:-/home/claude/lb}; cd "$W"
+W=${LB_DIR:-/home/claude/lb}; mkdir -p "$W"; cd "$W"
 export PYTHONUTF8=1 PYTHONIOENCODING=utf-8   # Windows python prints cp1252 by default and dies on an emoji
 
 # Windows ships a python3.exe stub that exists but refuses to run, so prove the
@@ -55,9 +58,15 @@ if [ "$MODE" = prep ]; then
   if [ -d overlay ]; then cp overlay/*.py scripts/ 2>/dev/null || true
     cp overlay/look_behind_engine.html . 2>/dev/null || true; fi
   rm -rf data
-  "$PY" bedo_fetch.py --day "$DAY" --local look_behind_local.json --secrets bedo_secrets.json --out data
+  SECARGS=()
+  for c in "${BEDO_SECRETS:-}" bedo_secrets.json ../bedo_secrets.json; do
+    [ -n "$c" ] && [ -f "$c" ] && { SECARGS=(--secrets "$c"); break; }
+  done
+  # the fetch and the digest run from scripts/, fresh from the version store (or the overlay);
+  # a root copy left in the working folder by an older prep is not used
+  "$PY" scripts/bedo_fetch.py --day "$DAY" --local look_behind_local.json "${SECARGS[@]}" --out data
   STREAMS=$(ls -r data/w*.json | sed 's/^/--stream /' | tr '\n' ' ')
-  "$PY" day_digest.py --day "$DAY" --local look_behind_local.json $STREAMS --width 130
+  "$PY" scripts/day_digest.py --day "$DAY" --local look_behind_local.json $STREAMS --width 130
 elif [ "$MODE" = build ]; then
   need_local
   STREAMS=$(ls -r data/w*.json | sed 's/^/--stream /' | tr '\n' ' ')
