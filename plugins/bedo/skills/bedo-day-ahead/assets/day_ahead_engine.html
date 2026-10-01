@@ -35,15 +35,6 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .base q{color:var(--muted);font-size:12px;quotes:none;line-height:1.4}
 @media (max-width:460px){.frame{grid-template-columns:1fr}.base{max-width:none}}
 
-/* past its date — never folded away: each one needs her word */
-if (D.overdue && D.overdue.length){
-  const n = D.overdue.length;
-  const sec = $(`<section class="pastdue"><h2>past its date</h2><p class="sub">${n} ${n===1?'thing needs':'things need'} your word — done, a new date, or drop · oldest first</p><ul class="list"></ul></section>`);
-  const ul = sec.querySelector('ul');
-  D.overdue.forEach(s=>ul.append($(`<li><span class="d past">${esc(short(s.date))}<span class="late">${s.late} ${s.late===1?'day':'days'}</span></span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}<span class="resolve"><span>done</span><span>new date</span><span>drop</span></span></span></li>`)));
-  page.append(sec);
-}
-
 /* the three */
 .three{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .rec{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:13px 15px;display:grid;gap:6px}
@@ -102,9 +93,9 @@ summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-of
 .day .items{display:grid;gap:5px;min-width:0}
 .ev{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;font-size:14px}
 .ev .tm{font:400 11px var(--mono);color:var(--faint);min-width:44px}
-.ev .who{font-size:10.5px;color:var(--kid);border:1px solid rgba(151,216,163,.35);border-radius:999px;padding:1px 7px}
-.ev .gap{font-size:10.5px;color:var(--accent);border:1px dashed var(--accent);border-radius:999px;padding:1px 7px}
-.ev .clash{font-size:10.5px;color:var(--past);background:var(--past-soft);border-radius:999px;padding:1px 7px}
+.ev .who,.todaycal .who{font-size:10.5px;color:var(--kid);border:1px solid rgba(151,216,163,.35);border-radius:999px;padding:1px 7px}
+.ev .gap,.todaycal .gap{font-size:10.5px;color:var(--accent);border:1px dashed var(--accent);border-radius:999px;padding:1px 7px}
+.ev .clash,.todaycal .clash{font-size:10.5px;color:var(--past);background:var(--past-soft);border-radius:999px;padding:1px 7px}
 .due{font-size:12.5px;color:var(--muted);padding-left:52px;position:relative;overflow-wrap:anywhere}
 .due::before{content:"due";position:absolute;left:0;font:400 10.5px var(--mono);color:var(--faint);top:1px}
 .open{font-size:12.5px;color:var(--faint)}
@@ -150,6 +141,25 @@ if (D.word || D.secure) page.append($(`<section class="frame">
 const named = D.intentions.filter(Boolean).length;
 page.append($(`<section><h2>your intentions</h2><p class="sub">${named?'named by you this morning — the three below stay be•do\'s recommendation':'yours to name — these stay empty until you do'}</p>
   <div class="slots">${D.intentions.map((v,i)=>v?`<div class="slot" style="color:var(--ink);border-style:solid"><b style="color:var(--accent)">${i+1}</b>${esc(v)}</div>`:`<div class="slot"><b>${i+1}</b>open</div>`).join('')}</div></section>`));
+
+/* today on the calendar — both calendars, today only, at the top */
+(function(){
+  const d0 = D.days && D.days[0];
+  if (!d0) return;
+  const sec = $(`<section class="todaycal"><h2>today on the calendar</h2><p class="sub">${d0.events.length?'your calendar and [private]\'s, matched against the stream':'nothing on the calendars today'}</p><ul class="list"></ul></section>`);
+  const ul = sec.querySelector('ul');
+  d0.events.forEach(e=>ul.append($(`<li><span class="d">${esc(e.when)}</span><span>${esc(e.title)}${e.who!=='you'?` <span class="who">${esc(e.who)}</span>`:''}${e.gap?' <span class="gap">no row yet</span>':''}${(e.clash||[]).map(c=>` <span class="clash">clashes with ${esc(c)}</span>`).join('')}</span></li>`)));
+  page.append(sec);
+})();
+
+/* past its date — never folded away: each one needs her word */
+if (D.overdue && D.overdue.length){
+  const n = D.overdue.length;
+  const sec = $(`<section class="pastdue"><h2>past its date</h2><p class="sub">${n} ${n===1?'thing needs':'things need'} your word — done, a new date, or drop · oldest first</p><ul class="list"></ul></section>`);
+  const ul = sec.querySelector('ul');
+  D.overdue.forEach(s=>ul.append($(`<li><span class="d past">${esc(short(s.date))}<span class="late">${s.late} ${s.late===1?'day':'days'}</span></span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}<span class="resolve"><span>done</span><span>new date</span><span>drop</span></span></span></li>`)));
+  page.append(sec);
+}
 
 /* the three */
 const three = $(`<section><h2>three to move</h2><p class="sub">be•do's recommendation — take them, fold them into your own, or leave them</p><ol class="three"></ol></section>`);
