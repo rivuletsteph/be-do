@@ -257,7 +257,10 @@ EXPECT = {
         'note': 'Sleep, plans and other people’s own rows count zero. '
                 'Weighted by effort; rows with a real span count their minutes.',
     },
-    'pie_minutes': {'bed': (459, 0), 'move': (10, 130), 'food': (83, 75), 'dev': (83, 89)},
+    # 1 Oct 2026, her word: the device field is where a row was logged, not what she was
+    # doing. Only rows carrying a drive count as device time; the fixture's other
+    # device rows (43 logged minutes) are the act of logging the day.
+    'pie_minutes': {'bed': (459, 0), 'move': (10, 130), 'food': (83, 75), 'dev': (40, 89), 'log': (43, 0)},
     'destinations': [
         {'name': 'be•do', 'glyph': MARK, 'work': [
             {'drive': f'{MARK} be•do drive',
@@ -356,7 +359,7 @@ def main():
     check('pie minutes',
           {p['k']: (p['logged'], p['est']) for p in D['pie'] if not p.get('rest')},
           EXPECT['pie_minutes'])
-    check('pie slices', [p['k'] for p in D['pie']], ['bed', 'move', 'food', 'dev', 'else'])
+    check('pie slices', [p['k'] for p in D['pie']], ['bed', 'move', 'food', 'dev', 'log', 'else'])
     check('pie rest slice', [p for p in D['pie'] if p.get('rest')][0]['n'], 'Everything else')
     check('effectiveness.destinations', D['effectiveness']['destinations'],
           EXPECT['destinations'])

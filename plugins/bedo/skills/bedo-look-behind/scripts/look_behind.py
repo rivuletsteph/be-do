@@ -492,8 +492,19 @@ def main():
     # is on a laptop one hour and on nothing the next. So the device field
     # decides the screen slice, and only for rows the practice map didn't
     # already place: eating in front of the television is still eating.
+    #
+    # The device field says where a row was LOGGED, not what she was doing
+    # (her word, 1 Oct 2026: "I was not on my phone during the bm, and that's
+    # what it implies"). So only a row that carries a drive or rhythm — real
+    # work, be•do system work included — counts as time on a device. Every
+    # other unplaced row logged from a device is the act of logging the day
+    # (the dawn and dusk flows, a log, a note) and gets its own slice.
     dev_slice = L.get('device_slice')
     dev_off = {norm(x) for x in (L.get('device_off') or [])}
+    log_slice = L.get('logging_slice') or dict(k='log', e='\u270d\ufe0f', n='Logging the day', c='#C9A227')
+    if dev_slice and not any(c['k'] == log_slice['k'] for c in cats):
+        at = next((i for i, c in enumerate(cats) if c.get('rest')), len(cats))
+        cats = cats[:at] + [dict(log_slice, practices=[])] + cats[at:]
     prows = []
     for r in lived:
         est = None
@@ -502,7 +513,7 @@ def main():
             est = t['median_min'] if t else None
         cat = cat_of.get(r['_pr'])
         if not cat and dev_slice and r.get('device') and norm(r['device']) not in dev_off:
-            cat = dev_slice
+            cat = dev_slice if (r.get('rhythm') or '').strip() else log_slice['k']
         prows.append(dict(cat=cat, s=r['_s'], e=r['_e'], est=est, title=r['_title']))
     pie, trimmed = day_pie.build(prows, cats, max_titles=L.get('pie_max_titles', 4))
 
