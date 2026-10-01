@@ -35,6 +35,15 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .base q{color:var(--muted);font-size:12px;quotes:none;line-height:1.4}
 @media (max-width:460px){.frame{grid-template-columns:1fr}.base{max-width:none}}
 
+/* past its date — never folded away: each one needs her word */
+if (D.overdue && D.overdue.length){
+  const n = D.overdue.length;
+  const sec = $(`<section class="pastdue"><h2>past its date</h2><p class="sub">${n} ${n===1?'thing needs':'things need'} your word — done, a new date, or drop · oldest first</p><ul class="list"></ul></section>`);
+  const ul = sec.querySelector('ul');
+  D.overdue.forEach(s=>ul.append($(`<li><span class="d past">${esc(short(s.date))}<span class="late">${s.late} ${s.late===1?'day':'days'}</span></span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}<span class="resolve"><span>done</span><span>new date</span><span>drop</span></span></span></li>`)));
+  page.append(sec);
+}
+
 /* the three */
 .three{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .rec{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:13px 15px;display:grid;gap:6px}
@@ -69,6 +78,13 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .list .d{font:500 11px var(--mono);color:var(--accent);white-space:nowrap}
 .list .d.past{color:var(--past)}
 .list .dv{display:block;font-size:11.5px;color:var(--faint);margin-top:1px}
+.pastdue{background:var(--past-soft);border:1px solid rgba(224,138,122,.35);border-radius:12px;padding:14px 14px 4px}
+.pastdue h2{color:var(--past)}
+.pastdue .list{border-top-color:rgba(224,138,122,.3)}
+.pastdue .list li{border-bottom-color:rgba(224,138,122,.18)}
+.late{display:block;font:400 10.5px var(--mono);color:var(--past);opacity:.8;margin-top:2px}
+.resolve{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+.resolve span{font:500 10.5px var(--mono);color:var(--muted);border:1px solid var(--rule);border-radius:999px;padding:1px 8px}
 details.more{margin-top:10px}
 details.more summary{cursor:pointer;color:var(--muted);font-size:13px;list-style:none}
 details.more summary::-webkit-details-marker{display:none}
@@ -181,12 +197,6 @@ page.append(three);
   const ul = sec.querySelector('ul');
   if (!D.soon.length) ul.append($(`<li><span class="d">—</span><span class="open">nothing dated in the next three days</span></li>`));
   D.soon.forEach(s=>ul.append($(`<li><span class="d">${esc(short(s.date))}</span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}</span></li>`)));
-  if (D.overdue.length){
-    const det = $(`<details class="more"><summary>${D.overdue.length} more with a date already passed — newest first</summary><ul class="list"></ul></details>`);
-    const u2 = det.querySelector('ul');
-    D.overdue.forEach(s=>u2.append($(`<li><span class="d past">${esc(short(s.date))}</span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}</span></li>`)));
-    sec.append(det);
-  }
   page.append(sec);
 })();
 

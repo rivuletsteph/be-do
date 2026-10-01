@@ -672,7 +672,10 @@ def main():
                 feeders = [x['name'] for x in rhythms.values() if x['type'] == '♐ drive' and dn in (x['dest'] or [])]
                 dests[dn] = dict(name=dn, emoji=dr.get('emoji') or '♎', target=dr.get('target'), feeders=len(feeders))
 
-    # today and soon — dated work, the next three days visible; the rest a count
+    # today and soon — dated work in the next three days.
+    # Past its date — every open row whose target has passed. These are never folded away or
+    # left to carry: each one needs her word (done, a new date, or dropped), so the page lists
+    # them all, oldest first, and the plan hands them to the chat for the one list of asks.
     soon, overdue = [], []
     for r in open_rows:
         if not r['target']:
@@ -682,8 +685,10 @@ def main():
         if 0 <= n <= 3:
             soon.append(item)
         elif n < 0:
-            overdue.append(item)
-    soon.sort(key=lambda x: x['date']); overdue.sort(key=lambda x: x['date'], reverse=True)
+            overdue.append(dict(item, late=-n, id=r['id'], key=r['key']))
+    soon.sort(key=lambda x: x['date']); overdue.sort(key=lambda x: x['date'])
+    plan['overdue'] = [dict(id=o['id'], key=o['key'], title=o['title'], drive=o['drive'], target=o['date'], days_late=o['late'])
+                       for o in overdue]
 
     # quick sweep — five oldest ▶️, none on Sunday
     sweep = []
@@ -741,7 +746,7 @@ def main():
     print(json.dumps(dict(picks=[(p['kind'], clean_title(p['row']['title'])) for p in picks], next=nxt,
                           soon=len(soon), overdue=len(overdue), gaps=gaps, clashes=clashes, sweep=len(sweep),
                           today_rows=len(plan['today_rows']), today_asks=len(plan['today_asks']),
-                          prep=len(plan['prep']), conflicts=len(plan['conflicts']), plan=plan_path),
+                          prep=len(plan['prep']), conflicts=len(plan['conflicts']), past_date=len(plan['overdue']), plan=plan_path),
                      ensure_ascii=False, indent=1))
 
 
