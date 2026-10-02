@@ -175,7 +175,7 @@ if (D.word) page.append($(`<section class="frame">
 /* your intentions — empty until you name them */
 const named = D.intentions.filter(Boolean).length;
 page.append($(`<section><h2>your intentions</h2><p class="sub">${named?'named by you this morning — the three below stay be•do\'s recommendation':'yours to name — these stay empty until you do'}</p>
-  <div class="slots">${D.intentions.map((v,i)=>v?`<div class="slot" style="color:var(--ink);border-style:solid"><b style="color:var(--accent)">${i+1}</b>${esc(v)}</div>`:`<div class="slot"><b>${i+1}</b>open</div>`).join('')}</div></section>`));
+  <div class="slots" style="grid-template-columns:repeat(${named||3},1fr)">${(named?D.intentions.filter(Boolean):D.intentions).map((v,i)=>v?`<div class="slot" style="color:var(--ink);border-style:solid"><b style="color:var(--accent)">${i+1}</b>${esc(v)}</div>`:`<div class="slot"><b>${i+1}</b>open</div>`).join('')}</div></section>`));
 
 
 
