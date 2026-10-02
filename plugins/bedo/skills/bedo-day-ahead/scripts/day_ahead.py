@@ -378,7 +378,10 @@ def calendar(cal, rows, open_rows, today, days, L):
             when = ('' if e['allday'] else f"{hour12(e['a'])}:{e['a'].minute:02d}".replace(':00', '') + ampm(e['a'])[0]) if first else ('ends ' + (f"{hour12(e['b'])}{ampm(e['b'])}" if not e['allday'] else 'today'))
             if e['multi'] and first:
                 when = f'through {fmt_day((e["b"] - dt.timedelta(seconds=1)).date())}'
-            items.append(dict(who=e['who'], title=e['title'], when=when, gap=not e['row'], match=e.get('match'),
+            # the event as the calendar shows it — its own glyphs, its own end, its link
+            end = '' if e['allday'] or not last else f"{hour12(e['b'])}:{e['b'].minute:02d}".replace(':00', '') + ampm(e['b'])[0]
+            items.append(dict(who=e['who'], title=e['title'], summary=e['summary'], link=e['link'], where=e['location'],
+                              when=when, end=end, gap=not e['row'], match=e.get('match'),
                               clash=e['clash'] if first else [], sort=e['a'].isoformat()))
         items.sort(key=lambda x: x['sort'])
         bands = [e['title'] for e in evs if e['multi'] and e['a'].date() < d < (e['b'] - dt.timedelta(seconds=1)).date()]
@@ -673,6 +676,11 @@ def main():
     picks, nxt, more = pareto(open_rows, chains, rhythms, today, L)
     days, gaps, clashes, away, evs, conflicts = calendar(cal, rows, open_rows, today, a.days, L)
     plan = look_ahead_plan(evs, conflicts, rows, open_rows, chains, rhythms, today, a, L)
+    # today's events carry the drive their glyph names, the way the day behind's cards do
+    by_link = {e['link']: e for e in evs if e['link']}
+    for it in (days[0]['events'] if days else []):
+        e = by_link.get(it['link'])
+        it['drive'] = bucket_for(e, rhythms, L)[0] if e else None
 
     # map forward — each pick's drive running to what it serves
     lanes, dests = [], {}

@@ -25,7 +25,9 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .tag{font:500 10.5px/1 var(--sans);letter-spacing:.06em;text-transform:lowercase;border:1px solid var(--rule);border-radius:999px;padding:4px 9px;color:var(--muted);white-space:nowrap;display:inline-block}
 
 /* the week's word + secure base */
-.frame{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:stretch}
+.frame{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.sb{font-size:.6em;vertical-align:.25em}
+.sbx{margin:6px 0 0;font-size:13px;color:var(--past)}
 .word{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:14px 16px}
 .word .k{font:500 11px var(--mono);color:var(--faint);text-transform:lowercase;letter-spacing:.06em}
 .word .w{font:600 30px/1.05 var(--serif);color:var(--accent);margin:4px 0 6px}
@@ -46,6 +48,13 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .rec .why{font-size:13px;color:var(--muted);margin:0;overflow-wrap:anywhere}
 .nextup{margin:10px 0 0;font-size:12.5px;color:var(--faint)}
 .nextup b{font-weight:500;color:var(--muted)}
+.ecards{display:grid;gap:8px}
+.ecard{background:var(--card);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:3.4rem minmax(0,1fr);gap:4px 10px;box-shadow:inset 3px 0 0 var(--accent)}
+.ecard.kid{box-shadow:inset 3px 0 0 var(--kid)}
+.ecard .at{font:400 .7rem/1.35 var(--mono);color:var(--muted);padding-top:3px;grid-row:span 2}
+.ecard .ttl{font-weight:600;font-size:.98rem;line-height:1.35;overflow-wrap:anywhere}
+.ecard .evl{margin-left:6px;text-decoration:none}
+.ecard .edrv{grid-column:2;font-size:.74rem;font-weight:600;letter-spacing:.02em;color:var(--dest);overflow-wrap:anywhere}
 .tasks{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:8px;counter-reset:t var(--from)}
 .tasks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:2px 8px;counter-increment:t;font-size:14px}
 .tasks li::before{content:counter(t);font:500 12px var(--mono);color:var(--faint);padding-top:2px;grid-row:span 2}
@@ -135,22 +144,27 @@ const short = iso => { const d=new Date(iso+'T12:00:00'); return d.toLocaleDateS
 /* header */
 page.append($(`<header>
   <p class="chip">${esc(D.chip)}${D.draft?' <span class="draft">draft · before your intentions</span>':''}</p>
-  <h1>${esc(D.dateLabel)}</h1>
+  <h1>${esc(D.dateLabel)}${D.secure&&D.secure.state==='secure'?' <span class="sb" title="secure base">⏏️</span>':''}</h1>
+  ${D.secure&&D.secure.state!=='secure'?`<p class="sbx">⏏️ ${esc(D.secure.state)}${D.secure.words?' — '+esc(D.secure.words):''}</p>`:''}
   <p class="lead">${esc(D.lead)}</p></header>`));
 
 /* word + secure base */
-if (D.word || D.secure) page.append($(`<section class="frame">
+if (D.word) page.append($(`<section class="frame">
   ${D.word?`<div class="word"><div class="k">this week's word</div><div class="w">${esc(D.word.word)}</div>${D.word.words?`<q>${esc(D.word.words)}</q>`:''}</div>`:''}
-  ${D.secure?`<div class="base"><div class="k">secure base</div><div class="s">${esc(D.secure.state)}</div>${D.secure.words?`<q>${esc(D.secure.words)}</q>`:''}</div>`:''}
 </section>`));
 
-/* today on the calendar — both calendars, today only, at the top */
+/* today on the calendar — as the calendar shows it, in the day behind's event cards */
 (function(){
   const d0 = D.days && D.days[0];
   if (!d0) return;
-  const sec = $(`<section class="todaycal"><h2>today on the calendar</h2><p class="sub">${d0.events.length?'your calendar and [private]\'s, matched against the stream':'nothing on the calendars today'}</p><ul class="list"></ul></section>`);
-  const ul = sec.querySelector('ul');
-  d0.events.forEach(e=>ul.append($(`<li><span class="d">${esc(e.when)}</span><span>${esc(e.title)}${e.who!=='you'?` <span class="who">${esc(e.who)}</span>`:''}${e.gap?' <span class="gap">no row yet</span>':''}${(e.clash||[]).map(c=>` <span class="clash">clashes with ${esc(c)}</span>`).join('')}</span></li>`)));
+  const sec = $(`<section class="todaycal"><h2>today on the calendar</h2>${d0.events.length?'':'<p class="sub">nothing on the calendars today</p>'}<div class="ecards"></div></section>`);
+  const box = sec.querySelector('.ecards');
+  d0.events.forEach(e=>{
+    const at = [e.when, e.end].filter(Boolean).map(esc).join('<br>');
+    const ln = e.link?` <a class="evl" href="${esc(e.link)}" target="_blank" rel="noopener">🗓️</a>`:'';
+    const sub = [e.drive, e.who!=='you'?e.who+"'s calendar":'', e.where].filter(Boolean).map(esc).join(' · ');
+    box.append($(`<div class="ecard${e.who!=='you'?' kid':''}"><div class="at">${at}</div><div class="ttl">${esc(e.summary||e.title)}${ln}</div>${sub?`<div class="edrv">${sub}</div>`:''}</div>`));
+  });
   page.append(sec);
 })();
 
