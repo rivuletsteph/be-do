@@ -280,6 +280,20 @@ chat except the digest the words are written from.
    **happened**, the stream wins. This step is what keeps the two agreeing.
    `tests/test_calendar_sync.py` checks the plan; run it after any change.
 
+**Clear the QA before publishing** (her word, 2 Oct 2026: a thorough QA every
+day). The build prints a `qa` block; work every item, in the stream, before the
+page goes out:
+- `no_drive` — an action or a meeting with no drive or rhythm. Set it when the
+  row plainly belongs to one (a [private] row is GLO2); ask when it doesn't.
+- `unknown_practice` / `no_practice` — the practice doesn't match the catalog,
+  often an invisible character or a near-miss ("walk" for "walking"). Fix it to
+  the catalog's exact string.
+- `overlapping_work` — two drive rows on the same minutes. Fine when a Code
+  session ran while she was in a meeting; say so, don't silently keep both.
+- And the calendar: read the day's events after she has corrected them, give
+  each one that happened its own row (a 🗓️ calendar event, ✅ done, titled as
+  the calendar line, with the event link), and note any drift from the plan.
+
 **Check what the build printed** before publishing. Three lines are worth
 reading:
 - `estimates_trimmed_min` above zero means the logged and estimated minutes

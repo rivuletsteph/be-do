@@ -42,7 +42,7 @@ import day_pie  # noqa: E402
 # builder's own vocabulary and never change, only the ids behind them do.
 STREAM_KEYS = ('title', 'key', 'details', 'when', 'end', 'status', 'practice',
                'person', 'rhythm', 'wellness', 'deliv')
-OPTIONAL_STREAM_KEYS = ('device', 'mentioned', 'emotion', 'emoword', 'spent')
+OPTIONAL_STREAM_KEYS = ('device', 'mentioned', 'emotion', 'emoword', 'spent', 'event')
 RHYTHM_KEYS = ('name', 'type', 'status', 'emoji', 'dest')
 PRACTICE_KEYS = ('name', 'band', 'zero', 'group')
 CONNECTION_KEYS = ('name', 'short', 'circles')
@@ -385,8 +385,13 @@ def main():
         # A row on one of her drives, or an ⚡ action, is her work whoever it
         # names — 1 Oct 2026, 3h11 on the lower [private] for [private] dropped out
         # of effectiveness because the person field named only him.
+        # And a stretch of time with someone named is time she spent with
+        # them (person = with her, [id]): lunch with [private], the
+        # walk with [private]. Only an instant row naming someone else alone —
+        # [private]'s own wake, his quest — is theirs.
         own_work = bool((r.get('rhythm') or '').strip()) or pr in {
-            norm(x) for x in (L.get('action_practices') or ['action'])}
+            norm(x) for x in (L.get('action_practices') or ['action'])} or bool(
+            e and e > s and not (cat.get('zero') or pr in zero_pr))   # someone else's sleep stays theirs
         r['_notmine'] = bool(r.get('status') in noscore
                              or (L.get('zero_when_person_excludes_self') and people
                                  and self_name not in people and not own_work))
@@ -464,9 +469,23 @@ def main():
                      w=(words[:240].rsplit(' ', 1)[0] + ' \u2026') if len(words) > 240 else
                        ('' if words == title else words),
                      rh=r.get('rhythm') or '', emo=(sv(emo) or '')[:1], ew=r.get('emoword') or '',
-                     url=r.get('deliv') or '', cal=cal_ev,
+                     url=r.get('deliv') or '', cal=cal_ev, ev=r.get('event') or '',
                      span=(f"{clock(r['_s'])}\u2013{clock(r['_e'])}" if r['_e'] else ''))
         entries.append(e)
+    # ── QA, printed with every build and cleared before publishing (her word, 2 Oct 2026)
+    known_pr = set(practices)
+    qa = {
+        'no_drive': [r['_title'] for r in lived
+                     if (r['_pr'] in act_pr or r['_pr'] in {norm(x) for x in (L.get('calendar_practices') or ['calendar event'])})
+                     and not (r.get('rhythm') or '').strip() and not bookkeeping(r)],
+        'unknown_practice': sorted({(r.get('practice') or '') for r in day_rows if r['_pr'] and r['_pr'] not in known_pr}),
+        'no_practice': [r['_title'] for r in day_rows if not r['_pr']],
+        'overlapping_work': [],
+    }
+    work = sorted([r for r in lived if r['_e'] and (r.get('rhythm') or '').strip()], key=lambda r: r['_s'])
+    for a_, b_ in zip(work, work[1:]):
+        if b_['_s'] < a_['_e']:
+            qa['overlapping_work'].append(f"{a_['_title'][:50]} / {b_['_title'][:50]}")
     ages = sorted((day - key_day(r)).days for r in books)
     booked = {'n': len(books), 'oldest': ages[-1] if ages else 0}
 
@@ -726,6 +745,7 @@ def main():
         'highlights': len(highlights), 'intentions': len(intentions),
         'destinations': [d['name'] for d in dests.values()],
         'photos': 'none — no attachment field is read',
+        'qa': qa,
         'lead_and_story': 'UNWRITTEN' if not (lead and story)
         else ("be•do's draft: " + ', '.join(drafted)) if drafted else 'written',
     }, ensure_ascii=False, indent=1))
