@@ -13,6 +13,8 @@
   :root:not([data-theme="light"]){ --ground:#141219; --ink:#F1EFF6; --soft:#C9C4D6; --muted:#9B95AB; --faint:#6A6479; --rule:#2B2735; --tint:#1E1B26; --link:#9BC4F5; --be:#9A4BDB; --tend:#C3CAFA; --grow:#2EC4E8; --grow-ink:#5ED6F2; --do-ink:#AEB8FA; --be-ink:#C58CF0; --core-rim:#FFFFFF; }
 }
 :root[data-theme="dark"]{ --ground:#141219; --ink:#F1EFF6; --soft:#C9C4D6; --muted:#9B95AB; --faint:#6A6479; --rule:#2B2735; --tint:#1E1B26; --link:#9BC4F5; --be:#9A4BDB; --tend:#C3CAFA; --grow:#2EC4E8; --grow-ink:#5ED6F2; --do-ink:#AEB8FA; --be-ink:#C58CF0; --core-rim:#FFFFFF; }
+/* dark always (her word, 2 Oct 2026): a host that sets data-theme="light" on the page must not turn it light */
+html:root, html:root[data-theme]{ --ground:#141219; --ink:#F1EFF6; --soft:#C9C4D6; --muted:#9B95AB; --faint:#6A6479; --rule:#2B2735; --tint:#1E1B26; --link:#9BC4F5; --be:#9A4BDB; --tend:#C3CAFA; --grow:#2EC4E8; --grow-ink:#5ED6F2; --do-ink:#AEB8FA; --be-ink:#C58CF0; --core-rim:#FFFFFF; color-scheme:dark; }
 *{box-sizing:border-box}
 body{background:var(--ground);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
 .wrap{max-width:620px;margin:0 auto;padding-block:32px 48px;padding-inline:16px;display:flex;flex-direction:column}

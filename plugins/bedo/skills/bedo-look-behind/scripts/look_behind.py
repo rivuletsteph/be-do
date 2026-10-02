@@ -382,9 +382,14 @@ def main():
         # the case that matters. It scores nothing on the wheel and its minutes
         # are still logged on the pie, because the hours happened. Collapsing
         # these two into one flag is what loses the night.
+        # A row on one of her drives, or an ⚡ action, is her work whoever it
+        # names — 1 Oct 2026, 3h11 on the lower [private] for [private] dropped out
+        # of effectiveness because the person field named only him.
+        own_work = bool((r.get('rhythm') or '').strip()) or pr in {
+            norm(x) for x in (L.get('action_practices') or ['action'])}
         r['_notmine'] = bool(r.get('status') in noscore
                              or (L.get('zero_when_person_excludes_self') and people
-                                 and self_name not in people))
+                                 and self_name not in people and not own_work))
         r['_zero'] = bool(r['_notmine'] or cat.get('zero') or pr in zero_pr
                           or norm(cat.get('group')) in zero_grp)
         day_rows.append(r)
