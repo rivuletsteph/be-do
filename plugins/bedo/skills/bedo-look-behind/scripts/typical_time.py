@@ -20,8 +20,14 @@ import csv, glob, json, os, statistics, sys, datetime as dt
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from bedo_common import norm  # noqa: E402  the one naming rule, shared
 
-FLOOR    = 5        # fewer observations than this and the practice is left out
-SPREAD   = 0.6      # and the spread must be tight, or the median means nothing
+FLOOR    = 3        # fewer observations than this and the practice is left out
+# Her word, 2 Oct 2026: use the medians, all of them. A median shrugs off the odd
+# row (hips 2, 6, 7, 10, 12 and one 60 still reads 8), so there is no spread gate;
+# the spread is reported so a wide one can be seen, and the page draws every
+# estimate striped.
+# These never get a typical length: a row of one with no end is a check-in, a
+# status change or a container, not a stretch of that length.
+EXCLUDE  = {"action", "calendar event", "location", "capture", "log", "sleep"}
 MAX_MIN  = 24 * 60  # a span longer than a day is a data error, not a duration
 NOSCORE  = {"▫️potential", "⬜ intention", "✖️ dropped"}
 
@@ -96,16 +102,11 @@ def main():
         q = statistics.quantiles(v, n=4)
         return (q[2] - q[0]) / med
 
-    scored = {n: (v, spread(v)) for n, v in obs.items() if len(v) >= FLOOR}
-    kept   = {n: v for n, (v, sp) in scored.items() if sp <= SPREAD}
-    dropped_wide = sorted((n, len(v), round(sp, 2))
-                          for n, (v, sp) in scored.items() if sp > SPREAD)
+    kept = {n: v for n, v in obs.items() if len(v) >= FLOOR and n not in EXCLUDE}
     doc = {
         "generated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "floor": FLOOR,
-        "max_spread": SPREAD,
-        "too_wide_to_estimate": [
-            {"practice": n, "n": c, "spread": sp} for n, c, sp in dropped_wide],
+        "excluded": sorted(EXCLUDE),
         "window": files,
         "rows_read": rows_read,
         "practices_with_any_duration": len(obs),
@@ -120,14 +121,10 @@ def main():
         json.dump(doc, fh, ensure_ascii=False, indent=1)
     print(f"read {rows_read} rows from {len(files)} archives")
     print(f"{len(obs)} practices carry at least one real duration")
-    print(f"{len(scored)} clear the floor of {FLOOR} observations")
-    print(f"{len(kept)} of those are consistent enough to estimate (spread ≤ {SPREAD})")
+    print(f"{len(kept)} have {FLOOR}+ observations and are kept")
     for n, d in sorted(doc["practices"].items(), key=lambda kv: -kv[1]["n"]):
-        print(f"  KEEP  {d['n']:4d}  {d['median_min']:5d} min  "
+        print(f"  {d['n']:4d}  {d['median_min']:5d} min  "
               f"spread {d['spread']:.2f}   {n}   ({d['low']}-{d['high']})")
-    for n, c, sp in dropped_wide:
-        print(f"  wide  {c:4d}  {'':21} spread {sp:.2f}   {n}")
-
 
 if __name__ == "__main__":
     main()

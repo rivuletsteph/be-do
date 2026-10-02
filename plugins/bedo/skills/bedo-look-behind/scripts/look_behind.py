@@ -44,7 +44,7 @@ STREAM_KEYS = ('title', 'key', 'details', 'when', 'end', 'status', 'practice',
                'person', 'rhythm', 'wellness', 'deliv')
 OPTIONAL_STREAM_KEYS = ('device', 'mentioned', 'emotion', 'emoword', 'spent', 'event')
 RHYTHM_KEYS = ('name', 'type', 'status', 'emoji', 'dest')
-PRACTICE_KEYS = ('name', 'band', 'zero', 'group')
+PRACTICE_KEYS = ('name', 'band', 'zero', 'group', 'typical')
 CONNECTION_KEYS = ('name', 'short', 'circles')
 F, RF, PF, CF = {}, {}, {}, {}
 UTC_OFFSET = dt.timedelta(0)     # filled from the local settings file (I12)
@@ -159,9 +159,14 @@ def load_practices(path, L):
             band = int(re.sub(r'\D', '', str(band))) if band not in (None, '') else None
         except ValueError:
             band = None
+        # her own typical length in minutes, said once and set in the catalog;
+        # it beats the median of her timed rows (amendment, 19 Aug 2026)
+        typ = c.get(PF.get('typical')) if PF.get('typical') else None
+        typ = typ if isinstance(typ, (int, float)) and typ > 0 else None
         out[nm] = {'band': band or L.get('default_effort_band', 1),
                    'zero': bool(zero),
-                   'group': sv(c.get(PF.get('group'))) if PF.get('group') else None}
+                   'group': sv(c.get(PF.get('group'))) if PF.get('group') else None,
+                   'typical': typ}
     return out
 
 
@@ -578,8 +583,9 @@ def main():
     for r in lived:
         est = None
         if not r['_e']:
+            # her word first, then the median of her own timed rows
             t = typical.get(r['_pr'])
-            est = t['median_min'] if t else None
+            est = (practices.get(r['_pr']) or {}).get('typical') or (t['median_min'] if t else None)
         cat = cat_of.get(r['_pr'])
         # a dawn or dusk flow practice is the window of logging the day, wherever it was
         # logged from (amendment, 2 Oct 2026); coffee and movement keep their own slices
