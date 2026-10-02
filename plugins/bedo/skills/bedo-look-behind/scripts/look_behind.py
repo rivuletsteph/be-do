@@ -502,9 +502,16 @@ def main():
     # slice. A span with no drive, like a 📍 place from Timeline, is neither.
     dev_slice = L.get('device_slice')
     dev_off = {norm(x) for x in (L.get('device_off') or [])}
-    log_slice = L.get('logging_slice') or dict(k='log', e='\u270d\ufe0f', n='Logging the day', c='#C9A227')
+    # Her word, 2 Oct 2026: the device time splits into DOING — pushing the
+    # ball forward on drives — and BEING — logging the day. A logged moment
+    # has no span, so each one is given a small estimated length
+    # (logging_minutes, default 1), drawn striped like every estimate.
+    log_slice = L.get('logging_slice') or dict(k='log', e='\u270d\ufe0f', n='Being \u00b7 logging the day', c='#C9A227')
+    log_min = L.get('logging_minutes', 1)
     if dev_slice and not any(c['k'] == log_slice['k'] for c in cats):
         at = next((i for i, c in enumerate(cats) if c.get('rest')), len(cats))
+        cats = [dict(c, n=L.get('device_doing_name', 'Doing \u00b7 moving drives forward'))
+                if c['k'] == dev_slice else c for c in cats]
         cats = cats[:at] + [dict(log_slice, practices=[])] + cats[at:]
     prows = []
     for r in lived:
@@ -518,6 +525,7 @@ def main():
                 cat = dev_slice
             elif not r['_e']:
                 cat = log_slice['k']   # a moment logged — the act of logging the day
+                est = est or log_min
             # a span with no drive (a 📍 place, a stretch somewhere) is neither
             # device time nor logging: it stays with everything else
         prows.append(dict(cat=cat, s=r['_s'], e=r['_e'], est=est, title=r['_title']))
