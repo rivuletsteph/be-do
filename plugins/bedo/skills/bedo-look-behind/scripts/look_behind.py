@@ -253,6 +253,16 @@ def spans(row, day):
         return int((s - lo).total_seconds() // 60), int((e - lo).total_seconds() // 60)
     if not (lo <= a < hi):
         return None, None
+    # time spent is the row's length from its datetime when it carries no end
+    # (amendment, 2 Oct 2026: 'dinner, 30 min' used to count as nothing)
+    sp = row.get('spent')
+    try:
+        sp = float(sp) if sp not in (None, '') else 0
+    except (TypeError, ValueError):
+        sp = 0
+    if sp > 0:
+        s = int((a - lo).total_seconds() // 60)
+        return s, min(s + max(1, int(round(sp / 60))), 24 * 60)
     return int((a - lo).total_seconds() // 60), None
 
 
@@ -482,6 +492,28 @@ def main():
         'no_practice': [r['_title'] for r in day_rows if not r['_pr']],
         'overlapping_work': [],
     }
+    # a 📍 place says where, never what: stretches of 15+ minutes no activity row
+    # covers, between the first and the last row of the waking day (amendment, 2 Oct 2026)
+    loc_pr = {norm(x) for x in (L.get('location_practices') or ['location'])}
+    zero_pr_all = {k for k, v in practices.items() if v.get('zero')} | zero_pr
+    acts = [r for r in lived if r['_e'] and r['_pr'] not in loc_pr]   # sleep covers its hours too
+    awake = [r for r in lived if r['_pr'] not in zero_pr_all]
+    if awake:
+        lo_m, hi_m = min(r['_s'] for r in awake), max((r['_e'] or r['_s']) for r in awake)
+        cov = [False] * (24 * 60)
+        for r in acts:
+            for m in range(max(0, r['_s']), min(24 * 60, r['_e'])):
+                cov[m] = True
+        gaps, m = [], lo_m
+        while m < hi_m:
+            if not cov[m]:
+                g = m
+                while m < hi_m and not cov[m]:
+                    m += 1
+                if m - g >= L.get('qa_gap_minutes', 15):
+                    gaps.append(f"{clock(g)}\u2013{clock(m)} ({m - g} min)")
+            m += 1
+        qa['unexplained'] = gaps
     work = sorted([r for r in lived if r['_e'] and (r.get('rhythm') or '').strip()], key=lambda r: r['_s'])
     for a_, b_ in zip(work, work[1:]):
         if b_['_s'] < a_['_e']:
@@ -534,8 +566,9 @@ def main():
     # ball forward on drives — and BEING — logging the day. A logged moment
     # has no span, so each one is given a small estimated length
     # (logging_minutes, default 1), drawn striped like every estimate.
-    log_slice = L.get('logging_slice') or dict(k='log', e='\u270d\ufe0f', n='Being \u00b7 logging the day', c='#C9A227')
+    log_slice = L.get('logging_slice') or dict(k='log', e='\u270d\ufe0f', n='Being \u00b7 the flows and logging', c='#C9A227')
     log_min = L.get('logging_minutes', 1)
+    flow_groups = {norm(x) for x in (L.get('flow_groups') or ['flow'])}
     if dev_slice and not any(c['k'] == log_slice['k'] for c in cats):
         at = next((i for i, c in enumerate(cats) if c.get('rest')), len(cats))
         cats = [dict(c, n=L.get('device_doing_name', 'Doing \u00b7 moving drives forward'))
@@ -548,6 +581,12 @@ def main():
             t = typical.get(r['_pr'])
             est = t['median_min'] if t else None
         cat = cat_of.get(r['_pr'])
+        # a dawn or dusk flow practice is the window of logging the day, wherever it was
+        # logged from (amendment, 2 Oct 2026); coffee and movement keep their own slices
+        if not cat and norm((practices.get(r['_pr']) or {}).get('group')) in flow_groups:
+            cat = log_slice['k']
+            if not r['_e']:
+                est = est or log_min
         if not cat and dev_slice and r.get('device') and norm(r['device']) not in dev_off:
             if (r.get('rhythm') or '').strip():
                 cat = dev_slice
