@@ -30,7 +30,7 @@ FLOOR    = 3        # fewer observations than this and the practice is left out
 # word 2 Oct 2026: the commute, [private] and [private] are each their own length, and
 # one number for every drive is wrong; drives carry real ends from Timeline.
 EXCLUDE  = {"action", "calendar event", "location", "capture", "log", "sleep",
-            "driving"}
+            "driving", "text"}
 MAX_MIN  = 24 * 60  # a span longer than a day is a data error, not a duration
 NOSCORE  = {"▫️potential", "⬜ intention", "✖️ dropped"}
 
