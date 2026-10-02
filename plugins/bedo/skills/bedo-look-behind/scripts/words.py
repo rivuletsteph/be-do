@@ -5,7 +5,7 @@ changed, and put on a page.
 The lead and the story are the two things on The Day Behind that are not
 computed. In a chat with the user present they are written there. In a
 scheduled run nobody is present, so be•do drafts them from the day's digest and
-marks them as a draft (amendment [id], 28 Sep 2026: a scheduled
+marks them as a draft (an amendment, 28 Sep 2026: a scheduled
 look behind may draft its own lead and story, as long as they stay editable).
 This script is the "editable": every change is one command, the part that was
 touched stops being a draft, and the change goes straight into the built page

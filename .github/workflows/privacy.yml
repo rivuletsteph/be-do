@@ -1,0 +1,24 @@
+name: privacy check
+# This repo is public and holds only the generic engine. Names, places, ids and
+# links belong in each person's own settings and bases. The private terms list
+# is a repository secret (BEDO_PRIVATE_TERMS, one term per line); hits are
+# printed masked, so nothing private reaches this public log.
+on:
+  push:
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: files as they are now
+        env:
+          BEDO_PRIVATE_TERMS: ${{ secrets.BEDO_PRIVATE_TERMS }}
+        run: python3 tools/privacy_check.py
+      - name: lines and commit messages this change adds
+        if: github.event_name == 'pull_request'
+        env:
+          BEDO_PRIVATE_TERMS: ${{ secrets.BEDO_PRIVATE_TERMS }}
+        run: python3 tools/privacy_check.py --diff origin/${{ github.base_ref }}

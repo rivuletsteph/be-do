@@ -349,7 +349,7 @@ def main():
             "yesterday's story on today's page is worse than none")
     lead = a.lead or W.get('lead') or ''
     story = [list(x) for x in (W.get('story') or [])]
-    # which of the two are still be•do's draft (a scheduled run, [id]).
+    # which of the two are still be•do's draft (a scheduled run).
     # `draft` is true for both, or names the parts; a lead passed by hand is nobody's draft
     dr = W.get('draft')
     dr = ['lead', 'story'] if dr is True else [dr] if isinstance(dr, str) else list(dr or [])
@@ -382,7 +382,7 @@ def main():
         cat = practices.get(pr) or {}
         people = [p.strip() for p in (r.get('person') or '').split(',') if p.strip()]
         # person = with her or in direct contact; mentioned = came up in that
-        # contact (amendment [id]). Older rows carry no mentioned.
+        # contact (an amendment). Older rows carry no mentioned.
         ment = [p.strip() for p in (r.get('mentioned') or '').split(',') if p.strip()]
         r = dict(r, _s=s, _e=e, _mins=(e - s) if e else 0, _pr=pr,
                  _people=people, _mentioned=ment, _title=clean_title(r.get('title')))

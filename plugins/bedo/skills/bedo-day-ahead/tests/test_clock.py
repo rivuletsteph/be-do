@@ -63,7 +63,7 @@ STREAM = [{
         SF['title']: 'Something unrelated by name', SF['key']: 'k002',
         SF['status']: '⬜ intention', SF['practice']: '⚡ action',
         SF['rhythm']: 'D9 — Example drive',
-        SF['event']: 'https://www.google.com/calendar/event?eid=QUZURVJOT09O',
+        SF['event']: 'https://www.google.com/calendar/event?eid=QUZURVJOT09O',  # privacy: ok — a made-up event id
     },
 }]
 
@@ -172,7 +172,7 @@ def main():
     check('keyed at the write, not the event', row.get(SF['key']), '260922_0715')
     check('targeted at the event', row.get(SF['target']), stamp(TODAY, 9, 30))
     check('carries the event link', row.get(SF['event']),
-          'https://www.google.com/calendar/event?eid=TU9STklORw')
+          'https://www.google.com/calendar/event?eid=TU9STklORw')  # privacy: ok — a made-up event id
     check('the linked event is not rowed again',
           any(r['event'] == 'Afternoon example' for r in P['today_rows'] + P['today_asks']), False)
     check("the child's overlap is named", 'child' in [c['kind'] for c in P['conflicts']], True)

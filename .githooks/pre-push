@@ -1,0 +1,5 @@
+#!/bin/sh
+# Refuses a push that would put anything personal into this public repo.
+# Turn it on once per clone:  git config core.hooksPath .githooks
+python3 tools/privacy_check.py || { echo "privacy check failed — nothing was pushed"; exit 1; }
+python3 tools/privacy_check.py --diff origin/main || { echo "privacy check failed on the new commits — nothing was pushed"; exit 1; }

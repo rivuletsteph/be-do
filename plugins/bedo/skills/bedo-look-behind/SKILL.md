@@ -72,7 +72,7 @@ a shape check only and never for a page the user will see.
 ### When nobody is there: the draft
 
 A scheduled run has nobody to show the words to. In the user's words, 28 Sep
-2026 (amendment `[id]`): *the look behind may draft its own lead
+2026 (an amendment): *the look behind may draft its own lead
 and story for a scheduled run, it just needs to be editable.* So:
 
 - **Draft from the digest, by the same rules as above.** The day's rows and the

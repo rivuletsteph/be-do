@@ -105,7 +105,7 @@ it is the only place the routine looks.
       `bash run_look_behind.sh words <day> --row-block --final`, the user's
       words above the divider carried forward verbatim. No dusk row: write one,
       dusk, dated on the day it stands for, **in the base whose week contains
-      that datetime** (amendment `[id]`) — a Monday routine
+      that datetime** (an amendment) — a Monday routine
       writing Sunday's row across a week boundary is the case that rule is for.
    7. **Sync the calendar** (if allowed): `SKILL.md` step 8.
 5. **Its own account**, one line per day built: the date, draft or final

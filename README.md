@@ -173,3 +173,13 @@ ahead builder over a small fixture and checks the times it writes — 9:30a, 2p,
 ends 1am, through Sun 27 Sep. Those were once built with `%-I` and `%-d`, which
 are a GNU extension and raise on Windows, so run this first on any machine the
 builder hasn't run on before.
+
+## Nothing personal in this repo
+
+This repo is public. It holds the engine only; every name, place, project, id,
+link and word specific to a person lives in their own settings files and bases.
+`tools/privacy_check.py` enforces it: it runs on every push and pull request
+(`.github/workflows/privacy.yml`) and before every push from a clone with
+`git config core.hooksPath .githooks`. It reads the private terms list from the
+`BEDO_PRIVATE_TERMS` secret, or from `~/.bedo/private_terms.txt`, and prints any
+hit masked.
