@@ -235,7 +235,23 @@ def pareto(open_rows, chains, rhythms, today, L):
             r = c[0] if isinstance(c, tuple) else c
             if r['id'] not in used:
                 nxt.append(dict(kind=kind, title=clean_title(r['title']))); break
-    return picks, nxt
+    # the rest, in the same order of pull — taken in turn from each kind, no repeats —
+    # for the short list under the picks (her word, 2 Oct 2026: at most ten tasks)
+    more, seen = [], set(used)
+    pools = [[(k, c[0] if isinstance(c, tuple) else c) for c in cands]
+             for k, cands in (('in motion', motion), ('someone waiting', waiting), ('weighing on you', weigh))]
+    while any(pools):
+        for pool in pools:
+            while pool:
+                k, r = pool.pop(0)
+                # only what is due within the week (or already past): a far-off row is not today's
+                if r['id'] in seen or (tgt(r) and (tgt(r) - today).days > L.get('task_horizon_days', 7)):
+                    continue
+                seen.add(r['id'])
+                more.append(dict(kind=k, id=r['id'], title=clean_title(r['title']), drive=r['rhythm'] or '', due=due_phrase(r),
+                                 st=r['status'][:2], date=tgt(r).isoformat() if tgt(r) else None))
+                break
+    return picks, nxt, more
 
 
 # ---------------------------------------------------------------- calendar
@@ -363,7 +379,10 @@ def calendar(cal, rows, open_rows, today, days, L):
             when = ('' if e['allday'] else f"{hour12(e['a'])}:{e['a'].minute:02d}".replace(':00', '') + ampm(e['a'])[0]) if first else ('ends ' + (f"{hour12(e['b'])}{ampm(e['b'])}" if not e['allday'] else 'today'))
             if e['multi'] and first:
                 when = f'through {fmt_day((e["b"] - dt.timedelta(seconds=1)).date())}'
-            items.append(dict(who=e['who'], title=e['title'], when=when, gap=not e['row'], match=e.get('match'),
+            # the event as the calendar shows it — its own glyphs, its own end, its link
+            end = '' if e['allday'] or not last else f"{hour12(e['b'])}:{e['b'].minute:02d}".replace(':00', '') + ampm(e['b'])[0]
+            items.append(dict(who=e['who'], title=e['title'], summary=e['summary'], link=e['link'], where=e['location'],
+                              when=when, end=end, gap=not e['row'], match=e.get('match'),
                               clash=e['clash'] if first else [], sort=e['a'].isoformat()))
         items.sort(key=lambda x: x['sort'])
         bands = [e['title'] for e in evs if e['multi'] and e['a'].date() < d < (e['b'] - dt.timedelta(seconds=1)).date()]
@@ -655,9 +674,14 @@ def main():
         if m:
             word = dict(word=m.group(1).strip(), words=sentence_with(her_words(r['details']), [m.group(1)]) or ''); break
 
-    picks, nxt = pareto(open_rows, chains, rhythms, today, L)
+    picks, nxt, more = pareto(open_rows, chains, rhythms, today, L)
     days, gaps, clashes, away, evs, conflicts = calendar(cal, rows, open_rows, today, a.days, L)
     plan = look_ahead_plan(evs, conflicts, rows, open_rows, chains, rhythms, today, a, L)
+    # today's events carry the drive their glyph names, the way the day behind's cards do
+    by_link = {e['link']: e for e in evs if e['link']}
+    for it in (days[0]['events'] if days else []):
+        e = by_link.get(it['link'])
+        it['drive'] = bucket_for(e, rhythms, L)[0] if e else None
 
     # map forward — each pick's drive running to what it serves
     lanes, dests = [], {}
@@ -672,7 +696,10 @@ def main():
                 feeders = [x['name'] for x in rhythms.values() if x['type'] == '♐ drive' and dn in (x['dest'] or [])]
                 dests[dn] = dict(name=dn, emoji=dr.get('emoji') or '♎', target=dr.get('target'), feeders=len(feeders))
 
-    # today and soon — dated work, the next three days visible; the rest a count
+    # today and soon — dated work in the next three days.
+    # Past its date — every open row whose target has passed. These are never folded away or
+    # left to carry: each one needs her word (done, a new date, or dropped), so the page lists
+    # them all, oldest first, and the plan hands them to the chat for the one list of asks.
     soon, overdue = [], []
     for r in open_rows:
         if not r['target']:
@@ -682,8 +709,26 @@ def main():
         if 0 <= n <= 3:
             soon.append(item)
         elif n < 0:
-            overdue.append(item)
-    soon.sort(key=lambda x: x['date']); overdue.sort(key=lambda x: x['date'], reverse=True)
+            overdue.append(dict(item, late=-n, id=r['id'], key=r['key']))
+    soon.sort(key=lambda x: x['date']); overdue.sort(key=lambda x: x['date'])
+
+    # the list after the calendar — the picks, then the rest of the pull, then dated work in
+    # the next three days, never more than max_tasks in all (her word, 2 Oct 2026: max ten,
+    # so it is not overwhelming). Past-date rows are not in it: they have their own section.
+    cap = L.get('max_tasks', 10)
+    today_events = [re.sub(r'^[^\w]+', '', e['title']).split(' — ')[0].strip() for e in days[0]['events']] if days else []
+    taken = {clean_title(p['row']['title']) for p in picks}
+    tasks = []
+    for t in more + [dict(kind='dated', title=x['title'], drive=x['drive'], due='due ' + x['label'], st=x['st'], date=x['date']) for x in soon]:
+        if len(picks) + len(tasks) >= cap:
+            break
+        # a row that is one of today's calendar events is already in the calendar section
+        if t['title'] in taken or any(ev and ev.lower() in t['title'].lower() for ev in today_events):
+            continue
+        taken.add(t['title']); tasks.append(dict(kind=t['kind'], title=t['title'], drive=t['drive'], due=t['due'], st=t['st'], date=t['date'],
+                                                 emoji=(rhythms.get(t['drive']) or {}).get('emoji') or ''))
+    plan['overdue'] = [dict(id=o['id'], key=o['key'], title=o['title'], drive=o['drive'], target=o['date'], days_late=o['late'])
+                       for o in overdue]
 
     # quick sweep — five oldest ▶️, none on Sunday
     sweep = []
@@ -721,8 +766,9 @@ def main():
         word=word,
         secure=dict(state=a.secure, words=a.secure_words) if a.secure else None,
         pareto=[dict(kind=p['kind'], title=clean_title(p['row']['title']), drive=p['row']['rhythm'] or '',
-                     emoji=(rhythms.get(p['row']['rhythm'] or '') or {}).get('emoji') or '·', why=p['why']) for p in picks],
-        next=nxt,
+                     emoji=(rhythms.get(p['row']['rhythm'] or '') or {}).get('emoji') or '·', why=p['why'], st=p['row']['status'][:2],
+                     date=local(p['row']['target']).date().isoformat() if p['row']['target'] else None) for p in picks],
+        next=nxt, tasks=tasks, max_tasks=cap,
         intentions=(a.intention + [None, None, None])[:3], draft=a.draft,
         map=dict(start=today.isoformat(), end=L['map_end'], lanes=lanes, dests=list(dests.values()), away=away),
         soon=soon, overdue=overdue,
@@ -741,7 +787,7 @@ def main():
     print(json.dumps(dict(picks=[(p['kind'], clean_title(p['row']['title'])) for p in picks], next=nxt,
                           soon=len(soon), overdue=len(overdue), gaps=gaps, clashes=clashes, sweep=len(sweep),
                           today_rows=len(plan['today_rows']), today_asks=len(plan['today_asks']),
-                          prep=len(plan['prep']), conflicts=len(plan['conflicts']), plan=plan_path),
+                          prep=len(plan['prep']), conflicts=len(plan['conflicts']), past_date=len(plan['overdue']), plan=plan_path),
                      ensure_ascii=False, indent=1))
 
 

@@ -1,4 +1,5 @@
 <meta charset="utf-8">
+<script>/* dark by default, her word 2 Oct 2026; ?theme=light still turns it light */document.documentElement.setAttribute("data-theme",/[?&]theme=light/.test(location.search)?"light":"dark")</script>
 <title>The Day Behind</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +13,8 @@
   :root:not([data-theme="light"]){ --ground:#141219; --ink:#F1EFF6; --soft:#C9C4D6; --muted:#9B95AB; --faint:#6A6479; --rule:#2B2735; --tint:#1E1B26; --link:#9BC4F5; --be:#9A4BDB; --tend:#C3CAFA; --grow:#2EC4E8; --grow-ink:#5ED6F2; --do-ink:#AEB8FA; --be-ink:#C58CF0; --core-rim:#FFFFFF; }
 }
 :root[data-theme="dark"]{ --ground:#141219; --ink:#F1EFF6; --soft:#C9C4D6; --muted:#9B95AB; --faint:#6A6479; --rule:#2B2735; --tint:#1E1B26; --link:#9BC4F5; --be:#9A4BDB; --tend:#C3CAFA; --grow:#2EC4E8; --grow-ink:#5ED6F2; --do-ink:#AEB8FA; --be-ink:#C58CF0; --core-rim:#FFFFFF; }
+/* dark always (her word, 2 Oct 2026): a host that sets data-theme="light" on the page must not turn it light */
+html:root, html:root[data-theme]{ --ground:#141219; --ink:#F1EFF6; --soft:#C9C4D6; --muted:#9B95AB; --faint:#6A6479; --rule:#2B2735; --tint:#1E1B26; --link:#9BC4F5; --be:#9A4BDB; --tend:#C3CAFA; --grow:#2EC4E8; --grow-ink:#5ED6F2; --do-ink:#AEB8FA; --be-ink:#C58CF0; --core-rim:#FFFFFF; color-scheme:dark; }
 *{box-sizing:border-box}
 body{background:var(--ground);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
 .wrap{max-width:620px;margin:0 auto;padding-block:32px 48px;padding-inline:16px;display:flex;flex-direction:column}
@@ -50,12 +53,27 @@ li{display:grid;grid-template-columns:1.9rem 1fr;align-items:baseline}
 .chiprow{display:flex;flex-wrap:wrap;gap:6px;padding-left:4px}
 .echip{font-family:var(--mono);font-size:.72rem;color:var(--muted);border:1px solid var(--rule);border-radius:999px;padding:3px 10px;white-space:nowrap}
 .echip b{font-weight:500;color:var(--soft);margin-right:6px}
-.ecard{background:var(--tint);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
-.ecard .at{font-family:var(--mono);font-size:.72rem;color:var(--muted);padding-top:3px}
+.ecard{background:var(--tint);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:3.4rem 1fr;gap:4px 10px}
+.ecard .at{font-family:var(--mono);font-size:.7rem;line-height:1.35;color:var(--muted);padding-top:3px;grid-row:span 4}
 .ecard .hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .ecard .pn{font-weight:700;font-size:.95rem}
 .ecard .meta{margin-left:auto;font-family:var(--mono);font-size:.7rem;color:var(--muted);display:flex;gap:8px;align-items:center}
 .ecard .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.ecard.cal{box-shadow:inset 3px 0 0 var(--grow)}
+.ecard .edrv{grid-column:2;font-size:.74rem;font-weight:700;letter-spacing:.02em;color:var(--grow-ink)}
+.ecard .edrv.none{color:#E0703E;font-weight:600}
+.bydrive{display:flex;flex-direction:column;gap:18px}
+.bydrive .dh{display:flex;align-items:baseline;gap:8px;margin:0 0 2px;font-size:.95rem;font-weight:800;color:var(--ink)}
+.bydrive .dh .t{margin-left:auto;font-family:var(--mono);font-size:.78rem;font-weight:500;color:var(--grow-ink)}
+.bydrive .feeds{font-size:.76rem;color:var(--muted);margin:0 0 8px}
+.bydrive .feeds b{color:var(--soft);font-weight:600}
+.bydrive ul{gap:6px}.bydrive li{grid-template-columns:1fr auto;font-size:.9rem;font-weight:500}
+.bydrive .mo{font-size:.72rem;color:var(--muted)}
+.bydrive .min{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.ecard .ttl{font-weight:700;font-size:.98rem;line-height:1.35;flex:1 1 100%;min-width:0}
+.ecard .ttl a,.ecard .tt a.evl{margin-left:6px;text-decoration:none}
+.ecard .ttl a{font-family:var(--mono);font-size:.7rem;font-weight:500;color:var(--link)}
+.ecard .ttl a.evl,.ecard .tt a.evl{font-size:.95rem;font-family:inherit}
 .ecard .tt{grid-column:2;font-weight:600;font-size:.95rem}
 .ecard .tt a{font-family:var(--mono);font-size:.7rem;font-weight:500;margin-left:6px;color:var(--link)}
 .ecard .ww{grid-column:2;font-size:.88rem;color:var(--soft);line-height:1.5}
@@ -275,9 +293,19 @@ function renderEntries() {
   list.forEach(e => {
     if (!e.card) { chips.push(`<span class="echip"><b>${esc(e.at)}</b>${e.g} ${esc(e.p)}</span>`); return; }
     flush();
-    const meta = [e.rh ? `<span>${esc(e.rh)}</span>` : "", e.ew || e.emo ? `<span>${esc(e.ew)}</span>${EMO[e.emo] ? `<i class="dot" style="background:${EMO[e.emo]}"></i>` : ""}` : ""].join("");
-    html += `<div class="ecard"><span class="at">${esc(e.at)}</span><div class="hd"><span>${e.st}</span><span>${e.g}</span><span class="pn">${esc(e.p)}</span><span class="meta">${meta}</span></div>` +
-      `<div class="tt">${esc(e.t)}${e.url ? `<a href="${esc(e.url)}">↗ link</a>` : ""}</div>` + (e.w ? `<div class="ww">${esc(e.w)}</div>` : "") + `</div>`;
+    const meta = e.ew || e.emo ? `<span>${esc(e.ew)}</span>${EMO[e.emo] ? `<i class="dot" style="background:${EMO[e.emo]}"></i>` : ""}` : "";
+    // every card says which drive or rhythm it belongs to; an action or a meeting without one says so (2 Oct 2026)
+    const needsDrive = e.cal || e.p === "action";
+    const drv = e.rh ? `<div class="edrv">${esc(e.rh)}</div>` : (needsDrive ? `<div class="edrv none">no drive</div>` : "");
+    const links = (e.url ? `<a href="${esc(e.url)}">↗ link</a>` : "") + (e.ev ? `<a class="evl" href="${esc(e.ev)}" title="open on the calendar">\u{1F5D3}\uFE0F</a>` : "");
+    // an action reads ✅ ⚡ and what it was; a meeting reads ✅ and its calendar line, with 🗓️ linking to it
+    // the check, the ⚡ and the title read as one line of text, so a long title wraps under itself, not beside the marks
+    const lead = needsDrive ? `<span class="ttl">${e.st} ${e.cal ? "" : e.g + " "}${esc(e.t)}${links}</span>`
+                            : `<span>${e.st}</span><span>${e.g}</span><span class="pn">${esc(e.p)}</span>`;
+    // start and end stacked in the narrow left column
+    const at = e.span ? e.span.split("\u2013").map(esc).join("<br>") : esc(e.at);
+    html += `<div class="ecard${e.cal ? " cal" : ""}"><span class="at">${at}</span><div class="hd">${lead}<span class="meta">${meta}</span></div>` +
+      drv + (needsDrive ? "" : `<div class="tt">${esc(e.t)}${links}</div>`) + (e.w ? `<div class="ww">${esc(e.w.replace(/^what I did\s*\u00B7?\s*/i, ""))}</div>` : "") + `</div>`;
   });
   flush();
   const f = document.getElementById("efilter");
@@ -353,21 +381,29 @@ renderEntries();
  
 // effectiveness, in the user's words: the time put into things that moves the ball forward on drives that feed destinations.
 // Tending (the dishes) is not scored here; it holds up the secure base that gates this reading.
-const E = DATA.effectiveness, allw = E.destinations.flatMap(d=>d.work), mins = allw.reduce((a,w)=>a+(w.min||0),0), untimed = allw.filter(w=>!w.min).length;
+// one step can feed several destinations; it is counted once (2 Oct 2026)
+const E = DATA.effectiveness, seenW = new Map();
+E.destinations.forEach(d => d.work.forEach(w => { const k = w.drive + "|" + w.text; if (!seenW.has(k)) seenW.set(k, Object.assign({}, w, {dests: []})); seenW.get(k).dests.push((d.glyph ? d.glyph + " " : "") + d.name); }));
+const allw = [...seenW.values()], mins = allw.reduce((a,w)=>a+(w.min||0),0), untimed = allw.filter(w=>!w.min).length;
 const hm = m => m >= 60 ? `${Math.floor(m/60)} h ${String(m%60).padStart(2,"0")}` : `${m} min`;
 if (E.secure === "secure") {
   document.getElementById("effn").textContent = hm(mins);
   document.getElementById("effl").textContent = "moved your destinations forward";
-  document.getElementById("effnote").textContent = (untimed ? `${untimed} step with no time logged is listed but not counted. ` : "") + "Scored because the day started from a secure base.";
+  document.getElementById("effnote").textContent = (untimed ? `${untimed} ${untimed === 1 ? "step" : "steps"} with no time logged ${untimed === 1 ? "is" : "are"} listed but not counted. ` : "") + "Scored because the day started from a secure base.";
 } else {
   document.getElementById("effn").textContent = "\u2014";
   document.getElementById("effl").textContent = "not scored today";
   document.getElementById("effnote").textContent = "The foundation needed the energy today.";
 }
 document.getElementById("usual").textContent = E.usualMin ? `${Math.round(mins/E.usualMin*100)}% of your effectiveness baseline (${hm(E.usualMin)})` : `effectiveness baseline still forming \u00B7 ${E.baselineDays} of ${E.baselineNeeded} clean days`;
-document.getElementById("moved").innerHTML = `<div class="dest">` + E.destinations.map(d => `<div><h4><span class="dg">${d.glyph||""}</span>${esc(d.name)}</h4><ul>` +
-  d.work.map(w => `<li><span>${w.url ? `<a href="${esc(w.url)}">${esc(w.text)}</a>` : esc(w.text)}<span class="drv">${esc(w.drive)}${w.motion ? " \u00B7 in motion" : ""}</span>${w.done ? `<span class="subs">${w.done.map(x=>`<span>\u2713 ${esc(x)}</span>`).join("")}</span>` : ""}</span><span class="min">${w.min ? w.min + " min" : ""}</span></li>`).join("") +
-  `</ul></div>`).join("") + `</div>`;
+// what moved, by drive first — the drive's own time and steps, then the destinations it feeds (her word, 2 Oct 2026)
+{ const byDrive = new Map();
+  allw.forEach(w => { if (!byDrive.has(w.drive)) byDrive.set(w.drive, {name: w.drive, items: [], dests: new Set(), min: 0}); const g = byDrive.get(w.drive); g.items.push(w); g.min += w.min || 0; w.dests.forEach(x => g.dests.add(x)); });
+  const groups = [...byDrive.values()].sort((a,b) => b.min - a.min);
+  document.getElementById("moved").innerHTML = `<div class="bydrive">` + groups.map(g => `<div><p class="dh"><span>${esc(g.name)}</span><span class="t">${g.min ? hm(g.min) : ""}</span></p>` +
+    `<p class="feeds">feeds \u2192 ${[...g.dests].map(x => `<b>${esc(x)}</b>`).join(" \u00B7 ")}</p><ul>` +
+    g.items.map(w => `<li><span>${w.url ? `<a href="${esc(w.url)}">${esc(w.text)}</a>` : esc(w.text)}${w.motion ? `<span class="mo"> \u00B7 in motion</span>` : ""}${w.done ? `<span class="subs">${w.done.map(x=>`<span>\u2713 ${esc(x)}</span>`).join("")}</span>` : ""}</span><span class="min">${w.min ? w.min + " min" : ""}</span></li>`).join("") +
+    `</ul></div>`).join("") + `</div>`; }
 const set = DATA.intentions.length, met = DATA.intentions.filter(i=>i.glyph==="\u2705").length, car = DATA.intentions.filter(i=>i.glyph==="\u25B6\uFE0F").length;
 document.getElementById("ftn").textContent = `${met} of ${set} met` + (car ? ` \u00B7 ${car} carried` : "");
 

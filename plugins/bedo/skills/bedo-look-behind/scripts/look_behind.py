@@ -42,9 +42,9 @@ import day_pie  # noqa: E402
 # builder's own vocabulary and never change, only the ids behind them do.
 STREAM_KEYS = ('title', 'key', 'details', 'when', 'end', 'status', 'practice',
                'person', 'rhythm', 'wellness', 'deliv')
-OPTIONAL_STREAM_KEYS = ('device', 'mentioned', 'emotion', 'emoword', 'spent')
+OPTIONAL_STREAM_KEYS = ('device', 'mentioned', 'emotion', 'emoword', 'spent', 'event')
 RHYTHM_KEYS = ('name', 'type', 'status', 'emoji', 'dest')
-PRACTICE_KEYS = ('name', 'band', 'zero', 'group')
+PRACTICE_KEYS = ('name', 'band', 'zero', 'group', 'typical')
 CONNECTION_KEYS = ('name', 'short', 'circles')
 F, RF, PF, CF = {}, {}, {}, {}
 UTC_OFFSET = dt.timedelta(0)     # filled from the local settings file (I12)
@@ -159,9 +159,14 @@ def load_practices(path, L):
             band = int(re.sub(r'\D', '', str(band))) if band not in (None, '') else None
         except ValueError:
             band = None
+        # her own typical length in minutes, said once and set in the catalog;
+        # it beats the median of her timed rows (amendment, 19 Aug 2026)
+        typ = c.get(PF.get('typical')) if PF.get('typical') else None
+        typ = typ if isinstance(typ, (int, float)) and typ > 0 else None
         out[nm] = {'band': band or L.get('default_effort_band', 1),
                    'zero': bool(zero),
-                   'group': sv(c.get(PF.get('group'))) if PF.get('group') else None}
+                   'group': sv(c.get(PF.get('group'))) if PF.get('group') else None,
+                   'typical': typ}
     return out
 
 
@@ -253,6 +258,16 @@ def spans(row, day):
         return int((s - lo).total_seconds() // 60), int((e - lo).total_seconds() // 60)
     if not (lo <= a < hi):
         return None, None
+    # time spent is the row's length from its datetime when it carries no end
+    # (amendment, 2 Oct 2026: 'dinner, 30 min' used to count as nothing)
+    sp = row.get('spent')
+    try:
+        sp = float(sp) if sp not in (None, '') else 0
+    except (TypeError, ValueError):
+        sp = 0
+    if sp > 0:
+        s = int((a - lo).total_seconds() // 60)
+        return s, min(s + max(1, int(round(sp / 60))), 24 * 60)
     return int((a - lo).total_seconds() // 60), None
 
 
@@ -382,9 +397,19 @@ def main():
         # the case that matters. It scores nothing on the wheel and its minutes
         # are still logged on the pie, because the hours happened. Collapsing
         # these two into one flag is what loses the night.
+        # A row on one of her drives, or an ⚡ action, is her work whoever it
+        # names — 1 Oct 2026, 3h11 on the lower [private] for [private] dropped out
+        # of effectiveness because the person field named only him.
+        # And a stretch of time with someone named is time she spent with
+        # them (person = with her, [id]): lunch with [private], the
+        # walk with [private]. Only an instant row naming someone else alone —
+        # [private]'s own wake, his quest — is theirs.
+        own_work = bool((r.get('rhythm') or '').strip()) or pr in {
+            norm(x) for x in (L.get('action_practices') or ['action'])} or bool(
+            e and e > s and not (cat.get('zero') or pr in zero_pr))   # someone else's sleep stays theirs
         r['_notmine'] = bool(r.get('status') in noscore
                              or (L.get('zero_when_person_excludes_self') and people
-                                 and self_name not in people))
+                                 and self_name not in people and not own_work))
         r['_zero'] = bool(r['_notmine'] or cat.get('zero') or pr in zero_pr
                           or norm(cat.get('group')) in zero_grp)
         day_rows.append(r)
@@ -441,7 +466,10 @@ def main():
         if bookkeeping(r):
             continue
         pr = r['_pr']
-        card = pr in rises or (pr in act_pr and (real_span(r) or key_day(r) == day))
+        # a calendar event is a card, never a chip (her word, 2 Oct 2026: the
+        # meetings were little pills she couldn't read)
+        cal_ev = pr in {norm(x) for x in (L.get('calendar_practices') or ['calendar event'])}
+        card = cal_ev or pr in rises or (pr in act_pr and (real_span(r) or key_day(r) == day))
         m = re.match(r'^([^\w\s]+)', (r.get('practice') or '').strip())
         e = {'at': clock(r['_s']), 'g': m.group(1) if m else '', 'p': pr,
              'wd': norm(r.get('wellness'))}
@@ -456,8 +484,45 @@ def main():
                      w=(words[:240].rsplit(' ', 1)[0] + ' \u2026') if len(words) > 240 else
                        ('' if words == title else words),
                      rh=r.get('rhythm') or '', emo=(sv(emo) or '')[:1], ew=r.get('emoword') or '',
-                     url=r.get('deliv') or '')
+                     url=r.get('deliv') or '', cal=cal_ev, ev=r.get('event') or '',
+                     span=(f"{clock(r['_s'])}\u2013{clock(r['_e'])}" if r['_e'] else ''))
         entries.append(e)
+    # ── QA, printed with every build and cleared before publishing (her word, 2 Oct 2026)
+    known_pr = set(practices)
+    qa = {
+        'no_drive': [r['_title'] for r in lived
+                     if (r['_pr'] in act_pr or r['_pr'] in {norm(x) for x in (L.get('calendar_practices') or ['calendar event'])})
+                     and not (r.get('rhythm') or '').strip() and not bookkeeping(r)],
+        'unknown_practice': sorted({(r.get('practice') or '') for r in day_rows if r['_pr'] and r['_pr'] not in known_pr}),
+        'no_practice': [r['_title'] for r in day_rows if not r['_pr']],
+        'overlapping_work': [],
+    }
+    # a 📍 place says where, never what: stretches of 15+ minutes no activity row
+    # covers, between the first and the last row of the waking day (amendment, 2 Oct 2026)
+    loc_pr = {norm(x) for x in (L.get('location_practices') or ['location'])}
+    zero_pr_all = {k for k, v in practices.items() if v.get('zero')} | zero_pr
+    acts = [r for r in lived if r['_e'] and r['_pr'] not in loc_pr]   # sleep covers its hours too
+    awake = [r for r in lived if r['_pr'] not in zero_pr_all]
+    if awake:
+        lo_m, hi_m = min(r['_s'] for r in awake), max((r['_e'] or r['_s']) for r in awake)
+        cov = [False] * (24 * 60)
+        for r in acts:
+            for m in range(max(0, r['_s']), min(24 * 60, r['_e'])):
+                cov[m] = True
+        gaps, m = [], lo_m
+        while m < hi_m:
+            if not cov[m]:
+                g = m
+                while m < hi_m and not cov[m]:
+                    m += 1
+                if m - g >= L.get('qa_gap_minutes', 15):
+                    gaps.append(f"{clock(g)}\u2013{clock(m)} ({m - g} min)")
+            m += 1
+        qa['unexplained'] = gaps
+    work = sorted([r for r in lived if r['_e'] and (r.get('rhythm') or '').strip()], key=lambda r: r['_s'])
+    for a_, b_ in zip(work, work[1:]):
+        if b_['_s'] < a_['_e']:
+            qa['overlapping_work'].append(f"{a_['_title'][:50]} / {b_['_title'][:50]}")
     ages = sorted((day - key_day(r)).days for r in books)
     booked = {'n': len(books), 'oldest': ages[-1] if ages else 0}
 
@@ -492,17 +557,50 @@ def main():
     # is on a laptop one hour and on nothing the next. So the device field
     # decides the screen slice, and only for rows the practice map didn't
     # already place: eating in front of the television is still eating.
+    #
+    # The device field says where a row was LOGGED, not what she was doing
+    # (her word, 1 Oct 2026: "I was not on my phone during the bm, and that's
+    # what it implies"). So only a row that carries a drive or rhythm — real
+    # work, be•do system work included — counts as time on a device. Every
+    # other unplaced MOMENT logged from a device (no span — the dawn and dusk
+    # flows, a log, a note) is the act of logging the day and gets its own
+    # slice. A span with no drive, like a 📍 place from Timeline, is neither.
     dev_slice = L.get('device_slice')
     dev_off = {norm(x) for x in (L.get('device_off') or [])}
+    # Her word, 2 Oct 2026: the device time splits into DOING — pushing the
+    # ball forward on drives — and BEING — logging the day. A logged moment
+    # has no span, so each one is given a small estimated length
+    # (logging_minutes, default 1), drawn striped like every estimate.
+    log_slice = L.get('logging_slice') or dict(k='log', e='\u270d\ufe0f', n='Being \u00b7 the flows and logging', c='#C9A227')
+    log_min = L.get('logging_minutes', 1)
+    flow_groups = {norm(x) for x in (L.get('flow_groups') or ['flow'])}
+    if dev_slice and not any(c['k'] == log_slice['k'] for c in cats):
+        at = next((i for i, c in enumerate(cats) if c.get('rest')), len(cats))
+        cats = [dict(c, n=L.get('device_doing_name', 'Doing \u00b7 moving drives forward'))
+                if c['k'] == dev_slice else c for c in cats]
+        cats = cats[:at] + [dict(log_slice, practices=[])] + cats[at:]
     prows = []
     for r in lived:
         est = None
         if not r['_e']:
+            # her word first, then the median of her own timed rows
             t = typical.get(r['_pr'])
-            est = t['median_min'] if t else None
+            est = (practices.get(r['_pr']) or {}).get('typical') or (t['median_min'] if t else None)
         cat = cat_of.get(r['_pr'])
+        # a dawn or dusk flow practice is the window of logging the day, wherever it was
+        # logged from (amendment, 2 Oct 2026); coffee and movement keep their own slices
+        if not cat and norm((practices.get(r['_pr']) or {}).get('group')) in flow_groups:
+            cat = log_slice['k']
+            if not r['_e']:
+                est = est or log_min
         if not cat and dev_slice and r.get('device') and norm(r['device']) not in dev_off:
-            cat = dev_slice
+            if (r.get('rhythm') or '').strip():
+                cat = dev_slice
+            elif not r['_e']:
+                cat = log_slice['k']   # a moment logged — the act of logging the day
+                est = est or log_min
+            # a span with no drive (a 📍 place, a stretch somewhere) is neither
+            # device time nor logging: it stays with everything else
         prows.append(dict(cat=cat, s=r['_s'], e=r['_e'], est=est, title=r['_title']))
     pie, trimmed = day_pie.build(prows, cats, max_titles=L.get('pie_max_titles', 4))
 
@@ -692,6 +790,7 @@ def main():
         'highlights': len(highlights), 'intentions': len(intentions),
         'destinations': [d['name'] for d in dests.values()],
         'photos': 'none — no attachment field is read',
+        'qa': qa,
         'lead_and_story': 'UNWRITTEN' if not (lead and story)
         else ("be•do's draft: " + ', '.join(drafted)) if drafted else 'written',
     }, ensure_ascii=False, indent=1))

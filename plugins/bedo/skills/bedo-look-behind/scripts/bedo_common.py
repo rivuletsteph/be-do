@@ -15,8 +15,12 @@ import colorsys, datetime as dt, json, re, sys
 _LEAD = re.compile(r"^[^\w]+", re.UNICODE)
 
 
+_INVISIBLE = re.compile("[\u200b\u200c\u2060\ufeff]")   # zero-width marks that hid a walk on 1 Oct 2026
+
+
 def norm(p):
-    return re.sub(r"\s+", " ", _LEAD.sub("", (p or "").strip())).strip().lower()
+    p = _INVISIBLE.sub("", p or "")
+    return re.sub(r"\s+", " ", _LEAD.sub("", p.strip())).strip().lower()
 
 
 def die(msg):

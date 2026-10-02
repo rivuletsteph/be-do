@@ -215,6 +215,19 @@ contents never pass through the chat.
      elsewhere, a readonly calendar's event over a child's, a day too full
      (`full_day_hours`, `full_day_events`), and tight travel between two places
      (`travel_buffer_min`). be•do never schedules.
+   - **`overdue` — every open row past its date, resolved, never carried.**
+     Decided 1 Oct 2026, at the user's word: *those are actually super relevant
+     and important, so they need to be resolved — they can't be buried.* The
+     page lists them all in their own open section near the top, oldest first,
+     each with how many days late it is; nothing past its date is folded away.
+     Before the final build, **sweep them against the stream**: a later row
+     that shows the thing happened, was done, or lives under another live key
+     closes it in place, with the evidence named in the `[be•do]` note (✅ done,
+     or ✖️ dropped as a DEDUPE onto the live key, or as passed when its moment
+     is gone with no record). A shared word is not evidence. **Everything the
+     sweep can't close goes into the one numbered list** — done, a new date,
+     drop, or someday — and her answers are written the same morning. A date
+     she gives is a retarget; a target she didn't give is not supplied.
    Matching an event to its row goes: the row's `event` link first, then
    `event_aliases` (the user's own names for a recurring thing), then shared
    words. **Today is held stricter**: a same-subject row only counts as the
@@ -254,8 +267,9 @@ skips it and says so in one line.
 One or two lines, not the page again: the three, the today rows just written,
 that the page carries their intentions, and anything the calendar flagged as a
 clash. Then **one numbered list** holding every ask — today's asks and the prep
-drafts with their targets — so the user answers once. The page holds the rest.
-Don't list the overdue pile.
+drafts with their targets, and every row still past its date after the
+evidence sweep — so the user answers once. Say how many the sweep closed and
+on what evidence, in a line. The page holds the rest.
 
 ## The three are recommendations
 

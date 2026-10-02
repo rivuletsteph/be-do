@@ -13,7 +13,8 @@
 }
 *{box-sizing:border-box}
 body{background:var(--ground);color:var(--ink);font:15px/1.5 var(--sans);margin:0;padding-inline:16px;padding-block:22px 56px}
-.wrap{max-width:620px;margin:0 auto;display:grid;gap:30px;min-width:0}
+.wrap{max-width:620px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:30px;min-width:0}
+.wrap>*{min-width:0}
 section{min-width:0}
 .chip{font:500 12px/1.3 var(--mono);color:var(--faint);letter-spacing:.02em;margin:0 0 8px;white-space:nowrap;overflow-x:auto}
 h1{font:600 clamp(28px,8vw,36px)/1.08 var(--serif);margin:0;text-wrap:balance}
@@ -24,7 +25,9 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .tag{font:500 10.5px/1 var(--sans);letter-spacing:.06em;text-transform:lowercase;border:1px solid var(--rule);border-radius:999px;padding:4px 9px;color:var(--muted);white-space:nowrap;display:inline-block}
 
 /* the week's word + secure base */
-.frame{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:stretch}
+.frame{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.sb{font-size:.6em;vertical-align:.25em}
+.sbx{margin:6px 0 0;font-size:13px;color:var(--past)}
 .word{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:14px 16px}
 .word .k{font:500 11px var(--mono);color:var(--faint);text-transform:lowercase;letter-spacing:.06em}
 .word .w{font:600 30px/1.05 var(--serif);color:var(--accent);margin:4px 0 6px}
@@ -45,6 +48,23 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .rec .why{font-size:13px;color:var(--muted);margin:0;overflow-wrap:anywhere}
 .nextup{margin:10px 0 0;font-size:12.5px;color:var(--faint)}
 .nextup b{font-weight:500;color:var(--muted)}
+.ecards{display:grid;gap:8px}
+.ecard{background:var(--card);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:3.4rem minmax(0,1fr);gap:4px 10px;box-shadow:inset 3px 0 0 var(--accent)}
+.ecard.kid{box-shadow:inset 3px 0 0 var(--kid)}
+.ecard .at{font:400 .7rem/1.35 var(--mono);color:var(--muted);padding-top:3px;grid-row:span 2}
+.ecard .ttl{font-weight:600;font-size:.98rem;line-height:1.35;overflow-wrap:anywhere}
+.ecard .evl{margin-left:6px;text-decoration:none}
+.ecard .edrv{grid-column:2;font-size:.74rem;font-weight:600;letter-spacing:.02em;color:var(--dest);overflow-wrap:anywhere}
+.ecard.act{box-shadow:inset 3px 0 0 var(--rule)}
+.ecard.act.gone .at{color:var(--past)}
+.ecard .edrv.none{color:#E0703E}
+.ecard .why{grid-column:2;font:500 10.5px var(--mono);color:var(--accent);text-transform:lowercase;letter-spacing:.04em}
+.tasks{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:8px;counter-reset:t var(--from)}
+.tasks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:2px 8px;counter-increment:t;font-size:14px}
+.tasks li::before{content:counter(t);font:500 12px var(--mono);color:var(--faint);padding-top:2px;grid-row:span 2}
+.tasks .tt{overflow-wrap:anywhere}
+.tasks .tm{font-size:12px;color:var(--faint);overflow-wrap:anywhere}
+.tasks .tm .dv{color:var(--dest)}
 
 /* intentions */
 .slots{display:grid;gap:8px;grid-template-columns:repeat(3,1fr)}
@@ -69,6 +89,13 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .list .d{font:500 11px var(--mono);color:var(--accent);white-space:nowrap}
 .list .d.past{color:var(--past)}
 .list .dv{display:block;font-size:11.5px;color:var(--faint);margin-top:1px}
+.pastdue{background:var(--past-soft);border:1px solid rgba(224,138,122,.35);border-radius:12px;padding:14px 14px 4px}
+.pastdue h2{color:var(--past)}
+.pastdue .list{border-top-color:rgba(224,138,122,.3)}
+.pastdue .list li{border-bottom-color:rgba(224,138,122,.18)}
+.late{display:block;font:400 10.5px var(--mono);color:var(--past);opacity:.8;margin-top:2px}
+.resolve{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+.resolve span{font:500 10.5px var(--mono);color:var(--muted);border:1px solid var(--rule);border-radius:999px;padding:1px 8px}
 details.more{margin-top:10px}
 details.more summary{cursor:pointer;color:var(--muted);font-size:13px;list-style:none}
 details.more summary::-webkit-details-marker{display:none}
@@ -86,9 +113,9 @@ summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-of
 .day .items{display:grid;gap:5px;min-width:0}
 .ev{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;font-size:14px}
 .ev .tm{font:400 11px var(--mono);color:var(--faint);min-width:44px}
-.ev .who{font-size:10.5px;color:var(--kid);border:1px solid rgba(151,216,163,.35);border-radius:999px;padding:1px 7px}
-.ev .gap{font-size:10.5px;color:var(--accent);border:1px dashed var(--accent);border-radius:999px;padding:1px 7px}
-.ev .clash{font-size:10.5px;color:var(--past);background:var(--past-soft);border-radius:999px;padding:1px 7px}
+.ev .who,.todaycal .who{font-size:10.5px;color:var(--kid);border:1px solid rgba(151,216,163,.35);border-radius:999px;padding:1px 7px}
+.ev .gap,.todaycal .gap{font-size:10.5px;color:var(--accent);border:1px dashed var(--accent);border-radius:999px;padding:1px 7px}
+.ev .clash,.todaycal .clash{font-size:10.5px;color:var(--past);background:var(--past-soft);border-radius:999px;padding:1px 7px}
 .due{font-size:12.5px;color:var(--muted);padding-left:52px;position:relative;overflow-wrap:anywhere}
 .due::before{content:"due";position:absolute;left:0;font:400 10.5px var(--mono);color:var(--faint);top:1px}
 .open{font-size:12.5px;color:var(--faint)}
@@ -121,27 +148,87 @@ const short = iso => { const d=new Date(iso+'T12:00:00'); return d.toLocaleDateS
 /* header */
 page.append($(`<header>
   <p class="chip">${esc(D.chip)}${D.draft?' <span class="draft">draft · before your intentions</span>':''}</p>
-  <h1>${esc(D.dateLabel)}</h1>
+  <h1>${esc(D.dateLabel)}${D.secure&&D.secure.state==='secure'?' <span class="sb" title="secure base">⏏️</span>':''}</h1>
+  ${D.secure&&D.secure.state!=='secure'?`<p class="sbx">⏏️ ${esc(D.secure.state)}${D.secure.words?' — '+esc(D.secure.words):''}</p>`:''}
   <p class="lead">${esc(D.lead)}</p></header>`));
 
 /* word + secure base */
-if (D.word || D.secure) page.append($(`<section class="frame">
-  ${D.word?`<div class="word"><div class="k">this week's word</div><div class="w">${esc(D.word.word)}</div>${D.word.words?`<q>${esc(D.word.words)}</q>`:''}</div>`:''}
-  ${D.secure?`<div class="base"><div class="k">secure base</div><div class="s">${esc(D.secure.state)}</div>${D.secure.words?`<q>${esc(D.secure.words)}</q>`:''}</div>`:''}
+if (D.word) page.append($(`<section class="frame">
+  ${D.word?`<div class="word"><div class="k">this week's word</div><div class="w">${esc(D.word.word)}</div>${D.word.words&&D.word.words.replace(/[.\s]+$/,'').toLowerCase()!==D.word.word.toLowerCase()?`<q>${esc(D.word.words)}</q>`:''}</div>`:''}
 </section>`));
+
+/* today on the calendar — as the calendar shows it, in the day behind's event cards */
+(function(){
+  const d0 = D.days && D.days[0];
+  if (!d0) return;
+  const sec = $(`<section class="todaycal"><h2>today on the calendar</h2>${d0.events.length?'':'<p class="sub">nothing on the calendars today</p>'}<div class="ecards"></div></section>`);
+  const box = sec.querySelector('.ecards');
+  d0.events.forEach(e=>{
+    const at = [e.when, e.end].filter(Boolean).map(esc).join('<br>');
+    const ln = e.link?` <a class="evl" href="${esc(e.link)}" target="_blank" rel="noopener">🗓️</a>`:'';
+    const sub = [e.drive, e.who!=='you'?e.who+"'s calendar":'', e.where].filter(Boolean).map(esc).join(' · ');
+    box.append($(`<div class="ecard${e.who!=='you'?' kid':''}"><div class="at">${at}</div><div class="ttl">${esc(e.summary||e.title)}${ln}</div>${sub?`<div class="edrv">${sub}</div>`:''}</div>`));
+  });
+  page.append(sec);
+})();
 
 /* your intentions — empty until you name them */
 const named = D.intentions.filter(Boolean).length;
 page.append($(`<section><h2>your intentions</h2><p class="sub">${named?'named by you this morning — the three below stay be•do\'s recommendation':'yours to name — these stay empty until you do'}</p>
-  <div class="slots">${D.intentions.map((v,i)=>v?`<div class="slot" style="color:var(--ink);border-style:solid"><b style="color:var(--accent)">${i+1}</b>${esc(v)}</div>`:`<div class="slot"><b>${i+1}</b>open</div>`).join('')}</div></section>`));
+  <div class="slots" style="grid-template-columns:repeat(${named||3},1fr)">${(named?D.intentions.filter(Boolean):D.intentions).map((v,i)=>v?`<div class="slot" style="color:var(--ink);border-style:solid"><b style="color:var(--accent)">${i+1}</b>${esc(v)}</div>`:`<div class="slot"><b>${i+1}</b>open</div>`).join('')}</div></section>`));
 
-/* the three */
-const three = $(`<section><h2>three to move</h2><p class="sub">be•do's recommendation — take them, fold them into your own, or leave them</p><ol class="three"></ol></section>`);
-const ol = three.querySelector('ol');
-D.pareto.forEach(p=>ol.append($(`<li class="rec"><div class="top"><span class="kind">${esc(p.kind)}</span><span class="drive">${esc(p.emoji)} ${esc(p.drive)}</span></div>
-  <p class="what">${esc(p.title)}</p><p class="why">${esc(p.why)}</p></li>`)));
-if (D.next && D.next.length) three.append($(`<p class="nextup">if one doesn't fit, next in line: ${D.next.map(n=>`<b>${esc(n.title)}</b>`).join(' · ')}</p>`));
+
+
+/* after the calendar — the day behind's action cards: status ⚡ title, the drive underneath,
+   the date on the left (red once it has passed); be•do's picks first, never more than max_tasks */
+const three = $(`<section><h2>after the calendar</h2><p class="sub">the few that move the most · at most ${D.max_tasks||10}</p><div class="ecards"></div></section>`);
+const tbox = three.querySelector('.ecards');
+const card = (t, why) => {
+  const late = t.date && t.date < D.date, on = t.date === D.date;
+  const at = t.date ? (on ? 'today' : (()=>{const d=new Date(t.date+'T12:00:00');return d.toLocaleDateString('en-US',{weekday:'short'})+'<br>'+d.getDate();})()) : '—';
+  const drv = t.drive ? `<div class="edrv">${esc(t.emoji||'')} ${esc(t.drive)}</div>` : '<div class="edrv none">no drive</div>';
+  return $(`<div class="ecard act${late?' gone':''}"><div class="at">${at}</div><div class="ttl">${esc(t.st||'⬜')} ⚡ ${esc(t.title)}</div>${drv}${why?`<div class="why">${esc(why)}</div>`:''}</div>`);
+};
+D.pareto.forEach(p=>tbox.append(card(p, p.kind)));
+(D.tasks||[]).forEach(t=>tbox.append(card(t, t.kind==='dated'?'':t.kind)));
 page.append(three);
+
+/* past its date — never folded away: each one needs her word */
+if (D.overdue && D.overdue.length){
+  const n = D.overdue.length;
+  const sec = $(`<section class="pastdue"><h2>past its date</h2><p class="sub">${n} ${n===1?'thing needs':'things need'} your word — done, a new date, or drop · oldest first</p><ul class="list"></ul></section>`);
+  const ul = sec.querySelector('ul');
+  D.overdue.forEach(s=>ul.append($(`<li><span class="d past">${esc(short(s.date))}<span class="late">${s.late} ${s.late===1?'day':'days'}</span></span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}<span class="resolve"><span>done</span><span>new date</span><span>drop</span></span></span></li>`)));
+  page.append(sec);
+}
+
+
+
+/* the next fourteen days */
+(function(){
+  const sec = $(`<section><h2>the next fourteen days</h2><p class="sub">both calendars, matched against the stream</p>
+    <div class="keyline"><span><span class="gap" style="font-size:10.5px;color:var(--accent);border:1px dashed var(--accent);border-radius:999px;padding:1px 7px">no row yet</span> ${D.gaps} events</span><span><span style="font-size:10.5px;color:var(--past);background:var(--past-soft);border-radius:999px;padding:1px 7px">clash</span> ${D.clashes} events</span></div>
+    <div class="days"></div></section>`);
+  const box = sec.querySelector('.days');
+  // fold runs of band-only days into one line
+  let i=0; const ds=D.days;
+  while (i<ds.length){
+    const d=ds[i];
+    if (d.bands.length && !d.events.length && !d.due.length){
+      let j=i; while (j+1<ds.length && ds[j+1].bands.join()===d.bands.join() && !ds[j+1].events.length && !ds[j+1].due.length) j++;
+      box.append($(`<div class="day band"><div class="dl">${esc(short(d.date))}${j>i?'–<br>'+esc(short(ds[j].date)):''}</div><div class="items"><div class="open" style="color:var(--dest)">${esc(d.bands.join(' · '))} continues</div></div></div>`));
+      i=j+1; continue;
+    }
+    const row = $(`<div class="day${d.today?' today':''}${d.bands.length?' band':''}"><div class="dl">${d.today?'today<br>':''}${esc(short(d.date))}</div><div class="items"></div></div>`);
+    const it = row.querySelector('.items');
+    d.events.forEach(e=>it.append($(`<div class="ev"><span class="tm">${esc(e.when)}</span><span>${esc(e.title)}</span>${e.who!=='you'?`<span class="who">${esc(e.who)}</span>`:''}${e.gap?'<span class="gap">no row yet</span>':''}${(e.clash||[]).map(c=>`<span class="clash">clashes with ${esc(c)}</span>`).join('')}</div>`)));
+    d.due.forEach(t=>it.append($(`<div class="due">${esc(t)}</div>`)));
+    if (!d.events.length && !d.due.length) it.append($(`<div class="open">open</div>`));
+    box.append(row); i++;
+  }
+  if (D.inside && D.inside.length) sec.append($(`<div class="further"><b>further out</b> · ${D.inside.map(x=>`${esc(x.title)} (${esc(x.label)}) falls inside ${esc(x.away)}`).join(' · ')}</div>`));
+  page.append(sec);
+})();
 
 /* where they lead — the map forward, drawn only for the three */
 (function(){
@@ -172,47 +259,6 @@ page.append(three);
   const ul = sec.querySelector('.dests');
   M.dests.forEach(d=>{ const mine = lanes.filter(l=>l.dest.includes(d.name)).length;
     ul.append($(`<li><span>${esc(d.emoji)}</span><span><span class="n">${esc(d.name)}</span> — ${mine} of today's three, ${d.feeders} drives in all</span><span class="t">${d.target?'by '+esc(day(d.target)):'no end date'}</span></li>`)); });
-  page.append(sec);
-})();
-
-/* today and soon */
-(function(){
-  const sec = $(`<section><h2>today and soon</h2><p class="sub">dated work in the next three days</p><ul class="list"></ul></section>`);
-  const ul = sec.querySelector('ul');
-  if (!D.soon.length) ul.append($(`<li><span class="d">—</span><span class="open">nothing dated in the next three days</span></li>`));
-  D.soon.forEach(s=>ul.append($(`<li><span class="d">${esc(short(s.date))}</span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}</span></li>`)));
-  if (D.overdue.length){
-    const det = $(`<details class="more"><summary>${D.overdue.length} more with a date already passed — newest first</summary><ul class="list"></ul></details>`);
-    const u2 = det.querySelector('ul');
-    D.overdue.forEach(s=>u2.append($(`<li><span class="d past">${esc(short(s.date))}</span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}</span></li>`)));
-    sec.append(det);
-  }
-  page.append(sec);
-})();
-
-/* the next fourteen days */
-(function(){
-  const sec = $(`<section><h2>the next fourteen days</h2><p class="sub">both calendars, matched against the stream</p>
-    <div class="keyline"><span><span class="gap" style="font-size:10.5px;color:var(--accent);border:1px dashed var(--accent);border-radius:999px;padding:1px 7px">no row yet</span> ${D.gaps} events</span><span><span style="font-size:10.5px;color:var(--past);background:var(--past-soft);border-radius:999px;padding:1px 7px">clash</span> ${D.clashes} events</span></div>
-    <div class="days"></div></section>`);
-  const box = sec.querySelector('.days');
-  // fold runs of band-only days into one line
-  let i=0; const ds=D.days;
-  while (i<ds.length){
-    const d=ds[i];
-    if (d.bands.length && !d.events.length && !d.due.length){
-      let j=i; while (j+1<ds.length && ds[j+1].bands.join()===d.bands.join() && !ds[j+1].events.length && !ds[j+1].due.length) j++;
-      box.append($(`<div class="day band"><div class="dl">${esc(short(d.date))}${j>i?'–<br>'+esc(short(ds[j].date)):''}</div><div class="items"><div class="open" style="color:var(--dest)">${esc(d.bands.join(' · '))} continues</div></div></div>`));
-      i=j+1; continue;
-    }
-    const row = $(`<div class="day${d.today?' today':''}${d.bands.length?' band':''}"><div class="dl">${d.today?'today<br>':''}${esc(short(d.date))}</div><div class="items"></div></div>`);
-    const it = row.querySelector('.items');
-    d.events.forEach(e=>it.append($(`<div class="ev"><span class="tm">${esc(e.when)}</span><span>${esc(e.title)}</span>${e.who!=='you'?`<span class="who">${esc(e.who)}</span>`:''}${e.gap?'<span class="gap">no row yet</span>':''}${(e.clash||[]).map(c=>`<span class="clash">clashes with ${esc(c)}</span>`).join('')}</div>`)));
-    d.due.forEach(t=>it.append($(`<div class="due">${esc(t)}</div>`)));
-    if (!d.events.length && !d.due.length) it.append($(`<div class="open">open</div>`));
-    box.append(row); i++;
-  }
-  if (D.inside && D.inside.length) sec.append($(`<div class="further"><b>further out</b> · ${D.inside.map(x=>`${esc(x.title)} (${esc(x.label)}) falls inside ${esc(x.away)}`).join(' · ')}</div>`));
   page.append(sec);
 })();
 
