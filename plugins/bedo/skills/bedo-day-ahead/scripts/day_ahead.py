@@ -235,7 +235,22 @@ def pareto(open_rows, chains, rhythms, today, L):
             r = c[0] if isinstance(c, tuple) else c
             if r['id'] not in used:
                 nxt.append(dict(kind=kind, title=clean_title(r['title']))); break
-    return picks, nxt
+    # the rest, in the same order of pull — taken in turn from each kind, no repeats —
+    # for the short list under the picks (her word, 2 Oct 2026: at most ten tasks)
+    more, seen = [], set(used)
+    pools = [[(k, c[0] if isinstance(c, tuple) else c) for c in cands]
+             for k, cands in (('in motion', motion), ('someone waiting', waiting), ('weighing on you', weigh))]
+    while any(pools):
+        for pool in pools:
+            while pool:
+                k, r = pool.pop(0)
+                # only what is due within the week (or already past): a far-off row is not today's
+                if r['id'] in seen or (tgt(r) and (tgt(r) - today).days > L.get('task_horizon_days', 7)):
+                    continue
+                seen.add(r['id'])
+                more.append(dict(kind=k, id=r['id'], title=clean_title(r['title']), drive=r['rhythm'] or '', due=due_phrase(r)))
+                break
+    return picks, nxt, more
 
 
 # ---------------------------------------------------------------- calendar
@@ -655,7 +670,7 @@ def main():
         if m:
             word = dict(word=m.group(1).strip(), words=sentence_with(her_words(r['details']), [m.group(1)]) or ''); break
 
-    picks, nxt = pareto(open_rows, chains, rhythms, today, L)
+    picks, nxt, more = pareto(open_rows, chains, rhythms, today, L)
     days, gaps, clashes, away, evs, conflicts = calendar(cal, rows, open_rows, today, a.days, L)
     plan = look_ahead_plan(evs, conflicts, rows, open_rows, chains, rhythms, today, a, L)
 
@@ -687,6 +702,21 @@ def main():
         elif n < 0:
             overdue.append(dict(item, late=-n, id=r['id'], key=r['key']))
     soon.sort(key=lambda x: x['date']); overdue.sort(key=lambda x: x['date'])
+
+    # the list after the calendar — the picks, then the rest of the pull, then dated work in
+    # the next three days, never more than max_tasks in all (her word, 2 Oct 2026: max ten,
+    # so it is not overwhelming). Past-date rows are not in it: they have their own section.
+    cap = L.get('max_tasks', 10)
+    today_events = [re.sub(r'^[^\w]+', '', e['title']).split(' — ')[0].strip() for e in days[0]['events']] if days else []
+    taken = {clean_title(p['row']['title']) for p in picks}
+    tasks = []
+    for t in more + [dict(kind='dated', title=x['title'], drive=x['drive'], due='due ' + x['label']) for x in soon]:
+        if len(picks) + len(tasks) >= cap:
+            break
+        # a row that is one of today's calendar events is already in the calendar section
+        if t['title'] in taken or any(ev and ev.lower() in t['title'].lower() for ev in today_events):
+            continue
+        taken.add(t['title']); tasks.append(dict(kind=t['kind'], title=t['title'], drive=t['drive'], due=t['due']))
     plan['overdue'] = [dict(id=o['id'], key=o['key'], title=o['title'], drive=o['drive'], target=o['date'], days_late=o['late'])
                        for o in overdue]
 
@@ -727,7 +757,7 @@ def main():
         secure=dict(state=a.secure, words=a.secure_words) if a.secure else None,
         pareto=[dict(kind=p['kind'], title=clean_title(p['row']['title']), drive=p['row']['rhythm'] or '',
                      emoji=(rhythms.get(p['row']['rhythm'] or '') or {}).get('emoji') or '·', why=p['why']) for p in picks],
-        next=nxt,
+        next=nxt, tasks=tasks, max_tasks=cap,
         intentions=(a.intention + [None, None, None])[:3], draft=a.draft,
         map=dict(start=today.isoformat(), end=L['map_end'], lanes=lanes, dests=list(dests.values()), away=away),
         soon=soon, overdue=overdue,
