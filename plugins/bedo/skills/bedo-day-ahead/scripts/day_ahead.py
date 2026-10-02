@@ -248,7 +248,8 @@ def pareto(open_rows, chains, rhythms, today, L):
                 if r['id'] in seen or (tgt(r) and (tgt(r) - today).days > L.get('task_horizon_days', 7)):
                     continue
                 seen.add(r['id'])
-                more.append(dict(kind=k, id=r['id'], title=clean_title(r['title']), drive=r['rhythm'] or '', due=due_phrase(r)))
+                more.append(dict(kind=k, id=r['id'], title=clean_title(r['title']), drive=r['rhythm'] or '', due=due_phrase(r),
+                                 st=r['status'][:2], date=tgt(r).isoformat() if tgt(r) else None))
                 break
     return picks, nxt, more
 
@@ -718,13 +719,14 @@ def main():
     today_events = [re.sub(r'^[^\w]+', '', e['title']).split(' — ')[0].strip() for e in days[0]['events']] if days else []
     taken = {clean_title(p['row']['title']) for p in picks}
     tasks = []
-    for t in more + [dict(kind='dated', title=x['title'], drive=x['drive'], due='due ' + x['label']) for x in soon]:
+    for t in more + [dict(kind='dated', title=x['title'], drive=x['drive'], due='due ' + x['label'], st=x['st'], date=x['date']) for x in soon]:
         if len(picks) + len(tasks) >= cap:
             break
         # a row that is one of today's calendar events is already in the calendar section
         if t['title'] in taken or any(ev and ev.lower() in t['title'].lower() for ev in today_events):
             continue
-        taken.add(t['title']); tasks.append(dict(kind=t['kind'], title=t['title'], drive=t['drive'], due=t['due']))
+        taken.add(t['title']); tasks.append(dict(kind=t['kind'], title=t['title'], drive=t['drive'], due=t['due'], st=t['st'], date=t['date'],
+                                                 emoji=(rhythms.get(t['drive']) or {}).get('emoji') or ''))
     plan['overdue'] = [dict(id=o['id'], key=o['key'], title=o['title'], drive=o['drive'], target=o['date'], days_late=o['late'])
                        for o in overdue]
 
@@ -764,7 +766,8 @@ def main():
         word=word,
         secure=dict(state=a.secure, words=a.secure_words) if a.secure else None,
         pareto=[dict(kind=p['kind'], title=clean_title(p['row']['title']), drive=p['row']['rhythm'] or '',
-                     emoji=(rhythms.get(p['row']['rhythm'] or '') or {}).get('emoji') or '·', why=p['why']) for p in picks],
+                     emoji=(rhythms.get(p['row']['rhythm'] or '') or {}).get('emoji') or '·', why=p['why'], st=p['row']['status'][:2],
+                     date=local(p['row']['target']).date().isoformat() if p['row']['target'] else None) for p in picks],
         next=nxt, tasks=tasks, max_tasks=cap,
         intentions=(a.intention + [None, None, None])[:3], draft=a.draft,
         map=dict(start=today.isoformat(), end=L['map_end'], lanes=lanes, dests=list(dests.values()), away=away),

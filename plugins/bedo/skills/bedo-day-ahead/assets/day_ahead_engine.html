@@ -55,6 +55,10 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .ecard .ttl{font-weight:600;font-size:.98rem;line-height:1.35;overflow-wrap:anywhere}
 .ecard .evl{margin-left:6px;text-decoration:none}
 .ecard .edrv{grid-column:2;font-size:.74rem;font-weight:600;letter-spacing:.02em;color:var(--dest);overflow-wrap:anywhere}
+.ecard.act{box-shadow:inset 3px 0 0 var(--rule)}
+.ecard.act.gone .at{color:var(--past)}
+.ecard .edrv.none{color:#E0703E}
+.ecard .why{grid-column:2;font:500 10.5px var(--mono);color:var(--accent);text-transform:lowercase;letter-spacing:.04em}
 .tasks{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:8px;counter-reset:t var(--from)}
 .tasks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:2px 8px;counter-increment:t;font-size:14px}
 .tasks li::before{content:counter(t);font:500 12px var(--mono);color:var(--faint);padding-top:2px;grid-row:span 2}
@@ -150,7 +154,7 @@ page.append($(`<header>
 
 /* word + secure base */
 if (D.word) page.append($(`<section class="frame">
-  ${D.word?`<div class="word"><div class="k">this week's word</div><div class="w">${esc(D.word.word)}</div>${D.word.words?`<q>${esc(D.word.words)}</q>`:''}</div>`:''}
+  ${D.word?`<div class="word"><div class="k">this week's word</div><div class="w">${esc(D.word.word)}</div>${D.word.words&&D.word.words.replace(/[.\s]+$/,'').toLowerCase()!==D.word.word.toLowerCase()?`<q>${esc(D.word.words)}</q>`:''}</div>`:''}
 </section>`));
 
 /* today on the calendar — as the calendar shows it, in the day behind's event cards */
@@ -175,16 +179,18 @@ page.append($(`<section><h2>your intentions</h2><p class="sub">${named?'named by
 
 
 
-/* after the calendar — be•do's picks, then the rest, never more than max_tasks in all */
-const three = $(`<section><h2>after the calendar</h2><p class="sub">the calendar comes first · then these, the few that move the most · at most ${D.max_tasks||10}</p><ol class="three"></ol></section>`);
-const ol = three.querySelector('ol');
-D.pareto.forEach(p=>ol.append($(`<li class="rec"><div class="top"><span class="kind">${esc(p.kind)}</span><span class="drive">${esc(p.emoji)} ${esc(p.drive)}</span></div>
-  <p class="what">${esc(p.title)}</p><p class="why">${esc(p.why)}</p></li>`)));
-if (D.tasks && D.tasks.length){
-  const tl = $(`<ol class="tasks" style="--from:${D.pareto.length}"></ol>`);
-  D.tasks.forEach(t=>tl.append($(`<li><span class="tt">${esc(t.title)}</span><span class="tm">${esc(t.due)}${t.drive?` · <span class="dv">${esc(t.drive)}</span>`:''}</span></li>`)));
-  three.append(tl);
-}
+/* after the calendar — the day behind's action cards: status ⚡ title, the drive underneath,
+   the date on the left (red once it has passed); be•do's picks first, never more than max_tasks */
+const three = $(`<section><h2>after the calendar</h2><p class="sub">the few that move the most · at most ${D.max_tasks||10}</p><div class="ecards"></div></section>`);
+const tbox = three.querySelector('.ecards');
+const card = (t, why) => {
+  const late = t.date && t.date < D.date, on = t.date === D.date;
+  const at = t.date ? (on ? 'today' : (()=>{const d=new Date(t.date+'T12:00:00');return d.toLocaleDateString('en-US',{weekday:'short'})+'<br>'+d.getDate();})()) : '—';
+  const drv = t.drive ? `<div class="edrv">${esc(t.emoji||'')} ${esc(t.drive)}</div>` : '<div class="edrv none">no drive</div>';
+  return $(`<div class="ecard act${late?' gone':''}"><div class="at">${at}</div><div class="ttl">${esc(t.st||'⬜')} ⚡ ${esc(t.title)}</div>${drv}${why?`<div class="why">${esc(why)}</div>`:''}</div>`);
+};
+D.pareto.forEach(p=>tbox.append(card(p, p.kind)));
+(D.tasks||[]).forEach(t=>tbox.append(card(t, t.kind==='dated'?'':t.kind)));
 page.append(three);
 
 /* past its date — never folded away: each one needs her word */
