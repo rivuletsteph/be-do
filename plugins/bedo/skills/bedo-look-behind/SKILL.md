@@ -290,6 +290,13 @@ page goes out:
   the catalog's exact string.
 - `overlapping_work` — two drive rows on the same minutes. Fine when a Code
   session ran while she was in a meeting; say so, don't silently keep both.
+- `unexplained` — a stretch of 15+ minutes nothing covers. **Fill it from the
+  clues, don't ask her for it** (amendment, 2 Oct 2026): read the rows either
+  side and inside it, and write one row for the stretch with the best reading —
+  a real practice when the clues name one (getting ready before a drive,
+  cooking between home and "dinner made"), else 📝 log — its `[be•do]` block
+  saying ESTIMATED FROM CONTEXT, not logged by her, and naming the clues. Only
+  a stretch with no clue on either side stays open, named in one line.
 - And the calendar: read the day's events after she has corrected them, give
   each one that happened its own row (a 🗓️ calendar event, ✅ done, titled as
   the calendar line, with the event link), and note any drift from the plan.
