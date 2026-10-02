@@ -53,8 +53,8 @@ li{display:grid;grid-template-columns:1.9rem 1fr;align-items:baseline}
 .chiprow{display:flex;flex-wrap:wrap;gap:6px;padding-left:4px}
 .echip{font-family:var(--mono);font-size:.72rem;color:var(--muted);border:1px solid var(--rule);border-radius:999px;padding:3px 10px;white-space:nowrap}
 .echip b{font-weight:500;color:var(--soft);margin-right:6px}
-.ecard{background:var(--tint);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
-.ecard .at{font-family:var(--mono);font-size:.72rem;color:var(--muted);padding-top:3px}
+.ecard{background:var(--tint);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:3.4rem 1fr;gap:4px 10px}
+.ecard .at{font-family:var(--mono);font-size:.7rem;line-height:1.35;color:var(--muted);padding-top:3px;grid-row:span 4}
 .ecard .hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .ecard .pn{font-weight:700;font-size:.95rem}
 .ecard .meta{margin-left:auto;font-family:var(--mono);font-size:.7rem;color:var(--muted);display:flex;gap:8px;align-items:center}
@@ -70,7 +70,7 @@ li{display:grid;grid-template-columns:1.9rem 1fr;align-items:baseline}
 .bydrive ul{gap:6px}.bydrive li{grid-template-columns:1fr auto;font-size:.9rem;font-weight:500}
 .bydrive .mo{font-size:.72rem;color:var(--muted)}
 .bydrive .min{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
-.ecard .ttl{font-weight:700;font-size:.98rem;line-height:1.3;flex:1 1 10rem;min-width:0}
+.ecard .ttl{font-weight:700;font-size:.98rem;line-height:1.35;flex:1 1 100%;min-width:0}
 .ecard .ttl a,.ecard .tt a.evl{margin-left:6px;text-decoration:none}
 .ecard .ttl a{font-family:var(--mono);font-size:.7rem;font-weight:500;color:var(--link)}
 .ecard .ttl a.evl,.ecard .tt a.evl{font-size:.95rem;font-family:inherit}
@@ -299,10 +299,13 @@ function renderEntries() {
     const drv = e.rh ? `<div class="edrv">${esc(e.rh)}</div>` : (needsDrive ? `<div class="edrv none">no drive</div>` : "");
     const links = (e.url ? `<a href="${esc(e.url)}">↗ link</a>` : "") + (e.ev ? `<a class="evl" href="${esc(e.ev)}" title="open on the calendar">\u{1F5D3}\uFE0F</a>` : "");
     // an action reads ✅ ⚡ and what it was; a meeting reads ✅ and its calendar line, with 🗓️ linking to it
-    const lead = needsDrive ? `<span>${e.st}</span>${e.cal ? "" : `<span>${e.g}</span>`}<span class="ttl">${esc(e.t)}${links}</span>`
+    // the check, the ⚡ and the title read as one line of text, so a long title wraps under itself, not beside the marks
+    const lead = needsDrive ? `<span class="ttl">${e.st} ${e.cal ? "" : e.g + " "}${esc(e.t)}${links}</span>`
                             : `<span>${e.st}</span><span>${e.g}</span><span class="pn">${esc(e.p)}</span>`;
-    html += `<div class="ecard${e.cal ? " cal" : ""}"><span class="at">${esc(e.span || e.at)}</span><div class="hd">${lead}<span class="meta">${meta}</span></div>` +
-      drv + (needsDrive ? "" : `<div class="tt">${esc(e.t)}${links}</div>`) + (e.w ? `<div class="ww">${esc(e.w)}</div>` : "") + `</div>`;
+    // start and end stacked in the narrow left column
+    const at = e.span ? e.span.split("\u2013").map(esc).join("<br>") : esc(e.at);
+    html += `<div class="ecard${e.cal ? " cal" : ""}"><span class="at">${at}</span><div class="hd">${lead}<span class="meta">${meta}</span></div>` +
+      drv + (needsDrive ? "" : `<div class="tt">${esc(e.t)}${links}</div>`) + (e.w ? `<div class="ww">${esc(e.w.replace(/^what I did\s*\u00B7?\s*/i, ""))}</div>` : "") + `</div>`;
   });
   flush();
   const f = document.getElementById("efilter");
