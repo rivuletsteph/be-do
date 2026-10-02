@@ -258,9 +258,10 @@ EXPECT = {
                 'Weighted by effort; rows with a real span count their minutes.',
     },
     # 1 Oct 2026, her word: the device field is where a row was logged, not what she was
-    # doing. Only rows carrying a drive count as device time; the fixture's other
-    # device rows (43 logged minutes) are the act of logging the day.
-    'pie_minutes': {'bed': (459, 0), 'move': (10, 130), 'food': (83, 75), 'dev': (40, 89), 'log': (43, 0)},
+    # doing. Only rows carrying a drive count as device time; a moment logged
+    # from a device is 'logging the day'. The fixture's other device rows are
+    # spans with no drive (43 minutes), so they fall to everything else.
+    'pie_minutes': {'bed': (459, 0), 'move': (10, 130), 'food': (83, 75), 'dev': (40, 89), 'log': (0, 0)},
     'destinations': [
         {'name': 'be•do', 'glyph': MARK, 'work': [
             {'drive': f'{MARK} be•do drive',

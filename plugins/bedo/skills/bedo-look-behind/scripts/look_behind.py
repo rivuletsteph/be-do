@@ -497,8 +497,9 @@ def main():
     # (her word, 1 Oct 2026: "I was not on my phone during the bm, and that's
     # what it implies"). So only a row that carries a drive or rhythm — real
     # work, be•do system work included — counts as time on a device. Every
-    # other unplaced row logged from a device is the act of logging the day
-    # (the dawn and dusk flows, a log, a note) and gets its own slice.
+    # other unplaced MOMENT logged from a device (no span — the dawn and dusk
+    # flows, a log, a note) is the act of logging the day and gets its own
+    # slice. A span with no drive, like a 📍 place from Timeline, is neither.
     dev_slice = L.get('device_slice')
     dev_off = {norm(x) for x in (L.get('device_off') or [])}
     log_slice = L.get('logging_slice') or dict(k='log', e='\u270d\ufe0f', n='Logging the day', c='#C9A227')
@@ -513,7 +514,12 @@ def main():
             est = t['median_min'] if t else None
         cat = cat_of.get(r['_pr'])
         if not cat and dev_slice and r.get('device') and norm(r['device']) not in dev_off:
-            cat = dev_slice if (r.get('rhythm') or '').strip() else log_slice['k']
+            if (r.get('rhythm') or '').strip():
+                cat = dev_slice
+            elif not r['_e']:
+                cat = log_slice['k']   # a moment logged — the act of logging the day
+            # a span with no drive (a 📍 place, a stretch somewhere) is neither
+            # device time nor logging: it stays with everything else
         prows.append(dict(cat=cat, s=r['_s'], e=r['_e'], est=est, title=r['_title']))
     pie, trimmed = day_pie.build(prows, cats, max_titles=L.get('pie_max_titles', 4))
 
