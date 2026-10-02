@@ -446,7 +446,10 @@ def main():
         if bookkeeping(r):
             continue
         pr = r['_pr']
-        card = pr in rises or (pr in act_pr and (real_span(r) or key_day(r) == day))
+        # a calendar event is a card, never a chip (her word, 2 Oct 2026: the
+        # meetings were little pills she couldn't read)
+        cal_ev = pr in {norm(x) for x in (L.get('calendar_practices') or ['calendar event'])}
+        card = cal_ev or pr in rises or (pr in act_pr and (real_span(r) or key_day(r) == day))
         m = re.match(r'^([^\w\s]+)', (r.get('practice') or '').strip())
         e = {'at': clock(r['_s']), 'g': m.group(1) if m else '', 'p': pr,
              'wd': norm(r.get('wellness'))}
@@ -461,7 +464,8 @@ def main():
                      w=(words[:240].rsplit(' ', 1)[0] + ' \u2026') if len(words) > 240 else
                        ('' if words == title else words),
                      rh=r.get('rhythm') or '', emo=(sv(emo) or '')[:1], ew=r.get('emoword') or '',
-                     url=r.get('deliv') or '')
+                     url=r.get('deliv') or '', cal=cal_ev,
+                     span=(f"{clock(r['_s'])}\u2013{clock(r['_e'])}" if r['_e'] else ''))
         entries.append(e)
     ages = sorted((day - key_day(r)).days for r in books)
     booked = {'n': len(books), 'oldest': ages[-1] if ages else 0}
