@@ -26,8 +26,11 @@ FLOOR    = 3        # fewer observations than this and the practice is left out
 # the spread is reported so a wide one can be seen, and the page draws every
 # estimate striped.
 # These never get a typical length: a row of one with no end is a check-in, a
-# status change or a container, not a stretch of that length.
-EXCLUDE  = {"action", "calendar event", "location", "capture", "log", "sleep"}
+# status change or a container, not a stretch of that length. Driving too, her
+# word 2 Oct 2026: the commute, [private] and [private] are each their own length, and
+# one number for every drive is wrong; drives carry real ends from Timeline.
+EXCLUDE  = {"action", "calendar event", "location", "capture", "log", "sleep",
+            "driving"}
 MAX_MIN  = 24 * 60  # a span longer than a day is a data error, not a duration
 NOSCORE  = {"▫️potential", "⬜ intention", "✖️ dropped"}
 
