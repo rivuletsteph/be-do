@@ -21,13 +21,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from bedo_common import norm  # noqa: E402  the one naming rule, shared
 
 FLOOR    = 3        # fewer observations than this and the practice is left out
-# Her word, 2 Oct 2026: use the medians, all of them. A median shrugs off the odd
+# The user's word, 2 Oct 2026: use the medians, all of them. A median shrugs off the odd
 # row (hips 2, 6, 7, 10, 12 and one 60 still reads 8), so there is no spread gate;
 # the spread is reported so a wide one can be seen, and the page draws every
 # estimate striped.
 # These never get a typical length: a row of one with no end is a check-in, a
-# status change or a container, not a stretch of that length. Driving too, her
-# word 2 Oct 2026: the commute, [private] and [private] are each their own length, and
+# status change or a container, not a stretch of that length. Driving too, the
+# user's word 2 Oct 2026: the commute and each standing route are their own length, and
 # one number for every drive is wrong; drives carry real ends from Timeline.
 EXCLUDE  = {"action", "calendar event", "location", "capture", "log", "sleep",
             "driving", "text"}

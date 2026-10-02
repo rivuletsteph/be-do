@@ -159,8 +159,8 @@ def load_practices(path, L):
             band = int(re.sub(r'\D', '', str(band))) if band not in (None, '') else None
         except ValueError:
             band = None
-        # her own typical length in minutes, said once and set in the catalog;
-        # it beats the median of her timed rows (amendment, 19 Aug 2026)
+        # the user's own typical length in minutes, said once and set in the catalog;
+        # it beats the median of their timed rows (amendment, 19 Aug 2026)
         typ = c.get(PF.get('typical')) if PF.get('typical') else None
         typ = typ if isinstance(typ, (int, float)) and typ > 0 else None
         out[nm] = {'band': band or L.get('default_effort_band', 1),
@@ -397,13 +397,13 @@ def main():
         # the case that matters. It scores nothing on the wheel and its minutes
         # are still logged on the pie, because the hours happened. Collapsing
         # these two into one flag is what loses the night.
-        # A row on one of her drives, or an ⚡ action, is her work whoever it
-        # names — 1 Oct 2026, 3h11 on the lower [private] for [private] dropped out
+        # A row on one of the user's drives, or an ⚡ action, is their work whoever
+        # it names — 1 Oct 2026, three hours of drive work for a colleague dropped out
         # of effectiveness because the person field named only him.
-        # And a stretch of time with someone named is time she spent with
-        # them (person = with her, [id]): lunch with [private], the
-        # walk with [private]. Only an instant row naming someone else alone —
-        # [private]'s own wake, his quest — is theirs.
+        # And a stretch of time with someone named is time the user spent with
+        # them (person = with the user, by the stream's own rule): lunch with a
+        # partner, a walk with a child. Only an instant row naming someone else
+        # alone — the child's own wake — is theirs.
         own_work = bool((r.get('rhythm') or '').strip()) or pr in {
             norm(x) for x in (L.get('action_practices') or ['action'])} or bool(
             e and e > s and not (cat.get('zero') or pr in zero_pr))   # someone else's sleep stays theirs
@@ -466,8 +466,8 @@ def main():
         if bookkeeping(r):
             continue
         pr = r['_pr']
-        # a calendar event is a card, never a chip (her word, 2 Oct 2026: the
-        # meetings were little pills she couldn't read)
+        # a calendar event is a card, never a chip (the user's word, 2 Oct 2026: the
+        # meetings were little pills they couldn't read)
         cal_ev = pr in {norm(x) for x in (L.get('calendar_practices') or ['calendar event'])}
         card = cal_ev or pr in rises or (pr in act_pr and (real_span(r) or key_day(r) == day))
         m = re.match(r'^([^\w\s]+)', (r.get('practice') or '').strip())
@@ -487,7 +487,7 @@ def main():
                      url=r.get('deliv') or '', cal=cal_ev, ev=r.get('event') or '',
                      span=(f"{clock(r['_s'])}\u2013{clock(r['_e'])}" if r['_e'] else ''))
         entries.append(e)
-    # ── QA, printed with every build and cleared before publishing (her word, 2 Oct 2026)
+    # ── QA, printed with every build and cleared before publishing (the user's word, 2 Oct 2026)
     known_pr = set(practices)
     qa = {
         'no_drive': [r['_title'] for r in lived
@@ -558,8 +558,8 @@ def main():
     # decides the screen slice, and only for rows the practice map didn't
     # already place: eating in front of the television is still eating.
     #
-    # The device field says where a row was LOGGED, not what she was doing
-    # (her word, 1 Oct 2026: "I was not on my phone during the bm, and that's
+    # The device field says where a row was LOGGED, not what the user was doing
+    # (the user's word, 1 Oct 2026: "I was not on my phone during the bm, and that's
     # what it implies"). So only a row that carries a drive or rhythm — real
     # work, be•do system work included — counts as time on a device. Every
     # other unplaced MOMENT logged from a device (no span — the dawn and dusk
@@ -567,7 +567,7 @@ def main():
     # slice. A span with no drive, like a 📍 place from Timeline, is neither.
     dev_slice = L.get('device_slice')
     dev_off = {norm(x) for x in (L.get('device_off') or [])}
-    # Her word, 2 Oct 2026: the device time splits into DOING — pushing the
+    # The user's word, 2 Oct 2026: the device time splits into DOING — pushing the
     # ball forward on drives — and BEING — logging the day. A logged moment
     # has no span, so each one is given a small estimated length
     # (logging_minutes, default 1), drawn striped like every estimate.
@@ -583,7 +583,7 @@ def main():
     for r in lived:
         est = None
         if not r['_e']:
-            # her word first, then the median of her own timed rows
+            # the user's word first, then the median of their own timed rows
             t = typical.get(r['_pr'])
             est = (practices.get(r['_pr']) or {}).get('typical') or (t['median_min'] if t else None)
         cat = cat_of.get(r['_pr'])

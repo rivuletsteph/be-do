@@ -76,7 +76,7 @@ elif [ "$MODE" = build ]; then
     WORDS="words-$DAY.json"; fi
   [ -f "$WORDS" ] || { echo "no words for $DAY — write words-$DAY.json with scripts/words.py --new (SKILL.md)"; exit 1; }
   echo "words: $WORDS"
-  # her typical lengths, the median of her own timed rows (scripts/typical_time.py)
+  # typical lengths, the median of the user's own timed rows (scripts/typical_time.py)
   TYPICAL=; [ -f typical_time.json ] && TYPICAL="--typical typical_time.json"
   "$PY" scripts/look_behind.py --day "$DAY" --local look_behind_local.json $STREAMS \
     --rhythms data/rhythms.json --practices data/practices.json --connections data/connections.json \

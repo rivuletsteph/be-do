@@ -236,7 +236,7 @@ def pareto(open_rows, chains, rhythms, today, L):
             if r['id'] not in used:
                 nxt.append(dict(kind=kind, title=clean_title(r['title']))); break
     # the rest, in the same order of pull — taken in turn from each kind, no repeats —
-    # for the short list under the picks (her word, 2 Oct 2026: at most ten tasks)
+    # for the short list under the picks (the user's word, 2 Oct 2026: at most ten tasks)
     more, seen = [], set(used)
     pools = [[(k, c[0] if isinstance(c, tuple) else c) for c in cands]
              for k, cands in (('in motion', motion), ('someone waiting', waiting), ('weighing on you', weigh))]
@@ -698,7 +698,7 @@ def main():
 
     # today and soon — dated work in the next three days.
     # Past its date — every open row whose target has passed. These are never folded away or
-    # left to carry: each one needs her word (done, a new date, or dropped), so the page lists
+    # left to carry: each one needs the user's word (done, a new date, or dropped), so the page lists
     # them all, oldest first, and the plan hands them to the chat for the one list of asks.
     soon, overdue = [], []
     for r in open_rows:
@@ -713,7 +713,7 @@ def main():
     soon.sort(key=lambda x: x['date']); overdue.sort(key=lambda x: x['date'])
 
     # the list after the calendar — the picks, then the rest of the pull, then dated work in
-    # the next three days, never more than max_tasks in all (her word, 2 Oct 2026: max ten,
+    # the next three days, never more than max_tasks in all (the user's word, 2 Oct 2026: max ten,
     # so it is not overwhelming). Past-date rows are not in it: they have their own section.
     cap = L.get('max_tasks', 10)
     today_events = [re.sub(r'^[^\w]+', '', e['title']).split(' — ')[0].strip() for e in days[0]['events']] if days else []

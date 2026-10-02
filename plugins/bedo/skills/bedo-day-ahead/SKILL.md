@@ -226,8 +226,8 @@ contents never pass through the chat.
      or ✖️ dropped as a DEDUPE onto the live key, or as passed when its moment
      is gone with no record). A shared word is not evidence. **Everything the
      sweep can't close goes into the one numbered list** — done, a new date,
-     drop, or someday — and her answers are written the same morning. A date
-     she gives is a retarget; a target she didn't give is not supplied.
+     drop, or someday — and the user's answers are written the same morning. A
+     date they give is a retarget; a target they didn't give is not supplied.
    Matching an event to its row goes: the row's `event` link first, then
    `event_aliases` (the user's own names for a recurring thing), then shared
    words. **Today is held stricter**: a same-subject row only counts as the

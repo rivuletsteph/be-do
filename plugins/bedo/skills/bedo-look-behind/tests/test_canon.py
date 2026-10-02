@@ -257,7 +257,7 @@ EXPECT = {
         'note': 'Sleep, plans and other people’s own rows count zero. '
                 'Weighted by effort; rows with a real span count their minutes.',
     },
-    # 1 Oct 2026, her word: the device field is where a row was logged, not what she was
+    # 1 Oct 2026, the user's word: the device field is where a row was logged, not what they were
     # doing. Only rows carrying a drive count as device time; a moment logged
     # from a device is 'logging the day'. The fixture's other device rows are
     # spans with no drive (43 minutes), so they fall to everything else.

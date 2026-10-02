@@ -193,7 +193,7 @@ D.pareto.forEach(p=>tbox.append(card(p, p.kind)));
 (D.tasks||[]).forEach(t=>tbox.append(card(t, t.kind==='dated'?'':t.kind)));
 page.append(three);
 
-/* past its date — never folded away: each one needs her word */
+/* past its date — never folded away: each one needs the user's word */
 if (D.overdue && D.overdue.length){
   const n = D.overdue.length;
   const sec = $(`<section class="pastdue"><h2>past its date</h2><p class="sub">${n} ${n===1?'thing needs':'things need'} your word — done, a new date, or drop · oldest first</p><ul class="list"></ul></section>`);

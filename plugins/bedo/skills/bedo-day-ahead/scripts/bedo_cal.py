@@ -150,7 +150,7 @@ def pages_of(d, path):
         die(f'{path}: expected a list_events result (or a list of its pages), each carrying the calendar "summary"')
     for p in d:
         # a calendar with nothing in the window comes back with no "events" key at all
-        # ([private]'s read-only calendar, 28 Sep 2026); that is a real read of nothing
+        # (a partner's read-only calendar, 28 Sep 2026); that is a real read of nothing
         if p.get('events') is None:
             p['events'] = []
         elif not isinstance(p['events'], list):

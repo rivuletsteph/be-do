@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<script>/* dark by default, her word 2 Oct 2026; ?theme=light still turns it light */document.documentElement.setAttribute("data-theme",/[?&]theme=light/.test(location.search)?"light":"dark")</script>
+<script>/* dark by default, the user's word 2 Oct 2026; ?theme=light still turns it light */document.documentElement.setAttribute("data-theme",/[?&]theme=light/.test(location.search)?"light":"dark")</script>
 <title>The Day Behind</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,7 @@
   :root:not([data-theme="light"]){ --ground:#141219; --ink:#F1EFF6; --soft:#C9C4D6; --muted:#9B95AB; --faint:#6A6479; --rule:#2B2735; --tint:#1E1B26; --link:#9BC4F5; --be:#9A4BDB; --tend:#C3CAFA; --grow:#2EC4E8; --grow-ink:#5ED6F2; --do-ink:#AEB8FA; --be-ink:#C58CF0; --core-rim:#FFFFFF; }
 }
 :root[data-theme="dark"]{ --ground:#141219; --ink:#F1EFF6; --soft:#C9C4D6; --muted:#9B95AB; --faint:#6A6479; --rule:#2B2735; --tint:#1E1B26; --link:#9BC4F5; --be:#9A4BDB; --tend:#C3CAFA; --grow:#2EC4E8; --grow-ink:#5ED6F2; --do-ink:#AEB8FA; --be-ink:#C58CF0; --core-rim:#FFFFFF; }
-/* dark always (her word, 2 Oct 2026): a host that sets data-theme="light" on the page must not turn it light */
+/* dark always (the user's word, 2 Oct 2026): a host that sets data-theme="light" on the page must not turn it light */
 html:root, html:root[data-theme]{ --ground:#141219; --ink:#F1EFF6; --soft:#C9C4D6; --muted:#9B95AB; --faint:#6A6479; --rule:#2B2735; --tint:#1E1B26; --link:#9BC4F5; --be:#9A4BDB; --tend:#C3CAFA; --grow:#2EC4E8; --grow-ink:#5ED6F2; --do-ink:#AEB8FA; --be-ink:#C58CF0; --core-rim:#FFFFFF; color-scheme:dark; }
 *{box-sizing:border-box}
 body{background:var(--ground);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
@@ -396,7 +396,7 @@ if (E.secure === "secure") {
   document.getElementById("effnote").textContent = "The foundation needed the energy today.";
 }
 document.getElementById("usual").textContent = E.usualMin ? `${Math.round(mins/E.usualMin*100)}% of your effectiveness baseline (${hm(E.usualMin)})` : `effectiveness baseline still forming \u00B7 ${E.baselineDays} of ${E.baselineNeeded} clean days`;
-// what moved, by drive first — the drive's own time and steps, then the destinations it feeds (her word, 2 Oct 2026)
+// what moved, by drive first — the drive's own time and steps, then the destinations it feeds (the user's word, 2 Oct 2026)
 { const byDrive = new Map();
   allw.forEach(w => { if (!byDrive.has(w.drive)) byDrive.set(w.drive, {name: w.drive, items: [], dests: new Set(), min: 0}); const g = byDrive.get(w.drive); g.items.push(w); g.min += w.min || 0; w.dests.forEach(x => g.dests.add(x)); });
   const groups = [...byDrive.values()].sort((a,b) => b.min - a.min);
