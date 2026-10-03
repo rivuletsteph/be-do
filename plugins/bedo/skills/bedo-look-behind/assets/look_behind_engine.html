@@ -105,9 +105,25 @@ li{display:grid;grid-template-columns:1.9rem 1fr;align-items:baseline}
 .dlab{font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);text-align:center;margin:0 0 6px}
 .duo .pie{max-width:300px}
 .duo #wheel svg{width:100%;max-width:320px;height:auto;display:block;margin:0 auto}
-.duohint{text-align:center;margin:8px 0 14px}
+
 #selbar{justify-content:center;margin:10px 0 0}
-.legends{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:14px}
+/* under the dials: one row of chips per dial, a thin bar, and what the tap found (3 Oct 2026) */
+.krow{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
+.kc{display:inline-flex;align-items:center;gap:6px;background:var(--tint);border:1px solid var(--rule);border-radius:999px;padding:4px 10px;color:var(--ink);font:600 .78rem var(--sans);cursor:pointer;white-space:nowrap}
+.kc i{width:10px;height:10px;border-radius:3px;display:inline-block;flex:none}
+.kc i.dev{background-color:var(--soft);background-image:repeating-linear-gradient(45deg,var(--ground) 0 2px,transparent 2px 5px)}
+.kc small{font:500 .72rem var(--mono);color:var(--muted)}
+.kc[aria-pressed="true"]{border-color:var(--ink);background:var(--rule)}
+.kc.dim{opacity:.32}
+.kc svg{flex:none}
+.bar.thin{height:6px;margin-top:16px}
+.selsum{text-align:center;font-size:.86rem;font-weight:600;color:var(--soft);margin:12px 0 0;line-height:1.5}
+.selsum b{color:var(--ink)}
+.selsum .selclear{margin-left:6px;background:none;border:1px solid var(--rule);border-radius:999px;color:var(--link);font:inherit;font-size:.74rem;padding:2px 10px;cursor:pointer}
+details.howto{margin-top:14px}
+details.howto summary{cursor:pointer;font-size:.74rem;font-weight:700;color:var(--muted);text-align:center;list-style:none}
+details.howto summary::-webkit-details-marker{display:none}
+details.howto p{margin-top:8px}
 .ctl2{font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin:0 0 6px}
 .plg button.dim{opacity:.35}
 .duo .pc b{font-size:clamp(1.05rem,5vw,1.9rem)}
@@ -231,16 +247,16 @@ details.wheel summary:focus-visible{outline:2px solid var(--link);outline-offset
       </div>
       <div class="dial"><p class="dlab">the wheel &middot; effort</p><div id="wheel"></div></div>
     </div>
-    <p class="efilter" id="selbar" hidden></p>
-    <p class="bal-note duohint">Tap a slice, a spoke or a row below — both dials and the entries follow.</p>
-    <div class="bar" role="img" id="bar1"></div>
+    <div class="krow" id="ckeys" aria-label="the clock, slice by slice"></div>
+    <div class="krow" id="wkeys" aria-label="the wheel, domain by domain"></div>
+    <div class="bar thin" role="img" id="bar1"></div>
     <div class="barlab" id="lab1"></div>
-    <div class="legends">
-      <div><p class="ctl2">the clock</p><ul class="plg" id="plg"></ul></div>
-      <div><p class="ctl2">the wheel</p><div id="wlegend"></div></div>
-    </div>
-    <p class="bal-note" style="margin-top:10px"><b id="unl"></b></p>
-    <p class="bal-note" id="balnote"></p>
+    <p class="selsum" id="selbar" hidden></p>
+    <details class="howto"><summary>how to read these</summary>
+      <p class="bal-note">The clock is the day in minutes, midnight to midnight. The wheel is effort: an hour weighs ten, a moment its catalogue band. Tap a chip, a slice or a spoke and both dials and the entries below follow; tap it again to let go.</p>
+      <p class="bal-note"><b id="unl"></b></p>
+      <p class="bal-note" id="balnote"></p>
+    </details>
   </section>
   <section aria-label="the day, entry by entry" id="entrysec">
     <p class="label">the day, entry by entry</p>
@@ -370,6 +386,17 @@ function selLine(n) {
   const [nm, c] = selName();
   return `<span class="sw" style="background:${c}"></span>showing ${esc(nm)} \u00B7 ${n} ${n === 1 ? "entry" : "entries"} <button type="button" class="selclear">show the whole day</button>`;
 }
+function selSum(list) {
+  const [nm] = selName(), n = list.length, cnt = (f) => { const m = {}; list.forEach(e => { const v = f(e); if (v) m[v] = (m[v] || 0) + 1; }); return Object.entries(m).sort((a, b) => b[1] - a[1]); };
+  const sname = k => ((DATA.pie.find(x => x.k === k) || {}).n || k).split(" \u00B7 ")[0];
+  let time = "";
+  if (SEL.t === "slice") time = fmtm((DATA.pie.find(x => x.k === SEL.k) || {}).m || 0);
+  if (SEL.t === "dev") time = fmtm((DATA.pieDevice || {}).min || 0);
+  const across = SEL.t === "dom" ? cnt(e => sname(e.sl)).map(([k, v]) => `${esc(k)} ${v}`) : cnt(e => e.wd).map(([k, v]) => `${esc(k)} ${v}`);
+  return `<b>${esc(nm)}</b>${time ? " \u00B7 " + time : ""} \u00B7 ${n} ${n === 1 ? "entry" : "entries"}` +
+    (across.length ? `<br>${SEL.t === "dom" ? "on the clock: " : "on the wheel: "}${across.join(" \u00B7 ")}` : "") +
+    ` <button type="button" class="selclear">show the whole day</button>`;
+}
 function select(t, k) { SEL = (SEL && SEL.t === t && SEL.k === k) ? null : {t, k}; applySel(); }
 function applySel() {
   const list = selected(), sl = new Set(list.map(e => e.sl)), dm = new Set(list.map(e => e.wd));
@@ -378,7 +405,7 @@ function applySel() {
   document.getElementById("pie").classList.toggle("focus", !!SEL);
   document.querySelectorAll("#slices path").forEach(p => p.classList.toggle("on",
     !!SEL && (SEL.t === "dev" ? p.dataset.dev === "1" : sl.has(p.dataset.k))));
-  document.querySelectorAll("#plg button").forEach(b => { const k = b.dataset.k;
+  document.querySelectorAll("#ckeys button").forEach(b => { const k = b.dataset.k;
     b.setAttribute("aria-pressed", String(!!SEL && ((SEL.t === "dev" && k === "__dev") || (SEL.t === "slice" && k === SEL.k))));
     b.classList.toggle("dim", !!SEL && !(k === "__dev" ? SEL.t === "dev" : sl.has(k))); });
   document.querySelectorAll("[data-w]").forEach(el => el.classList.toggle("dim", !!SEL && !dm.has(el.dataset.w)));
@@ -388,7 +415,7 @@ function applySel() {
   else if (SEL.t === "slice") { const d = DATA.pie.find(x => x.k === SEL.k) || {}; cv.textContent = fmtm(d.m || 0); cl.textContent = (d.n || "").toLowerCase(); }
   else { cv.textContent = String(list.length); cl.textContent = `${SEL.k} entries`; }
   const sb = document.getElementById("selbar");
-  if (SEL) { sb.innerHTML = selLine(list.length); sb.hidden = false; } else { sb.hidden = true; sb.innerHTML = ""; }
+  if (SEL) { sb.innerHTML = selSum(list); sb.hidden = false; } else { sb.hidden = true; sb.innerHTML = ""; }
   renderEntries();
 }
 document.addEventListener("click", e => { if (e.target.closest(".selclear")) { SEL = null; applySel(); } });
@@ -443,7 +470,8 @@ for (const [be, dv] of PAIRS) { leg += `<div class="pair" style="border-left-col
   leg += `</div>`; }
 leg += `</div>`;
 document.getElementById("wheel").innerHTML = svg + `<p class="bal-note" style="text-align:center;margin-top:4px">rings every 10% \u00B7 outer ${Math.round(TOP*100)}%</p>`;
-document.getElementById("wlegend").innerHTML = leg;
+document.getElementById("wkeys").innerHTML = [...BE, ...DO].map(k =>
+  `<button type="button" class="kc wk" data-w="${k}" title="${k} \u00B7 ${DOM[k].f}">${icon(k, 13)}${k}<small>${Math.round((B.domains[k]||0)/vtot*100)}%</small></button>`).join("");
 document.querySelectorAll("[data-w]").forEach(el => el.addEventListener("click", () => select("dom", el.dataset.w)));
 renderEntries();
  
@@ -493,10 +521,10 @@ document.getElementById("pieT").textContent = `${DATA.date} · 24 hours`;
     if(kind==="est" && !d.rest) el.classList.add("est");
     const t=document.createElementNS("http://www.w3.org/2000/svg","title"); t.textContent=`${d.n}: ${fmtm(m)}${kind==="dev"?" on a device":kind==="est"&&!d.rest?" estimated":""}`; el.appendChild(t); g.appendChild(el); a0=a1; };
   PIE.forEach(d=>{ const dv=Math.min(d.dev||0,d.logged); arc(d,d.logged-dv,""); arc(d,dv,"dev"); arc(d,d.est,"est"); });
-  const lg=document.getElementById("plg");
+  const lg=document.getElementById("ckeys");
   const DV = DATA.pieDevice || {min: PIE.reduce((a,d)=>a+(d.dev||0),0), rows: []};
-  const devli = DV.min ? `<li class="devrow"><button type="button" data-k="__dev" aria-pressed="false"><span class="psw dev"></span><span><span class="pn">\u{1F4F1} On a device</span><span class="pw">${esc((DV.rows||[]).join(", "))}</span><span class="pw">hatched, in whichever slice it falls</span></span><span class="ph">${fmtm(DV.min)}</span></button></li>` : "";
-  lg.innerHTML=devli+PIE.map(d=>`<li><button type="button" data-k="${d.k}" aria-pressed="false"><span class="psw" style="background:${d.c}"></span><span><span class="pn">${d.e?d.e+" ":""}${esc(d.n)}</span><span class="pw">${esc(d.w)}</span>${d.rest?"":`<span class="pw">${fmtm(d.logged)} logged${d.dev?` · ${fmtm(d.dev)} on a device`:""}${d.est?` · ${fmtm(d.est)} estimated`:""}</span>`}</span><span class="ph">${fmtm(d.m)}</span></button></li>`).join("");
+  lg.innerHTML = PIE.map(d => `<button type="button" class="kc" data-k="${d.k}" aria-pressed="false" title="${esc(d.n)}${d.w ? " \u00B7 " + esc(d.w) : ""}"><i style="background:${d.c}"></i>${d.e ? d.e + " " : ""}${esc(d.n.split(" \u00B7 ")[0])}<small>${fmtm(d.m)}</small></button>`).join("") +
+    (DV.min ? `<button type="button" class="kc" data-k="__dev" aria-pressed="false" title="hatched, in whichever slice it falls"><i class="dev"></i>\u{1F4F1} on a device<small>${fmtm(DV.min)}</small></button>` : "");
   document.getElementById("cVal").textContent="24 h"; document.getElementById("cLab").textContent="the whole day";
   g.addEventListener("click",e=>{const p=e.target.closest("path"); if(p) select("slice",p.dataset.k);});
   lg.addEventListener("click",e=>{const b=e.target.closest("button"); if(b) b.dataset.k==="__dev" ? select("dev","") : select("slice",b.dataset.k);});
