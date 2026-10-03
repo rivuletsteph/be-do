@@ -198,6 +198,11 @@ def main():
         if s not in by_summary:
             die(f'calendar "{label}" ({s}) is not in the calendar list — read it from list_calendars, never from memory')
         allowed[by_summary[s]] = label
+    # the user's ✖️ calendar, where a dropped event goes: a row's event found there
+    # has already been moved, and a dropped one still on a synced calendar is listed
+    # for the user to move (the connector can't move an event between calendars)
+    dropped_name = L.get('dropped_calendar')
+    dropped_id = by_summary.get(dropped_name) if dropped_name else None
     evs = read_dump(a.events)
     evs = evs.get('events', evs) if isinstance(evs, dict) else evs
     by_id = {(e.get('calendarId'), e['id']): e for e in evs}
@@ -208,10 +213,12 @@ def main():
         if d:
             per_event.setdefault((d['calendar_id'], d['event_id']), []).append(r)
 
-    changes, left = [], []
+    changes, left, to_move = [], [], []
     for (cal, eid), rs in per_event.items():
         e = by_id.get((cal, eid))
         name = (rs[0]['title'] or '').strip()
+        if not e and dropped_id and by_id.get((dropped_id, eid)):
+            left.append(dict(row=name, why=f'already on {dropped_name}')); continue
         if cal not in allowed:
             left.append(dict(row=name, why='not on a calendar be•do syncs')); continue
         if not e:
@@ -257,7 +264,10 @@ def main():
             changes.append(dict(row=name, key=r['key'], calendar=allowed[cal], why='; '.join(why), update=want))
         else:
             left.append(dict(row=name, why='already matches'))
-    out = dict(day=a.day, changes=changes, unchanged=left)
+        if glyph == '✖️' and dropped_id:
+            to_move.append(dict(row=name, key=r['key'], event=new_summary, calendar=allowed[cal],
+                                link=e.get('htmlLink') or r['event']))
+    out = dict(day=a.day, changes=changes, unchanged=left, to_move=to_move)
     if a.out:
         open(a.out, 'w', encoding='utf-8').write(json.dumps(out, ensure_ascii=False, indent=1))
     print(json.dumps(out, ensure_ascii=False, indent=1))

@@ -264,9 +264,22 @@ chat except the digest the words are written from.
      --local look_behind_local.json --stream data/w##.json [--stream data/w##-prev.json] \
      --events events.json --calendars calendars.json --out sync-plan.json
    ```
+   An event `get_event` can't find on its own calendar may have been moved to
+   the user's dropped calendar (named by `dropped_calendar` in the settings; its
+   id from `list_calendars`): fetch it there with the same event id, and save it
+   with that calendar's id. Then the plan says `already on <dropped calendar>`
+   rather than calling it deleted.
+
    Make each change in `changes` with `update_event`, passing exactly the
    `update` object it names — **`notificationLevel` is always `NONE`** — and
    nothing else. Say what moved in one line.
+
+   **`to_move`** lists the dropped rows whose event is still on a synced
+   calendar. The calendar connector can't move an event between calendars, so
+   name them to the user in one line, with their links, to move to the dropped
+   calendar themselves (the user's word, 3 Oct 2026: be consistent about moving
+   dropped things there). Never copy-and-delete instead: that breaks the row's
+   link and can't single out one instance of a repeating event.
 
    What it leaves alone, by design, and lists under `unchanged`:
    - an event on a calendar not in `sync_calendars`, or one someone else organises
