@@ -624,6 +624,18 @@ def main():
         if r['_people'] and self_name not in r['_people']:
             return False
         return bool((r.get('rhythm') or '').strip()) or r['_pr'] in logging_pr or r['_pr'] in screen_pr
+    # THE CLOCK SHOWS WHAT MATTERS (the user's word, 3 Oct 2026): sleep, food, movement
+    # and time on a device, each its own slice; travel, the flows and the unlogged
+    # stretches are everything else. A device minute that overlaps one of the three is
+    # drawn hatched inside it, so the device total is the slice plus the hatching.
+    # clock_focus in the settings names the three (an empty list keeps the older clock).
+    focus = L.get('clock_focus', ['bed', 'move', 'food'])
+    dev_k = dev_slice or 'dev'
+    if focus:
+        rest_c = next((c for c in cats if c.get('rest')), dict(k='else', e='', n='Everything else', c='#B9B5C4', rest=True))
+        cats = [c for c in cats if c['k'] in focus] + \
+               [dict(k=dev_k, e='\U0001F4F1', n=L.get('device_name', 'On a device'), c='#8E3FCF', practices=[])] + [rest_c]
+    keep_k = {c['k'] for c in cats if not c.get('rest')}
     prows = []
     for r in lived:
         est = None
@@ -650,9 +662,27 @@ def main():
                 est = est or log_min
             # a span with no drive (a 📍 place, a stretch somewhere) is neither
             # device time nor logging: it stays with everything else
+        if focus:
+            cat = cat_of.get(r['_pr'])
+            cat = cat if cat in keep_k else None
+            if not cat and on_device(r):
+                cat = dev_k
+            if not cat:
+                est = None
         r['_cat'], r['_dev'] = cat, on_device(r)
         prows.append(dict(cat=cat, s=r['_s'], e=r['_e'], est=est, title=r['_title'], dev=r['_dev']))
     pie, trimmed, devrows = day_pie.build(prows, cats, max_titles=L.get('pie_max_titles', 4))
+    # the device time, split as on 2 Oct: drive work (doing) and logging the day (being)
+    def mins(rows):
+        on = set()
+        for r in rows:
+            on.update(range(max(0, r['_s']), min(1440, r['_e'])))
+        return len(on)
+    dev_rows = [r for r in lived if r.get('_dev')]
+    # logging counts only where it isn't already drive work, so the two parts add up
+    doing_rows = [r for r in dev_rows if (r.get('rhythm') or '').strip()]
+    log_rows = [r for r in dev_rows if r['_pr'] in logging_pr]
+    dev_split = {'doing': mins(doing_rows), 'being': mins(doing_rows + log_rows) - mins(doing_rows)}
     # the clock and the wheel share one entry list (the user's word, 3 Oct 2026): each
     # entry carries the slice its minutes fall in and whether it was on a device, beside
     # the wellness domain it already carries, so a tap on either dial lights the other
@@ -827,7 +857,8 @@ def main():
             'destinations': list(dests.values()),
         },
         'pie': pie,
-        'pieDevice': {'min': sum(p.get('dev', 0) for p in pie), 'rows': devrows[:L.get('pie_max_titles', 4)]},
+        'pieDevice': {'min': sum(p.get('dev', 0) for p in pie), 'rows': devrows[:L.get('pie_max_titles', 4)],
+                      'k': dev_k, 'doing': dev_split['doing'], 'being': dev_split['being']},
         'slotsMax': L.get('slots_max', 3),
         'read': ' · '.join(f'{name} · {n}/{n}' for name, n in reads),
     }

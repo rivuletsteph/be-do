@@ -266,7 +266,9 @@ EXPECT = {
     # from a device is 'logging the day'. The fixture's other device rows are
     # spans with no drive (43 minutes), so they fall to everything else.
     # a 📲 capture span is logging the day — Being, never drive work (amendment, 3 Oct 2026)
-    'pie_minutes': {'bed': (459, 0), 'move': (10, 130), 'food': (83, 75), 'dev': (0, 89), 'log': (40, 0)},
+    # the clock shows what matters (3 Oct 2026): sleep, food, movement and device time,
+    # so the 40 capture minutes that were 'logging the day' are now device time
+    'pie_minutes': {'bed': (459, 0), 'move': (10, 130), 'food': (83, 75), 'dev': (40, 89)},
     'destinations': [
         {'name': 'be•do', 'glyph': MARK, 'work': [
             {'drive': f'{MARK} be•do drive',
@@ -365,7 +367,7 @@ def main():
     check('pie minutes',
           {p['k']: (p['logged'], p['est']) for p in D['pie'] if not p.get('rest')},
           EXPECT['pie_minutes'])
-    check('pie slices', [p['k'] for p in D['pie']], ['bed', 'move', 'food', 'dev', 'log', 'else'])
+    check('pie slices', [p['k'] for p in D['pie']], ['bed', 'move', 'food', 'dev', 'else'])
     check('pie rest slice', [p for p in D['pie'] if p.get('rest')][0]['n'], 'Everything else')
     check('effectiveness.destinations', D['effectiveness']['destinations'],
           EXPECT['destinations'])
