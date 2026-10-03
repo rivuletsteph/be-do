@@ -1,9 +1,8 @@
 <meta charset="utf-8">
-<script>/* light or dark follows the phone (the user's word, 3 Oct 2026); ?theme=light|dark overrides.
-   be•do's own attribute, so a host page's data-theme can't overrule the phone. */
-(function(){var q=location.search.match(/[?&]theme=(light|dark|day|night)/),m=window.matchMedia&&matchMedia("(prefers-color-scheme: dark)");
-function set(){document.documentElement.setAttribute("data-bedo",q?(/dark|night/.test(q[1])?"night":"day"):(m&&m.matches?"night":"day"))}
-set();if(m&&!q&&m.addEventListener)m.addEventListener("change",set)})()</script>
+<script>/* the day behind is dark, for now (the user's word, 3 Oct 2026: the day ahead light, the day behind dark).
+   ?theme=light|dark overrides; be•do's own attribute, so a host page's data-theme can't overrule it. */
+(function(){var q=location.search.match(/[?&]theme=(light|dark|day|night)/);
+document.documentElement.setAttribute("data-bedo",q?(/dark|night/.test(q[1])?"night":"day"):"night")})()</script>
 <title>The Day Behind</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +17,7 @@ set();if(m&&!q&&m.addEventListener)m.addEventListener("change",set)})()</script>
   --sans:"Manrope","Segoe UI",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
 }
 html[data-bedo="night"]{ --ground:#1B1A1F; --ink:#EDE4E0; --soft:#D3C8C3; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --tint:#262228; --link:#8CC3C3; --be:#8CC3C3; --tend:#E3BB77; --grow:#BE5B50; --grow-ink:#F0A79E; --do-ink:#F0A79E; --be-ink:#8CC3C3; --core-rim:#EDE4E0; color-scheme:dark; }
-@media (prefers-color-scheme: dark){ html:not([data-bedo]){ --ground:#1B1A1F; --ink:#EDE4E0; --soft:#D3C8C3; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --tint:#262228; --link:#8CC3C3; --be:#8CC3C3; --tend:#E3BB77; --grow:#BE5B50; --grow-ink:#F0A79E; --do-ink:#F0A79E; --be-ink:#8CC3C3; --core-rim:#EDE4E0; color-scheme:dark; } }
+html:not([data-bedo]){ --ground:#1B1A1F; --ink:#EDE4E0; --soft:#D3C8C3; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --tint:#262228; --link:#8CC3C3; --be:#8CC3C3; --tend:#E3BB77; --grow:#BE5B50; --grow-ink:#F0A79E; --do-ink:#F0A79E; --be-ink:#8CC3C3; --core-rim:#EDE4E0; color-scheme:dark; }
 *{box-sizing:border-box}
 body{background:var(--ground);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
 .wrap{max-width:620px;margin:0 auto;padding-block:32px 48px;padding-inline:16px;display:flex;flex-direction:column}

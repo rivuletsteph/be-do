@@ -1,9 +1,8 @@
 <meta charset="utf-8">
-<script>/* light or dark follows the phone (the user's word, 3 Oct 2026); ?theme=light|dark overrides.
-   be•do's own attribute, so a host page's data-theme can't overrule the phone. */
-(function(){var q=location.search.match(/[?&]theme=(light|dark|day|night)/),m=window.matchMedia&&matchMedia("(prefers-color-scheme: dark)");
-function set(){document.documentElement.setAttribute("data-bedo",q?(/dark|night/.test(q[1])?"night":"day"):(m&&m.matches?"night":"day"))}
-set();if(m&&!q&&m.addEventListener)m.addEventListener("change",set)})()</script>
+<script>/* the day ahead is light, for now (the user's word, 3 Oct 2026: the day ahead light, the day behind dark).
+   ?theme=light|dark overrides; be•do's own attribute, so a host page's data-theme can't overrule it. */
+(function(){var q=location.search.match(/[?&]theme=(light|dark|day|night)/);
+document.documentElement.setAttribute("data-bedo",q?(/dark|night/.test(q[1])?"night":"day"):"day")})()</script>
 <title>The Day Ahead</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -17,7 +16,6 @@ set();if(m&&!q&&m.addEventListener)m.addEventListener("change",set)})()</script>
   --serif:"Spectral",Georgia,serif; --sans:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
 html[data-bedo="night"]{ --ground:#1B1A1F; --card:#262228; --card2:#2D292F; --ink:#EDE4E0; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --accent:#E08A7F; --accent-soft:#3D2624; --dest:#8CC3C3; --dest-soft:#1F3536; --past:#B8707F; --past-soft:#3A2329; --kid:#E3BB77; --kid-soft:#3A2F1D; color-scheme:dark; }
-@media (prefers-color-scheme: dark){ html:not([data-bedo]){ --ground:#1B1A1F; --card:#262228; --card2:#2D292F; --ink:#EDE4E0; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --accent:#E08A7F; --accent-soft:#3D2624; --dest:#8CC3C3; --dest-soft:#1F3536; --past:#B8707F; --past-soft:#3A2329; --kid:#E3BB77; --kid-soft:#3A2F1D; color-scheme:dark; } }
 /* the drive map draws with SVG attributes, which can't read a variable: map its colours here */
 .map [stroke="#EFA038" i]{stroke:var(--accent)} .map [fill="#EFA038" i]{fill:var(--accent)}
 .map [stroke="#2d323c" i]{stroke:var(--rule)} .map [fill="#14161b" i]{fill:var(--ground)} .map [stroke="#14161b" i]{stroke:var(--ground)}
