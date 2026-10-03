@@ -285,7 +285,8 @@ def effort(rows, L):
         k = norm(r.get('wellness'))
         if k not in dom:
             continue
-        dom[k] += (r['_mins'] / div) if r['_mins'] else float(r['_band'])
+        m = r.get('_wmins', r['_mins'])
+        dom[k] += (m / div) if r['_mins'] else float(r['_band'])
     return {k: round(v, 1) for k, v in dom.items()}
 
 
@@ -305,7 +306,7 @@ def split_do(rows, rhythms, L):
     for r in rows:
         if norm(r.get('wellness')) not in DO:
             continue
-        v = (r['_mins'] / div) if r['_mins'] else float(r['_band'])
+        v = (r.get('_wmins', r['_mins']) / div) if r['_mins'] else float(r['_band'])
         t = (rhythms.get(r.get('rhythm') or '') or {}).get('type')
         if t in grow_t:
             growing += v
@@ -534,6 +535,21 @@ def main():
     booked = {'n': len(books), 'oldest': ages[-1] if ages else 0}
 
     # ── balance ──────────────────────────────────────────────────────────
+    # Overlapping time counts once, and the lived thing wins (the user's word,
+    # 3 Oct 2026): a work session running in the background while she was at the
+    # vet does not also fill the vet's hour. Minutes are claimed lived rows first,
+    # then sessions (⚡ actions), shortest first in each, and a span row is
+    # weighed by the minutes it kept. Rows with no span keep their effort band.
+    act_set = {norm(x) for x in (L.get('action_practices') or ['action'])}
+    taken = [False] * (24 * 60)
+    spanned = [r for r in scoring if r['_mins']]
+    for r in sorted(spanned, key=lambda r: (r['_pr'] in act_set, r['_mins'])):
+        kept = 0
+        for m in range(max(0, r['_s']), min(24 * 60, r['_e'])):
+            if not taken[m]:
+                taken[m] = True
+                kept += 1
+        r['_wmins'] = kept
     domains = effort(scoring, L)
     # what sits under each domain, heaviest first, so the wheel can be opened
     # and read (25 Sep 2026). Same weight as effort(): minutes over the divisor
@@ -543,12 +559,16 @@ def main():
     for r in scoring:
         k = norm(r.get('wellness'))
         if k in dom_rows:
-            w = (r['_mins'] / div) if r['_mins'] else float(r['_band'])
+            w = (r.get('_wmins', r['_mins']) / div) if r['_mins'] else float(r['_band'])
             dom_rows[k].append({'t': re.sub(r'^[^\w]+', '', r['_title']),
-                                'w': round(w, 1), 'min': r['_mins'] or None})
+                                'w': round(w, 1), 'min': r.get('_wmins', r['_mins']) or None})
     for k in dom_rows:
         dom_rows[k].sort(key=lambda x: -x['w'])
     tending, growing = split_do(scoring, rhythms, L)
+    # logging the day is tending (the user's word, 3 Oct 2026): 📲 capture stays off
+    # the wheel, which would read it as air, but its minutes count as tending on the bar
+    tending = round(tending + sum((r['_mins'] / div) if r['_mins'] else float(r['_band'])
+                                  for r in day_rows if r['_pr'] in measure_pr and not r['_notmine']), 1)
     note = ' '.join(x for x in (L.get('zero_note') or '',
                                 'Weighted by effort; rows with a real span count their minutes.') if x)
 

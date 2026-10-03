@@ -271,7 +271,7 @@ for (let n = DATA.intentions.length; n < DATA.slotsMax; n++)
  
 const B = DATA.balance, BE = ["heart","mind","body","spirit"], DO = ["water","air","earth","fire"];
 const sum = a => a.reduce((x,k)=>x+B.domains[k],0);
-const be = sum(BE), tt = B.tending, gg = B.growing, un = sum(DO) - tt - gg, all = be + tt + gg + un;
+const be = sum(BE), tt = B.tending, gg = B.growing, un = Math.max(0, sum(DO) - tt - gg), all = be + tt + gg + un;
 // largest-remainder rounding so the three parts always add to 100
 const parts = [be, tt + un, gg].map(v => v/all*100), fl = parts.map(Math.floor);
 let left = 100 - fl.reduce((a,b)=>a+b,0);

@@ -250,10 +250,14 @@ EXPECT = {
          'url': 'https://example.invalid/one'},
     ],
     'slotsMax': 3,
+    # overlapping time counts once and the lived thing wins (3 Oct 2026): the body
+    # sessions share minutes with the lunch, the walk and two shorter air sessions,
+    # and keep only what those leave. Tending carries the 40-minute capture as
+    # logging (40/6 = 6.7), which stays off the wheel itself.
     'balance': {
-        'domains': {'heart': 29.0, 'mind': 6.0, 'body': 59.3, 'spirit': 21.0,
-                    'water': 1.0, 'air': 24.7, 'earth': 7.0, 'fire': 11.0},
-        'tending': 14.0, 'growing': 29.7,
+        'domains': {'heart': 29.0, 'mind': 6.0, 'body': 15.3, 'spirit': 21.0,
+                    'water': 1.0, 'air': 19.7, 'earth': 7.0, 'fire': 11.0},
+        'tending': 20.7, 'growing': 24.7,
         'note': 'Sleep, plans and other people’s own rows count zero. '
                 'Weighted by effort; rows with a real span count their minutes.',
     },
@@ -371,11 +375,12 @@ def main():
     check('effectiveness.usualMin', D['effectiveness']['usualMin'], None)
 
     # every doing row lands in tending or growing, so the engine is never left
-    # with a remainder to draw. This is the balance bar's whole contract.
+    # with a remainder to draw. This is the balance bar's whole contract — plus
+    # logging the day, which is tending on the bar but never on the wheel.
     b = D['balance']
     do_total = round(sum(b['domains'][k] for k in ('water', 'air', 'earth', 'fire')), 1)
-    check('tending + growing == the whole doing side',
-          round(b['tending'] + b['growing'], 1), do_total)
+    check('tending + growing == the whole doing side, plus logging',
+          round(b['tending'] + b['growing'], 1), round(do_total + 40 / 6, 1))
 
     # the day is a day
     check('pie fits in 24 h', sum(p['logged'] + p['est'] for p in D['pie']) <= 1440, True)
