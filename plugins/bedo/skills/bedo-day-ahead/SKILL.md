@@ -262,6 +262,38 @@ skips it and says so in one line.
   it: an obvious fix, one line. (`drive_name_example` in the local settings file
   holds one of the user's own, if the real shape helps.)
 
+## What the page shows, in order
+
+Set by the user between 1 and 3 Oct 2026; the engine draws exactly this.
+
+1. **The date**, with ⏏️ beside it when the base is secure — a small emoji,
+   no callout. Anything other than secure gets one line under it, in the
+   user's words.
+2. **Today on the calendar, first** — every event as the calendar shows it
+   (its own title and glyphs, start and end, a 🗓️ link), in the day behind's
+   event cards, with its drive underneath. A child's calendar gets the ochre
+   edge.
+3. **Your intentions** — only the slots the user named, in their words; three
+   empty slots before they name any.
+4. **After the calendar** — at most `max_tasks` (10) action cards: be•do's
+   picks first, then what is due within `task_horizon_days` (7), never a row
+   already on today's calendar. Each card: the date on the left (`today`, or
+   the weekday and day; plum once passed), the status and ⚡ **drawn, not
+   typed** — a brick-outlined square for an intention, filled with a play mark
+   in motion, teal with a check when done, dashed for a potential, and a gold
+   bolt — then the title in semibold, the drive's emoji and name beneath, and
+   why it rose (`someone waiting`, `in motion`…) in small type.
+5. **Past its date** — every open row past its target, oldest first, never
+   folded away (see `overdue` above). Empty when the morning's answers are in.
+6. **The next fourteen days** — both calendars matched against the stream,
+   with `no row yet` and `clash` tags. Each due line starts with the same
+   drawn status and bolt, then its drive's emoji (the drive's name on hover).
+7. **The map** of the three along their drives, then what is still true.
+
+**Light for now** (`data-bedo="day"`, fixed; the day behind is dark), in the
+now palette (`plugins/bedo/assets/now-palette.css`), which `test_palette.py`
+holds it to. It must fit a phone: no horizontal scroll at 390 px.
+
 ## What the user sees in the chat
 
 One or two lines, not the page again: the three, the today rows just written,
