@@ -615,8 +615,12 @@ def main():
     # logged from the phone is not screen time (1 Oct: the device field says where
     # a row was logged, not what she was doing), so a row with no span never counts.
     screen_pr = {norm(x) for x in (L.get('screen_practices') or ['show', 'movie', 'video', 'news'])}
+    # A row that names only someone else (Johnny's synthesis math) is their screen
+    # time, not hers; a row she shares with him stays hers (the user's word, 3 Oct 2026).
     def on_device(r):
         if not r['_e'] or not r.get('device') or norm(r['device']) in dev_off:
+            return False
+        if r['_people'] and self_name not in r['_people']:
             return False
         return bool((r.get('rhythm') or '').strip()) or r['_pr'] in logging_pr or r['_pr'] in screen_pr
     prows = []
