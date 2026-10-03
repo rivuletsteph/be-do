@@ -12,10 +12,10 @@ document.documentElement.setAttribute("data-bedo",q?(/dark|night/.test(q[1])?"ni
    teal for drives, ochre for a child's calendar (home), plum for what is past its date.
    Day is the default; night follows the phone. */
 :root{
-  --ground:#F8F2EF; --card:#FCFAF8; --card2:#F5ECE8; --ink:#3F3331; --muted:#8D7E79; --faint:#A89894; --rule:#ECDDD8; --accent:#BE5B50; --accent-soft:#F5E2DE; --dest:#3E6E6F; --dest-soft:#DDEAEA; --past:#7E3A4A; --past-soft:#F1E1E4; --kid:#7E5A1F; --kid-soft:#F6EAD3; color-scheme:light;
+  --ground:#F8F2EF; --card:#FCFAF8; --card2:#F5ECE8; --ink:#3F3331; --muted:#8D7E79; --faint:#A89894; --rule:#ECDDD8; --accent:#BE5B50; --accent-soft:#F5E2DE; --dest:#3E6E6F; --dest-soft:#DDEAEA; --past:#7E3A4A; --past-soft:#F1E1E4; --kid:#7E5A1F; --kid-soft:#F6EAD3; --bolt:#D4A055; color-scheme:light;
   --serif:"Spectral",Georgia,serif; --sans:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
-html[data-bedo="night"]{ --ground:#1B1A1F; --card:#262228; --card2:#2D292F; --ink:#EDE4E0; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --accent:#E08A7F; --accent-soft:#3D2624; --dest:#8CC3C3; --dest-soft:#1F3536; --past:#B8707F; --past-soft:#3A2329; --kid:#E3BB77; --kid-soft:#3A2F1D; color-scheme:dark; }
+html[data-bedo="night"]{ --ground:#1B1A1F; --card:#262228; --card2:#2D292F; --ink:#EDE4E0; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --accent:#E08A7F; --accent-soft:#3D2624; --dest:#8CC3C3; --dest-soft:#1F3536; --past:#B8707F; --past-soft:#3A2329; --kid:#E3BB77; --kid-soft:#3A2F1D; --bolt:#E3BB77; color-scheme:dark; }
 /* the drive map draws with SVG attributes, which can't read a variable: map its colours here */
 .map [stroke="#EFA038" i]{stroke:var(--accent)} .map [fill="#EFA038" i]{fill:var(--accent)}
 .map [stroke="#2d323c" i]{stroke:var(--rule)} .map [fill="#14161b" i]{fill:var(--ground)} .map [stroke="#14161b" i]{stroke:var(--ground)}
@@ -68,6 +68,19 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .ecard.act{box-shadow:inset 3px 0 0 var(--rule)}
 .ecard.act.gone .at{color:var(--past)}
 .ecard .edrv.none{color:var(--past)}
+.gl{display:inline-flex;align-items:center;gap:3px;vertical-align:-2px;margin-right:7px}
+.gl .st{width:13px;height:13px;border-radius:4px;box-sizing:border-box;display:inline-grid;place-items:center;flex:none}
+.gl .st.int{border:1.75px solid var(--accent)}
+.gl .st.pot{border:1.5px dashed var(--faint)}
+.gl .st.mot{background:var(--accent)}
+.gl .st.mot::after{content:"";border-left:5px solid var(--card);border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;margin-left:1px}
+.gl .st.don{background:var(--dest)}
+.gl .st.don::after{content:"";width:3px;height:6px;border:solid var(--card);border-width:0 1.75px 1.75px 0;transform:translate(0,-1px) rotate(45deg)}
+.gl .bolt{width:11px;height:14px;flex:none;fill:var(--bolt)}
+.due .gl{margin-right:5px;vertical-align:-1px}
+.due .gl .st{width:10px;height:10px;border-radius:3px}
+.due .gl .bolt{width:8px;height:11px}
+.due .de{margin-right:4px}
 .ecard .why{grid-column:2;font:500 10.5px var(--mono);color:var(--accent);text-transform:lowercase;letter-spacing:.04em}
 .tasks{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:8px;counter-reset:t var(--from)}
 .tasks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:2px 8px;counter-increment:t;font-size:14px}
@@ -193,11 +206,16 @@ page.append($(`<section><h2>your intentions</h2><p class="sub">${named?'named by
    the date on the left (red once it has passed); be•do's picks first, never more than max_tasks */
 const three = $(`<section><h2>after the calendar</h2><p class="sub">the few that move the most · at most ${D.max_tasks||10}</p><div class="ecards"></div></section>`);
 const tbox = three.querySelector('.ecards');
+const glyph = st => {
+  const k = {'⬜':'int','▫️':'pot','▶️':'mot','✅':'don'}[String(st||'⬜').trim()] || 'int';
+  const nm = {int:'intention',pot:'potential',mot:'in motion',don:'done'}[k];
+  return `<span class="gl" title="${nm} · action"><span class="st ${k}"></span><svg class="bolt" viewBox="0 0 11 14" aria-hidden="true"><path d="M6.6 0 0 8h4.2L3.4 14 11 5.6H6.6z"/></svg></span>`;
+};
 const card = (t, why) => {
   const late = t.date && t.date < D.date, on = t.date === D.date;
   const at = t.date ? (on ? 'today' : (()=>{const d=new Date(t.date+'T12:00:00');return d.toLocaleDateString('en-US',{weekday:'short'})+'<br>'+d.getDate();})()) : '—';
   const drv = t.drive ? `<div class="edrv">${esc(t.emoji||'')} ${esc(t.drive)}</div>` : '<div class="edrv none">no drive</div>';
-  return $(`<div class="ecard act${late?' gone':''}"><div class="at">${at}</div><div class="ttl">${esc(t.st||'⬜')} ⚡ ${esc(t.title)}</div>${drv}${why?`<div class="why">${esc(why)}</div>`:''}</div>`);
+  return $(`<div class="ecard act${late?' gone':''}"><div class="at">${at}</div><div class="ttl">${glyph(t.st)}${esc(t.title)}</div>${drv}${why?`<div class="why">${esc(why)}</div>`:''}</div>`);
 };
 D.pareto.forEach(p=>tbox.append(card(p, p.kind)));
 (D.tasks||[]).forEach(t=>tbox.append(card(t, t.kind==='dated'?'':t.kind)));
@@ -232,7 +250,8 @@ if (D.overdue && D.overdue.length){
     const row = $(`<div class="day${d.today?' today':''}${d.bands.length?' band':''}"><div class="dl">${d.today?'today<br>':''}${esc(short(d.date))}</div><div class="items"></div></div>`);
     const it = row.querySelector('.items');
     d.events.forEach(e=>it.append($(`<div class="ev"><span class="tm">${esc(e.when)}</span><span>${esc(e.title)}</span>${e.who!=='you'?`<span class="who">${esc(e.who)}</span>`:''}${e.gap?'<span class="gap">no row yet</span>':''}${(e.clash||[]).map(c=>`<span class="clash">clashes with ${esc(c)}</span>`).join('')}</div>`)));
-    d.due.forEach(t=>it.append($(`<div class="due">${esc(t)}</div>`)));
+    d.due.forEach(t=>{ t = typeof t==='string' ? {title:t} : t;
+      it.append($(`<div class="due"${t.drive?` title="${esc(t.drive)}"`:''}>${glyph(t.st)}${t.emoji?`<span class="de">${esc(t.emoji)}</span>`:''}${esc(t.title)}</div>`)); });
     if (!d.events.length && !d.due.length) it.append($(`<div class="open">open</div>`));
     box.append(row); i++;
   }

@@ -364,7 +364,7 @@ def calendar(cal, rows, open_rows, today, days, L):
         if r['target']:
             d = local(r['target']).date()
             if today <= d < today + dt.timedelta(days=days):
-                due.setdefault(d, []).append(clean_title(r['title']))
+                due.setdefault(d, []).append(dict(title=clean_title(r['title']), drive=r['rhythm'] or '', st=r['status'][:2]))
     out = []
     for i in range(days):
         d = today + dt.timedelta(days=i)
@@ -677,6 +677,10 @@ def main():
     picks, nxt, more = pareto(open_rows, chains, rhythms, today, L)
     days, gaps, clashes, away, evs, conflicts = calendar(cal, rows, open_rows, today, a.days, L)
     plan = look_ahead_plan(evs, conflicts, rows, open_rows, chains, rhythms, today, a, L)
+    # a due line carries its drive's emoji, for context at a glance
+    for d in days:
+        for t in d['due']:
+            t['emoji'] = (rhythms.get(t['drive']) or {}).get('emoji') or ''
     # today's events carry the drive their glyph names, the way the day behind's cards do
     by_link = {e['link']: e for e in evs if e['link']}
     for it in (days[0]['events'] if days else []):
