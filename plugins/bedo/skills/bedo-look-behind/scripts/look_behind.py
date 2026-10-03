@@ -818,7 +818,7 @@ def main():
             'destinations': list(dests.values()),
         },
         'pie': pie,
-        'pieDevice': {'min': sum(p.get('dev', 0) for p in pie), 'rows': devrows[:L.get('pie_max_titles', 4) * 2]},
+        'pieDevice': {'min': sum(p.get('dev', 0) for p in pie), 'rows': devrows[:L.get('pie_max_titles', 4)]},
         'slotsMax': L.get('slots_max', 3),
         'read': ' · '.join(f'{name} · {n}/{n}' for name, n in reads),
     }
