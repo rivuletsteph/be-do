@@ -1,16 +1,28 @@
 <meta charset="utf-8">
+<script>/* light or dark follows the phone (the user's word, 3 Oct 2026); ?theme=light|dark overrides.
+   be•do's own attribute, so a host page's data-theme can't overrule the phone. */
+(function(){var q=location.search.match(/[?&]theme=(light|dark|day|night)/),m=window.matchMedia&&matchMedia("(prefers-color-scheme: dark)");
+function set(){document.documentElement.setAttribute("data-bedo",q?(/dark|night/.test(q[1])?"night":"day"):(m&&m.matches?"night":"day"))}
+set();if(m&&!q&&m.addEventListener)m.addEventListener("change",set)})()</script>
 <title>The Day Ahead</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* the day ahead — engine. Nothing personal here: every word about the day comes from DATA. */
+/* be•do's now palette (plugins/bedo/assets/now-palette.css), 3 Oct 2026 — brick accents,
+   teal for drives, ochre for a child's calendar (home), plum for what is past its date.
+   Day is the default; night follows the phone. */
 :root{
-  --ground:#14161b; --card:#1b1e25; --card2:#20242c; --ink:#ebe7df; --muted:#a3a2aa; --faint:#72747d; --rule:#2d323c;
-  --accent:#EFA038; --accent-soft:rgba(239,160,56,.13); --dest:#9BC4F5; --dest-soft:rgba(155,196,245,.12);
-  --past:#e08a7a; --past-soft:rgba(224,138,122,.13); --kid:#97D8A3;
+  --ground:#F8F2EF; --card:#FCFAF8; --card2:#F5ECE8; --ink:#3F3331; --muted:#8D7E79; --faint:#A89894; --rule:#ECDDD8; --accent:#BE5B50; --accent-soft:#F5E2DE; --dest:#3E6E6F; --dest-soft:#DDEAEA; --past:#7E3A4A; --past-soft:#F1E1E4; --kid:#7E5A1F; --kid-soft:#F6EAD3; color-scheme:light;
   --serif:"Spectral",Georgia,serif; --sans:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
-  color-scheme:dark;
 }
+html[data-bedo="night"]{ --ground:#1B1A1F; --card:#262228; --card2:#2D292F; --ink:#EDE4E0; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --accent:#E08A7F; --accent-soft:#3D2624; --dest:#8CC3C3; --dest-soft:#1F3536; --past:#B8707F; --past-soft:#3A2329; --kid:#E3BB77; --kid-soft:#3A2F1D; color-scheme:dark; }
+@media (prefers-color-scheme: dark){ html:not([data-bedo]){ --ground:#1B1A1F; --card:#262228; --card2:#2D292F; --ink:#EDE4E0; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --accent:#E08A7F; --accent-soft:#3D2624; --dest:#8CC3C3; --dest-soft:#1F3536; --past:#B8707F; --past-soft:#3A2329; --kid:#E3BB77; --kid-soft:#3A2F1D; color-scheme:dark; } }
+/* the drive map draws with SVG attributes, which can't read a variable: map its colours here */
+.map [stroke="#EFA038" i]{stroke:var(--accent)} .map [fill="#EFA038" i]{fill:var(--accent)}
+.map [stroke="#2d323c" i]{stroke:var(--rule)} .map [fill="#14161b" i]{fill:var(--ground)} .map [stroke="#14161b" i]{stroke:var(--ground)}
+.map [stroke="#e08a7a" i]{stroke:var(--past)} .map [fill="#1b1e25" i]{fill:var(--card)}
+.map [stroke="#9BC4F5" i]{stroke:var(--dest)} .map [fill="#9BC4F5" i]{fill:var(--dest)}
 *{box-sizing:border-box}
 body{background:var(--ground);color:var(--ink);font:15px/1.5 var(--sans);margin:0;padding-inline:16px;padding-block:22px 56px}
 .wrap{max-width:620px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:30px;min-width:0}
@@ -57,7 +69,7 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .ecard .edrv{grid-column:2;font-size:.74rem;font-weight:600;letter-spacing:.02em;color:var(--dest);overflow-wrap:anywhere}
 .ecard.act{box-shadow:inset 3px 0 0 var(--rule)}
 .ecard.act.gone .at{color:var(--past)}
-.ecard .edrv.none{color:#E0703E}
+.ecard .edrv.none{color:var(--past)}
 .ecard .why{grid-column:2;font:500 10.5px var(--mono);color:var(--accent);text-transform:lowercase;letter-spacing:.04em}
 .tasks{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:8px;counter-reset:t var(--from)}
 .tasks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:2px 8px;counter-increment:t;font-size:14px}
@@ -89,10 +101,10 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .list .d{font:500 11px var(--mono);color:var(--accent);white-space:nowrap}
 .list .d.past{color:var(--past)}
 .list .dv{display:block;font-size:11.5px;color:var(--faint);margin-top:1px}
-.pastdue{background:var(--past-soft);border:1px solid rgba(224,138,122,.35);border-radius:12px;padding:14px 14px 4px}
+.pastdue{background:var(--past-soft);border:1px solid color-mix(in srgb,var(--past) 35%,transparent);border-radius:12px;padding:14px 14px 4px}
 .pastdue h2{color:var(--past)}
-.pastdue .list{border-top-color:rgba(224,138,122,.3)}
-.pastdue .list li{border-bottom-color:rgba(224,138,122,.18)}
+.pastdue .list{border-top-color:color-mix(in srgb,var(--past) 30%,transparent)}
+.pastdue .list li{border-bottom-color:color-mix(in srgb,var(--past) 18%,transparent)}
 .late{display:block;font:400 10.5px var(--mono);color:var(--past);opacity:.8;margin-top:2px}
 .resolve{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
 .resolve span{font:500 10.5px var(--mono);color:var(--muted);border:1px solid var(--rule);border-radius:999px;padding:1px 8px}
@@ -113,7 +125,7 @@ summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-of
 .day .items{display:grid;gap:5px;min-width:0}
 .ev{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;font-size:14px}
 .ev .tm{font:400 11px var(--mono);color:var(--faint);min-width:44px}
-.ev .who,.todaycal .who{font-size:10.5px;color:var(--kid);border:1px solid rgba(151,216,163,.35);border-radius:999px;padding:1px 7px}
+.ev .who,.todaycal .who{font-size:10.5px;color:var(--kid);border:1px solid color-mix(in srgb,var(--kid) 35%,transparent);border-radius:999px;padding:1px 7px}
 .ev .gap,.todaycal .gap{font-size:10.5px;color:var(--accent);border:1px dashed var(--accent);border-radius:999px;padding:1px 7px}
 .ev .clash,.todaycal .clash{font-size:10.5px;color:var(--past);background:var(--past-soft);border-radius:999px;padding:1px 7px}
 .due{font-size:12.5px;color:var(--muted);padding-left:52px;position:relative;overflow-wrap:anywhere}
@@ -238,11 +250,11 @@ if (D.overdue && D.overdue.length){
   const destY = {}; M.dests.forEach(d=>{ const ys=lanes.map((l,i)=>l.dest.includes(d.name)?top+18+i*gap:null).filter(v=>v!=null); destY[d.name]=ys.reduce((a,b)=>a+b,0)/ys.length; });
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="the three recommendations, each drawn along its drive to the destination it serves">`;
   // away stretches
-  M.away.forEach(a=>{ if (new Date(a.b+'T12:00:00')<=t0) return; const x1=X(a.a), x2=X(a.b); s+=`<rect x="${x1}" y="14" width="${Math.max(2,x2-x1)}" height="${H-20}" fill="#9BC4F5" opacity=".10" rx="3"/><text x="${x1+3}" y="${H-8}" class="sm" style="fill:#9BC4F5">${esc(a.title)}</text>`; });
+  M.away.forEach(a=>{ if (new Date(a.b+'T12:00:00')<=t0) return; const x1=X(a.a), x2=X(a.b); s+=`<rect x="${x1}" y="14" width="${Math.max(2,x2-x1)}" height="${H-20}" fill="#9BC4F5" opacity=".10" rx="3"/><text x="${x1+3}" y="${H-8}" class="sm" style="fill:var(--dest)">${esc(a.title)}</text>`; });
   // month ticks
   const m = new Date(t0); m.setDate(1); m.setMonth(m.getMonth()+1);
   while (m < t1){ const iso=m.toISOString().slice(0,10), x=X(iso); s+=`<line x1="${x}" y1="16" x2="${x}" y2="${H-18}" stroke="#2d323c"/><text x="${x+3}" y="12" class="ax" ${x-L<40?'visibility="hidden"':''}>${m.toLocaleDateString('en-US',{month:'short'}).toLowerCase()}</text>`; m.setMonth(m.getMonth()+1); }
-  s+=`<line x1="${L}" y1="16" x2="${L}" y2="${H-18}" stroke="#EFA038" stroke-width="1.5"/><text x="${L+3}" y="12" class="ax" style="fill:#EFA038">today</text>`;
+  s+=`<line x1="${L}" y1="16" x2="${L}" y2="${H-18}" stroke="#EFA038" stroke-width="1.5"/><text x="${L+3}" y="12" class="ax" style="fill:var(--accent)">today</text>`;
   lanes.forEach((l,i)=>{
     const y = top+18+i*gap, end = l.drive_target ? X(l.drive_target) : R, solid = !!l.drive_target;
     s+=`<text x="${L+4}" y="${y-9}" class="lab">${esc(l.emoji)} ${esc(l.drive)}</text>`;
@@ -251,7 +263,7 @@ if (D.overdue && D.overdue.length){
     l.dest.forEach(dn=>{ const dy=destY[dn]; if (dy==null) return; const x0 = solid? end : R; s+=`<path d="M${x0} ${y} C ${x0+18} ${y}, ${NX-24} ${dy}, ${NX-12} ${dy}" fill="none" stroke="#9BC4F5" stroke-width="1.4" opacity=".8"/>`; });
     if (l.step){ const passed = l.step < M.start, x = passed ? L : X(l.step);
       s+=`<circle cx="${x}" cy="${y}" r="5" fill="${passed?'#14161b':'#EFA038'}" stroke="${passed?'#e08a7a':'#14161b'}" stroke-width="2"/>`;
-      s+=`<text x="${x+8}" y="${y+15}" class="sm" style="fill:${passed?'#e08a7a':'#a3a2aa'}">${passed?'step passed '+esc(short(l.step)):'step '+esc(short(l.step))}</text>`; }
+      s+=`<text x="${x+8}" y="${y+15}" class="sm" style="fill:${passed?'var(--past)':'var(--muted)'}">${passed?'step passed '+esc(short(l.step)):'step '+esc(short(l.step))}</text>`; }
   });
   M.dests.forEach(d=>{ const y=destY[d.name]; s+=`<circle cx="${NX}" cy="${y}" r="12" fill="#1b1e25" stroke="#9BC4F5" stroke-width="1.5"/><text x="${NX}" y="${y+4.5}" text-anchor="middle" style="font-size:12px">${esc(d.emoji)}</text>`; });
   s+='</svg>';

@@ -1,20 +1,24 @@
 <meta charset="utf-8">
-<script>/* dark by default, the user's word 2 Oct 2026; ?theme=light still turns it light */document.documentElement.setAttribute("data-theme",/[?&]theme=light/.test(location.search)?"light":"dark")</script>
+<script>/* light or dark follows the phone (the user's word, 3 Oct 2026); ?theme=light|dark overrides.
+   be•do's own attribute, so a host page's data-theme can't overrule the phone. */
+(function(){var q=location.search.match(/[?&]theme=(light|dark|day|night)/),m=window.matchMedia&&matchMedia("(prefers-color-scheme: dark)");
+function set(){document.documentElement.setAttribute("data-bedo",q?(/dark|night/.test(q[1])?"night":"day"):(m&&m.matches?"night":"day"))}
+set();if(m&&!q&&m.addEventListener)m.addEventListener("change",set)})()</script>
 <title>The Day Behind</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400&display=swap">
 <style>
+/* be•do's now palette (plugins/bedo/assets/now-palette.css), 3 Oct 2026 — brick for work
+   (growing, drives), ochre for home (tending), teal for rest (being, links); warm neutrals
+   for the rest. Day is the default; night follows the phone. The wheel's eight and the
+   feeling colours are meaning, not chrome, and keep their own hues. */
 :root{
-  --ground:#F5F4F7; --ink:#1C1A24; --soft:#4A4658; --muted:#7A7589; --faint:#A9A4B6; --rule:#E1DEE8; --tint:#ECE9F2; --link:#3E7FD0; --be:#8E3FCF; --tend:#BCC4F8; --grow:#0FA8CC; --grow-ink:#0B86A5; --do-ink:#5F6BD0; --be-ink:#7A30B8; --core-rim:#CFC8E4;
+  --ground:#F8F2EF; --ink:#3F3331; --soft:#5E504C; --muted:#8D7E79; --faint:#A89894; --rule:#ECDDD8; --tint:#FCFAF8; --link:#3E6E6F; --be:#4F8A8B; --tend:#D4A055; --grow:#BE5B50; --grow-ink:#A04A40; --do-ink:#A04A40; --be-ink:#3E6E6F; --core-rim:#ECDDD8; color-scheme:light;
   --sans:"Manrope","Segoe UI",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){ --ground:#141219; --ink:#F1EFF6; --soft:#C9C4D6; --muted:#9B95AB; --faint:#6A6479; --rule:#2B2735; --tint:#1E1B26; --link:#9BC4F5; --be:#9A4BDB; --tend:#C3CAFA; --grow:#2EC4E8; --grow-ink:#5ED6F2; --do-ink:#AEB8FA; --be-ink:#C58CF0; --core-rim:#FFFFFF; }
-}
-:root[data-theme="dark"]{ --ground:#141219; --ink:#F1EFF6; --soft:#C9C4D6; --muted:#9B95AB; --faint:#6A6479; --rule:#2B2735; --tint:#1E1B26; --link:#9BC4F5; --be:#9A4BDB; --tend:#C3CAFA; --grow:#2EC4E8; --grow-ink:#5ED6F2; --do-ink:#AEB8FA; --be-ink:#C58CF0; --core-rim:#FFFFFF; }
-/* dark always (the user's word, 2 Oct 2026): a host that sets data-theme="light" on the page must not turn it light */
-html:root, html:root[data-theme]{ --ground:#141219; --ink:#F1EFF6; --soft:#C9C4D6; --muted:#9B95AB; --faint:#6A6479; --rule:#2B2735; --tint:#1E1B26; --link:#9BC4F5; --be:#9A4BDB; --tend:#C3CAFA; --grow:#2EC4E8; --grow-ink:#5ED6F2; --do-ink:#AEB8FA; --be-ink:#C58CF0; --core-rim:#FFFFFF; color-scheme:dark; }
+html[data-bedo="night"]{ --ground:#1B1A1F; --ink:#EDE4E0; --soft:#D3C8C3; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --tint:#262228; --link:#8CC3C3; --be:#8CC3C3; --tend:#E3BB77; --grow:#BE5B50; --grow-ink:#F0A79E; --do-ink:#F0A79E; --be-ink:#8CC3C3; --core-rim:#EDE4E0; color-scheme:dark; }
+@media (prefers-color-scheme: dark){ html:not([data-bedo]){ --ground:#1B1A1F; --ink:#EDE4E0; --soft:#D3C8C3; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --tint:#262228; --link:#8CC3C3; --be:#8CC3C3; --tend:#E3BB77; --grow:#BE5B50; --grow-ink:#F0A79E; --do-ink:#F0A79E; --be-ink:#8CC3C3; --core-rim:#EDE4E0; color-scheme:dark; } }
 *{box-sizing:border-box}
 body{background:var(--ground);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
 .wrap{max-width:620px;margin:0 auto;padding-block:32px 48px;padding-inline:16px;display:flex;flex-direction:column}
@@ -61,7 +65,7 @@ li{display:grid;grid-template-columns:1.9rem 1fr;align-items:baseline}
 .ecard .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
 .ecard.cal{box-shadow:inset 3px 0 0 var(--grow)}
 .ecard .edrv{grid-column:2;font-size:.74rem;font-weight:700;letter-spacing:.02em;color:var(--grow-ink)}
-.ecard .edrv.none{color:#E0703E;font-weight:600}
+.ecard .edrv.none{color:var(--grow-ink);font-weight:600}
 .bydrive{display:flex;flex-direction:column;gap:18px}
 .bydrive .dh{display:flex;align-items:baseline;gap:8px;margin:0 0 2px;font-size:.95rem;font-weight:800;color:var(--ink)}
 .bydrive .dh .t{margin-left:auto;font-family:var(--mono);font-size:.78rem;font-weight:500;color:var(--grow-ink)}
@@ -152,7 +156,7 @@ details.wheel summary:focus-visible{outline:2px solid var(--link);outline-offset
 .pie path.gapw{fill:var(--ground);stroke:var(--muted);stroke-width:1.2;stroke-dasharray:3 3}
 .psw.gapsw{border:1.5px dashed var(--muted)}
 .psw.hat{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.55) 0 2px,transparent 2px 5px)!important}
-.tile.miss{box-shadow:inset 3px 0 0 #E0703E}.tile .st{font-size:.7rem;font-weight:700;margin-left:6px}
+.tile.miss{box-shadow:inset 3px 0 0 var(--grow)}.tile .st{font-size:.7rem;font-weight:700;margin-left:6px}
 .pn{font-weight:700;font-size:.92rem}.pw{display:block;color:var(--muted);font-size:.76rem;font-weight:500}
 .ph{font-weight:800;font-size:.88rem;font-variant-numeric:tabular-nums}
 .three{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:0 0 18px}
