@@ -47,7 +47,11 @@ COMMON = {'field', 'mark', 'will', 'alex', 'dana', 'blair', 'casey', 'may', 'jun
           'rose', 'grace', 'hope', 'joy', 'faith', 'river', 'sage', 'reed', 'bill',
           'pat', 'art', 'drew', 'chase', 'hunter', 'page', 'sky', 'dawn', 'summer',
           'the', 'and', 'team', 'group', 'family', 'friends', 'work', 'school', 'mom',
-          'dad', 'granny', 'grandpa', 'grandma', 'doctor', 'church'}
+          'dad', 'granny', 'grandpa', 'grandma', 'doctor', 'church', 'new', 'old', 'big',
+          'day', 'one', 'two', 'mrs', 'mr', 'dr', 'ms', 'aunt', 'uncle', 'son', 'kid',
+          # month and weekday abbreviations are code, whoever shares the name
+          'jan', 'feb', 'mar', 'apr', 'jun', 'jul', 'aug', 'sep', 'sept', 'oct', 'nov', 'dec',
+          'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'}
 REPO_WORDS = {'be•do', 'be-do', 'bedo'}
 
 
@@ -88,7 +92,11 @@ def live_terms():
                 d = _get(f"{api}/{b['id']}/{t['id']}?{urllib.parse.urlencode(q)}", token)
                 for r in d['records']:
                     for f in fids:
-                        v = re.sub(r'^[\W_]+', '', str(r['fields'].get(f) or ''), flags=re.UNICODE).strip()
+                        v = re.sub(r'^[\W_]+', '', str(r['fields'].get(f) or ''), flags=re.UNICODE)
+                        # in brackets: a capitalised nickname is a name, a lowercase note is not
+                        nick = [n.strip() for n in re.findall(r'[(\[]([^)\]]*)[)\]]', v) if n.strip()[:1].isupper()]
+                        v = re.sub(r'\s*[(\[][^)\]]*[)\]]', '', v).strip()
+                        out.update(n for n in nick if len(n) >= 3 and n.lower() not in COMMON)
                         words = v.split()
                         # from connections, every name; from the other bases (drives, values,
                         # guides) only the specific ones — two words or more with a capital
@@ -98,7 +106,7 @@ def live_terms():
                             out.add(v)
                         if people:   # a person's first and last names are each theirs
                             for tok in re.split(r'[\s,/&()]+', v):
-                                if len(tok) >= 4 and tok[:1].isupper() and tok.lower() not in COMMON:
+                                if len(tok) >= 3 and tok[:1].isupper() and tok.lower() not in COMMON:
                                     out.add(tok)
                 off = d.get('offset')
                 if not off:
