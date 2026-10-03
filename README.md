@@ -180,6 +180,9 @@ This repo is public. It holds the engine only; every name, place, project, id,
 link and word specific to a person lives in their own settings files and bases.
 `tools/privacy_check.py` enforces it: it runs on every push and pull request
 (`.github/workflows/privacy.yml`) and before every push from a clone with
-`git config core.hooksPath .githooks`. It reads the private terms list from the
-`BEDO_PRIVATE_TERMS` secret, or from `~/.bedo/private_terms.txt`, and prints any
-hit masked.
+`git config core.hooksPath .githooks`. Names are read live from the person's
+connections and rhythms bases on every run (the `AIRTABLE_READ_TOKEN` secret: a
+read-only token that sees only those two bases), so a new connection is covered
+from the next push. Places, projects and handles come from the
+`BEDO_PRIVATE_TERMS` secret, or `~/.bedo/private_terms.txt`. Any hit prints
+masked.
