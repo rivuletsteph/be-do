@@ -371,6 +371,7 @@ def main():
     done_st = set(L.get('done_statuses') or [])
     zero_pr = {norm(x) for x in (L.get('zero_practices') or [])}
     zero_grp = {norm(x) for x in (L.get('zero_practice_groups') or [])}
+    measure_pr = {norm(x) for x in (L.get('measure_practices') or ['capture'])}
 
     # ── the day's rows, and what each one is worth ────────────────────────
     day_rows = []
@@ -410,8 +411,11 @@ def main():
         r['_notmine'] = bool(r.get('status') in noscore
                              or (L.get('zero_when_person_excludes_self') and people
                                  and self_name not in people and not own_work))
+        # 📲 capture measures the day rather than being part of it: it scores zero on
+        # the wheel and the balance bar, and keeps its minutes for time in be•do and
+        # the pie (amendment, 3 Oct 2026 — logging Friday drew air at 55%)
         r['_zero'] = bool(r['_notmine'] or cat.get('zero') or pr in zero_pr
-                          or norm(cat.get('group')) in zero_grp)
+                          or norm(cat.get('group')) in zero_grp or pr in measure_pr)
         day_rows.append(r)
     day_rows.sort(key=lambda r: (r['_s'], r['created'] or ''))
 
