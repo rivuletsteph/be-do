@@ -466,7 +466,7 @@ def main():
             and not real_span(r) and key_day(r) < day
 
     books = [r for r in lived if bookkeeping(r)]
-    entries = []
+    entries, ent_src = [], []
     for r in lived:
         if bookkeeping(r):
             continue
@@ -495,6 +495,7 @@ def main():
                      url=r.get('deliv') or '', cal=cal_ev, ev=r.get('event') or '',
                      span=(f"{clock(r['_s'])}\u2013{clock(r['_e'])}" if r['_e'] else ''))
         entries.append(e)
+        ent_src.append(r)
     # ── QA, printed with every build and cleared before publishing (the user's word, 2 Oct 2026)
     known_pr = set(practices)
     qa = {
@@ -649,8 +650,16 @@ def main():
                 est = est or log_min
             # a span with no drive (a 📍 place, a stretch somewhere) is neither
             # device time nor logging: it stays with everything else
-        prows.append(dict(cat=cat, s=r['_s'], e=r['_e'], est=est, title=r['_title'], dev=on_device(r)))
+        r['_cat'], r['_dev'] = cat, on_device(r)
+        prows.append(dict(cat=cat, s=r['_s'], e=r['_e'], est=est, title=r['_title'], dev=r['_dev']))
     pie, trimmed, devrows = day_pie.build(prows, cats, max_titles=L.get('pie_max_titles', 4))
+    # the clock and the wheel share one entry list (the user's word, 3 Oct 2026): each
+    # entry carries the slice its minutes fall in and whether it was on a device, beside
+    # the wellness domain it already carries, so a tap on either dial lights the other
+    rest_k = next((c['k'] for c in cats if c.get('rest')), 'else')
+    for e, r in zip(entries, ent_src):
+        e['sl'] = r.get('_cat') or rest_k
+        e['dv'] = bool(r.get('_dev'))
 
     # ── who was in your day ──────────────────────────────────────────────
     order = L.get('circle_order') or sorted(set(circles.values()))
