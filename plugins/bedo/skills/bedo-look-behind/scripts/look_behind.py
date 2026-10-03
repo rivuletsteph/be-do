@@ -610,6 +610,15 @@ def main():
         cats = [dict(c, n=L.get('device_doing_name', 'Doing \u00b7 moving drives forward'))
                 if c['k'] == dev_slice else c for c in cats]
         cats = cats[:at] + [dict(log_slice, practices=[])] + cats[at:]
+    # ON A DEVICE (the user's word, 3 Oct 2026): a row with real minutes and a
+    # device set, that is drive work, 📲 capture, or a screen practice. A moment
+    # logged from the phone is not screen time (1 Oct: the device field says where
+    # a row was logged, not what she was doing), so a row with no span never counts.
+    screen_pr = {norm(x) for x in (L.get('screen_practices') or ['show', 'movie', 'video', 'news'])}
+    def on_device(r):
+        if not r['_e'] or not r.get('device') or norm(r['device']) in dev_off:
+            return False
+        return bool((r.get('rhythm') or '').strip()) or r['_pr'] in logging_pr or r['_pr'] in screen_pr
     prows = []
     for r in lived:
         est = None
@@ -636,8 +645,8 @@ def main():
                 est = est or log_min
             # a span with no drive (a 📍 place, a stretch somewhere) is neither
             # device time nor logging: it stays with everything else
-        prows.append(dict(cat=cat, s=r['_s'], e=r['_e'], est=est, title=r['_title']))
-    pie, trimmed = day_pie.build(prows, cats, max_titles=L.get('pie_max_titles', 4))
+        prows.append(dict(cat=cat, s=r['_s'], e=r['_e'], est=est, title=r['_title'], dev=on_device(r)))
+    pie, trimmed, devrows = day_pie.build(prows, cats, max_titles=L.get('pie_max_titles', 4))
 
     # ── who was in your day ──────────────────────────────────────────────
     order = L.get('circle_order') or sorted(set(circles.values()))
@@ -805,6 +814,7 @@ def main():
             'destinations': list(dests.values()),
         },
         'pie': pie,
+        'pieDevice': {'min': sum(p.get('dev', 0) for p in pie), 'rows': devrows[:L.get('pie_max_titles', 4) * 2]},
         'slotsMax': L.get('slots_max', 3),
         'read': ' · '.join(f'{name} · {n}/{n}' for name, n in reads),
     }
@@ -821,6 +831,7 @@ def main():
         'containers_set_aside': len(held), 'rhythms': nrh,
         'logged_min': sum(p['logged'] for p in pie), 'estimated_min': est_total,
         'estimates_trimmed_min': trimmed,
+        'on_a_device_min': sum(p.get('dev', 0) for p in pie),
         'who': len(who), 'circles_read': len(circles),
         'highlights': len(highlights), 'intentions': len(intentions),
         'destinations': [d['name'] for d in dests.values()],
