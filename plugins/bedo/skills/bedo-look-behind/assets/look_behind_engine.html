@@ -70,7 +70,7 @@ li{display:grid;grid-template-columns:1.9rem 1fr;align-items:baseline}
 .bydrive ul{gap:6px}.bydrive li{grid-template-columns:1fr auto;font-size:.9rem;font-weight:500}
 .bydrive .mo{font-size:.72rem;color:var(--muted)}
 .bydrive .min{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
-.ecard .ttl{font-weight:700;font-size:.98rem;line-height:1.35;flex:1 1 100%;min-width:0}
+.ecard .ttl{font-weight:600;font-size:.98rem;line-height:1.35;flex:1 1 100%;min-width:0}
 .ecard .ttl a,.ecard .tt a.evl{margin-left:6px;text-decoration:none}
 .ecard .ttl a{font-family:var(--mono);font-size:.7rem;font-weight:500;color:var(--link)}
 .ecard .ttl a.evl,.ecard .tt a.evl{font-size:.95rem;font-family:inherit}
@@ -296,7 +296,7 @@ function renderEntries() {
     const meta = e.ew || e.emo ? `<span>${esc(e.ew)}</span>${EMO[e.emo] ? `<i class="dot" style="background:${EMO[e.emo]}"></i>` : ""}` : "";
     // every card says which drive or rhythm it belongs to; an action or a meeting without one says so (2 Oct 2026)
     const needsDrive = e.cal || e.p === "action";
-    const drv = e.rh ? `<div class="edrv">${esc(e.rh)}</div>` : (needsDrive ? `<div class="edrv none">no drive</div>` : "");
+    const drv = e.rh ? `<div class="edrv">${e.rhe ? esc(e.rhe) + " " : ""}${esc(e.rh)}</div>` : (needsDrive ? `<div class="edrv none">no drive</div>` : "");
     const links = (e.url ? `<a href="${esc(e.url)}">↗ link</a>` : "") + (e.ev ? `<a class="evl" href="${esc(e.ev)}" title="open on the calendar">\u{1F5D3}\uFE0F</a>` : "");
     // an action reads ✅ ⚡ and what it was; a meeting reads ✅ and its calendar line, with 🗓️ linking to it
     // the check, the ⚡ and the title read as one line of text, so a long title wraps under itself, not beside the marks

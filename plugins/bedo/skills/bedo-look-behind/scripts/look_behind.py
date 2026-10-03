@@ -487,7 +487,10 @@ def main():
             e.update(card=True, st=(r.get('status') or '').split(' ')[0], t=title,
                      w=(words[:240].rsplit(' ', 1)[0] + ' \u2026') if len(words) > 240 else
                        ('' if words == title else words),
-                     rh=r.get('rhythm') or '', emo=(sv(emo) or '')[:1], ew=r.get('emoword') or '',
+                     rh=r.get('rhythm') or '',
+                     # the drive's own emoji in front of its name — a big hint at a glance (3 Oct 2026)
+                     rhe=((rhythms.get((r.get('rhythm') or '').split(',')[0].strip()) or {}).get('emoji') or ''),
+                     emo=(sv(emo) or '')[:1], ew=r.get('emoword') or '',
                      url=r.get('deliv') or '', cal=cal_ev, ev=r.get('event') or '',
                      span=(f"{clock(r['_s'])}\u2013{clock(r['_e'])}" if r['_e'] else ''))
         entries.append(e)
