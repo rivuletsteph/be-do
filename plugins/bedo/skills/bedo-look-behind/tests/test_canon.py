@@ -261,7 +261,8 @@ EXPECT = {
     # doing. Only rows carrying a drive count as device time; a moment logged
     # from a device is 'logging the day'. The fixture's other device rows are
     # spans with no drive (43 minutes), so they fall to everything else.
-    'pie_minutes': {'bed': (459, 0), 'move': (10, 130), 'food': (83, 75), 'dev': (40, 89), 'log': (0, 0)},
+    # a 📲 capture span is logging the day — Being, never drive work (amendment, 3 Oct 2026)
+    'pie_minutes': {'bed': (459, 0), 'move': (10, 130), 'food': (83, 75), 'dev': (0, 89), 'log': (40, 0)},
     'destinations': [
         {'name': 'be•do', 'glyph': MARK, 'work': [
             {'drive': f'{MARK} be•do drive',

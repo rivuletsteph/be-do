@@ -574,6 +574,10 @@ def main():
     log_slice = L.get('logging_slice') or dict(k='log', e='\u270d\ufe0f', n='Being \u00b7 the flows and logging', c='#C9A227')
     log_min = L.get('logging_minutes', 1)
     flow_groups = {norm(x) for x in (L.get('flow_groups') or ['flow'])}
+    # 📲 capture rows ARE the time spent logging the day, whatever the practice map
+    # says (amendment, 3 Oct 2026: the capture rows carry the minutes, and they are
+    # Being, not drive work — counting them as doing drew 8h 13 of 'doing')
+    logging_pr = {norm(x) for x in (L.get('logging_practices') or ['capture'])}
     if dev_slice and not any(c['k'] == log_slice['k'] for c in cats):
         at = next((i for i, c in enumerate(cats) if c.get('rest')), len(cats))
         cats = [dict(c, n=L.get('device_doing_name', 'Doing \u00b7 moving drives forward'))
@@ -587,6 +591,10 @@ def main():
             t = typical.get(r['_pr'])
             est = (practices.get(r['_pr']) or {}).get('typical') or (t['median_min'] if t else None)
         cat = cat_of.get(r['_pr'])
+        if dev_slice and r['_pr'] in logging_pr:
+            cat = log_slice['k']
+            if not r['_e']:
+                est = est or log_min
         # a dawn or dusk flow practice is the window of logging the day, wherever it was
         # logged from (amendment, 2 Oct 2026); coffee and movement keep their own slices
         if not cat and norm((practices.get(r['_pr']) or {}).get('group')) in flow_groups:
