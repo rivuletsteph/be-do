@@ -285,7 +285,8 @@ def effort(rows, L):
         k = norm(r.get('wellness'))
         if k not in dom:
             continue
-        dom[k] += (r['_mins'] / div) if r['_mins'] else float(r['_band'])
+        m = r.get('_wmins', r['_mins'])
+        dom[k] += (m / div) if r['_mins'] else float(r['_band'])
     return {k: round(v, 1) for k, v in dom.items()}
 
 
@@ -305,7 +306,7 @@ def split_do(rows, rhythms, L):
     for r in rows:
         if norm(r.get('wellness')) not in DO:
             continue
-        v = (r['_mins'] / div) if r['_mins'] else float(r['_band'])
+        v = (r.get('_wmins', r['_mins']) / div) if r['_mins'] else float(r['_band'])
         t = (rhythms.get(r.get('rhythm') or '') or {}).get('type')
         if t in grow_t:
             growing += v
@@ -371,6 +372,7 @@ def main():
     done_st = set(L.get('done_statuses') or [])
     zero_pr = {norm(x) for x in (L.get('zero_practices') or [])}
     zero_grp = {norm(x) for x in (L.get('zero_practice_groups') or [])}
+    measure_pr = {norm(x) for x in (L.get('measure_practices') or ['capture'])}
 
     # ── the day's rows, and what each one is worth ────────────────────────
     day_rows = []
@@ -410,8 +412,11 @@ def main():
         r['_notmine'] = bool(r.get('status') in noscore
                              or (L.get('zero_when_person_excludes_self') and people
                                  and self_name not in people and not own_work))
+        # 📲 capture measures the day rather than being part of it: it scores zero on
+        # the wheel and the balance bar, and keeps its minutes for time in be•do and
+        # the pie (amendment, 3 Oct 2026 — logging Friday drew air at 55%)
         r['_zero'] = bool(r['_notmine'] or cat.get('zero') or pr in zero_pr
-                          or norm(cat.get('group')) in zero_grp)
+                          or norm(cat.get('group')) in zero_grp or pr in measure_pr)
         day_rows.append(r)
     day_rows.sort(key=lambda r: (r['_s'], r['created'] or ''))
 
@@ -483,7 +488,10 @@ def main():
             e.update(card=True, st=(r.get('status') or '').split(' ')[0], t=title,
                      w=(words[:240].rsplit(' ', 1)[0] + ' \u2026') if len(words) > 240 else
                        ('' if words == title else words),
-                     rh=r.get('rhythm') or '', emo=(sv(emo) or '')[:1], ew=r.get('emoword') or '',
+                     rh=r.get('rhythm') or '',
+                     # the drive's own emoji in front of its name — a big hint at a glance (3 Oct 2026)
+                     rhe=((rhythms.get((r.get('rhythm') or '').split(',')[0].strip()) or {}).get('emoji') or ''),
+                     emo=(sv(emo) or '')[:1], ew=r.get('emoword') or '',
                      url=r.get('deliv') or '', cal=cal_ev, ev=r.get('event') or '',
                      span=(f"{clock(r['_s'])}\u2013{clock(r['_e'])}" if r['_e'] else ''))
         entries.append(e)
@@ -527,6 +535,21 @@ def main():
     booked = {'n': len(books), 'oldest': ages[-1] if ages else 0}
 
     # ── balance ──────────────────────────────────────────────────────────
+    # Overlapping time counts once, and the lived thing wins (the user's word,
+    # 3 Oct 2026): a work session running in the background while she was at the
+    # vet does not also fill the vet's hour. Minutes are claimed lived rows first,
+    # then sessions (⚡ actions), shortest first in each, and a span row is
+    # weighed by the minutes it kept. Rows with no span keep their effort band.
+    act_set = {norm(x) for x in (L.get('action_practices') or ['action'])}
+    taken = [False] * (24 * 60)
+    spanned = [r for r in scoring if r['_mins']]
+    for r in sorted(spanned, key=lambda r: (r['_pr'] in act_set, r['_mins'])):
+        kept = 0
+        for m in range(max(0, r['_s']), min(24 * 60, r['_e'])):
+            if not taken[m]:
+                taken[m] = True
+                kept += 1
+        r['_wmins'] = kept
     domains = effort(scoring, L)
     # what sits under each domain, heaviest first, so the wheel can be opened
     # and read (25 Sep 2026). Same weight as effort(): minutes over the divisor
@@ -536,12 +559,16 @@ def main():
     for r in scoring:
         k = norm(r.get('wellness'))
         if k in dom_rows:
-            w = (r['_mins'] / div) if r['_mins'] else float(r['_band'])
+            w = (r.get('_wmins', r['_mins']) / div) if r['_mins'] else float(r['_band'])
             dom_rows[k].append({'t': re.sub(r'^[^\w]+', '', r['_title']),
-                                'w': round(w, 1), 'min': r['_mins'] or None})
+                                'w': round(w, 1), 'min': r.get('_wmins', r['_mins']) or None})
     for k in dom_rows:
         dom_rows[k].sort(key=lambda x: -x['w'])
     tending, growing = split_do(scoring, rhythms, L)
+    # logging the day is tending (the user's word, 3 Oct 2026): 📲 capture stays off
+    # the wheel, which would read it as air, but its minutes count as tending on the bar
+    tending = round(tending + sum((r['_mins'] / div) if r['_mins'] else float(r['_band'])
+                                  for r in day_rows if r['_pr'] in measure_pr and not r['_notmine']), 1)
     note = ' '.join(x for x in (L.get('zero_note') or '',
                                 'Weighted by effort; rows with a real span count their minutes.') if x)
 
@@ -574,6 +601,10 @@ def main():
     log_slice = L.get('logging_slice') or dict(k='log', e='\u270d\ufe0f', n='Being \u00b7 the flows and logging', c='#C9A227')
     log_min = L.get('logging_minutes', 1)
     flow_groups = {norm(x) for x in (L.get('flow_groups') or ['flow'])}
+    # 📲 capture rows ARE the time spent logging the day, whatever the practice map
+    # says (amendment, 3 Oct 2026: the capture rows carry the minutes, and they are
+    # Being, not drive work — counting them as doing drew 8h 13 of 'doing')
+    logging_pr = {norm(x) for x in (L.get('logging_practices') or ['capture'])}
     if dev_slice and not any(c['k'] == log_slice['k'] for c in cats):
         at = next((i for i, c in enumerate(cats) if c.get('rest')), len(cats))
         cats = [dict(c, n=L.get('device_doing_name', 'Doing \u00b7 moving drives forward'))
@@ -587,6 +618,10 @@ def main():
             t = typical.get(r['_pr'])
             est = (practices.get(r['_pr']) or {}).get('typical') or (t['median_min'] if t else None)
         cat = cat_of.get(r['_pr'])
+        if dev_slice and r['_pr'] in logging_pr:
+            cat = log_slice['k']
+            if not r['_e']:
+                est = est or log_min
         # a dawn or dusk flow practice is the window of logging the day, wherever it was
         # logged from (amendment, 2 Oct 2026); coffee and movement keep their own slices
         if not cat and norm((practices.get(r['_pr']) or {}).get('group')) in flow_groups:

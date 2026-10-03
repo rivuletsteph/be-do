@@ -13,10 +13,12 @@ SYNC = os.path.join(os.path.dirname(HERE), 'scripts', 'calendar_sync.py')
 SF = dict(title='fldTitle', key='fldKey', when='fldWhen', end='fldEnd', target='fldTarget',
           status='fldStatus', event='fldEvent', spent='fldSpent')
 LOCAL = {'utc_offset_hours': -5, 'fields': {'stream': SF},
-         'calendar_summaries': {'you': 'mine', 'kid': 'kid'}, 'sync_calendars': ['you', 'kid']}
+         'calendar_summaries': {'you': 'mine', 'kid': 'kid'}, 'sync_calendars': ['you', 'kid'],
+         'dropped_calendar': 'dropped'}
 CALS = {'calendars': [{'id': 'me@gmail.com', 'summary': 'mine'},
                       {'id': 'fam@group.calendar.google.com', 'summary': 'kid'},
-                      {'id': 'other@example.com', 'summary': 'someone else'}]}
+                      {'id': 'other@example.com', 'summary': 'someone else'},
+                      {'id': 'gone@group.calendar.google.com', 'summary': 'dropped'}]}
 
 
 def link(ev, cal_short):
@@ -48,12 +50,15 @@ STREAM = [
     row(3, 'c', '✅ done', '2026-09-23T18:00:00.000Z', link('ev3', 'fam@g'), target='2026-09-25T17:00:00.000Z'),
     # done with a time spent and already matching: nothing to do
     row(4, 'd', '✅ done', '2026-09-23T20:00:00.000Z', link('ev4', 'me@m'), spent=3600),
+    # dropped, and the user already moved its event to the dropped calendar
+    row(5, 'e', '✖️ dropped', '2026-09-23T22:00:00.000Z', link('ev5', 'me@m')),
 ]
 EVENTS = [
     ev('me@gmail.com', 'ev1', '⬜🏭Example check-in', '2026-09-23T09:00:00-05:00', '2026-09-23T10:00:00-05:00'),
     ev('me@gmail.com', 'ev2', 'Example lunch', '2026-09-23T11:00:00-05:00', '2026-09-23T12:00:00-05:00'),
     ev('fam@group.calendar.google.com', 'ev3', 'Example appointment', '2026-09-30T14:00:00-05:00', '2026-09-30T15:00:00-05:00'),
     ev('me@gmail.com', 'ev4', '✅ Example session', '2026-09-23T15:00:00-05:00', '2026-09-23T16:00:00-05:00'),
+    ev('gone@group.calendar.google.com', 'ev5', '✖️Example outing', '2026-09-23T17:00:00-05:00', '2026-09-23T18:00:00-05:00'),
 ]
 
 
@@ -91,6 +96,9 @@ def main():
           ('✖️Example lunch', False))
     check('a row about an event does not move it', 'c' in ch, False)
     check('a matching event is left alone', 'd' in ch, False)
+    check('a dropped event still on a synced calendar is listed to move', [m['key'] for m in P.get('to_move', [])], ['b'])
+    check('one already on the dropped calendar is recognised, not called deleted',
+          [u['why'] for u in P['unchanged'] if u['row'] == 'row 5'], ['already on dropped'])
     print()
     if fails:
         print(f'{len(fails)} failed:'); [print('  FAIL ' + f) for f in fails]; sys.exit(1)
