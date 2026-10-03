@@ -671,7 +671,7 @@ def main():
                 est = None
         r['_cat'], r['_dev'] = cat, on_device(r)
         prows.append(dict(cat=cat, s=r['_s'], e=r['_e'], est=est, title=r['_title'], dev=r['_dev']))
-    pie, trimmed, devrows = day_pie.build(prows, cats, max_titles=L.get('pie_max_titles', 4))
+    pie, trimmed, devrows, clock_segs = day_pie.build(prows, cats, max_titles=L.get('pie_max_titles', 4))
     # the device time, split as on 2 Oct: drive work (doing) and logging the day (being)
     def mins(rows):
         on = set()
@@ -857,6 +857,7 @@ def main():
             'destinations': list(dests.values()),
         },
         'pie': pie,
+        'clockSegs': clock_segs,
         'pieDevice': {'min': sum(p.get('dev', 0) for p in pie), 'rows': devrows[:L.get('pie_max_titles', 4)],
                       'k': dev_k, 'doing': dev_split['doing'], 'being': dev_split['being']},
         'slotsMax': L.get('slots_max', 3),
