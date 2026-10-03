@@ -122,9 +122,21 @@ def build(rows, cats, max_titles=4):
         if c.get("rest"):
             d["rest"] = True          # the engine fills its minutes out to the day
         pie.append(d)
+    # the clock as a clock (3 Oct 2026): runs of minutes in time order, [start, end,
+    # slice, on a device], with what no slice covers given to the rest slice
+    rest_k = next((c["k"] for c in cats if c.get("rest")), "else")
+    segs, cur = [], None
+    for m in range(DAY_MINUTES):
+        key = (slice_of[m] or rest_k, bool(on_dev[m] and slice_of[m]))
+        if cur and cur[2] == key[0] and cur[3] == key[1]:
+            cur[1] = m + 1
+        else:
+            cur = [m, m + 1, key[0], key[1]]
+            segs.append(cur)
+
     devrows = []
     for r in rows:
         t = (r.get("title") or "").strip()
         if r.get("dev") and r.get("e") and t and t not in devrows:
             devrows.append(t)
-    return pie, trimmed, devrows
+    return pie, trimmed, devrows, segs

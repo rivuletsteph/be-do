@@ -100,6 +100,14 @@ li{display:grid;grid-template-columns:1.9rem 1fr;align-items:baseline}
 .pchip small{font-family:var(--mono);font-size:.72rem;font-weight:500;color:var(--muted)}
 .wk{cursor:pointer}.wk.dim{opacity:.25}
 /* the clock and the wheel side by side, phone included (the user's word, 3 Oct 2026) */
+/* one figure (the user's word, 3 Oct 2026): the wheel in the middle, the clock around it */
+.dayclock{max-width:460px;margin:10px auto 0}
+.dayclock svg{width:100%;height:auto;display:block}
+.seg{stroke:var(--ground);stroke-width:.6;cursor:pointer;transition:opacity .15s}
+.dayclock.focus .seg{opacity:.18}.dayclock.focus .seg.on{opacity:1}
+.tick{stroke:var(--faint);stroke-width:1}.tick.major{stroke:var(--muted);stroke-width:1.4}
+.tlab{font:500 9px var(--mono);fill:var(--muted)}
+.clocknote{text-align:center;margin-top:2px}
 .duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center}
 .dial{min-width:0}
 .dlab{font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);text-align:center;margin:0 0 6px}
@@ -241,20 +249,13 @@ details.wheel summary:focus-visible{outline:2px solid var(--link);outline-offset
     <p class="label">how the day went</p>
     <div class="bar" role="img" id="bar1"></div>
     <div class="barlab" id="lab1"></div>
-    <div class="duo">
-      <div class="dial"><p class="dlab">the clock &middot; 24 hours</p>
-        <div class="pie" id="pie">
-        <svg viewBox="-110 -110 220 220" role="img" aria-labelledby="pieT"><title id="pieT"></title><defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#fff"/><rect width="2.2" height="6" fill="#000"/></pattern><mask id="hatchmask" maskUnits="userSpaceOnUse" x="-110" y="-110" width="220" height="220"><rect x="-110" y="-110" width="220" height="220" fill="#fff" fill-opacity=".55"/><rect x="-110" y="-110" width="220" height="220" fill="url(#hatch)"/></mask></defs><g id="slices"></g></svg>
-        <div class="pc"><div><b id="cVal"></b><span id="cLab"></span></div></div>
-        </div>
-      </div>
-      <div class="dial"><p class="dlab">the wheel &middot; effort</p><div id="wheel"></div></div>
-    </div>
-    <div class="krow" id="ckeys" aria-label="the clock, slice by slice"></div>
     <div class="krow" id="wkeys" aria-label="the wheel, domain by domain"></div>
+    <div class="dayclock" id="dayclock"><div id="wheel"></div></div>
+    <p class="bal-note clocknote" id="clocknote"></p>
+    <div class="krow" id="ckeys" aria-label="the clock, slice by slice"></div>
     <p class="selsum" id="selbar" hidden></p>
     <details class="howto"><summary>how to read these</summary>
-      <p class="bal-note">The clock is the day in minutes, midnight to midnight. The wheel is effort: an hour weighs ten, a moment its catalogue band. Tap a chip, a slice or a spoke and both dials and the entries below follow; tap it again to let go.</p>
+      <p class="bal-note">Inside, the wheel: effort by wellness domain, being on the left and doing on the right; an hour weighs ten, a moment its catalogue band. Around it, the clock: midnight at the top, the four things that matter at the hours they happened. Tap a chip, a spoke or a stretch of the clock and everything follows, the entries below included; tap it again to let go.</p>
       <p class="bal-note"><b id="unl"></b></p>
       <p class="bal-note" id="balnote"></p>
     </details>
@@ -406,14 +407,14 @@ function applySel() {
   const list = selected(), sl = new Set(list.map(e => e.sl)), dm = new Set(list.map(e => e.wd));
   if (SEL && SEL.t === "slice") { sl.clear(); sl.add(SEL.k); }
   if (SEL && SEL.t === "dom") { dm.clear(); dm.add(SEL.k); }
-  document.getElementById("pie").classList.toggle("focus", !!SEL);
+  document.getElementById("dayclock").classList.toggle("focus", !!SEL);
   document.querySelectorAll("#slices path").forEach(p => p.classList.toggle("on",
     !!SEL && (SEL.t === "dev" ? p.dataset.dev === "1" : sl.has(p.dataset.k))));
   document.querySelectorAll("#ckeys button").forEach(b => { const k = b.dataset.k;
     b.setAttribute("aria-pressed", String(!!SEL && ((SEL.t === "dev" && k === DVK) || (SEL.t === "slice" && k === SEL.k))));
     b.classList.toggle("dim", !!SEL && !((k === DVK && SEL.t === "dev") || sl.has(k))); });
   document.querySelectorAll("[data-w]").forEach(el => el.classList.toggle("dim", !!SEL && !dm.has(el.dataset.w)));
-  const cv = document.getElementById("cVal"), cl = document.getElementById("cLab");
+  const cv = document.getElementById("cVal") || {}, cl = document.getElementById("cLab") || {};
   if (!SEL) { cv.textContent = "24 h"; cl.textContent = "the whole day"; }
   else if (SEL.t === "dev") { cv.textContent = fmtm((DATA.pieDevice || {}).min || 0); cl.textContent = "on a device"; }
   else if (SEL.t === "slice") { const d = DATA.pie.find(x => x.k === SEL.k) || {}; cv.textContent = fmtm(d.m || 0); cl.textContent = (d.n || "").toLowerCase(); }
@@ -465,15 +466,17 @@ const ICON = {
 const icon = (k, size) => `<svg viewBox="0 0 20 20" width="${size}" height="${size}" aria-hidden="true" style="overflow:visible"><g fill="${DOM[k].c}" stroke="${DOM[k].d}" stroke-width="1" stroke-linejoin="round">${ICON[k]}</g></svg>`;
 const wicon = (k, x, y, size) => `<g data-w="${k}" class="wk" transform="translate(${(x-size/2).toFixed(1)} ${(y-size/2).toFixed(1)}) scale(${size/20})" fill="${DOM[k].c}" stroke="${DOM[k].d}" stroke-width="1" stroke-linejoin="round"><title>${k} ${Math.round(B.domains[k]||0)}</title>${ICON[k]}</g>`;
 const PAIRS = [["body","earth"],["heart","water"],["mind","air"],["spirit","fire"]];
-const vtot = Object.values(B.domains).reduce((a,b)=>a+b,0) || 1, cx = 150, cy = 130, w = WIDTH[WIN];
+const vtot = Object.values(B.domains).reduce((a,b)=>a+b,0) || 1, cx = 150, cy = 150, w = WIDTH[WIN];
 const shMax = Math.max(...Object.values(B.domains))/vtot, TOP = Math.max(0.3, Math.ceil(shMax*10)/10);
 const R0 = 12, RO = 98, rOf = sh => R0 + (RO-R0)*Math.min(sh,TOP*1.12)/TOP;
 const wpt = (deg, r) => { const t = deg*Math.PI/180; return [(cx + r*Math.sin(t)).toFixed(1), (cy - r*Math.cos(t)).toFixed(1)]; };
-let svg = `<svg viewBox="0 0 300 260" role="img" aria-label="the eight domains, being on the left, doing on the right">
+let svg = `<svg viewBox="-26 -26 352 352" role="img" aria-labelledby="pieT"><title id="pieT"></title>
+<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#fff"/><rect width="2.2" height="6" fill="#000"/></pattern><mask id="hatchmask" maskUnits="userSpaceOnUse" x="-26" y="-26" width="352" height="352"><rect x="-26" y="-26" width="352" height="352" fill="#fff" fill-opacity=".55"/><rect x="-26" y="-26" width="352" height="352" fill="url(#hatch)"/></mask></defs>
+<g id="ticks"></g><g id="slices"></g>
 <circle cx="${cx}" cy="${cy}" r="98" fill="none" stroke="var(--rule)" stroke-width="1" stroke-dasharray="1 5" stroke-linecap="round"/>
 ${Array.from({length:Math.round(TOP*10)-1},(_,i)=>(i+1)/10).map(f=>`<circle cx="${cx}" cy="${cy}" r="${rOf(f).toFixed(1)}" fill="none" stroke="var(--faint)" stroke-opacity=".45" stroke-width=".8" stroke-dasharray="1 4" stroke-linecap="round"/>`).join("")}
-<line x1="${cx}" y1="32" x2="${cx}" y2="228" stroke="var(--rule)" stroke-width="1"/>
-<text class="wl" x="4" y="134" style="fill:var(--be-ink);font-weight:800;letter-spacing:.14em">BE</text><text class="wl" x="296" y="134" text-anchor="end" style="fill:var(--do-ink);font-weight:800;letter-spacing:.14em">DO</text>`;
+<line x1="${cx}" y1="${cy-98}" x2="${cx}" y2="${cy+98}" stroke="var(--rule)" stroke-width="1"/>
+<text class="wl" x="-20" y="-12" style="fill:var(--be-ink);font-weight:800;letter-spacing:.14em">BE</text><text class="wl" x="320" y="-12" text-anchor="end" style="fill:var(--do-ink);font-weight:800;letter-spacing:.14em">DO</text>`;
 const order = Object.keys(DOM).sort((x,y)=>B.domains[y]-B.domains[x]); // longest drawn first, short spokes stay on top
 for (const k of order) { const v = B.domains[k]||0, cap = (w+5)/2, L = Math.max(rOf(v/vtot) - cap, 0.01), [x,y] = wpt(DOM[k].a, L); // the rounded tip lands exactly on the value
   svg += `<line data-w="${k}" class="wk" x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${DOM[k].d}" stroke-width="${w+5}" stroke-linecap="round"/>`;
@@ -488,7 +491,8 @@ for (const [be, dv] of PAIRS) { leg += `<div class="pair" style="border-left-col
   for (const k of [dv, be]) leg += `<div class="lrow wk" data-w="${k}"><span class="lic">${icon(k,15)}</span><span class="lnm" style="color:${DOM[k].d}">${k}</span><span class="ldf">${DOM[k].f}</span><span class="lvl">${Math.round((B.domains[k]||0)/vtot*100)}%</span></div>`;
   leg += `</div>`; }
 leg += `</div>`;
-document.getElementById("wheel").innerHTML = svg + `<p class="bal-note" style="text-align:center;margin-top:4px">rings every 10% \u00B7 outer ${Math.round(TOP*100)}%</p>`;
+document.getElementById("wheel").innerHTML = svg;
+document.getElementById("clocknote").textContent = `the wheel inside: rings every 10% of effort, outer ${Math.round(TOP*100)}% \u00B7 the clock around it: midnight at the top`;
 document.getElementById("wkeys").innerHTML = [...BE, ...DO].map(k =>
   `<button type="button" class="kc wk" data-w="${k}" title="${k} \u00B7 ${DOM[k].f}">${icon(k, 13)}${k}<small>${Math.round((B.domains[k]||0)/vtot*100)}%</small></button>`).join("");
 document.querySelectorAll("[data-w]").forEach(el => el.addEventListener("click", () => select("dom", el.dataset.w)));
@@ -531,23 +535,27 @@ const PIE = DATA.pie, fmtm = m => { m=Math.round(m); const h=Math.floor(m/60), r
 // the pie's accessible name is the day it is drawing, not the day it was built on
 document.getElementById("pieT").textContent = `${DATA.date} · 24 hours`;
 { const used = PIE.reduce((a,d)=>a+d.logged+d.est,0); PIE.forEach(d=>{ if(d.rest) d.est = 1440-used; d.m = d.logged+d.est; });
-  const R=100, r=58, pp=(a,rad)=>[rad*Math.sin(a),-rad*Math.cos(a)]; let a0=0; const g=document.getElementById("slices");
-  // kind: "" logged off a device · "dev" logged on a device (hatched) · "est" estimated (faded)
-  const arc=(d,m,kind)=>{ if(m<=0) return; const a1=a0+m/1440*2*Math.PI, big=a1-a0>Math.PI?1:0, [x0,y0]=pp(a0,R),[x1,y1]=pp(a1,R),[x2,y2]=pp(a1,r),[x3,y3]=pp(a0,r);
-    const el=document.createElementNS("http://www.w3.org/2000/svg","path");
-    el.setAttribute("d",`M${x0} ${y0}A${R} ${R} 0 ${big} 1 ${x1} ${y1}L${x2} ${y2}A${r} ${r} 0 ${big} 0 ${x3} ${y3}Z`); el.style.fill=d.c; el.dataset.k=d.k;
-    if(kind==="dev"){ el.setAttribute("mask","url(#hatchmask)"); el.dataset.dev="1"; }
-    if(kind==="devslice") el.dataset.dev="1";
-    if(kind==="est" && !d.rest) el.classList.add("est");
-    const t=document.createElementNS("http://www.w3.org/2000/svg","title"); t.textContent=`${d.n}: ${fmtm(m)}${kind==="dev"?" on a device":kind==="est"&&!d.rest?" estimated":""}`; el.appendChild(t); g.appendChild(el); a0=a1; };
-  PIE.forEach(d=>{ if(d.k===DVK){ arc(d,d.logged,"devslice"); arc(d,d.est,"est"); return; }
-    const dv=Math.min(d.dev||0,d.logged); arc(d,d.logged-dv,""); arc(d,dv,"dev"); arc(d,d.est,"est"); });
+  // the clock around the wheel: each run of minutes at the hours it happened, midnight at the top
+  const g=document.getElementById("slices"), NS="http://www.w3.org/2000/svg", CX=150, CY=150, R1=146, R0=129;
+  const pt=(m,rad)=>{ const a=m/1440*2*Math.PI; return [(CX+rad*Math.sin(a)).toFixed(2),(CY-rad*Math.cos(a)).toFixed(2)]; };
+  const hmc=m=>{ const h=Math.floor(m/60)%24, mi=m%60, h12=((h+11)%12)+1; return `${h12}:${String(mi).padStart(2,"0")}${h<12?"a":"p"}`; };
+  const PK=Object.fromEntries(PIE.map(d=>[d.k,d]));
+  (DATA.clockSegs||[]).forEach(([s0,s1,k,dv])=>{ const d=PK[k]; if(!d) return;
+    const big=(s1-s0)>720?1:0, [x0,y0]=pt(s0,R1),[x1,y1]=pt(s1,R1),[x2,y2]=pt(s1,R0),[x3,y3]=pt(s0,R0);
+    const el=document.createElementNS(NS,"path");
+    el.setAttribute("d",`M${x0} ${y0}A${R1} ${R1} 0 ${big} 1 ${x1} ${y1}L${x2} ${y2}A${R0} ${R0} 0 ${big} 0 ${x3} ${y3}Z`);
+    el.style.fill=d.c; el.dataset.k=k; el.classList.add("seg");
+    if(k===DVK) el.dataset.dev="1"; else if(dv){ el.setAttribute("mask","url(#hatchmask)"); el.dataset.dev="1"; }
+    const t=document.createElementNS(NS,"title"); t.textContent=`${d.n}${dv&&k!==DVK?" \u00B7 on a device":""} \u00B7 ${hmc(s0)}\u2013${hmc(s1)}`; el.appendChild(t); g.appendChild(el); });
+  const tk=document.getElementById("ticks"); let th="";
+  for(let h=0;h<24;h++){ const major=h%6===0, [a1,b1]=pt(h*60,R1+2), [a2,b2]=pt(h*60,R1+(major?8:5)); th+=`<line class="tick${major?" major":""}" x1="${a1}" y1="${b1}" x2="${a2}" y2="${b2}"/>`; }
+  [[0,"midnight"],[360,"6 am"],[720,"noon"],[1080,"6 pm"]].forEach(([m,l])=>{ const [x,y]=pt(m,R1+17); th+=`<text class="tlab" x="${x}" y="${(+y+3).toFixed(1)}" text-anchor="middle">${l}</text>`; });
+  tk.innerHTML=th;
   const lg=document.getElementById("ckeys");
   const DV = DATA.pieDevice || {min: PIE.reduce((a,d)=>a+(d.dev||0),0), rows: []};
   lg.innerHTML = PIE.map(d => d.k === DVK
       ? `<button type="button" class="kc" data-k="${d.k}" aria-pressed="false" title="its own slice, and hatched where it overlapped sleep, food or movement"><i style="background:${d.c}"></i>${d.e ? d.e + " " : ""}${esc(d.n)}<small>${fmtm(DV.min)}</small></button>`
       : `<button type="button" class="kc" data-k="${d.k}" aria-pressed="false" title="${esc(d.n)}${d.w ? " \u00B7 " + esc(d.w) : ""}"><i style="background:${d.c}"></i>${d.e ? d.e + " " : ""}${esc(d.n.split(" \u00B7 ")[0])}<small>${fmtm(d.m)}</small></button>`).join("");
-  document.getElementById("cVal").textContent="24 h"; document.getElementById("cLab").textContent="the whole day";
   g.addEventListener("click",e=>{const p=e.target.closest("path"); if(p) p.dataset.k===DVK ? select("dev","") : select("slice",p.dataset.k);});
   lg.addEventListener("click",e=>{const b=e.target.closest("button"); if(b) b.dataset.k===DVK ? select("dev","") : select("slice",b.dataset.k);});
   const est=PIE.filter(d=>!d.rest).reduce((a,d)=>a+d.est,0);
