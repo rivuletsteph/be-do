@@ -167,6 +167,9 @@ details.wheel summary:focus-visible{outline:2px solid var(--link);outline-offset
 .pie path.gapw{fill:var(--ground);stroke:var(--muted);stroke-width:1.2;stroke-dasharray:3 3}
 .psw.gapsw{border:1.5px dashed var(--muted)}
 .psw.hat{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.55) 0 2px,transparent 2px 5px)!important}
+.pie path.est{fill-opacity:.38}
+.psw.dev{background-color:var(--soft);background-image:repeating-linear-gradient(45deg,var(--ground) 0 2px,transparent 2px 5px)}
+.plg li.devrow{border-bottom:1px solid var(--rule);margin-bottom:4px;padding-bottom:4px}
 .tile.miss{box-shadow:inset 3px 0 0 var(--grow)}.tile .st{font-size:.7rem;font-weight:700;margin-left:6px}
 .pn{font-weight:700;font-size:.92rem}.pw{display:block;color:var(--muted);font-size:.76rem;font-weight:500}
 .ph{font-weight:800;font-size:.88rem;font-variant-numeric:tabular-nums}
@@ -430,7 +433,8 @@ const set = DATA.intentions.length, met = DATA.intentions.filter(i=>i.glyph==="\
 document.getElementById("ftn").textContent = `${met} of ${set} met` + (car ? ` \u00B7 ${car} carried` : "");
 
  
-// how the day went: midnight to midnight. Each slice is solid for logged minutes and striped where the minutes are estimated from the day's rows.
+// how the day went: midnight to midnight. Each slice is solid for minutes logged off a device, hatched for minutes
+// on a device, and faded where the minutes are estimated (the user's word, 3 Oct 2026: time on a device made explicit).
 // each slice wears the palette by its key; a slice the palette doesn't name keeps the settings' colour
 DATA.pie.forEach(d => { if (["bed","move","food","travel","dev","log","else"].includes(d.k)) d.c = `var(--pie-${d.k})`; });
 const PIE = DATA.pie, fmtm = m => { m=Math.round(m); const h=Math.floor(m/60), r=m%60; return h ? (r ? `${h} h ${String(r).padStart(2,"0")}` : `${h} h`) : `${r} min`; };
@@ -438,22 +442,26 @@ const PIE = DATA.pie, fmtm = m => { m=Math.round(m); const h=Math.floor(m/60), r
 document.getElementById("pieT").textContent = `${DATA.date} · 24 hours`;
 { const used = PIE.reduce((a,d)=>a+d.logged+d.est,0); PIE.forEach(d=>{ if(d.rest) d.est = 1440-used; d.m = d.logged+d.est; });
   const R=100, r=58, pp=(a,rad)=>[rad*Math.sin(a),-rad*Math.cos(a)]; let a0=0; const g=document.getElementById("slices");
-  const arc=(d,m,est)=>{ if(m<=0) return; const a1=a0+m/1440*2*Math.PI, big=a1-a0>Math.PI?1:0, [x0,y0]=pp(a0,R),[x1,y1]=pp(a1,R),[x2,y2]=pp(a1,r),[x3,y3]=pp(a0,r);
+  // kind: "" logged off a device · "dev" logged on a device (hatched) · "est" estimated (faded)
+  const arc=(d,m,kind)=>{ if(m<=0) return; const a1=a0+m/1440*2*Math.PI, big=a1-a0>Math.PI?1:0, [x0,y0]=pp(a0,R),[x1,y1]=pp(a1,R),[x2,y2]=pp(a1,r),[x3,y3]=pp(a0,r);
     const el=document.createElementNS("http://www.w3.org/2000/svg","path");
     el.setAttribute("d",`M${x0} ${y0}A${R} ${R} 0 ${big} 1 ${x1} ${y1}L${x2} ${y2}A${r} ${r} 0 ${big} 0 ${x3} ${y3}Z`); el.style.fill=d.c; el.dataset.k=d.k;
-    if(est && !d.rest) el.setAttribute("mask","url(#hatchmask)");
-    const t=document.createElementNS("http://www.w3.org/2000/svg","title"); t.textContent=`${d.n}: ${fmtm(m)}${est&&!d.rest?" estimated":""}`; el.appendChild(t); g.appendChild(el); a0=a1; };
-  PIE.forEach(d=>{ arc(d,d.logged,false); arc(d,d.est,true); });
+    if(kind==="dev"){ el.setAttribute("mask","url(#hatchmask)"); el.dataset.dev="1"; }
+    if(kind==="est" && !d.rest) el.classList.add("est");
+    const t=document.createElementNS("http://www.w3.org/2000/svg","title"); t.textContent=`${d.n}: ${fmtm(m)}${kind==="dev"?" on a device":kind==="est"&&!d.rest?" estimated":""}`; el.appendChild(t); g.appendChild(el); a0=a1; };
+  PIE.forEach(d=>{ const dv=Math.min(d.dev||0,d.logged); arc(d,d.logged-dv,""); arc(d,dv,"dev"); arc(d,d.est,"est"); });
   const lg=document.getElementById("plg");
-  lg.innerHTML=PIE.map(d=>`<li><button type="button" data-k="${d.k}" aria-pressed="false"><span class="psw" style="background:${d.c}"></span><span><span class="pn">${d.e?d.e+" ":""}${esc(d.n)}</span><span class="pw">${esc(d.w)}</span>${d.rest?"":`<span class="pw">${fmtm(d.logged)} logged${d.est?` · ${fmtm(d.est)} estimated`:""}</span>`}</span><span class="ph">${fmtm(d.m)}</span></button></li>`).join("");
+  const DV = DATA.pieDevice || {min: PIE.reduce((a,d)=>a+(d.dev||0),0), rows: []};
+  const devli = DV.min ? `<li class="devrow"><button type="button" data-k="__dev" aria-pressed="false"><span class="psw dev"></span><span><span class="pn">\u{1F4F1} On a device</span><span class="pw">${esc((DV.rows||[]).join(", "))}</span><span class="pw">hatched, in whichever slice it falls</span></span><span class="ph">${fmtm(DV.min)}</span></button></li>` : "";
+  lg.innerHTML=devli+PIE.map(d=>`<li><button type="button" data-k="${d.k}" aria-pressed="false"><span class="psw" style="background:${d.c}"></span><span><span class="pn">${d.e?d.e+" ":""}${esc(d.n)}</span><span class="pw">${esc(d.w)}</span>${d.rest?"":`<span class="pw">${fmtm(d.logged)} logged${d.dev?` · ${fmtm(d.dev)} on a device`:""}${d.est?` · ${fmtm(d.est)} estimated`:""}</span>`}</span><span class="ph">${fmtm(d.m)}</span></button></li>`).join("");
   const pie=document.getElementById("pie"), cv=document.getElementById("cVal"), cl=document.getElementById("cLab"); let cur=null;
   const idle=()=>{ cv.textContent="24 h"; cl.textContent="the whole day"; }; idle();
-  const focus=k=>{ cur=(k===cur)?null:k; pie.classList.toggle("focus",!!cur); g.querySelectorAll("path").forEach(p=>p.classList.toggle("on",p.dataset.k===cur));
+  const focus=k=>{ cur=(k===cur)?null:k; pie.classList.toggle("focus",!!cur); g.querySelectorAll("path").forEach(p=>p.classList.toggle("on",cur==="__dev"?p.dataset.dev==="1":p.dataset.k===cur));
     lg.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.k===cur))); const d=PIE.find(x=>x.k===cur);
-    if(d){ cv.textContent=fmtm(d.m); cl.textContent=d.n.toLowerCase(); } else idle(); };
+    if(cur==="__dev"){ cv.textContent=fmtm(DV.min); cl.textContent="on a device"; } else if(d){ cv.textContent=fmtm(d.m); cl.textContent=d.n.toLowerCase(); } else idle(); };
   g.addEventListener("click",e=>{const p=e.target.closest("path"); if(p) focus(p.dataset.k);});
   lg.addEventListener("click",e=>{const b=e.target.closest("button"); if(b) focus(b.dataset.k);});
   const est=PIE.filter(d=>!d.rest).reduce((a,d)=>a+d.est,0);
-  document.getElementById("unl").textContent=`Striped is estimated: ${fmtm(est)}, the median of your own past rows for that practice. Solid is logged.`; }
+  document.getElementById("unl").textContent=`Hatched is on a device: ${fmtm(DV.min)}. Faded is estimated: ${fmtm(est)}, from your own typical times. Solid is logged, off a device.`; }
 document.getElementById("foot").textContent = DATA.read + ((DRAFT.lead || DRAFT.story) ? " · " + [DRAFT.lead && "lead", DRAFT.story && "story"].filter(Boolean).join(" and ") + " drafted, not yet edited" : "");
 </script>

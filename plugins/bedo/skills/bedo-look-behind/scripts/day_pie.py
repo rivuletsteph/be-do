@@ -5,10 +5,13 @@ Carried over from the standalone pie with two changes the canon asks for:
 
   · five slices, not seven. The categories come from the local settings file,
     so the practice-to-slice map is the user's and never appears here.
-  · striped means ESTIMATED, not doubled. A row with a real span paints its
+  · faded means ESTIMATED, not doubled. A row with a real span paints its
     minutes and those minutes are logged. A row with no end gets its typical
     time instead, which is counted, stated, and drawn striped by the engine —
     never presented as logged.
+  · hatched means ON A DEVICE (the user's word, 3 Oct 2026). A row flagged 'dev'
+    marks its minutes, and whichever slice wins a minute carries that minute as
+    device time, so capture during dinner is a hatched minute of food.
 
 Twenty-four hours is the cap. When two rows are open at once the earlier slice
 in the category order wins the minute, so nothing is split in half and nothing
@@ -72,6 +75,17 @@ def build(rows, cats, max_titles=4):
         if k:
             logged[k] += 1
 
+    # on a device: the minutes of a 'dev' row, counted in whichever slice won them
+    on_dev = [False] * DAY_MINUTES
+    for r in rows:
+        if r.get("dev") and r.get("s") is not None and r.get("e"):
+            for m in range(max(0, r["s"]), min(DAY_MINUTES, r["e"])):
+                on_dev[m] = True
+    dev = {k: 0 for k in order}
+    for m, k in enumerate(slice_of):
+        if k and on_dev[m]:
+            dev[k] += 1
+
     est = {k: 0 for k in order}
     for r in rows:
         if r.get("cat") in est and not r.get("e") and r.get("est"):
@@ -103,8 +117,14 @@ def build(rows, cats, max_titles=4):
         d = {"k": k, "e": c.get("e", ""), "n": c.get("n", k), "c": c.get("c", "#B9B5C4"),
              "logged": 0 if c.get("rest") else logged.get(k, 0),
              "est": 0 if c.get("rest") else est.get(k, 0),
+             "dev": 0 if c.get("rest") else dev.get(k, 0),
              "w": c.get("w") or ", ".join(titles.get(k, [])[:max_titles])}
         if c.get("rest"):
             d["rest"] = True          # the engine fills its minutes out to the day
         pie.append(d)
-    return pie, trimmed
+    devrows = []
+    for r in rows:
+        t = (r.get("title") or "").strip()
+        if r.get("dev") and r.get("e") and t and t not in devrows:
+            devrows.append(t)
+    return pie, trimmed, devrows
