@@ -10,8 +10,8 @@ document.documentElement.setAttribute("data-bedo",q?(/dark|night/.test(q[1])?"ni
 <style>
 /* be•do's now palette (plugins/bedo/assets/now-palette.css), 3 Oct 2026 — brick for work
    (growing, drives), ochre for home (tending), teal for rest (being, links); warm neutrals
-   for the rest. Day is the default; night follows the phone. The wheel's eight and the
-   feeling colours are meaning, not chrome, and keep their own hues. The pie's slices and the
+   for the rest. Day is the default; night follows the phone. The feeling colours keep
+   their own hues; the wheel's eight joined the palette's family on 3 Oct 2026. The pie's slices and the
    circles take the palette's neighbours and opposites (the colour guide's groups 3 and 4), and
    the marks on a card are drawn as on the day ahead, 3 Oct 2026. */
 :root{
@@ -437,6 +437,21 @@ const DOM = {
   spirit:{c:"#EFA038",d:"#C17410",g:"\u{1F496}",a:337.5,f:"meaning · values · joy"},
   fire: {c:"#F7CE72",d:"#F2B120",g:"\u{1F525}",a:157.5,f:"creating · transforming · play"}
 };
+// The wheel in the now palette's family (the user's word, 3 Oct 2026): each mirrored pair is
+// one palette hue, being in the deeper tone and doing in the paler; c is the fill, d the outline.
+// None of them is the bar's teal, ochre or brick.
+const WCOL = document.documentElement.getAttribute("data-bedo") === "day" ? {
+  heart:{c:"#5A7184",d:"#3B4E5E"}, water:{c:"#93A9BC",d:"#5A7184"},
+  mind: {c:"#7E3A4A",d:"#5A2532"}, air:  {c:"#C98A96",d:"#7E3A4A"},
+  body: {c:"#607456",d:"#43523B"}, earth:{c:"#93A688",d:"#607456"},
+  spirit:{c:"#C47A4A",d:"#8E5530"}, fire: {c:"#E0AE80",d:"#C47A4A"}
+} : {
+  heart:{c:"#7F9BB3",d:"#4F6A82"}, water:{c:"#B9CAD9",d:"#7F9BB3"},
+  mind: {c:"#B8707F",d:"#7E3A4A"}, air:  {c:"#E3A6B1",d:"#B8707F"},
+  body: {c:"#7E9671",d:"#4E6243"}, earth:{c:"#B7C6A9",d:"#7E9671"},
+  spirit:{c:"#D08A5E",d:"#9C5A34"}, fire: {c:"#EDC29A",d:"#D08A5E"}
+};
+for (const k in WCOL) Object.assign(DOM[k], WCOL[k]);
 const ICON = {
   heart: `<path d="M10 17.2 3.4 10.8A3.9 3.9 0 0 1 10 5.6a3.9 3.9 0 0 1 6.6 5.2Z"/>`,
   water: `<path d="M2 8.5c2-2.2 4-2.2 6 0s4 2.2 6 0 3-1.4 4-1M2 13.5c2-2.2 4-2.2 6 0s4 2.2 6 0 3-1.4 4-1" fill="none" stroke-width="2.2" stroke-linecap="round"/>`,
