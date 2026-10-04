@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Base Flow</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="../now-palette.css">
+<link rel="stylesheet" href="base_flow.css">
+<style>
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Manrope",system-ui,sans-serif}
+  .wrap{max-width:620px;margin:0 auto;padding-inline:16px;padding-block:28px}
+  .note{font-size:.8rem;color:var(--soft);margin:12px 0 0}
+</style>
+<script>
+  // night follows the device until a page wires it to the clock
+  if (matchMedia("(prefers-color-scheme: dark)").matches) document.documentElement.setAttribute("data-theme", "night");
+</script>
+</head>
+<body>
+<div class="wrap">
+  <div id="bf"></div>
+  <p class="note">Example values, not anyone's data.</p>
+</div>
+<script src="base_flow.js"></script>
+<script>
+  BedoBaseFlow.render(document.getElementById("bf"), {
+    parts: [
+      {name: "body", note: "readiness this morning", value: 79},
+      {name: "balance", note: "yesterday's wheel", value: 66},
+      {name: "effectiveness", note: "yesterday", value: 100}
+    ],
+    week: [{label: "Mon", value: 90}, {label: "Tue", value: 85}, {label: "Wed", value: 91}, {label: "Thu", value: 78},
+           {label: "Fri", value: 89}, {label: "Sat", value: 82}, {label: "Sun", value: 79}],
+    today: 5
+  });
+</script>
+</body>
+</html>
