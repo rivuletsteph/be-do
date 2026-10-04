@@ -1,0 +1,33 @@
+/* base flow — the morning card. Built on the now palette (../now-palette.css): warm neutrals,
+   brick only where the reading is (the ring, the bars, this morning in the week strip).
+   Every class starts bf- so the card drops into any page without colliding. */
+
+.bf-card{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;
+  display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px;align-items:center;
+  color:var(--text);font-family:var(--bf-sans,"Manrope",system-ui,-apple-system,sans-serif)
+}
+@media (max-width:480px){.bf-card{grid-template-columns:1fr;justify-items:stretch}}
+
+.bf-dial{display:flex;flex-direction:column;align-items:center;gap:6px}
+.bf-ring{width:104px;height:104px;display:block}
+.bf-ring .bf-track{stroke:var(--line)}
+.bf-ring .bf-arc{stroke:var(--main)}
+.bf-ring .bf-num{fill:var(--text);font-weight:800;font-size:26px;font-family:inherit}
+.bf-state{font-size:.78rem;font-weight:600;color:var(--soft);text-align:center}
+.bf-state b{color:var(--deep);font-weight:700}
+
+.bf-parts{display:grid;gap:10px;min-width:0}
+.bf-label{margin:0;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--soft)}
+.bf-row{display:grid;grid-template-columns:7rem minmax(0,1fr) 2.4rem;gap:12px;align-items:center}
+.bf-row b{display:block;font-size:.88rem;font-weight:700;color:var(--text)}
+.bf-row small{display:block;font-size:.72rem;color:var(--soft);line-height:1.3}
+.bf-bar{display:block;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.bf-bar i{display:block;height:100%;border-radius:4px;background:var(--main)}
+.bf-val{text-align:right;font:500 .8rem var(--bf-mono,"JetBrains Mono",ui-monospace,Consolas,monospace);color:var(--text);font-variant-numeric:tabular-nums}
+
+.bf-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;align-items:end;height:40px;margin-top:6px}
+.bf-week i{display:block;background:var(--line);border-radius:3px 3px 0 0}
+.bf-week i.bf-on{background:var(--main)}
+.bf-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center;font:500 .62rem var(--bf-mono,"JetBrains Mono",ui-monospace,Consolas,monospace);color:var(--soft)}
+.bf-days .bf-on{color:var(--deep);font-weight:700}
