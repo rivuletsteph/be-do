@@ -14,7 +14,13 @@ The states follow Oura's: **85 and up optimal · 70 to 84 good · under 70 pay a
 
 ## The card
 
-`base_flow.js` draws the card and `base_flow.css` styles it on the now palette (`../now-palette.css`). Brick appears only on the reading: the ring, the bars, and this morning in the week strip. Night follows `data-theme="night"`.
+`base_flow.js` draws the card and `base_flow.css` styles it on the now palette (`../now-palette.css`):
+
+- **Contributor colours:** each contributor wears one of the palette's three. Teal is body (rest), ochre is balance (home), and brick is effectiveness (work).
+- **The ring** is the three of them together. Each arc is that contributor's share of the number.
+- **The week** is a smooth line through the mornings with a soft fill under it, and this morning is marked.
+
+Night follows `data-theme="night"`.
 
 ```html
 <link rel="stylesheet" href="now-palette.css">
