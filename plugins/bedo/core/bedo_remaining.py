@@ -23,7 +23,7 @@ the live catalog, the core from facts.json.
 """
 import datetime as dt, re, sys
 
-from bedo_reader import FACTS, as_rows, complete, load_local, offset_hours
+from bedo_reader import FACTS, as_rows, complete, load_local, offset_hours, on_day
 
 FLOWS = FACTS['flows']
 _MODS = re.compile('[️\U0001F3FB-\U0001F3FF]')
@@ -145,7 +145,7 @@ def main(argv=None):
             sys.exit('give --live, or both --catalog and --day')
         cat_src, day_src = a.catalog, a.day
     cat = catalog(cat_src, L.get('practices_fields'))
-    rows = as_rows(complete(day_src, 'day'), fields)
+    rows = on_day(as_rows(complete(day_src, 'day'), fields), day, L)
     flow = a.flow or open_flow(now_local, rows)
     if not flow:
         print('no flow open')

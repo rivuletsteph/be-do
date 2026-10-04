@@ -84,4 +84,6 @@ When one ships, its line moves to **Done** with the PR that closed it.
 
 ## Done
 
-Nothing yet.
+| key | item | shipped |
+|---|---|---|
+| 261004_1534 | Preflight prints the chat's title first, alone, with the day's letter (A, B); the checks run from Cowork through the bedo-checks skill. Her words: anything you can do to keep, make this run smoothly is great. | bedo-checks, 4 Oct 2026 |

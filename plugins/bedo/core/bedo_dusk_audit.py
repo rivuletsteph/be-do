@@ -31,7 +31,7 @@ and then only the derived attention.
 """
 import datetime as dt, json, sys
 
-from bedo_reader import FACTS, as_rows, complete, load_local, offset_hours
+from bedo_reader import FACTS, as_rows, complete, load_local, offset_hours, on_day
 from bedo_entry import is_action, utc
 import bedo_remaining as RL
 import bedo_stretches as ST
@@ -220,7 +220,7 @@ def main(argv=None):
         if not a.day:
             sys.exit('give --live, or --day (and --catalog for the gate)')
         day_src, cat_src, base = a.day, a.catalog, None
-    rows = as_rows(complete(day_src, 'day'), fields)
+    rows = on_day(as_rows(complete(day_src, 'day'), fields), day, L)
     steps = RL.flow_steps(RL.catalog(cat_src, L.get('practices_fields')), 'dusk') if cat_src else None
     chats = []
     if a.chats:

@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """The live read, for a script with a token. The token comes from the
-AIRTABLE_PAT env var and nowhere else; ids come from facts_local.json.
+AIRTABLE_PAT env var or a bedo_secrets.json ($BEDO_SECRETS, the working folder,
+the folder above, ~/.bedo) — never the repo. In a Claude cloud session
+(CLAUDE_CODE_REMOTE=true) none is held: the request goes out bare and the
+environment's proxy attaches the credential. Ids come from facts_local.json.
 
 A read pages to the end, so the count it states is its own (I11): records()
 returns a dump in the reader's shape, {records, metadata.totalRecordCount}.
@@ -13,13 +16,35 @@ from bedo_reader import die
 API = 'https://api.airtable.com/v0/'
 
 
+def find_token():
+    """The token, or None when there is none here."""
+    if os.environ.get('AIRTABLE_PAT'):
+        return os.environ['AIRTABLE_PAT']
+    for p in [os.environ.get('BEDO_SECRETS'), 'bedo_secrets.json', os.path.join('..', 'bedo_secrets.json'),
+              os.path.join(os.path.expanduser('~'), '.bedo', 'bedo_secrets.json')]:
+        if p and os.path.exists(p):
+            with open(p, encoding='utf-8') as fh:
+                return json.load(fh).get('airtable_pat')
+    return None
+
+
+def can_read():
+    return bool(find_token()) or os.environ.get('CLAUDE_CODE_REMOTE') == 'true'
+
+
 class Air:
     def __init__(self, pat=None):
-        self.pat = pat or os.environ.get('AIRTABLE_PAT') or die('set AIRTABLE_PAT')
+        self.pat = pat or find_token()
+        if not self.pat and os.environ.get('CLAUDE_CODE_REMOTE') != 'true':
+            die('no Airtable token here — set AIRTABLE_PAT or BEDO_SECRETS, or read through the connector and pass files')
+
+    def _headers(self, extra=None):
+        h = {'Authorization': 'Bearer ' + self.pat} if self.pat else {}
+        return {**h, **(extra or {})}
 
     def get(self, path, q=None):
         url = API + path + ('?' + urllib.parse.urlencode(q, doseq=True) if q else '')
-        req = urllib.request.Request(url, headers={'Authorization': 'Bearer ' + self.pat})
+        req = urllib.request.Request(url, headers=self._headers())
         for n in range(4):
             try:
                 with urllib.request.urlopen(req, timeout=60) as r:
@@ -63,8 +88,7 @@ class Air:
         for i in range(0, len(updates), 10):
             body = json.dumps({'records': updates[i:i + 10]}).encode()
             req = urllib.request.Request(API + f'{base}/{table}', data=body, method='PATCH',
-                                         headers={'Authorization': 'Bearer ' + self.pat,
-                                                  'Content-Type': 'application/json'})
+                                         headers=self._headers({'Content-Type': 'application/json'}))
             try:
                 with urllib.request.urlopen(req, timeout=60):
                     time.sleep(.22)

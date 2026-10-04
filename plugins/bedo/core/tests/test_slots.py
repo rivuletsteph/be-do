@@ -170,6 +170,13 @@ class Remaining(unittest.TestCase):
         self.assertIn('all 4 done', RL.render('dusk', steps, day))
         self.assertEqual(RL.spoken('dusk', steps, day[:1]), 'dusk: 3 left, next is 🌬️ evening breaths.')
 
+    def test_a_week_file_reads_as_its_day(self):
+        # a chat with no token passes a whole week; only the day's rows count
+        week = [row('☕ coffee', '2026-10-03 07:30', status=DONE_LOG), row('🥤 morning water', '2026-10-04 07:00'),
+                row('📿 morning mantra', '2026-10-04 23:30')]                       # 4:30 UTC next day, still the 4th here
+        self.assertEqual([r['practice'] for r in R.on_day(week, dt.date(2026, 10, 4), LOCAL)],
+                         ['🥤 morning water', '📿 morning mantra'])
+
     def test_the_catalog_read_must_be_complete(self):
         src = {'records': [{'id': 'r1', 'createdTime': 'x', 'fields': {'practice': '☕ coffee'}}],
                'metadata': {'totalRecordCount': 2}}
@@ -183,8 +190,9 @@ class Preflight(unittest.TestCase):
         line = P.chat_name(dt.date(2026, 10, 4))
         self.assertEqual(line, '▶️1004 ☀️ Sun ' + P.MARK + ' W41 🔆 my day')
         self.assertEqual(ord(P.MARK), 0x1684E)
-        self.assertEqual(P.chat_name(dt.date(2026, 9, 18), part=2, status='✔️'),
-                         '✔️0918 🏆 Fri ' + P.MARK + ' W38 🔆 my day P2')
+        self.assertEqual(P.chat_name(dt.date(2026, 9, 18), part='B', status='✔️'),
+                         '✔️0918 🏆 Fri ' + P.MARK + ' W38 🔆 my day B')    # letters sort; P1 P2 did not
+        self.assertEqual(P.chat_name(dt.date(2026, 9, 18), part=1), P.chat_name(dt.date(2026, 9, 18), part='a'))
         self.assertEqual(P.chat_name(dt.date(2026, 10, 4), 'week', week=40), '▶️' + P.MARK + ' my week W40')
         self.assertNotIn('be•do', line)
 
@@ -227,11 +235,11 @@ class Preflight(unittest.TestCase):
         self.assertEqual(off, -6)                                   # the zone wins
         self.assertIn('update utc_offset_hours', out[0])
 
-    def test_the_report_opens_with_the_name_line(self):
+    def test_the_report_opens_with_the_name_line_alone(self):
         text, stop = P.report(LOCAL, {'w41 be•do': 'a', 'w40 be•do': 'b'},
                               [row('☕ coffee', '2026-10-04 07:30')], at('2026-10-04 08:00'))
         self.assertFalse(stop)
-        self.assertEqual(text.splitlines()[:3], ['```', P.chat_name(dt.date(2026, 10, 4)), '```'])
+        self.assertEqual(text.splitlines()[0], P.chat_name(dt.date(2026, 10, 4)))   # line one, nothing else
 
 
 # ── the dusk audit ─────────────────────────────────────────────────────────
