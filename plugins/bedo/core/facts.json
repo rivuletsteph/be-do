@@ -77,7 +77,24 @@
  "flows": {
   "order_source": "the practices catalog's order field, filtered to active; never recited",
   "dusk_opens_after": "19:00",
-  "backup_close": {"dawn": "12:00", "dusk": "23:59"}
+  "backup_close": {"dawn": "12:00", "dusk": "23:59"},
+  "phase": {"dawn": "🌅 dawn", "dusk": "🌄 dusk"},
+  "close": {"dawn": "🌅 dawn flow close", "dusk": "🌄 dusk flow close"},
+  "groups": ["flow", "optional"],
+  "never_held_open": ["optional"],
+  "core": {
+   "dawn": ["🥤 morning water", "🤸🏻‍♀️ morning movement", "☕ coffee", "🪐 morning oura", "🌦️ weather check", "👁️ look ahead", "⚡ intention check", "🙏 gratitude", "📿 morning mantra", "📗 morning book", "🌅 dawn flow close"],
+   "dusk": null
+  },
+  "about_core": "A228, 2 Oct 2026: the core prints one line each in a code block; every other remaining step goes on ONE line underneath. Nothing leaves the catalog and everything counts toward done. The dusk core is not set yet (null prints every step as core)."
+ },
+ "catalog_fields": {"practice": "practice", "phase": "phase", "group": "group", "order": "order", "active": "active", "zero_duration": "zero duration"},
+ "preflight": {"newest_row_within_hours": 36},
+ "window_chats": ["my day", "my week", "my month", "my season", "my year"],
+ "dusk_audit": {
+  "daily_flag_cap": 5,
+  "attention_rule": "a discrete session (an end datetime) is 🌕 full; a session written as time spent because it spanned gaps is 🌓 partial (A262)",
+  "for_my_day": "for my day:"
  },
 
  "self_check": {

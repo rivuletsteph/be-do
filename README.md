@@ -17,7 +17,7 @@ The master instructions are now three things, not one long document
 
 | what | where |
 |---|---|
-| the invariants, enforced and tested | `plugins/bedo/core` — `bedo_reader` (I11 · I15 · I5), `bedo_entry` (the entry check), `bedo_split` (I16 and the carry-verify), `bedo_export` |
+| the invariants, enforced and tested | `plugins/bedo/core` — `bedo_reader` (I11 · I15 · I5), `bedo_entry` (the entry check), `bedo_split` (I16 and the carry-verify), `bedo_export`, `bedo_preflight` (the chat-name line, the clock, the base), `bedo_remaining` (the flow list), `bedo_dusk_audit` (the one-pass list), `bedo_stretches` (a chat's time), `bedo_air` (the live read) |
 | strings, glyphs, thresholds | `plugins/bedo/core/facts.json` ships; `facts_local.json` holds one person's ids and is gitignored (`facts_local.example.json` is its shape) |
 | what needs judgment | `docs/v53-judgment.md` — also the text for the claude.ai project's instructions |
 

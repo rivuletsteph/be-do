@@ -9,9 +9,9 @@ V53 is V52 and its active amendments rebuilt around *log what matters*, in four 
 | **judgment** | a short rule a model needs — `docs/v53-judgment.md`, section J# | loaded whole, every chat |
 | **drop** | cut, with one line on why | **drop** that touches what she logs or sees took her yes; **drop · superseded** is a rule a later one already replaced; **drop · state** is week state, not a rule |
 
-**V52, 140 rows** (each heading; the sixteen invariants one row each): code ✓ 34 · code 14 · facts 15 · judgment 57 · drop 20.  
-**Active amendments, 263 rows:** code ✓ 57 · code 34 · facts 25 · judgment 105 · drop 42.  
-Every row is placed once. 91 rows are enforced in code today.
+**V52, 140 rows** (each heading; the sixteen invariants one row each): code ✓ 42 · code 6 · facts 15 · judgment 57 · drop 20.  
+**Active amendments, 263 rows:** code ✓ 70 · code 21 · facts 25 · judgment 105 · drop 42.  
+Every row is placed once. 112 rows are enforced in code today.
 
 Amendments are listed by number in date order (A1 is the oldest active row, 15 Aug 2026). Her own titles and the record ids are in her copy of this file in Drive; the repo holds no ids and no names.
 
@@ -37,7 +37,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | 7 | The one rule — ask when supplying | judgment | J3 | I1's preview = write half goes to code (entry writer, next) |
 | 8 | The shape of a reply | judgment | J4 |  |
 | 9a | I1 preview = write | code | next: entry writer renders the check and writes in one call | bedo_entry.problems is the first half, built |
-| 9b | I2 verify the base | code | next: preflight | base by name, newest row within ~36 h |
+| 9b | I2 verify the base | code ✓ | core/bedo_preflight: base by name, newest row within 36 h, else stop | base by name, newest row within ~36 h |
 | 9c | I3 ask before supplying | judgment | J3 |  |
 | 9d | I4 full labelled choices | code ✓ | core/bedo_entry; facts.json strings from the live schema |  |
 | 9e | I5 the chain is append-only; latest action row wins | code ✓ | core/bedo_reader chain_key + resolve | logs sharing a key's minute are their own rows |
@@ -55,7 +55,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | 10 | COMMON (part header) | drop | — | no load parts in V53 |
 | 11 | Purpose | judgment | J1 | coherence; nothing has to converge; tone |
 | 12 | What be•do does not do | judgment | J4 |  |
-| 13 | Preflight | code | next: preflight | the read-the-amendments-before-blaming-the-base line → J0 |
+| 13 | Preflight | code ✓ | core/bedo_preflight | the read-the-amendments-before-blaming-the-base line → J0 |
 | 14 | Symbols | facts | facts.json status, phase, attention, day_emoji | ✖️ means she decided → J12 |
 | 15 | Glyphs, I4 and the drift rule | facts | facts.json glyph_codepoints; core/bedo_entry checks strings |  |
 | 16 | Emotion | facts | facts.json emotion | offering words → J6 |
@@ -64,7 +64,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | 19 | Practices — one flat list | facts | the catalog, read live; norm() in bedo_common |  |
 | 20 | Cadence | facts | catalog CADENCE: line | display rule superseded by A208 |
 | 21 | The Entry Check | code ✓ | core/bedo_entry.problems | rendering the preview stays with the writer |
-| 22 | The remaining list every turn | code | next: remaining list from a live catalog read; J8 says it ends every reply |  |
+| 22 | The remaining list every turn | code ✓ | core/bedo_remaining from a live catalog read; J8 says it ends every reply |  |
 | 23 | Two voices | code ✓ | core/bedo_entry (one divider), core/bedo_export.hers | her words verbatim → J5 |
 | 24 | Person tagging | judgment | J7 |  |
 | 25 | person vs mentioned | judgment | J7 |  |
@@ -78,7 +78,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | 33 | be•do logs its own working sessions | judgment | J10 | time as the sum of stretches → code next (stretches) |
 | 34 | Bucketing | judgment | J12 | active-only at the read → code next |
 | 35 | DAWN (part header) | drop | — |  |
-| 36 | Startup | code | next: preflight emits the chat-name line |  |
+| 36 | Startup | code ✓ | core/bedo_preflight emits the chat-name line first |  |
 | 37 | The suggested morning flow | facts | catalog order, read live |  |
 | 38 | The steps | judgment | J8 | order lives in the catalog |
 | 39 | The look ahead | code ✓ | bedo-day-ahead |  |
@@ -89,7 +89,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | 44 | The rest: the quick-sweep strip | drop | her yes 3 (accepted) | meeting prep still fires from the event |
 | 45 | DAY (part header) | drop | — |  |
 | 46 | Capture as it happens | judgment | J2 | capture stretches → code next |
-| 47 | My day finishes the working chats' rows | code | next: dusk_audit filtered read | attention derived, not asked |
+| 47 | My day finishes the working chats' rows | code ✓ | core/bedo_dusk_audit: filtered read, attention derived, for-my-day lists named | attention derived, not asked |
 | 48 | Usage readings | drop | her yes 4 (accepted) |  |
 | 49 | Journal, uninstrumented | judgment | J2 |  |
 | 50 | Glimmer | judgment | J2, J6 |  |
@@ -100,14 +100,14 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | 55 | DUSK (part header) | drop | — |  |
 | 56 | The evening: three enforcement targets | facts | facts.json self_check |  |
 | 57 | The map check emits rows | judgment | J8 | matching existing rows → dusk_audit next |
-| 58 | The one-pass list | code | next: dusk_audit |  |
-| 59 | The gate | code | next: dusk_audit (catalog against the day) |  |
+| 58 | The one-pass list | code ✓ | core/bedo_dusk_audit |  |
+| 59 | The gate | code ✓ | core/bedo_dusk_audit gate, through bedo_remaining (catalog against the day) |  |
 | 60 | The quest | judgment | J13 | points and payout stay in the quest data row |
 | 61 | Quest details, one line per mini-quest | judgment | J13 |  |
 | 62 | The quest scores zero on the wheel | code ✓ | look-behind wheel |  |
 | 63 | Screen time | judgment | J16 (its spec) |  |
 | 64 | Friends-are-here days | judgment | J13 |  |
-| 65 | The daily flag | code | next: one line from dusk_audit |  |
+| 65 | The daily flag | code ✓ | core/bedo_dusk_audit flag |  |
 | 66 | SUNDAY (part header) | drop | — |  |
 | 67 | my week is one long chat | judgment | J11 |  |
 | 68 | QA check, the weekly self-check | code ✓ | close.py check; thresholds in facts.json | depth dropped (her yes 1); the people pool is now defined (contact rows with a person) |
@@ -181,7 +181,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | A5 | 08-18 | today's calendar events written as rows at dawn | code ✓ | day-ahead |
 | A6 | 08-19 | account for the 24 hours: measured, scheduled, derived, unaccounted | code ✓ | look-behind (how the day went) |
 | A7 | 08-19 | the week's all-days view is a section of the Sunday page | code | next: week-behind builder |
-| A8 | 08-19 | the chat-name line is the first line of the first reply | code | next: preflight emits the chat-name line |
+| A8 | 08-19 | the chat-name line is the first line of the first reply | code ✓ | core/bedo_preflight emits the chat-name line |
 | A9 | 08-19 | catch the small things: balance simplicity and granularity | judgment | J1 |
 | A10 | 08-19 | an older three-calendar scope | drop · superseded | by the three-calendars amendment (V52) |
 | A11 | 08-19 | name the time left before an event within the hour, once | judgment | J8 |
@@ -210,7 +210,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | A34 | 08-22 | the dawn flow closes itself on its last practice | judgment | J8 |
 | A35 | 08-22 | batch triage cadence: monthly and seasonal (weekly part: dropped, her yes 2) | judgment | J11 |
 | A36 | 08-23 | the ten mini-quests, in full | facts | the quest data row (read nightly; never archived) |
-| A37 | 08-31 | preflight reads the handoff first | code | next: preflight |
+| A37 | 08-31 | preflight reads the handoff first | code ✓ | core/bedo_preflight --handoff: must name the same base |
 | A38 | 09-01 | the flow list as a code block | drop · superseded | by the remaining-list widget (A248) |
 | A39 | 09-01 | future-blessings gratitude is a reserved trigger, not a flow step | facts | catalog |
 | A40 | 09-01 | a monthly intention word beside the weekly one | drop | her yes 5 (accepted) |
@@ -256,7 +256,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | A80 | 09-03 | a transcription trap | facts | facts_local (her transcription traps) |
 | A81 | 09-03 | the wheel names only what rose; the flow becomes a strip | code ✓ | look-behind wheel |
 | A82 | 09-03 | build the daily first; the weekly once, at the end | judgment | J15 |
-| A83 | 09-03 | the chat clock drifts; re-read it before writing (I12) | code | next: preflight clock check |
+| A83 | 09-03 | the chat clock drifts; re-read it before writing (I12) | code ✓ | core/bedo_preflight clock: the machine's, offset checked against the zone |
 | A84 | 09-04 | a late close costs more; capture rows written unasked each stretch | judgment | J10 |
 | A85 | 09-04 | a ninth status for a window that closed | drop · superseded | facts.json status (eight) |
 | A86 | 09-04 | what the reading and training mini-quests mean | judgment | J13 |
@@ -300,7 +300,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | A124 | 09-11 | the flow list prints after a flow practice | drop · superseded | by the widget (A248) |
 | A125 | 09-11 | never ask about media | judgment | J12 |
 | A126 | 09-11 | the dawn flow closes at noon, unasked | code | next: backup close names what it missed |
-| A127 | 09-11 | the flow list is read, never recalled | code | next: remaining list from a live catalog read |
+| A127 | 09-11 | the flow list is read, never recalled | code ✓ | core/bedo_remaining (live catalog read) |
 | A128 | 09-11 | the evening blessing's fixed words | facts | catalog note |
 | A129 | 09-12 | an inbox sweep every evening | judgment | J16 (clear-inbox skill) |
 | A130 | 09-13 | Sunday's reflective half opens the day | judgment | J11 |
@@ -322,7 +322,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | A146 | 09-13 | closed actions nest their chain | code ✓ | look-behind |
 | A147 | 09-13 | a late close leaves the new week's first days behind | code ✓ | core/bedo_split (reads the outgoing base) |
 | A148 | 09-13 | drives and rhythms reviewed inside the close | judgment | J11 |
-| A149 | 09-13 | the dusk close waits until the day is complete | code | next: dusk_audit (the gate) |
+| A149 | 09-13 | the dusk close waits until the day is complete | code ✓ | core/bedo_dusk_audit gate |
 | A150 | 09-14 | rules only; week state lives in the bases and handoff | judgment | J0 |
 | A151 | 09-14 | quest details carry the observed time | judgment | J13 |
 | A152 | 09-14 | the screen layer on the quest | judgment | J16 (screen-time spec) |
@@ -339,7 +339,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | A163 | 09-17 | a milestone records a real step toward a destination | judgment | J12 |
 | A164 | 09-17 | the look ahead reads two weeks of calendar | code ✓ | day-ahead (bedo_cal) |
 | A165 | 09-18 | gratitude is bulleted | code ✓ | core/bedo_entry (gratitude check) |
-| A166 | 09-18 | the flow list prints remaining practices only | code | next: remaining list |
+| A166 | 09-18 | the flow list prints remaining practices only | code ✓ | core/bedo_remaining (remainders, done count on top) |
 | A167 | 09-18 | the Pareto three are not her intentions | code ✓ | day-ahead |
 | A168 | 09-18 | her son's rows bucket like hers | judgment | J12 |
 | A169 | 09-18 | dedupe by record id, live base first (I15) | code ✓ | core/bedo_reader (merge_live_first) |
@@ -373,7 +373,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | A197 | 09-19 | coherence; nothing has to converge | judgment | J1 |
 | A198 | 09-19 | home-alarm alerts get no row | judgment | J16 (clear-inbox skill) |
 | A199 | 09-27 | the handoff goes to both week folders | judgment | J11 |
-| A200 | 09-28 | the morning mantra prints by name | code | next: remaining list (names only) |
+| A200 | 09-28 | the morning mantra prints by name | code ✓ | core/bedo_remaining (names only) |
 | A201 | 09-28 | a utility or bank notice is read in the body | judgment | J16 (clear-inbox skill) |
 | A202 | 09-28 | a session entry is checked by key and status | judgment | J10 (session-entry skill) |
 | A203 | 09-28 | Fable is no longer avoided | judgment | J15 |
@@ -381,7 +381,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | A205 | 09-28 | a scheduled look behind drafts an editable lead and story | code ✓ | look-behind words.py |
 | A206 | 09-28 | the day ahead's calendars come through the connector | code ✓ | day-ahead bedo_cal |
 | A207 | 09-29 | builder edit is hers to say, be•do's to classify | judgment | J10 |
-| A208 | 09-29 | the remaining list prints bare names | code | next: remaining list (bare names) |
+| A208 | 09-29 | the remaining list prints bare names | code ✓ | core/bedo_remaining (bare names) |
 | A209 | 09-29 | secure is assumed; recovery mode is her word | judgment | J8 |
 | A210 | 09-29 | the family bed is the default | judgment | J13 |
 | A211 | 09-29 | footing is the status's name | judgment | J8 |
@@ -392,7 +392,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | A216 | 09-29 | the dusk tail order | facts | catalog order |
 | A217 | 09-29 | a milestone always names its drive | code ✓ | core/bedo_entry (milestone check) |
 | A218 | 09-30 | prompt for feeling with candidate words | judgment | J6 |
-| A219 | 09-30 | a rule a turn must remember moves into a mechanism | code | next: preflight; the principle is J0 |
+| A219 | 09-30 | a rule a turn must remember moves into a mechanism | code ✓ | core/bedo_preflight; the principle is J0 |
 | A220 | 09-30 | the sweep filters on the message's own time | judgment | J16 (clear-inbox skill) |
 | A221 | 10-01 | a pet moment leads with the animal's name | judgment | J5 |
 | A222 | 10-01 | secure base is not a daily practice | facts | catalog (secure base inactive) |
@@ -400,8 +400,8 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | A224 | 10-01 | a bolded core on the remaining list | drop · superseded | by the widget spec (A237) |
 | A225 | 10-01 | a labelled thread with no row is imported | judgment | J16 (clear-inbox skill) |
 | A226 | 10-02 | the readiness mark at 85 or above | facts | facts.json readiness_mark_at_or_above |
-| A227 | 10-02 | the mantra by name only | code | next: remaining list (names only) |
-| A228 | 10-02 | a core, with the rest on one line | code | next: remaining list (text fallback) |
+| A227 | 10-02 | the mantra by name only | code ✓ | core/bedo_remaining (names only) |
+| A228 | 10-02 | a core, with the rest on one line | code ✓ | core/bedo_remaining (core block, the rest on one line; core in facts.json) |
 | A229 | 10-02 | the dawn movement block follows morning sun | facts | catalog order |
 | A230 | 10-02 | flows are windows | judgment | J8 |
 | A231 | 10-02 | QA corrections go onto the rows the same night | judgment | J8 |
@@ -423,7 +423,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | A247 | 10-02 | resolve a chain across every base before a review or patch | code ✓ | core/bedo_reader + ahead-review (every base, live first) |
 | A248 | 10-03 | the widget is the remaining list | code | next: remaining widget; J8 says it ends every reply |
 | A249 | 10-03 | read the feeling from her words | judgment | J6 |
-| A250 | 10-03 | the dusk close audits rows; chat time is the sum of stretches | code | next: dusk_audit + stretches |
+| A250 | 10-03 | the dusk close audits rows; chat time is the sum of stretches | code ✓ | core/bedo_dusk_audit (the five checks) + core/bedo_stretches |
 | A251 | 10-03 | a window chat's ⚡ row has no duration and no drive | code | next: session entry check |
 | A252 | 10-03 | capture scores zero on the wheel | code ✓ | look-behind wheel |
 | A253 | 10-03 | overlap counts once; logging is tending | code ✓ | look-behind wheel and bar |
@@ -435,7 +435,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | A259 | 10-03 | my day's objective: see each flow to its close | judgment | J8 |
 | A260 | 10-04 | my day opens the dusk flow after about 7 PM | judgment | J8 |
 | A261 | 10-04 | one piece of evidence logs every practice it shows | judgment | J2 |
-| A262 | 10-04 | the dusk one-pass list comes from a filtered read | code | next: dusk_audit (filtered read) |
+| A262 | 10-04 | the dusk one-pass list comes from a filtered read | code ✓ | core/bedo_dusk_audit (filtered read) |
 | A263 | 10-04 | the weekly base pointer | drop · state | resolved by name each run (facts_local weekly_name) |
 
 ## Not folded yet

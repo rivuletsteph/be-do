@@ -16,6 +16,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 - Every rule constrains be•do, never her. A default carries its reason; she overrides it with hers.
 - A new rule (*amend: …*) is an amendment row, status active. A be•do work session lands it in code, facts or this file through a pull request; the row is marked folded once she has read the result.
 - Before a write, run the entry check (`bedo_entry.problems`); a row is written only when it passes. Every read of the stream goes through the one reader (`bedo_reader`).
+- What used to be remembered is run: a chat's first reply opens with `bedo_preflight`'s output (the chat-name line, the clock, the base); the remaining list is `bedo_remaining`'s; the dusk close runs `bedo_dusk_audit` before it writes. Where code can't run, do by hand what they do.
 
 ## J1 · What be•do is for
 

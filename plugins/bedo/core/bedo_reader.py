@@ -33,6 +33,32 @@ def load_facts(path=None):
 
 
 FACTS = load_facts()
+
+
+def load_local(path=None, required=True):
+    """Her half of the facts: ids, offset, names. Never ships. Looked for at
+    `path`, $BEDO_FACTS_LOCAL, beside the core, then ~/.bedo."""
+    for p in [path, os.environ.get('BEDO_FACTS_LOCAL'), os.path.join(HERE, 'facts_local.json'),
+              os.path.join(os.path.expanduser('~'), '.bedo', 'facts_local.json')]:
+        if p and os.path.exists(p):
+            with open(p, encoding='utf-8') as fh:
+                return json.load(fh)
+    if required:
+        die('facts_local.json not found — copy facts_local.example.json and fill it in')
+    return {}
+
+
+def offset_hours(local, when_utc):
+    """The local UTC offset at an instant, from the time zone when it can be
+    read, else from facts_local's fixed offset (I12)."""
+    tz = local.get('time_zone')
+    if tz:
+        try:
+            from zoneinfo import ZoneInfo
+            return when_utc.astimezone(ZoneInfo(tz)).utcoffset().total_seconds() / 3600
+        except Exception:
+            pass
+    return local.get('utc_offset_hours', 0)
 ACTION_STATUSES = frozenset(FACTS['status']['actions'])
 OPEN_STATUSES = frozenset(FACTS['status']['open'])
 
@@ -104,18 +130,24 @@ def resolve(rows, key_of, status_of, created_of, id_of):
     return chains, {k: ch[-1] for k, ch in chains.items()}
 
 
-def stream_rows(sources, fields):
-    """The common case, in one call: read every base live first, dedupe by
-    record id, map field ids to names, resolve the chains. `fields` maps a name
-    to a field id (or, for REST reads, to a field name). Each row also carries
-    id and created."""
-    recs, reads = merge_live_first(sources)
+def as_rows(recs, fields):
+    """Records to rows under logical names, each carrying id and created."""
     rows = []
     for r in recs:
         c = cells(r)
         row = {k: sv(c.get(v)) for k, v in fields.items()}
         row.update(id=r['id'], created=r['createdTime'])
         rows.append(row)
+    return rows
+
+
+def stream_rows(sources, fields):
+    """The common case, in one call: read every base live first, dedupe by
+    record id, map field ids to names, resolve the chains. `fields` maps a name
+    to a field id (or, for REST reads, to a field name). Each row also carries
+    id and created."""
+    recs, reads = merge_live_first(sources)
+    rows = as_rows(recs, fields)
     chains, latest = resolve(rows, lambda r: r.get('key'), lambda r: r.get('status'),
                              lambda r: r['created'], lambda r: r['id'])
     return rows, chains, latest, reads

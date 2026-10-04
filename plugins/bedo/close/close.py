@@ -17,8 +17,7 @@ with both asserts · the carry-verify stops on any open chain missing from the
 new base that isn't media. This script reads only; the deletes are done from
 the plan file with a write-scoped tool, after she says yes.
 """
-import argparse, collections, csv, datetime as dt, json, os, re, sys, time
-import urllib.parse, urllib.request
+import argparse, collections, csv, datetime as dt, json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 for p in (HERE, os.path.join(HERE, '..', 'core')):   # copied beside it, or the repo layout
@@ -27,8 +26,8 @@ from bedo_reader import resolve  # noqa: E402
 from bedo_entry import problems  # noqa: E402
 from bedo_export import clock, hers, write_docx  # noqa: E402
 import bedo_split  # noqa: E402
+from bedo_air import Air  # noqa: E402
 
-API = 'https://api.airtable.com/v0/'
 # the stream's REST field names, as the close reads them
 FIELDS = {'key': 'action key', 'status': 'status', 'datetime': 'datetime',
           'practice': 'practice text', 'title': 'action'}
@@ -36,45 +35,6 @@ FIELDS = {'key': 'action key', 'status': 'status', 'datetime': 'datetime',
 
 def die(m):
     sys.exit('ABORT: ' + m)
-
-
-class Air:
-    def __init__(self):
-        self.pat = os.environ.get('AIRTABLE_PAT') or die('set AIRTABLE_PAT')
-
-    def get(self, path, q=None):
-        url = API + path + ('?' + urllib.parse.urlencode(q, doseq=True) if q else '')
-        req = urllib.request.Request(url, headers={'Authorization': 'Bearer ' + self.pat})
-        for n in range(4):
-            try:
-                with urllib.request.urlopen(req, timeout=60) as r:
-                    time.sleep(.22)
-                    return json.load(r)
-            except urllib.error.HTTPError as e:
-                if e.code == 429 and n < 3:
-                    time.sleep(30); continue
-                die(f'{path}: HTTP {e.code}')
-
-    def bases(self):
-        out, q = {}, {}
-        while True:
-            d = self.get('meta/bases', q)
-            out.update({b['name']: b['id'] for b in d['bases']})
-            if not d.get('offset'):
-                return out
-            q = {'offset': d['offset']}
-
-    def table(self, base, table):
-        return next(t for t in self.get(f'meta/bases/{base}/tables')['tables'] if t['id'] == table)
-
-    def records(self, base, table):          # I11: paged to the end
-        recs, q = [], {'pageSize': 100}
-        while True:
-            d = self.get(f'{base}/{table}', q)
-            recs += d['records']
-            if not d.get('offset'):
-                return recs
-            q['offset'] = d['offset']
 
 
 def L():
