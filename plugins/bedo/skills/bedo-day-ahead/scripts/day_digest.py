@@ -10,7 +10,15 @@ Live base first (I15): the first --stream wins a record id seen twice. Plans
 (▫️ ⬜ ✖️) are left out; they are not moments. The user's words are the text
 above the details divider; the [be•do] block below it is dropped.
 """
-import argparse, datetime as dt, json, re
+import argparse, datetime as dt, json, re, sys
+
+# The one reader (I11, I15, I5) lives in plugins/bedo/core. The runner copies it
+# beside this file; in the repo it is three folders up. Beside wins.
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__))
+for _p in (_os.path.join(_HERE, '..', '..', '..', 'core'), _HERE):
+    sys.path.insert(0, _os.path.normpath(_p))
+import bedo_reader  # noqa: E402
 
 DIVIDERS = ('———', '---')
 PLANS = ('▫️potential', '⬜ intention', '✖️ dropped')
@@ -40,15 +48,12 @@ def main():
     def local(ts):
         return (dt.datetime.fromisoformat(ts.replace('Z', '+00:00')) + off).replace(tzinfo=None) if ts else None
 
-    seen = {}
-    for p in a.stream:
-        for r in json.load(open(p, encoding='utf-8'))['records']:
-            seen.setdefault(r['id'], r)
-    # latest row per key (I5)
+    recs, _ = bedo_reader.merge_live_first(a.stream)  # I11 and I15, the one reader
+    # latest row per chain (I5) — an action key joins only action rows
     latest = {}
-    for r in sorted(seen.values(), key=lambda r: r['createdTime']):
+    for r in sorted(recs, key=lambda r: r['createdTime']):
         c = r['cellValuesByFieldId']
-        latest[c.get(F['key']) or r['id']] = c
+        latest[bedo_reader.chain_key(c.get(F['key']), bedo_reader.sv(c.get(F['status'])), r['id'])] = c
     rows = []
     for c in latest.values():
         t = local(c.get(F['when']))

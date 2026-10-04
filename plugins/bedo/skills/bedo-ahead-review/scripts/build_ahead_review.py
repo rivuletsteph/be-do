@@ -18,7 +18,15 @@ Potentials belong to the season review, not the monthly one — except a potenti
 whose details say to ask again in this month ("ask me again at the beginning of
 November"), which is carded in that month.
 """
-import argparse, calendar, collections, datetime as D, json, re, pathlib
+import argparse, calendar, collections, datetime as D, json, re, pathlib, sys
+
+# The one reader (I11, I15, I5) lives in plugins/bedo/core. The runner copies it
+# beside this file; in the repo it is three folders up. Beside wins.
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__))
+for _p in (_os.path.join(_HERE, '..', '..', '..', 'core'), _HERE):
+    sys.path.insert(0, _os.path.normpath(_p))
+import bedo_reader  # noqa: E402
 
 HERE = pathlib.Path(__file__).resolve().parent.parent
 FIELDS = ('title', 'key', 'details', 'target', 'status', 'practice', 'rhythm', 'waiting_on', 'queue')
@@ -46,7 +54,8 @@ def asks_again_this_month(details, today):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--stream', required=True); ap.add_argument('--recs', required=True)
+    ap.add_argument('--stream', action='append', required=True,
+                    help='each weekly base the chains passed through, live first'); ap.add_argument('--recs', required=True)
     ap.add_argument('--today', required=True); ap.add_argument('--out', required=True)
     ap.add_argument('--days', type=int, default=14)
     ap.add_argument('--local', default=str(HERE / 'assets' / 'ahead_review_local.json'))
@@ -57,13 +66,13 @@ def main():
         v = r['cellValuesByFieldId'].get(F[k])
         return v['name'] if isinstance(v, dict) else v
 
-    d = json.load(open(a.stream, encoding='utf-8')); R = d['records']
-    assert len(R) == d['metadata']['totalRecordCount'], 'truncated read'
+    R, _ = bedo_reader.merge_live_first(a.stream)  # I11 and I15: every base, live first
     recs = json.load(open(a.recs, encoding='utf-8'))
     today = D.date.fromisoformat(a.today); cut = today - D.timedelta(days=a.days)
     chains = collections.defaultdict(list)
-    for r in R:
-        if g(r, 'key'): chains[g(r, 'key')].append(r)
+    for r in R:  # I5: a log that shares an action's minute is not its chain
+        k = g(r, 'key')
+        if k and bedo_reader.chain_key(k, g(r, 'status'), r['id']) == k: chains[k].append(r)
     items = []
     for k, rs in chains.items():
         rs.sort(key=lambda r: r['createdTime']); h = rs[-1]

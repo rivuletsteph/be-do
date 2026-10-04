@@ -12,7 +12,7 @@ def row(key, status, created='2026-09-01T12:00:00.000Z', **kw):
          F['practice']: kw.get('practice', '⚡ action'), F['details']: kw.get('details', '')}
     if kw.get('queue'): c[F['queue']] = True
     if kw.get('waiting_on'): c[F['waiting_on']] = kw['waiting_on']
-    return {'id': 'r' + key, 'createdTime': created, 'cellValuesByFieldId': c}
+    return {'id': kw.get('rid', 'r' + key), 'createdTime': created, 'cellValuesByFieldId': c}
 
 
 def build(rows, today, fields=F):
@@ -51,8 +51,32 @@ class Scope(unittest.TestCase):
         self.assertEqual(build(self.rows, '2026-11-02'), ['260801_0900', '260801_0901', '260801_0903', '261001_0900'])
 
     def test_latest_row_per_key_decides(self):
-        rows = [row('260801_0900', '⬜ intention'), row('260801_0900', '✅ done', created='2026-09-20T12:00:00.000Z')]
+        # two rows of one chain are two records, each with its own id
+        rows = [row('260801_0900', '⬜ intention'),
+                row('260801_0900', '✅ done', created='2026-09-20T12:00:00.000Z', rid='r260801_0900b')]
         self.assertEqual(build(rows, '2026-10-02'), [])
+
+    def test_a_log_in_the_chains_minute_does_not_close_it(self):
+        # the W39 split's failure, in the deck: a log sharing the key is not the head
+        rows = [row('260801_0900', '⬜ intention'),
+                row('260801_0900', '● log', created='2026-09-20T12:00:00.000Z', rid='rlog', practice='📲 capture')]
+        self.assertEqual(build(rows, '2026-10-02'), ['260801_0900'])
+
+    def test_every_base_read_live_first(self):
+        # an archive's older copy of a row never outranks the live copy (I15)
+        live = [row('260801_0900', '✅ done')]
+        arch = [row('260801_0900', '⬜ intention')]
+        with tempfile.TemporaryDirectory() as d:
+            d = pathlib.Path(d)
+            for n, rs in (('live', live), ('arch', arch)):
+                (d / f'{n}.json').write_text(json.dumps({'records': rs, 'metadata': {'totalRecordCount': len(rs)}}), encoding='utf-8')
+            (d / 'recs.json').write_text('{}', encoding='utf-8')
+            (d / 'local.json').write_text(json.dumps({'fields': {'stream': F}}), encoding='utf-8')
+            p = subprocess.run([sys.executable, str(BUILD), '--stream', str(d / 'live.json'), '--stream', str(d / 'arch.json'),
+                                '--recs', str(d / 'recs.json'), '--today', '2026-10-02', '--out', str(d / 'out.html'),
+                                '--local', str(d / 'local.json')], capture_output=True, text=True, encoding='utf-8')
+            self.assertEqual(p.returncode, 0, p.stderr)
+            self.assertIn('0 items', p.stdout)
 
     def test_a_blank_field_id_stops_the_build(self):
         p = build(self.rows, '2026-10-02', fields={**F, 'queue': ''})

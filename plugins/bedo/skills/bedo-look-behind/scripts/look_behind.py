@@ -34,7 +34,7 @@ aborts.
 import argparse, json, os, re, sys, datetime as dt
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from bedo_common import complete, die, norm, offset_check, read_dump, sv, weekno  # noqa: E402
+from bedo_common import bedo_reader, complete, die, norm, offset_check, read_dump, sv, weekno  # noqa: E402
 import day_pie  # noqa: E402
 
 # The field maps are the base's, not the builder's. install_local() fills them
@@ -118,10 +118,10 @@ def load_stream(paths):
     rows = list(seen.values())
     chains = {}
     for r in rows:
-        chains.setdefault(r['key'] or r['id'], []).append(r)
+        chains.setdefault(bedo_reader.chain_key(r['key'], r['status'], r['id']), []).append(r)
     for k in chains:
         chains[k].sort(key=lambda r: r['created'] or '')
-    latest = {k: ch[-1] for k, ch in chains.items()}              # I5
+    latest = {k: ch[-1] for k, ch in chains.items()}              # I5: action rows only
     return rows, chains, latest, reads
 
 

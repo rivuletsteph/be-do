@@ -9,6 +9,14 @@ Three kinds of thing:
 """
 import colorsys, datetime as dt, json, re, sys
 
+# The one reader (I11, I15, I5) lives in plugins/bedo/core. The runner copies it
+# beside this file; in the repo it is three folders up. Beside wins.
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__))
+for _p in (_os.path.join(_HERE, '..', '..', '..', 'core'), _HERE):
+    sys.path.insert(0, _os.path.normpath(_p))
+import bedo_reader  # noqa: E402
+
 # Practice names drift — '⚡action' and '⚡ action' are one practice. Key on the
 # word, never the glyph, or the drift splits the pool in two. One copy of this,
 # imported everywhere, or two builders disagree about what a practice is called.
@@ -37,14 +45,10 @@ def read_dump(path):
 
 
 def complete(path):
-    """Records, and how many. A short read is not a read (I11)."""
+    """Records, and how many. A short read is not a read (I11) — checked by the
+    one reader, so every builder stops on the same rule."""
     d = read_dump(path)
-    recs = d.get("records")
-    if recs is None:
-        die(f"{path}: no records key — is this an Airtable read?")
-    tot = (d.get("metadata") or {}).get("totalRecordCount")
-    if tot is None or len(recs) != tot:
-        die(f"{path}: {len(recs)} of {tot} records — a truncated read is not a read (I11)")
+    recs = bedo_reader.complete(d, path)
     return recs, len(recs), (d.get("metadata") or {})
 
 

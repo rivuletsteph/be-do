@@ -6,6 +6,9 @@
 # silently: `git add` refuses it and `git status` never mentions it.
 !.claude-plugin/*.json
 !plugins/*/.claude-plugin/*.json
+# …and so are the core's facts: choice strings, glyphs and thresholds, nothing
+# personal. Its personal half is facts_local.json, which stays ignored.
+!plugins/bedo/core/facts.json
 
 # local
 bedo_local.py

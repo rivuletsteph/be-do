@@ -24,6 +24,14 @@ records returned == totalRecordCount, or the build aborts.
 """
 import argparse, json, re, datetime as dt, sys
 
+# The one reader (I11, I15, I5) lives in plugins/bedo/core. The runner copies it
+# beside this file; in the repo it is three folders up. Beside wins.
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__))
+for _p in (_os.path.join(_HERE, '..', '..', '..', 'core'), _HERE):
+    sys.path.insert(0, _os.path.normpath(_p))
+import bedo_reader  # noqa: E402
+
 # The field maps are the base's, not the builder's. main() fills them from the
 # local settings file before any read; the KEYS below are the builder's own
 # vocabulary and never change, only the ids behind them do.
@@ -66,10 +74,8 @@ def read_dump(path):
 def complete(path):
     d = read_dump(path)
     RHYTHMS_NOTE[path] = d.get('metadata', {})
-    n, tot = len(d['records']), d.get('metadata', {}).get('totalRecordCount')
-    if tot is None or n != tot:
-        die(f'{path}: {n} of {tot} records — a truncated read is not a read (I11)')
-    return d['records'], n
+    recs = bedo_reader.complete(d, path)  # I11, the one reader
+    return recs, len(recs)
 
 
 def sv(v):
@@ -108,10 +114,10 @@ def load_stream(paths):
     rows = list(seen.values())
     chains = {}
     for r in rows:
-        chains.setdefault(r['key'] or r['id'], []).append(r)
+        chains.setdefault(bedo_reader.chain_key(r['key'], r['status'], r['id']), []).append(r)
     for k in chains:
         chains[k].sort(key=lambda r: r['created'])
-    latest = {k: ch[-1] for k, ch in chains.items()}  # I5
+    latest = {k: ch[-1] for k, ch in chains.items()}  # I5: action rows only
     return rows, chains, latest, reads
 
 
