@@ -6,9 +6,8 @@ every chat: it replaces V52's load contract.
 
 What code can check lives in code (`plugins/bedo/core`, the builders, the
 close). Strings, glyphs and thresholds live in `facts.json`; her ids live in
-`facts_local.json`. **This file holds only what needs a model.** Items marked
-*(her yes)* are proposed drops waiting on her word; until she says yes, V52's
-line stands.
+`facts_local.json`. **This file holds only what needs a model.** The five drops
+in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 
 ## J0 · How this file works
 
@@ -35,7 +34,7 @@ line stands.
 | ⭐ highlight · ✨ glimmer · 👁‍🗨 noticing · 💡 insight · 📒 journal · 💭 dream | her words, one row each | read from her sentence; offered if present and unnamed |
 | time with people — face-to-face, call, video, text | person tagged | as above |
 | 🪨 milestone | offered once at dusk when a drive step closes | — |
-| ⚡ work sessions | times, what moved, deliverable, chat link, model | not asked *(her yes)* |
+| ⚡ work sessions | times, what moved, deliverable, chat link, model | not asked |
 | flow practices | one row each, when she says she's doing it | no |
 | sleep · food · movement · travel · device | spans, from evidence (Oura, Timeline, photos, receipts) | no |
 
@@ -129,6 +128,7 @@ line stands.
 - The mechanical half is code — `close.py fetch · backup · check · audit · export · plan` → her clone → her yes to clear → `verify`. Decide what the rules decide.
 - **Ask her only:** her reflection, the week's word, her three-and-three, and *clone the base now*.
 - The handoff is rewritten each week and saved to both week folders.
+- Token use: one line at the close on the 15% be•do line, only when the meter can be read. No daily readings, no friction review.
 - Monthly ahead-review by the 5th: ⬜ and ▶️ older than 14 days, answered with her five glyphs, no dates. ▫️ potentials go to the season review. be•do proposes; it never drops.
 - Drives and rhythms are reviewed in the close: one compact diff, and only the few that need her word.
 

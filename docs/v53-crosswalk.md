@@ -7,7 +7,7 @@ V53 is V52 and its active amendments rebuilt around *log what matters*, in four 
 | **code** | a check that is enforced and tested — `plugins/bedo/core`, the builders, `close.py` | **code ✓** is built and tested now; **code** names the slot it goes into next |
 | **facts** | ids, choice strings, glyphs, orders, thresholds — `core/facts.json` (ships), `facts_local.json` (hers, never ships), and the practices catalog read live | read at run time, never recalled |
 | **judgment** | a short rule a model needs — `docs/v53-judgment.md`, section J# | loaded whole, every chat |
-| **drop** | cut, with one line on why | **drop** that touches what she logs or sees waits on her yes; **drop · superseded** is a rule a later one already replaced; **drop · state** is week state, not a rule |
+| **drop** | cut, with one line on why | **drop** that touches what she logs or sees took her yes; **drop · superseded** is a rule a later one already replaced; **drop · state** is week state, not a rule |
 
 **V52, 140 rows** (each heading; the sixteen invariants one row each): code ✓ 34 · code 14 · facts 15 · judgment 57 · drop 20.  
 **Active amendments, 263 rows:** code ✓ 57 · code 34 · facts 25 · judgment 105 · drop 42.  
@@ -15,9 +15,9 @@ Every row is placed once. 91 rows are enforced in code today.
 
 Amendments are listed by number in date order (A1 is the oldest active row, 15 Aug 2026). Her own titles and the record ids are in her copy of this file in Drive; the repo holds no ids and no names.
 
-## The drops that need her yes
+## The drops that needed her yes — all five accepted, 4 Oct 2026
 
-Only these touch what she logs or sees. Everything else placed **drop** is plumbing or already replaced.
+Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026. Everything else placed **drop** is plumbing or already replaced.
 
 1. **Stop asking how work sessions felt.** Feelings are asked only on the moments that carry meaning — highlights, glimmers, noticing, journal, dreams, time with people. The weekly *depth* flag goes with it. (V52 QA check · A52 · A67)
 2. **Drop the weekly backlog bucket.** The monthly ahead-review already is the triage. (V52 one bucket a week · A35's weekly part)
@@ -86,11 +86,11 @@ Only these touch what she logs or sees. Everything else placed **drop** is plumb
 | 41 | The Pareto three | code ✓ | bedo-day-ahead | uncalendared-first and dedupe by subject → next (A213) |
 | 42 | Media and queue filtered at the read | code ✓ | bedo-day-ahead filtered_open | 📼 video now counts as media (facts.json) |
 | 43 | The calendar, three calendars, two horizons | code ✓ | bedo-day-ahead bedo_cal | prep drafted for her okay → J8 |
-| 44 | The rest: the quick-sweep strip | drop | her yes 3 | meeting prep still fires from the event |
+| 44 | The rest: the quick-sweep strip | drop | her yes 3 (accepted) | meeting prep still fires from the event |
 | 45 | DAY (part header) | drop | — |  |
 | 46 | Capture as it happens | judgment | J2 | capture stretches → code next |
 | 47 | My day finishes the working chats' rows | code | next: dusk_audit filtered read | attention derived, not asked |
-| 48 | Usage readings | drop | her yes 4 |  |
+| 48 | Usage readings | drop | her yes 4 (accepted) |  |
 | 49 | Journal, uninstrumented | judgment | J2 |  |
 | 50 | Glimmer | judgment | J2, J6 |  |
 | 51 | Area of inquiry | judgment | J12 | now queueable (A246) |
@@ -110,12 +110,12 @@ Only these touch what she logs or sees. Everything else placed **drop** is plumb
 | 65 | The daily flag | code | next: one line from dusk_audit |  |
 | 66 | SUNDAY (part header) | drop | — |  |
 | 67 | my week is one long chat | judgment | J11 |  |
-| 68 | QA check, the weekly self-check | code ✓ | close.py check; thresholds in facts.json | depth → her yes 1; the people pool is now defined (contact rows with a person) |
+| 68 | QA check, the weekly self-check | code ✓ | close.py check; thresholds in facts.json | depth dropped (her yes 1); the people pool is now defined (contact rows with a person) |
 | 69 | The sequence | judgment | J11 | the mechanical half is close.py |
 | 70 | The three-and-three is a row | judgment | J11 | the row no longer takes an action key (only ⚡ rows do) |
 | 71 | The one-word intention | judgment | J9 |  |
 | 72 | Drives and rhythms reviewed | judgment | J11 |  |
-| 73 | One bucket of backlog triage | drop | her yes 2 |  |
+| 73 | One bucket of backlog triage | drop | her yes 2 (accepted) |  |
 | 74 | The two mechanisms that age work out | judgment | J12 | plus quickie |
 | 75 | The monthly ahead-review | code ✓ | bedo-ahead-review | reads every base, live first, now |
 | 76 | The weekly export | code ✓ | close.py export + core/bedo_export |  |
@@ -133,7 +133,7 @@ Only these touch what she logs or sees. Everything else placed **drop** is plumb
 | 88 | The pages | code ✓ | the builders |  |
 | 89 | One living page per window | judgment | J15 | the page links are hers (facts_local) |
 | 90 | Pages render on demand; a trigger files the final | code | next: the scheduled trigger |  |
-| 91 | The readings | code ✓ | look-behind readings | footing → J8; the ring → her yes 5 |
+| 91 | The readings | code ✓ | look-behind readings | footing → J8; the ring dropped (her yes 5) |
 | 92 | The wheel | code ✓ | look-behind |  |
 | 93 | The balance bar | code ✓ | look-behind |  |
 | 94 | The day behind, shape | code ✓ | look-behind |  |
@@ -164,8 +164,8 @@ Only these touch what she logs or sees. Everything else placed **drop** is plumb
 | 119 | The fold, and the archive | drop | — | plumbing: an amendment now lands in code, facts or judgment by pull request |
 | 120 | Operations reference (part header) | drop | — |  |
 | 121 | Airtable patterns | code ✓ | core/bedo_reader; facts.json airtable |  |
-| 122 | The token budget | drop | her yes 4 | the model dials → J15 |
-| 123 | The budget page | drop | her yes 4 |  |
+| 122 | The token budget | drop | her yes 4 (accepted) | the model dials → J15 |
+| 123 | The budget page | drop | her yes 4 (accepted) |  |
 | 124 | Efficiency and model choice | judgment | J15 |  |
 | 125 | The skills | drop | — | plumbing: each skill carries its own text (J16) |
 | 126 | The code | drop | — | plumbing: the repo README lists it |
@@ -208,12 +208,12 @@ Only these touch what she logs or sees. Everything else placed **drop** is plumb
 | A32 | 08-22 | interests are read from area-of-inquiry rows, not declared | judgment | J12 |
 | A33 | 08-22 | an older review and look-ahead page shape | drop · superseded | look-behind page shape (V52) |
 | A34 | 08-22 | the dawn flow closes itself on its last practice | judgment | J8 |
-| A35 | 08-22 | batch triage cadence: monthly and seasonal (weekly part: drop 2) | judgment | J11 |
+| A35 | 08-22 | batch triage cadence: monthly and seasonal (weekly part: dropped, her yes 2) | judgment | J11 |
 | A36 | 08-23 | the ten mini-quests, in full | facts | the quest data row (read nightly; never archived) |
 | A37 | 08-31 | preflight reads the handoff first | code | next: preflight |
 | A38 | 09-01 | the flow list as a code block | drop · superseded | by the remaining-list widget (A248) |
 | A39 | 09-01 | future-blessings gratitude is a reserved trigger, not a flow step | facts | catalog |
-| A40 | 09-01 | a monthly intention word beside the weekly one | drop | her yes 5 |
+| A40 | 09-01 | a monthly intention word beside the weekly one | drop | her yes 5 (accepted) |
 | A41 | 09-01 | shows and movies are never reminders | code ✓ | day-ahead (filtered at the read) |
 | A42 | 09-01 | the circle palette carries no hue; colour means feeling | code ✓ | page engines |
 | A43 | 09-01 | the week river: one lane a day | code | next: week-behind builder |
@@ -225,7 +225,7 @@ Only these touch what she logs or sees. Everything else placed **drop** is plumb
 | A49 | 09-01 | closeness is interaction; co-presence is a halo | code ✓ | look-behind (who was in your day reads person only) |
 | A50 | 09-01 | a practice added mid-week is marked new, never scored 0/7 | code | next: close.py check |
 | A51 | 09-01 | every day on the weekly opens with a lead | code | next: week-behind builder |
-| A52 | 09-01 | a long row with no feeling as a capture gap | drop | her yes 1 |
+| A52 | 09-01 | a long row with no feeling as a capture gap | drop | her yes 1 (accepted) |
 | A53 | 09-01 | a row naming only someone else is read as theirs | code ✓ | look-behind |
 | A54 | 09-01 | the day lead says what she did | judgment | J5 |
 | A55 | 09-01 | at most four memorable cards a day | code | next: week-behind builder |
@@ -234,13 +234,13 @@ Only these touch what she logs or sees. Everything else placed **drop** is plumb
 | A58 | 09-01 | one labelled line of be•do prose per day on the weekly | judgment | J4 |
 | A59 | 09-01 | cards carry her words, not just the title | code ✓ | look-behind (entries carry her words) |
 | A60 | 09-01 | what counts toward one mini-quest | judgment | J13 |
-| A61 | 09-02 | per diem tracked from receipts | drop | her yes 5 |
+| A61 | 09-02 | per diem tracked from receipts | drop | her yes 5 (accepted) |
 | A62 | 09-02 | does-it-exist is a filtered search, never a paged list | judgment | J3 |
 | A63 | 09-02 | surface his open mini-quests during the day | judgment | J13 |
 | A64 | 09-02 | one household ask, two rows | judgment | J13 |
 | A65 | 09-02 | a QA sweep that fixes what it can and names at most three | code | next: dusk_audit |
 | A66 | 09-02 | mechanical reconciliations settled by be•do, stated in a line | judgment | J4 |
-| A67 | 09-02 | every action offers its feeling at close | drop | her yes 1 |
+| A67 | 09-02 | every action offers its feeling at close | drop | her yes 1 (accepted) |
 | A68 | 09-02 | durations resolve from instruments before anything is asked | code | next: dusk_audit (evidence pass) |
 | A69 | 09-02 | the self-check reports what the build read | code ✓ | look-behind self-check |
 | A70 | 09-02 | the wheel says why it is that shape | code ✓ | look-behind wheel |
@@ -280,12 +280,12 @@ Only these touch what she logs or sees. Everything else placed **drop** is plumb
 | A104 | 09-07 | wind renamed air; a key to the eight | facts | facts.json wellness |
 | A105 | 09-07 | status precedence as a labelled fallback for old CSVs | code | next: archive reader (CSV + corrections) |
 | A106 | 09-07 | balance replaces roundness | code ✓ | look-behind |
-| A107 | 09-07 | the promote checkbox | drop | her yes 5 |
+| A107 | 09-07 | the promote checkbox | drop | her yes 5 (accepted) |
 | A108 | 09-07 | what survives a weekly project change | drop · superseded | repo + Drive (J15) |
 | A109 | 09-07 | the eight go lowercase | facts | facts.json wellness |
 | A110 | 09-07 | rhythm tagging is tighter | judgment | J12 |
-| A111 | 09-07 | one highlight a day (promote part: her yes 5) | judgment | J2 |
-| A112 | 09-08 | the quick-sweep strip skips queued rows | drop | her yes 3 |
+| A111 | 09-07 | one highlight a day (promote part: dropped, her yes 5) | judgment | J2 |
+| A112 | 09-08 | the quick-sweep strip skips queued rows | drop | her yes 3 (accepted) |
 | A113 | 09-08 | nudge her toward finishing what she starts | judgment | J1 |
 | A114 | 09-08 | never mint an ⚡ row from a session entry's still open | judgment | J10 |
 | A115 | 09-09 | stale ▶️ rows get resolved, not displayed | code ✓ | ahead-review deck |
@@ -310,7 +310,7 @@ Only these touch what she logs or sees. Everything else placed **drop** is plumb
 | A134 | 09-13 | tending, and the day's growth read thin · steady · wide | code ✓ | look-behind readings |
 | A135 | 09-13 | a growth checkbox | drop · superseded | growth is read seasonally (V52) |
 | A136 | 09-13 | contracted · maintained · expanded with a floor | drop · superseded | the floor is dropped (V52) |
-| A137 | 09-13 | promote proposed from her words | drop | her yes 5 |
+| A137 | 09-13 | promote proposed from her words | drop | her yes 5 (accepted) |
 | A138 | 09-13 | two rhythms merged | drop · superseded | rhythms base data |
 | A139 | 09-13 | an action shows as one line per key | code ✓ | core/bedo_reader + builders |
 | A140 | 09-13 | the full row list; the flow panel is capture | code ✓ | look-behind |
@@ -353,7 +353,7 @@ Only these touch what she logs or sees. Everything else placed **drop** is plumb
 | A177 | 09-18 | every session entry links its chat | judgment | J10 (session-entry skill) |
 | A178 | 09-18 | the inbox sweep is a time window; it archives unasked | judgment | J16 (clear-inbox skill) |
 | A179 | 09-18 | chat titles carry code and step | judgment | J10 (chat-title skill) |
-| A180 | 09-19 | growth inner, effectiveness outer; the ring per phase | code ✓ | look-behind readings (ring part: her yes 5) |
+| A180 | 09-19 | growth inner, effectiveness outer; the ring per phase | code ✓ | look-behind readings (ring part: dropped, her yes 5) |
 | A181 | 09-19 | the floor is dropped | code ✓ | look-behind readings |
 | A182 | 09-19 | every row carries a device, deduced | judgment | J2 |
 | A183 | 09-19 | the inbox practice's name | facts | catalog |

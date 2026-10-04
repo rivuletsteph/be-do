@@ -182,10 +182,7 @@ def check(a, L):
                      lambda f: f['_c'], lambda f: f['_id'])          # I5, action rows only
     act = [f for f in lat.values() if f.get('status') in ('✅ done', '▶️ in motion') and span(f)]
     out['attention'] = f"{sum(1 for f in act if f.get('attention'))} of {len(act)}"
-    zero = {p['fields']['practice'] for p in P if p['fields'].get('zero duration')}
-    dep = [f for f in wk if span(f) and f.get('practice text') not in zero | {'😴 sleep'}
-           and f.get('status') not in ('▫️potential', '⬜ intention', '✖️ dropped')]
-    out['depth'] = f"{sum(1 for f in dep if f.get('emotion') or f.get('emotion word'))} of {len(dep)}"
+    # depth is not counted: feeling is asked only on the moments that matter (her yes, 4 Oct 2026)
     sys_r = L.get('system_rhythm', 'be•do')
     ov = [f for f in act if sys_r in (f.get('rhythm text') or '')]
     out['overhead'] = f"{round(sum(mins(f) for f in ov))} min over {len(ov)} sessions"
