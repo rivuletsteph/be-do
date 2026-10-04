@@ -1,0 +1,100 @@
+{
+ "_about": "be•do V53 facts: choice strings, glyphs, orders and thresholds that hold nothing personal. Read at run time by the core and the builders; a chat reads it instead of recalling a string. Personal values (base ids, field ids, names) live in facts_local.json, gitignored; facts_local.example.json is its blank shape. Select strings were copied from the live schema, 4 Oct 2026. Change a string here only after the base changed, never before.",
+
+ "status": {
+  "logs": ["● log", "◉ done", "⨂ skipped"],
+  "actions": ["▫️potential", "⬜ intention", "▶️ in motion", "✅ done", "✖️ dropped"],
+  "open": ["▫️potential", "⬜ intention", "▶️ in motion"],
+  "plans": ["▫️potential", "⬜ intention"],
+  "closed": ["✅ done", "✖️ dropped"],
+  "flow_step": "◉ done",
+  "ad_hoc": "● log"
+ },
+ "phase": ["🌅 dawn", "🔆 day", "🌄 dusk"],
+ "wellness": {
+  "be": ["🩷 heart", "🧠 mind", "🤸‍♀️ body", "💖 spirit"],
+  "do": ["🌊 water", "💨 air", "🌎 earth", "🔥 fire"],
+  "pairs": [["🩷 heart", "🌊 water"], ["🧠 mind", "💨 air"], ["🤸‍♀️ body", "🌎 earth"], ["💖 spirit", "🔥 fire"]]
+ },
+ "emotion": ["🟡 high energy · pleasant", "🟢 low energy · pleasant", "🔴 high energy · unpleasant", "🔵 low energy · unpleasant", "⚪ neutral"],
+ "attention": ["🌕 full", "🌓 partial"],
+ "device": ["📱 phone", "💻 laptop", "🖥️ work desktop", "📺 tv", "🚫 none"],
+ "rhythm_types": {
+  "write": ["♉ value", "♈ passion", "♎ destination", "♒ rhythm", "♐ drive"],
+  "never_write": ["🫧 free-floating"]
+ },
+ "rhythm_status": ["active", "someday", "done", "dropped"],
+ "amendment_status": ["active", "folded"],
+
+ "practice": {
+  "action": "⚡ action",
+  "capture": "📲 capture",
+  "sleep": "😴 sleep",
+  "location": "📍 location",
+  "driving": "🚗 driving",
+  "gratitude": "🙏 gratitude",
+  "milestone": "🪨 milestone",
+  "media": ["🎥 movie", "📗 book", "📺 show", "🎧 podcast", "🎧 audiobook", "📰 news", "📼 video"],
+  "never_queued": ["🎵 song", "🎮 game"],
+  "reflective_dating": ["📒 journal", "💭 dream record", "⭐ highlight"],
+  "moment_dating": ["✨ glimmer", "🙏 gratitude", "🔎 area of inquiry", "🪨 milestone"],
+  "contact": ["🗣️ face-to-face", "👩‍💻 video call", "☎️ phone", "🗨️ text"],
+  "always_chips": ["📍 location", "🚗 driving", "💭 dream record", "😴 sleep"]
+ },
+
+ "key": {
+  "pattern": "^\\d{6}_\\d{4}[a-z]{0,2}$",
+  "about": "YYMMDD_HHMM of the first entry, a letter on collision. Only ⚡ action rows with an action status carry one."
+ },
+ "divider": "———",
+ "legacy_dividers": ["---"],
+ "be_do_block": "[be•do]",
+
+ "day_emoji": {"Sun": "☀️", "Mon": "🌕", "Tue": "🔥", "Wed": "💧", "Thu": "🌳", "Fri": "🏆", "Sat": "⏳"},
+ "week": {"opens": "Sunday", "anchor_sunday": "2026-05-03", "anchor_number": 19},
+ "clock": {"store": "UTC", "about": "Every stream datetime is stored UTC with a Z; the local offset comes from facts_local, checked against the time zone on the day (I12)."},
+
+ "glyph_codepoints": {
+  "mark": "U+1684E",
+  "drive_chat": "U+1F6A3 U+1F3FB U+200D U+2640 U+FE0F",
+  "readiness_crown": "U+1F732"
+ },
+ "chat_status": {"moving": "▶️", "next_push": "⏯️", "break": "⏸️", "done": "☑️", "dropped": "✖️", "window_closed": "✔️"},
+
+ "effort": {
+  "bands": {"momentary": 1, "short": 2, "session": 5, "deep": 10},
+  "minute_divisor": 6,
+  "zero": ["plans", "✖️ dropped", "containers", "the quest row", "📲 capture"]
+ },
+ "readiness_mark_at_or_above": 85,
+
+ "minutes": {
+  "stretch_gap": 15,
+  "unexplained_stretch": 15,
+  "container_min_hours": 4,
+  "container_min_children": 3
+ },
+ "flows": {
+  "order_source": "the practices catalog's order field, filtered to active; never recited",
+  "dusk_opens_after": "19:00",
+  "backup_close": {"dawn": "12:00", "dusk": "23:59"}
+ },
+
+ "self_check": {
+  "flag_if_under_of_7": {"⚡ action check": 5, "📧 clear gmail inbox": 5, "🗺️ map check": 5},
+  "flag_if_under_pct": {"attention": 95, "people": 80},
+  "shrink_at_flags": 3,
+  "attention_pool": "✅ done and ▶️ in motion ⚡ action chains with a real span in the window",
+  "people_pool": "contact rows (face-to-face, video call, phone, text) with a person tagged",
+  "excluded_everywhere": ["▫️potential", "⬜ intention", "✖️ dropped", "zero-duration practices", "containers", "the quest row"]
+ },
+ "catalog_standings": {
+  "stories": {"all": ["want", "in motion", "finished", "dropped"], "ahead": "want"},
+  "places": {"all": ["want to go", "been"], "ahead": "want to go"},
+  "recipes": {"all": ["want to try", "in rotation", "tried"], "ahead": "want to try"},
+  "supplies": {"all": ["want", "have", "out"], "ahead": "want"},
+  "about": "be•do never sets a standing unasked; a reading item clear-inbox files is the one exception (stories, want)"
+ },
+ "ahead_review": {"older_than_days": 14, "statuses": ["⬜ intention", "▶️ in motion"], "by_day_of_month": 5},
+ "airtable": {"record_ceiling_per_base": 1000, "bulk_batch": 50}
+}

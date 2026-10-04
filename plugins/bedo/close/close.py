@@ -5,20 +5,33 @@ from close_local.json (gitignored), the token from the AIRTABLE_PAT env var.
     python3 close.py fetch    --week 39          # stream of w39 + w40 (if cloned) + older weeks to disk
     python3 close.py backup   --week 39          # every table to CSV, with a created column
     python3 close.py check    --week 39          # the self-check numbers, and the quest lines
-    python3 close.py export   --week 39          # her words only, pandoc md -> docx
+    python3 close.py export   --week 39          # her words only, md -> docx (pandoc or python-docx)
+    python3 close.py audit    --week 39          # every row of the week through the entry check
     python3 close.py plan     --week 39          # the split: carry set + delete set by record id
+    python3 close.py verify   --week 39          # after the clear: every open chain is in the new base
 
-Rules kept: I11 a read pages to the end or aborts · I15 dedupe by record id,
-live base first · I5 latest row per key · I16 the delete set is built from
-record ids, with both asserts. This script reads only; the deletes are done
-from the plan file with a write-scoped tool, after she says yes.
+The rules are the core's (plugins/bedo/core), not this file's: I11 a read pages
+to the end or aborts · I15 dedupe by record id, live base first · I5 a chain's
+head is its latest ACTION row · I16 the delete set is built from record ids,
+with both asserts · the carry-verify stops on any open chain missing from the
+new base that isn't media. This script reads only; the deletes are done from
+the plan file with a write-scoped tool, after she says yes.
 """
-import argparse, collections, csv, datetime as dt, json, os, re, subprocess, sys, time
+import argparse, collections, csv, datetime as dt, json, os, re, sys, time
 import urllib.parse, urllib.request
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+for p in (HERE, os.path.join(HERE, '..', 'core')):   # copied beside it, or the repo layout
+    sys.path.insert(0, os.path.normpath(p))
+from bedo_reader import resolve  # noqa: E402
+from bedo_entry import problems  # noqa: E402
+from bedo_export import clock, hers, write_docx  # noqa: E402
+import bedo_split  # noqa: E402
+
 API = 'https://api.airtable.com/v0/'
-OPEN = {'▫️potential', '⬜ intention', '▶️ in motion'}
-DIV = re.compile(r'^\s*———\s*$', re.M)
+# the stream's REST field names, as the close reads them
+FIELDS = {'key': 'action key', 'status': 'status', 'datetime': 'datetime',
+          'practice': 'practice text', 'title': 'action'}
 
 
 def die(m):
@@ -106,7 +119,9 @@ def fetch(a, L):
         if not b:
             print(f'w{wk}: no base'); continue
         recs = air.records(b, L['stream_table'])
-        json.dump({'base': b, 'records': recs}, open(f'{d}/w{wk}.json', 'w'), ensure_ascii=False)
+        # paged to the end, so the count is the read's own (I11)
+        json.dump({'base': b, 'records': recs, 'metadata': {'totalRecordCount': len(recs)}},
+                  open(f'{d}/w{wk}.json', 'w', encoding='utf-8'), ensure_ascii=False)
         print(f'w{wk}: {len(recs)} rows')
 
 
@@ -162,9 +177,9 @@ def check(a, L):
     span = lambda f: f.get('end datetime') or f.get('time spent')
     mins = lambda f: f['time spent'] / 60 if f.get('time spent') else \
         (ts(f['end datetime'], off) - ts(f['datetime'], off)).total_seconds() / 60
-    lat = {}
-    for f in sorted([f for f in wk if f.get('practice text') == '⚡ action'], key=lambda f: f['_c']):
-        lat[f.get('action key') or f['_id']] = f                     # I5
+    acts = [f for f in wk if f.get('practice text') == '⚡ action']
+    _, lat = resolve(acts, lambda f: f.get('action key'), lambda f: f.get('status'),
+                     lambda f: f['_c'], lambda f: f['_id'])          # I5, action rows only
     act = [f for f in lat.values() if f.get('status') in ('✅ done', '▶️ in motion') and span(f)]
     out['attention'] = f"{sum(1 for f in act if f.get('attention'))} of {len(act)}"
     zero = {p['fields']['practice'] for p in P if p['fields'].get('zero duration')}
@@ -184,19 +199,7 @@ def check(a, L):
                   (m[-1] if m else f.get('action', ''))[:90])
 
 
-# ── export ─────────────────────────────────────────────────────────────────
-def hers(d):
-    if not d:
-        return ''
-    parts = DIV.split(d)
-    keep = parts[0].strip()
-    for p in parts[1:]:                     # transcribed screen content survives
-        q = [l for l in p.splitlines() if l.startswith('>')]
-        if q:
-            keep += '\n\n' + '\n'.join(q)
-    return keep.strip()
-
-
+# ── export ──────────────────────────────────────────────────────────────────
 def export(a, L):
     off, days = tz(L), week_days(L, a.week)
     R = load(a.week, f'w{a.week}.json')['records']
@@ -212,7 +215,7 @@ def export(a, L):
                     key=lambda f: (ph.get((f.get('phase') or '🔆')[:1], 1),
                                    -ts(f['datetime'], off).timestamp()))
         for f in dr:
-            md.append(f"**{ts(f['datetime'], off):%-I:%M %p} · {f.get('status', '')} "
+            md.append(f"**{clock(ts(f['datetime'], off))} · {f.get('status', '')} "
                       f"{f.get('action', '').strip()}**")
             h = hers(f.get('details'))
             if h:
@@ -221,53 +224,78 @@ def export(a, L):
     src = os.path.join(out_dir(a.week), f'W{a.week}.md')
     open(src, 'w', encoding='utf-8').write('\n'.join(md))
     dst = os.path.join(out_dir(a.week), f'{title}.docx')
-    subprocess.run(['pandoc', src, '-o', dst], check=True)
-    print(dst, len(rows))
+    how = write_docx(src, dst)
+    print(dst, len(rows), f'({how})')
+
+
+# ── the audit: the week's rows through the entry check ─────────────────────
+REST_ROW = {'datetime': 'datetime', 'end': 'end datetime', 'time_spent': 'time spent',
+            'status': 'status', 'practice': 'practice text', 'key': 'action key',
+            'details': 'details', 'phase': 'phase', 'wellness': 'wellness area',
+            'emotion': 'emotion', 'attention': 'attention', 'device': 'device'}
+
+
+def audit(a, L):
+    """Rows of the week that already broke a written rule, counted by rule.
+    An observation: nothing is changed here."""
+    off, days = tz(L), week_days(L, a.week)
+    R = load(a.week, f'w{a.week}.json')['records']
+    by, examples = collections.Counter(), {}
+    for r in R:
+        f = r['fields']
+        if not f.get('datetime') or ts(f['datetime'], off).date() not in days:
+            continue
+        row = {k: f.get(v) for k, v in REST_ROW.items()}
+        for msg in problems(row, base_name=wname(L, a.week), utc_offset_hours=L['utc_offset_hours'],
+                            weekly_name=L.get('weekly_name', 'w{n} be•do')):
+            rule = msg.split(':')[0]
+            by[rule] += 1
+            examples.setdefault(rule, (r['id'], msg))
+    for rule, n in by.most_common():
+        print(f'{n:5}  {rule:12} e.g. {examples[rule][1]}')
+    print(f'{sum(by.values())} problem(s) across the week' if by else 'every row passes the entry check')
 
 
 # ── the split plan ─────────────────────────────────────────────────────────
-def plan(a, L):
-    off = tz(L)
-    new = a.week + 1
-    live = load(a.week, f'w{new}.json')
-    W = {r['id']: r for r in live['records']}
-    seen = {}
-    for wk in [new, a.week] + [a.week - i for i in range(1, L.get('archive_depth', 3) + 1)]:
+def _reads(a, L, weeks):
+    out = []
+    for wk in weeks:
         p = os.path.join(out_dir(a.week), f'w{wk}.json')
-        if not os.path.exists(p):
-            continue
-        for r in load(a.week, f'w{wk}.json')['records']:
-            seen.setdefault(r['id'], r)                                  # I15
-    old = {r['id'] for r in load(a.week, f'w{a.week}.json')['records']}
-    if set(W) != old:
-        die(f'record-id diff is not clean: {len(set(W) - old)} only new, {len(old - set(W))} only old')
-    chains = collections.defaultdict(list)
-    for r in seen.values():
-        k = r['fields'].get('action key')
-        if k:
-            chains[k].append(r)
-    head = {k: max(v, key=lambda r: (r['createdTime'], r['fields'].get('datetime', '')))
-            for k, v in chains.items()}                                  # I5
-    carry = {h['id'] for h in head.values() if h['fields'].get('status') in OPEN}
+        if os.path.exists(p):
+            out.append(p)
+    return out
+
+
+def plan(a, L):
+    new = a.week + 1
     first_new = week_days(L, new)[0]
-    newweek = lambda r: r['fields'].get('datetime') and ts(r['fields']['datetime'], off).date() >= first_new
-    keep = {i for i, r in W.items() if newweek(r)}
-    delete = sorted(set(W) - carry - keep)                               # I16
-    clone = a.clone or max(r['createdTime'] for r in W.values())
-    assert not any(W[i]['createdTime'] > clone for i in delete), 'a row created after the clone'
-    assert not any(newweek(W[i]) for i in delete), 'a row dated in the new week'
-    by = collections.Counter(W[i]['fields'].get('status') for i in carry if i in W)
-    res = {'base': live['base'], 'carry_in_base': len(carry & set(W)),
-           'carry_elsewhere': len(carry - set(W)), 'keep_new_week': len(keep),
-           'delete': len(delete), 'after': len(W) - len(delete), 'carry_by_status': by}
-    json.dump({'summary': res, 'delete_ids': delete}, open(
-        os.path.join(out_dir(a.week), 'split_plan.json'), 'w'), ensure_ascii=False, default=str)
-    print(json.dumps(res, ensure_ascii=False, default=str, indent=1))
+    archives = _reads(a, L, [a.week - i for i in range(1, L.get('archive_depth', 3) + 1)])
+    res = bedo_split.plan(os.path.join(out_dir(a.week), f'w{new}.json'),
+                          os.path.join(out_dir(a.week), f'w{a.week}.json'),
+                          archives, FIELDS, first_new, L['utc_offset_hours'], a.clone)
+    json.dump(res, open(os.path.join(out_dir(a.week), 'split_plan.json'), 'w', encoding='utf-8'),
+              ensure_ascii=False, indent=1)
+    summary = {k: (len(v) if isinstance(v, list) and k != 'reads' else v) for k, v in res.items()}
+    print(json.dumps(summary, ensure_ascii=False, indent=1))
+    if res['carry_elsewhere']:
+        print(f"{len(res['carry_elsewhere'])} open head(s) live only in an older base — re-carry "
+              'them into the new base (details verbatim, key kept), then run verify')
+
+
+def verify(a, L):
+    """After the clear: re-fetch, then every open chain across every base must
+    have an open row in the new base. Any non-media gap stops the close."""
+    new = a.week + 1
+    allb = _reads(a, L, [new, a.week] + [a.week - i for i in range(1, L.get('archive_depth', 3) + 1)])
+    gaps = bedo_split.verify_carry(os.path.join(out_dir(a.week), f'w{new}.json'), allb, FIELDS)
+    media = [g for g in gaps if g['media']]
+    print(f'carry-verify: every open chain is in w{new}'
+          + (f' ({len(media)} media row(s) left behind, by rule)' if media else ''))
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('step', choices=['fetch', 'backup', 'check', 'export', 'plan'])
+    ap.add_argument('step', choices=['fetch', 'backup', 'check', 'export', 'audit', 'plan', 'verify'])
     ap.add_argument('--week', type=int, required=True, help='the week being CLOSED')
     ap.add_argument('--clone', help='ISO time the new base was cloned; defaults to its newest row')
     a = ap.parse_args()

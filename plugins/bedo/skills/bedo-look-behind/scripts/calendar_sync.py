@@ -34,6 +34,14 @@ Nothing personal lives in this file.
 """
 import argparse, base64, json, re, sys, datetime as dt
 
+# The one reader (I11, I15, I5) lives in plugins/bedo/core. The runner copies it
+# beside this file; in the repo it is three folders up. Beside wins.
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__))
+for _p in (_os.path.join(_HERE, '..', '..', '..', 'core'), _HERE):
+    sys.path.insert(0, _os.path.normpath(_p))
+import bedo_reader  # noqa: E402
+
 KEYS = ('title', 'key', 'when', 'end', 'target', 'status', 'event', 'spent')
 # the status → calendar prefix map. A plan row is ⬜ until it happens.
 PREFIX = {'✅ done': '✅', '◉ done': '✅', '● log': '✅',
@@ -81,11 +89,7 @@ def decode_link(url):
 def load(paths, F, offset):
     seen = {}
     for p in paths:  # live base first (I15)
-        d = read_dump(p)
-        n, tot = len(d['records']), d.get('metadata', {}).get('totalRecordCount')
-        if tot is None or n != tot:
-            die(f'{p}: {n} of {tot} records — a truncated read is not a read (I11)')
-        for r in d['records']:
+        for r in bedo_reader.complete(read_dump(p), p):  # I11, the one reader
             if r['id'] in seen:
                 continue
             c = r['cellValuesByFieldId']
@@ -94,7 +98,7 @@ def load(paths, F, offset):
             seen[r['id']] = row
     chains = {}
     for r in seen.values():
-        chains.setdefault(r['key'] or r['id'], []).append(r)
+        chains.setdefault(bedo_reader.chain_key(r['key'], r['status'], r['id']), []).append(r)
     latest = {}
     for k, ch in chains.items():
         ch.sort(key=lambda r: r['created'])

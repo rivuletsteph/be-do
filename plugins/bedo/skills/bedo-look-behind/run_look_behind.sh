@@ -54,6 +54,7 @@ if [ "$MODE" = prep ]; then
   git clone -q --depth 1 https://github.com/rivuletsteph/be-do be-do-main
   S=be-do-main/plugins/bedo/skills/bedo-look-behind
   rm -rf scripts && cp -r $S/scripts . && cp $S/assets/look_behind_engine.html .
+  cp be-do-main/plugins/bedo/core/*.py be-do-main/plugins/bedo/core/facts.json scripts/   # the one reader (I11 I15 I5)
   # an escape hatch: anything in overlay/ wins over the version store for this run
   if [ -d overlay ]; then cp overlay/*.py scripts/ 2>/dev/null || true
     cp overlay/look_behind_engine.html . 2>/dev/null || true; fi

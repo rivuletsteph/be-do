@@ -10,6 +10,21 @@ together, so a skill runs in any project or none.
 | the day behind | `bedo-look-behind` | `look_behind_local.json` |
 | the monthly ahead-review | `bedo-ahead-review` | `ahead_review_local.json` |
 
+## V53 — the rules in code
+
+The master instructions are now three things, not one long document
+(`docs/v53-crosswalk.md` places every V52 section and amendment):
+
+| what | where |
+|---|---|
+| the invariants, enforced and tested | `plugins/bedo/core` — `bedo_reader` (I11 · I15 · I5), `bedo_entry` (the entry check), `bedo_split` (I16 and the carry-verify), `bedo_export` |
+| strings, glyphs, thresholds | `plugins/bedo/core/facts.json` ships; `facts_local.json` holds one person's ids and is gitignored (`facts_local.example.json` is its shape) |
+| what needs judgment | `docs/v53-judgment.md` — also the text for the claude.ai project's instructions |
+
+Every builder and `plugins/bedo/close/close.py` read the stream through
+`bedo_reader`; the runners copy the core beside their scripts. All tests, one
+command: `PYTHONUTF8=1 python tools/run_tests.py`.
+
 This repository is the version store: skill work happens here and nowhere else,
 and the settings files in the table above are gitignored — they hold one
 person's own ids and never ship.

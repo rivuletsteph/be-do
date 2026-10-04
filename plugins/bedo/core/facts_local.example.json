@@ -1,0 +1,30 @@
+{
+ "_about": "Copy to facts_local.json (gitignored) and fill in. Every id is the live base's; none ships.",
+ "weekly_name": "w{n} be•do",
+ "stream_table": "tbl…",
+ "utc_offset_hours": -5,
+ "time_zone": "Area/City",
+ "stream_fields": {
+  "datetime": "fld…", "end": "fld…", "time_spent": "fld…", "status": "fld…",
+  "title": "fld…", "details": "fld…", "phase": "fld…", "wellness": "fld…",
+  "emotion": "fld…", "emotion_word": "fld…", "attention": "fld…", "target": "fld…",
+  "key": "fld…", "practice": "fld…", "person": "fld…", "mentioned": "fld…",
+  "rhythm": "fld…", "waiting_on": "fld…", "deliverable": "fld…", "queue": "fld…",
+  "quickie": "fld…", "promote": "fld…", "device": "fld…", "chat": "fld…",
+  "calendar_event": "fld…", "photo": "fld…"
+ },
+ "bases": {
+  "amendments": ["app…", "tbl…"],
+  "practices": ["app…", "tbl…"],
+  "connections": ["app…", "tbl…"],
+  "emotions": ["app…", "tbl…"],
+  "rhythms": ["app…", "tbl…"],
+  "supplies": ["app…", "tbl…"],
+  "recipes": ["app…", "tbl…"],
+  "stories": ["app…", "tbl…"],
+  "places": ["app…", "tbl…"]
+ },
+ "people": {"self": "", "kid": "", "partner": ""},
+ "quest_practice": "",
+ "system_rhythm": "be•do"
+}
