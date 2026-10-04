@@ -11,13 +11,15 @@ document.documentElement.setAttribute("data-bedo",q?(/dark|night/.test(q[1])?"ni
 /* be•do's now palette (plugins/bedo/assets/now-palette.css), 3 Oct 2026 — brick for work
    (growing, drives), ochre for home (tending), teal for rest (being, links); warm neutrals
    for the rest. Day is the default; night follows the phone. The wheel's eight and the
-   feeling colours are meaning, not chrome, and keep their own hues. */
+   feeling colours are meaning, not chrome, and keep their own hues. The pie's slices and the
+   circles take the palette's neighbours and opposites (the colour guide's groups 3 and 4), and
+   the marks on a card are drawn as on the day ahead, 3 Oct 2026. */
 :root{
-  --ground:#F8F2EF; --ink:#3F3331; --soft:#5E504C; --muted:#8D7E79; --faint:#A89894; --rule:#ECDDD8; --tint:#FCFAF8; --link:#3E6E6F; --be:#4F8A8B; --tend:#D4A055; --grow:#BE5B50; --grow-ink:#A04A40; --do-ink:#A04A40; --be-ink:#3E6E6F; --core-rim:#ECDDD8; color-scheme:light;
+  --ground:#F8F2EF; --ink:#3F3331; --soft:#5E504C; --muted:#8D7E79; --faint:#A89894; --rule:#ECDDD8; --tint:#FCFAF8; --link:#3E6E6F; --be:#4F8A8B; --tend:#D4A055; --grow:#BE5B50; --grow-ink:#A04A40; --do-ink:#A04A40; --be-ink:#3E6E6F; --core-rim:#ECDDD8; --mark:#BE5B50; --bolt:#D4A055; --pie-bed:#5A7184; --pie-move:#607456; --pie-food:#C47A4A; --pie-travel:#D4A055; --pie-dev:#BE5B50; --pie-log:#4F8A8B; --pie-else:#D9C6C0; --c0:#BE5B50; --c1:#D4A055; --c2:#B77466; --c3:#C47A4A; --c4:#607456; --c5:#4F8A8B; --c6:#5A7184; --cfall:#8D7E79; color-scheme:light;
   --sans:"Manrope","Segoe UI",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
 }
-html[data-bedo="night"]{ --ground:#1B1A1F; --ink:#EDE4E0; --soft:#D3C8C3; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --tint:#262228; --link:#8CC3C3; --be:#8CC3C3; --tend:#E3BB77; --grow:#BE5B50; --grow-ink:#F0A79E; --do-ink:#F0A79E; --be-ink:#8CC3C3; --core-rim:#EDE4E0; color-scheme:dark; }
-html:not([data-bedo]){ --ground:#1B1A1F; --ink:#EDE4E0; --soft:#D3C8C3; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --tint:#262228; --link:#8CC3C3; --be:#8CC3C3; --tend:#E3BB77; --grow:#BE5B50; --grow-ink:#F0A79E; --do-ink:#F0A79E; --be-ink:#8CC3C3; --core-rim:#EDE4E0; color-scheme:dark; }
+html[data-bedo="night"]{ --ground:#1B1A1F; --ink:#EDE4E0; --soft:#D3C8C3; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --tint:#262228; --link:#8CC3C3; --be:#8CC3C3; --tend:#E3BB77; --grow:#BE5B50; --grow-ink:#F0A79E; --do-ink:#F0A79E; --be-ink:#8CC3C3; --core-rim:#EDE4E0; --mark:#E08A7F; --bolt:#E3BB77; --pie-bed:#93A9BC; --pie-move:#93A688; --pie-food:#D9946A; --pie-travel:#E3BB77; --pie-dev:#BE5B50; --pie-log:#8CC3C3; --pie-else:#5A4E4E; --c0:#E08A7F; --c1:#E3BB77; --c2:#D29486; --c3:#D9946A; --c4:#93A688; --c5:#8CC3C3; --c6:#93A9BC; --cfall:#A3958F; color-scheme:dark; }
+html:not([data-bedo]){ --ground:#1B1A1F; --ink:#EDE4E0; --soft:#D3C8C3; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --tint:#262228; --link:#8CC3C3; --be:#8CC3C3; --tend:#E3BB77; --grow:#BE5B50; --grow-ink:#F0A79E; --do-ink:#F0A79E; --be-ink:#8CC3C3; --core-rim:#EDE4E0; --mark:#E08A7F; --bolt:#E3BB77; --pie-bed:#93A9BC; --pie-move:#93A688; --pie-food:#D9946A; --pie-travel:#E3BB77; --pie-dev:#BE5B50; --pie-log:#8CC3C3; --pie-else:#5A4E4E; --c0:#E08A7F; --c1:#E3BB77; --c2:#D29486; --c3:#D9946A; --c4:#93A688; --c5:#8CC3C3; --c6:#93A9BC; --cfall:#A3958F; color-scheme:dark; }
 *{box-sizing:border-box}
 body{background:var(--ground);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
 .wrap{max-width:620px;margin:0 auto;padding-block:32px 48px;padding-inline:16px;display:flex;flex-direction:column}
@@ -74,6 +76,16 @@ li{display:grid;grid-template-columns:1.9rem 1fr;align-items:baseline}
 .bydrive .mo{font-size:.72rem;color:var(--muted)}
 .bydrive .min{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
 .ecard .ttl{font-weight:600;font-size:.98rem;line-height:1.35;flex:1 1 100%;min-width:0}
+.gl{display:inline-flex;align-items:center;gap:3px;vertical-align:-2px;margin-right:7px}
+.gl .st{width:13px;height:13px;border-radius:4px;box-sizing:border-box;display:inline-grid;place-items:center;flex:none}
+.gl .st.int{border:1.75px solid var(--mark)}
+.gl .st.pot{border:1.5px dashed var(--faint)}
+.gl .st.mot{background:var(--mark)}
+.gl .st.mot::after{content:"";border-left:5px solid var(--tint);border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;margin-left:1px}
+.gl .st.don{background:var(--be)}
+.gl .st.don::after{content:"";width:3px;height:6px;border:solid var(--tint);border-width:0 1.75px 1.75px 0;transform:translate(0,-1px) rotate(45deg)}
+.gl .st.drp{border:1.5px solid var(--faint);background:linear-gradient(45deg,transparent 44%,var(--faint) 44% 56%,transparent 56%)}
+.gl .bolt{width:11px;height:14px;flex:none;fill:var(--bolt)}
 .ecard .ttl a,.ecard .tt a.evl{margin-left:6px;text-decoration:none}
 .ecard .ttl a{font-family:var(--mono);font-size:.7rem;font-weight:500;color:var(--link)}
 .ecard .ttl a.evl,.ecard .tt a.evl{font-size:.95rem;font-family:inherit}
@@ -155,6 +167,9 @@ details.wheel summary:focus-visible{outline:2px solid var(--link);outline-offset
 .pie path.gapw{fill:var(--ground);stroke:var(--muted);stroke-width:1.2;stroke-dasharray:3 3}
 .psw.gapsw{border:1.5px dashed var(--muted)}
 .psw.hat{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.55) 0 2px,transparent 2px 5px)!important}
+.pie path.est{fill-opacity:.38}
+.psw.dev{background-color:var(--soft);background-image:repeating-linear-gradient(45deg,var(--ground) 0 2px,transparent 2px 5px)}
+.plg li.devrow{border-bottom:1px solid var(--rule);margin-bottom:4px;padding-bottom:4px}
 .tile.miss{box-shadow:inset 3px 0 0 var(--grow)}.tile .st{font-size:.7rem;font-weight:700;margin-left:6px}
 .pn{font-weight:700;font-size:.92rem}.pw{display:block;color:var(--muted);font-size:.76rem;font-weight:500}
 .ph{font-weight:800;font-size:.88rem;font-variant-numeric:tabular-nums}
@@ -247,7 +262,7 @@ if (DRAFT.lead || DRAFT.story) {
 // who was in your day — grouped by first circle, sized by rows shared (25 Sep 2026)
 {
   // circles are coloured by their position in circleOrder, so no circle name lives in the engine
-  const CPAL = ["#5B8DEF","#A77BEA","#E8A13A","#2FA39A","#E0703E","#4E9E62","#9B95AB"], CFALL = "#9B95AB";
+  const CPAL = [0,1,2,3,4,5,6].map(i => `var(--c${i})`), CFALL = "var(--cfall)";
   const order = [...(DATA.circleOrder||[]), ""], groups = {};
   DATA.who.forEach(p => (groups[p.circle] = groups[p.circle] || []).push(p));
   const max = Math.max(1, ...DATA.who.map(p => p.n || 1));
@@ -287,6 +302,12 @@ document.getElementById("balnote").textContent = B.note;
 // the day, entry by entry — routine sinks to chips, signal rises to cards.
 // Clicking a domain on the wheel shows only that domain's entries (25 Sep 2026).
 let ENTRY_FILTER = "";
+const glyph = (st, bolt) => {
+  const k = {"\u2B1C":"int","\u25AB\uFE0F":"pot","\u25B6\uFE0F":"mot","\u2705":"don","\u2716\uFE0F":"drp"}[String(st||"\u2705").trim()] || "don";
+  const nm = {int:"intention",pot:"potential",mot:"in motion",don:"done",drp:"dropped"}[k];
+  return `<span class="gl" title="${nm}${bolt ? " \u00B7 action" : ""}"><span class="st ${k}"></span>` +
+    (bolt ? `<svg class="bolt" viewBox="0 0 11 14" aria-hidden="true"><path d="M6.6 0 0 8h4.2L3.4 14 11 5.6H6.6z"/></svg>` : "") + `</span>`;
+};
 function renderEntries() {
   if (!DATA.entries) return;
   const EMO = {"\u{1F7E1}":"#F2C94C","\u{1F7E2}":"#6FCF97","\u{1F534}":"#EB5757","\u{1F535}":"#4C7BD9","⚪":"#BDBDBD"};
@@ -303,7 +324,8 @@ function renderEntries() {
     const links = (e.url ? `<a href="${esc(e.url)}">↗ link</a>` : "") + (e.ev ? `<a class="evl" href="${esc(e.ev)}" title="open on the calendar">\u{1F5D3}\uFE0F</a>` : "");
     // an action reads ✅ ⚡ and what it was; a meeting reads ✅ and its calendar line, with 🗓️ linking to it
     // the check, the ⚡ and the title read as one line of text, so a long title wraps under itself, not beside the marks
-    const lead = needsDrive ? `<span class="ttl">${e.st} ${e.cal ? "" : e.g + " "}${esc(e.t)}${links}</span>`
+    // the status and the ⚡ are drawn, as on the day ahead (3 Oct 2026); a meeting carries its status alone
+    const lead = needsDrive ? `<span class="ttl">${glyph(e.st, !e.cal)}${esc(e.t)}${links}</span>`
                             : `<span>${e.st}</span><span>${e.g}</span><span class="pn">${esc(e.p)}</span>`;
     // start and end stacked in the narrow left column
     const at = e.span ? e.span.split("\u2013").map(esc).join("<br>") : esc(e.at);
@@ -368,8 +390,8 @@ const order = Object.keys(DOM).sort((x,y)=>B.domains[y]-B.domains[x]); // longes
 for (const k of order) { const v = B.domains[k]||0, cap = (w+5)/2, L = Math.max(rOf(v/vtot) - cap, 0.01), [x,y] = wpt(DOM[k].a, L); // the rounded tip lands exactly on the value
   svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${DOM[k].d}" stroke-width="${w+5}" stroke-linecap="round"/>`;
   svg += `<line data-k="${k}" class="wk" x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${DOM[k].c}" stroke-width="${w}" stroke-linecap="round"><title>${k} ${Math.round(v)} · click to see its entries</title></line>`; }
-svg += `<defs><radialGradient id="dwarf"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EDEBFF"/></radialGradient>
-<radialGradient id="halo"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".95"/><stop offset=".35" stop-color="#F3F0FF" stop-opacity=".55"/><stop offset="1" stop-color="#E4DEFF" stop-opacity="0"/></radialGradient></defs>
+svg += `<defs><radialGradient id="dwarf"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F5ECE8"/></radialGradient>
+<radialGradient id="halo"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".95"/><stop offset=".35" stop-color="#F8F2EF" stop-opacity=".55"/><stop offset="1" stop-color="#ECDDD8" stop-opacity="0"/></radialGradient></defs>
 <circle cx="${cx}" cy="${cy}" r="24" fill="url(#halo)"/><circle cx="${cx}" cy="${cy}" r="8" fill="url(#dwarf)" stroke="var(--core-rim)" stroke-width=".8"/>`;
 for (const k in DOM) { const [x,y] = wpt(DOM[k].a, 114); svg += wicon(k, +x, +y, 17); }
 svg += `</svg>`;
@@ -411,28 +433,35 @@ const set = DATA.intentions.length, met = DATA.intentions.filter(i=>i.glyph==="\
 document.getElementById("ftn").textContent = `${met} of ${set} met` + (car ? ` \u00B7 ${car} carried` : "");
 
  
-// how the day went: midnight to midnight. Each slice is solid for logged minutes and striped where the minutes are estimated from the day's rows.
+// how the day went: midnight to midnight. Each slice is solid for minutes logged off a device, hatched for minutes
+// on a device, and faded where the minutes are estimated (the user's word, 3 Oct 2026: time on a device made explicit).
+// each slice wears the palette by its key; a slice the palette doesn't name keeps the settings' colour
+DATA.pie.forEach(d => { if (["bed","move","food","travel","dev","log","else"].includes(d.k)) d.c = `var(--pie-${d.k})`; });
 const PIE = DATA.pie, fmtm = m => { m=Math.round(m); const h=Math.floor(m/60), r=m%60; return h ? (r ? `${h} h ${String(r).padStart(2,"0")}` : `${h} h`) : `${r} min`; };
 // the pie's accessible name is the day it is drawing, not the day it was built on
 document.getElementById("pieT").textContent = `${DATA.date} · 24 hours`;
 { const used = PIE.reduce((a,d)=>a+d.logged+d.est,0); PIE.forEach(d=>{ if(d.rest) d.est = 1440-used; d.m = d.logged+d.est; });
   const R=100, r=58, pp=(a,rad)=>[rad*Math.sin(a),-rad*Math.cos(a)]; let a0=0; const g=document.getElementById("slices");
-  const arc=(d,m,est)=>{ if(m<=0) return; const a1=a0+m/1440*2*Math.PI, big=a1-a0>Math.PI?1:0, [x0,y0]=pp(a0,R),[x1,y1]=pp(a1,R),[x2,y2]=pp(a1,r),[x3,y3]=pp(a0,r);
+  // kind: "" logged off a device · "dev" logged on a device (hatched) · "est" estimated (faded)
+  const arc=(d,m,kind)=>{ if(m<=0) return; const a1=a0+m/1440*2*Math.PI, big=a1-a0>Math.PI?1:0, [x0,y0]=pp(a0,R),[x1,y1]=pp(a1,R),[x2,y2]=pp(a1,r),[x3,y3]=pp(a0,r);
     const el=document.createElementNS("http://www.w3.org/2000/svg","path");
     el.setAttribute("d",`M${x0} ${y0}A${R} ${R} 0 ${big} 1 ${x1} ${y1}L${x2} ${y2}A${r} ${r} 0 ${big} 0 ${x3} ${y3}Z`); el.style.fill=d.c; el.dataset.k=d.k;
-    if(est && !d.rest) el.setAttribute("mask","url(#hatchmask)");
-    const t=document.createElementNS("http://www.w3.org/2000/svg","title"); t.textContent=`${d.n}: ${fmtm(m)}${est&&!d.rest?" estimated":""}`; el.appendChild(t); g.appendChild(el); a0=a1; };
-  PIE.forEach(d=>{ arc(d,d.logged,false); arc(d,d.est,true); });
+    if(kind==="dev"){ el.setAttribute("mask","url(#hatchmask)"); el.dataset.dev="1"; }
+    if(kind==="est" && !d.rest) el.classList.add("est");
+    const t=document.createElementNS("http://www.w3.org/2000/svg","title"); t.textContent=`${d.n}: ${fmtm(m)}${kind==="dev"?" on a device":kind==="est"&&!d.rest?" estimated":""}`; el.appendChild(t); g.appendChild(el); a0=a1; };
+  PIE.forEach(d=>{ const dv=Math.min(d.dev||0,d.logged); arc(d,d.logged-dv,""); arc(d,dv,"dev"); arc(d,d.est,"est"); });
   const lg=document.getElementById("plg");
-  lg.innerHTML=PIE.map(d=>`<li><button type="button" data-k="${d.k}" aria-pressed="false"><span class="psw" style="background:${d.c}"></span><span><span class="pn">${d.e?d.e+" ":""}${esc(d.n)}</span><span class="pw">${esc(d.w)}</span>${d.rest?"":`<span class="pw">${fmtm(d.logged)} logged${d.est?` · ${fmtm(d.est)} estimated`:""}</span>`}</span><span class="ph">${fmtm(d.m)}</span></button></li>`).join("");
+  const DV = DATA.pieDevice || {min: PIE.reduce((a,d)=>a+(d.dev||0),0), rows: []};
+  const devli = DV.min ? `<li class="devrow"><button type="button" data-k="__dev" aria-pressed="false"><span class="psw dev"></span><span><span class="pn">\u{1F4F1} On a device</span><span class="pw">${esc((DV.rows||[]).join(", "))}</span><span class="pw">hatched, in whichever slice it falls</span></span><span class="ph">${fmtm(DV.min)}</span></button></li>` : "";
+  lg.innerHTML=devli+PIE.map(d=>`<li><button type="button" data-k="${d.k}" aria-pressed="false"><span class="psw" style="background:${d.c}"></span><span><span class="pn">${d.e?d.e+" ":""}${esc(d.n)}</span><span class="pw">${esc(d.w)}</span>${d.rest?"":`<span class="pw">${fmtm(d.logged)} logged${d.dev?` · ${fmtm(d.dev)} on a device`:""}${d.est?` · ${fmtm(d.est)} estimated`:""}</span>`}</span><span class="ph">${fmtm(d.m)}</span></button></li>`).join("");
   const pie=document.getElementById("pie"), cv=document.getElementById("cVal"), cl=document.getElementById("cLab"); let cur=null;
   const idle=()=>{ cv.textContent="24 h"; cl.textContent="the whole day"; }; idle();
-  const focus=k=>{ cur=(k===cur)?null:k; pie.classList.toggle("focus",!!cur); g.querySelectorAll("path").forEach(p=>p.classList.toggle("on",p.dataset.k===cur));
+  const focus=k=>{ cur=(k===cur)?null:k; pie.classList.toggle("focus",!!cur); g.querySelectorAll("path").forEach(p=>p.classList.toggle("on",cur==="__dev"?p.dataset.dev==="1":p.dataset.k===cur));
     lg.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.k===cur))); const d=PIE.find(x=>x.k===cur);
-    if(d){ cv.textContent=fmtm(d.m); cl.textContent=d.n.toLowerCase(); } else idle(); };
+    if(cur==="__dev"){ cv.textContent=fmtm(DV.min); cl.textContent="on a device"; } else if(d){ cv.textContent=fmtm(d.m); cl.textContent=d.n.toLowerCase(); } else idle(); };
   g.addEventListener("click",e=>{const p=e.target.closest("path"); if(p) focus(p.dataset.k);});
   lg.addEventListener("click",e=>{const b=e.target.closest("button"); if(b) focus(b.dataset.k);});
   const est=PIE.filter(d=>!d.rest).reduce((a,d)=>a+d.est,0);
-  document.getElementById("unl").textContent=`Striped is estimated: ${fmtm(est)}, the median of your own past rows for that practice. Solid is logged.`; }
+  document.getElementById("unl").textContent=`Hatched is on a device: ${fmtm(DV.min)}. Faded is estimated: ${fmtm(est)}, from your own typical times. Solid is logged, off a device.`; }
 document.getElementById("foot").textContent = DATA.read + ((DRAFT.lead || DRAFT.story) ? " · " + [DRAFT.lead && "lead", DRAFT.story && "story"].filter(Boolean).join(" and ") + " drafted, not yet edited" : "");
 </script>
