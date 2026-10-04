@@ -127,5 +127,7 @@ def read_day(air, local, day, names=None):
 
 
 def read_catalog(air, local):
+    """The practices catalog, keyed the way facts_local names its fields: by id
+    when it lists practices_fields (as a connector read is), else by name."""
     base, table = local['bases']['practices']
-    return air.dump(base, table)
+    return air.dump(base, table, by_id=bool(local.get('practices_fields')))
