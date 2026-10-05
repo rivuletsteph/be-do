@@ -4,8 +4,10 @@ returned instead, so the turn pastes it rather than composes it (A219).
 
   A8 · A219  the chat-name line, fully formed, is the FIRST line it prints,
              alone: status, date, day emoji, the mark, the week number, the
-             kind, and the chat's letter when the day has more than one (A, B…
-             since 4 Oct 2026; they sort, P1 P2 did not).
+             kind, and the chat's letter when the day has more than one —
+             lowercase, right after the date, so the titles sort and stay one
+             width: ▶️1004c ☀️ Sun 𖡎 W41 🔆 my day (her word, 4 Oct 2026;
+             replaces P1 P2 at the end).
              Week number and day emoji are derived, never copied forward —
              seven daily titles once carried a wrong week.
   I12 · A83  the clock: a chat's sense of the date is a memory of when it
@@ -32,17 +34,19 @@ WITHIN = FACTS['preflight']['newest_row_within_hours']
 
 
 def chat_name(day, kind='day', part=None, status=FACTS['chat_status']['moving'], week=None):
-    """The fixed-width title line. A day: ▶️1004 ☀️ Sun 𖡎 W41 🔆 my day.
+    """The fixed-width title line. A day: ▶️1004 ☀️ Sun 𖡎 W41 🔆 my day, or
+    ▶️1004c ☀️ Sun 𖡎 W41 🔆 my day for its third chat.
     A week: ▶️𖡎 my week W40 — titled by the week under review, so give
     `week` when the close runs in the next one. `part` is the chat's letter
     when its day or week has more than one; a number is turned into one."""
     if isinstance(part, int):
         part = chr(ord('A') + part - 1)
-    p = f' {part.upper()}' if part else ''
     if kind == 'week':
+        p = f' {part.upper()}' if part else ''      # a week keeps its letter at the end until she says otherwise
         return f'{status}{MARK} my week W{week or week_number(day)}{p}'
     d3 = DAY3[day.weekday()]
-    return f'{status}{day:%m%d} {FACTS["day_emoji"][d3]} {d3} {MARK} W{week_number(day)} 🔆 my day{p}'
+    p = part.lower() if part else ''
+    return f'{status}{day:%m%d}{p} {FACTS["day_emoji"][d3]} {d3} {MARK} W{week_number(day)} 🔆 my day'
 
 
 def clock(local, now=None):
@@ -122,7 +126,7 @@ def main(argv=None):
     ap.add_argument('--bases', help='a JSON map of base name to id')
     ap.add_argument('--stream', help='a complete read of the live base\'s stream')
     ap.add_argument('--kind', choices=['day', 'week'], default='day')
-    ap.add_argument('--part', help="the chat's letter when the day has more than one: A, B…")
+    ap.add_argument('--part', help="the chat's letter when the day has more than one: a, b, c…")
     ap.add_argument('--week', type=int, help='the week under review, for a my week chat')
     ap.add_argument('--handoff', help='the week\'s handoff file')
     a = ap.parse_args(argv)
