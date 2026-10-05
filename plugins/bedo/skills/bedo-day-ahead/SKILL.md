@@ -274,16 +274,16 @@ the user. A project with no named next step is the defect.
 1. **The date**, with ⏏️ beside it when the base is secure — a small emoji,
    no callout. Anything other than secure gets one line under it, in the
    user's words.
-2. **Past its date, at the top** — every open row past its target, oldest
-   first, never folded away (see `overdue` above). Empty when the morning's
-   answers are in.
-3. **This week's word.**
-4. **Today on the calendar** — every event as the calendar shows it
+2. **This week's word.**
+3. **Today on the calendar** — every event as the calendar shows it
    (its own title and glyphs, start and end, a 🗓️ link), in the day behind's
    event cards, with its drive underneath. A child's calendar gets the ochre
    edge.
-5. **Your intentions** — only the slots the user named, in their words; three
+4. **Your intentions** — only the slots the user named, in their words; three
    empty slots before they name any.
+5. **Past its date** — every open row past its target, oldest first, never
+   folded away (see `overdue` above), right after the intentions. Empty when
+   the morning's answers are in.
 6. **After the calendar** — at most `max_tasks` (10) action cards: be•do's
    picks first, then what is due within `task_horizon_days` (7), never a row
    already on today's calendar. Each card: the date on the left (`today`, or

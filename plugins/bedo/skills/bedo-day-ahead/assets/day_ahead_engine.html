@@ -169,16 +169,6 @@ page.append($(`<header>
   ${D.secure&&D.secure.state!=='secure'?`<p class="sbx">⏏️ ${esc(D.secure.state)}${D.secure.words?' — '+esc(D.secure.words):''}</p>`:''}
   <p class="lead">${esc(D.lead)}</p></header>`));
 
-/* past its date — at the top, never folded away: each one needs the user's word
-   (5 Oct 2026: "when they're past the date they arguably need to go up at the top") */
-if (D.overdue && D.overdue.length){
-  const n = D.overdue.length;
-  const sec = $(`<section class="pastdue"><h2>past its date</h2><p class="sub">${n} ${n===1?'thing needs':'things need'} your word — done, a new date, or drop · oldest first</p><ul class="list"></ul></section>`);
-  const ul = sec.querySelector('ul');
-  D.overdue.forEach(s=>ul.append($(`<li><span class="d past">${esc(short(s.date))}<span class="late">${s.late} ${s.late===1?'day':'days'}</span></span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}<span class="resolve"><span>done</span><span>new date</span><span>drop</span></span></span></li>`)));
-  page.append(sec);
-}
-
 /* word + secure base */
 if (D.word) page.append($(`<section class="frame">
   ${D.word?`<div class="word"><div class="k">this week's word</div><div class="w">${esc(D.word.word)}</div>${D.word.words&&D.word.words.replace(/[.\s]+$/,'').toLowerCase()!==D.word.word.toLowerCase()?`<q>${esc(D.word.words)}</q>`:''}</div>`:''}
@@ -205,6 +195,16 @@ page.append($(`<section><h2>your intentions</h2><p class="sub">${named?'named by
   <div class="slots" style="grid-template-columns:repeat(${named||3},1fr)">${(named?D.intentions.filter(Boolean):D.intentions).map((v,i)=>v?`<div class="slot" style="color:var(--ink);border-style:solid"><b style="color:var(--accent)">${i+1}</b>${esc(v)}</div>`:`<div class="slot"><b>${i+1}</b>open</div>`).join('')}</div></section>`));
 
 
+
+/* past its date — after the intentions, never folded away: each one needs the user's word
+   (5 Oct 2026: up from below the task list, then placed after the intentions) */
+if (D.overdue && D.overdue.length){
+  const n = D.overdue.length;
+  const sec = $(`<section class="pastdue"><h2>past its date</h2><p class="sub">${n} ${n===1?'thing needs':'things need'} your word — done, a new date, or drop · oldest first</p><ul class="list"></ul></section>`);
+  const ul = sec.querySelector('ul');
+  D.overdue.forEach(s=>ul.append($(`<li><span class="d past">${esc(short(s.date))}<span class="late">${s.late} ${s.late===1?'day':'days'}</span></span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}<span class="resolve"><span>done</span><span>new date</span><span>drop</span></span></span></li>`)));
+  page.append(sec);
+}
 
 /* after the calendar — the day behind's action cards: status ⚡ title, the drive underneath,
    the date on the left (red once it has passed); be•do's picks first, never more than max_tasks */
