@@ -13,17 +13,18 @@ only where nothing can execute, and then copy the same shape.
 | when | command | what the chat does with it |
 |---|---|---|
 | the first reply of every be•do chat | `preflight` | line one is the chat's title — put it alone, first, in a code box. Then the clock and the base. A `STOP` means no read or write until the base is right |
-| every reply while a flow is open | `remaining` | print it as it comes: the block, then the one line. `--voice` for one spoken line |
+| every reply while a flow is open | `remaining --widget` | hand the HTML to the widget tool exactly as printed — her pill strip (A237). Where a widget can't render, `remaining` prints the block and the one line; `--voice` gives one spoken line |
 | before any stream write | `entry row.json` | write only rows that print `ok`; fix every `FIX` first |
 | before the dusk close row | `dusk` | do the fixes it names; ask her only what is hers, as one list; the flag line goes after the close |
 | a session entry | `stretches FILE` | the time spent is the sum it prints, and the stretches are named in the `[be•do]` block |
+| the weekly close | `order --json` | her predicted order: each flow practice's typical time from the last weeks of her rows (dawn as minutes after waking, dusk as clock time). Write the printed updates to the catalog's `typical time` field with the connector |
 
 ## Running it
 
 ```
 bash run_checks.sh preflight                 # my day; --part B when the day already has a chat
 bash run_checks.sh preflight --kind week --week 40
-bash run_checks.sh remaining                 # the open flow; --flow dawn|dusk to name one
+bash run_checks.sh remaining --widget        # the open flow as her pill strip; --flow dawn|dusk to name one
 bash run_checks.sh dusk                      # today; --date YYYY-MM-DD for another day
 bash run_checks.sh entry row.json --base "w41 be•do"
 bash run_checks.sh stretches transcript.jsonl
