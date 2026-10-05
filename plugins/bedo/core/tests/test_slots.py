@@ -5,7 +5,8 @@ rule actually broke. Every row is invented; the shapes are the base's.
 
     python3 plugins/bedo/core/tests/test_slots.py
 """
-import datetime as dt, json, os, sys, tempfile, unittest
+import datetime as dt, json, os, sys, tempfile, unittest, urllib.error
+from unittest import mock
 
 CORE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, CORE)
@@ -14,6 +15,7 @@ import bedo_preflight as P  # noqa: E402
 import bedo_remaining as RL  # noqa: E402
 import bedo_stretches as ST  # noqa: E402
 import bedo_dusk_audit as D  # noqa: E402
+import bedo_air as A  # noqa: E402
 
 F = R.FACTS
 ACTION, CAPTURE = F['practice']['action'], F['practice']['capture']
@@ -240,6 +242,23 @@ class Preflight(unittest.TestCase):
                               [row('☕ coffee', '2026-10-04 07:30')], at('2026-10-04 08:00'))
         self.assertFalse(stop)
         self.assertEqual(text.splitlines()[0], P.chat_name(dt.date(2026, 10, 4)))   # line one, nothing else
+
+
+# ── the live read ──────────────────────────────────────────────────────────
+class LiveRead(unittest.TestCase):
+    def test_a_cloud_flag_without_a_credential_is_no_token(self):
+        # 4 Oct: Cowork sets the cloud flag but carries no credential; preflight
+        # stopped on a 401 instead of saying to read through the connector.
+        refused = urllib.error.HTTPError(A.API + 'meta/bases', 401, 'Unauthorized', {}, None)
+        with mock.patch.dict(os.environ, {'CLAUDE_CODE_REMOTE': 'true'}),                 mock.patch.object(A, 'find_token', return_value=None),                 mock.patch('urllib.request.urlopen', side_effect=refused):
+            self.assertFalse(A.can_read())
+            with self.assertRaises(SystemExit) as e:
+                A.Air().get('meta/bases')
+            self.assertIn('NO TOKEN HERE', str(e.exception))
+
+    def test_a_token_is_enough(self):
+        with mock.patch.object(A, 'find_token', return_value='pat'):
+            self.assertTrue(A.can_read())
 
 
 # ── the dusk audit ─────────────────────────────────────────────────────────
