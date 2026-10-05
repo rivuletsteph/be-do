@@ -107,6 +107,8 @@ elif [ "$MODE" = build ]; then
   ls data/w*.json >/dev/null 2>&1 || { echo "no data/w*.json — run prep (or fetch) first"; exit 1; }
   STREAMS=$(ls -r data/w*.json | sed 's/^/--stream /' | tr '\n' ' ')
   SEC_ARGS=(); [ -n "$SECURE" ] && SEC_ARGS=(--secure "$SECURE")
+  # the practices catalog, when the settings name it: a practice with a cadence is drawn on its day
+  [ -f data/practices.json ] && SEC_ARGS+=(--practices data/practices.json)
   "$PY" scripts/day_ahead.py --today "$DAY" --local day_ahead_local.json $STREAMS \
     --rhythms data/rhythms.json --calendar cal.json --template day_ahead_engine.html \
     --out "$DAY-day-ahead.html" "${SEC_ARGS[@]}" "$@"

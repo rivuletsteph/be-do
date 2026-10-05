@@ -42,6 +42,10 @@ STREAM_KEYS = ('title', 'key', 'details', 'when', 'end', 'target',
 # writing blind is how a duplicate row gets made.
 LINK_KEY = 'event'
 HAS_LINK = False
+# The quickie checkbox. Quickies are offered when the user says they have a few
+# minutes, never on this page (5 Oct 2026). Optional: without it, nothing is hidden.
+QUICKIE_KEY = 'quickie'
+HIDE = dict(drives=(), keep=())  # filled from the local settings file
 RHYTHM_KEYS = ('name', 'code', 'type', 'status', 'target', 'parent',
                'emoji', 'dest', 'goal')
 F = {}
@@ -126,9 +130,20 @@ def plainly_media(r):
     return p.startswith(MEDIA) or (p.startswith('⚡') and t.lstrip('⚡ ').startswith(MEDIA))
 
 
+def hidden_drive(r):
+    """A row on a drive the user keeps off this page (hide_drives) — unless its title
+    names one of their own reviews (hide_keep), which stay. 5 Oct 2026: build work
+    on the system itself is not the next right thing to do; their own weekly and
+    monthly reviews and look aheads are."""
+    if (r['rhythm'] or '') not in HIDE['drives']:
+        return False
+    t = (r['title'] or '').lower()
+    return not any(k.lower() in t for k in HIDE['keep'])
+
+
 def filtered_open(latest):
     """Filtered at the READ, before anything is shown."""
-    out, dropped = [], dict(queue=0, waiting=0, media=0)
+    out, dropped = [], dict(queue=0, waiting=0, media=0, quickie=0, hidden=0)
     for r in latest.values():
         if r['status'] not in OPEN:
             continue
@@ -138,6 +153,10 @@ def filtered_open(latest):
             dropped['waiting'] += 1; continue
         if plainly_media(r):
             dropped['media'] += 1; continue
+        if r.get(QUICKIE_KEY):
+            dropped['quickie'] += 1; continue
+        if hidden_drive(r):
+            dropped['hidden'] += 1; continue
         out.append(r)
     return out, dropped
 
@@ -593,6 +612,53 @@ def look_ahead_plan(evs, conflicts, rows, open_rows, chains, rhythms, today, a, 
                 today_rows=today_rows, today_asks=asks, prep=prep, conflicts=conf)
 
 
+# ---------------------------------------------------------------- cadence
+DAYNAMES = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+
+
+def load_practices(path, L):
+    """Active practices that carry a cadence, from the practices catalog. Optional:
+    with no file, or no cadence field in the settings, nothing is drawn."""
+    PF = (L.get('fields') or {}).get('practices') or {}
+    if not path or not PF.get('cadence'):
+        return []
+    recs, _ = complete(path)
+    out = []
+    for r in recs:
+        c = r['cellValuesByFieldId']
+        cad = (c.get(PF['cadence']) or '').strip()
+        if cad and (not PF.get('active') or c.get(PF['active'])):
+            out.append(dict(name=c.get(PF['name']) or '', cadence=cad))
+    return out
+
+
+def cadence_days(cad):
+    """'weekly · Monday' -> [0]. The weekdays named in the cadence, full or three letters."""
+    words = re.findall(r'[a-z]+', cad.lower())
+    return sorted({i for i, n in enumerate(DAYNAMES) for w in words if w in (n, n[:3])})
+
+
+def standing_steps(practices, rows, today, days):
+    """A practice with a cadence (A132, 13 Sep 2026: cadence lives on the practice) is
+    drawn on its day whether or not a dated row exists — 5 Oct 2026: the Monday
+    weather check, done every week, never showed. It is done on a day when a row
+    logged that day, not open, carries the practice. Its drive is the drive of the
+    latest row that carried it."""
+    out = {}
+    for p in practices:
+        wds = cadence_days(p['cadence'])
+        mine = sorted((r for r in rows if (r['practice'] or '') == p['name']), key=lambda r: r['created'])
+        drive = next((r['rhythm'] for r in reversed(mine) if r['rhythm']), '')
+        for i in range(days):
+            d = today + dt.timedelta(days=i)
+            if d.weekday() not in wds:
+                continue
+            done = any(r['when'] and local(r['when']).date() == d and r['status'] not in OPEN for r in mine)
+            out.setdefault(d, []).append(dict(title=clean_title(p['name']), drive=drive,
+                                              st='✅' if done else '⬜', every=DAY3[d.weekday()]))
+    return out
+
+
 # ---------------------------------------------------------------- main
 def install_local(L):
     """Put the person's own values where the module can see them. Missing a
@@ -613,6 +679,9 @@ def install_local(L):
     else:
         print('WARNING: local settings has no fields.stream.event — today rows are asked, not written',
               file=sys.stderr)
+    if (fields.get('stream') or {}).get(QUICKIE_KEY):
+        F[QUICKIE_KEY] = fields['stream'][QUICKIE_KEY]
+    HIDE.update(drives=tuple(L.get('hide_drives') or ()), keep=tuple(L.get('hide_keep') or ()))
     if 'utc_offset_hours' not in L:
         die('local settings: utc_offset_hours is missing')
     UTC_OFFSET = dt.timedelta(hours=L['utc_offset_hours'])
@@ -647,6 +716,7 @@ def main():
     ap.add_argument('--stream', action='append', required=True)
     ap.add_argument('--rhythms', required=True)
     ap.add_argument('--calendar', required=True)
+    ap.add_argument('--practices', help='the practices catalog; a practice with a cadence is drawn on its day')
     ap.add_argument('--template', required=True)
     ap.add_argument('--out', required=True)
     ap.add_argument('--secure')
@@ -683,6 +753,9 @@ def main():
     picks, nxt, more = pareto(open_rows, chains, rhythms, today, L)
     days, gaps, clashes, away, evs, conflicts = calendar(cal, rows, open_rows, today, a.days, L)
     plan = look_ahead_plan(evs, conflicts, rows, open_rows, chains, rhythms, today, a, L)
+    standing = standing_steps(load_practices(a.practices, L), rows, today, a.days)
+    for d in days:  # a standing step sits first among the day's due lines
+        d['due'] = standing.get(dt.date.fromisoformat(d['date']), []) + d['due']
     # a due line carries its drive's emoji, for context at a glance
     for d in days:
         for t in d['due']:
@@ -728,7 +801,11 @@ def main():
     cap = L.get('max_tasks', 10)
     today_events = [re.sub(r'^[^\w]+', '', e['title']).split(' — ')[0].strip() for e in days[0]['events']] if days else []
     taken = {clean_title(p['row']['title']) for p in picks}
-    tasks = []
+    # today's standing steps lead the list: they are due today by definition
+    tasks = [dict(kind=f"every {s['every']}", title=s['title'], drive=s['drive'], due='today', st=s['st'],
+                  date=today.isoformat(), emoji=(rhythms.get(s['drive']) or {}).get('emoji') or '')
+             for s in standing.get(today, [])]
+    taken |= {t['title'] for t in tasks}
     for t in more + [dict(kind='dated', title=x['title'], drive=x['drive'], due='due ' + x['label'], st=x['st'], date=x['date']) for x in soon]:
         if len(picks) + len(tasks) >= cap:
             break
@@ -739,16 +816,6 @@ def main():
                                                  emoji=(rhythms.get(t['drive']) or {}).get('emoji') or ''))
     plan['overdue'] = [dict(id=o['id'], key=o['key'], title=o['title'], drive=o['drive'], target=o['date'], days_late=o['late'])
                        for o in overdue]
-
-    # quick sweep — five oldest ▶️, none on Sunday
-    sweep = []
-    picked = {p['row']['id'] for p in picks}
-    if today.weekday() != 6:
-        mot = [r for r in open_rows if r['status'] == '▶️ in motion' and r['id'] not in picked
-               and (r['practice'] or '⚡ action') == '⚡ action']
-        mot.sort(key=lambda r: chains[r['key'] or r['id']][0]['created'])
-        sweep = [dict(title=clean_title(r['title']), since=local(chains[r['key'] or r['id']][0]['created']).date().isoformat())
-                 for r in mot[:5]]
 
     # the lead — one line, spoken to the user
     first = days[0]
@@ -783,7 +850,7 @@ def main():
         map=dict(start=today.isoformat(), end=L['map_end'], lanes=lanes, dests=list(dests.values()), away=away),
         soon=soon, overdue=overdue,
         days=days, gaps=gaps, clashes=clashes,
-        sweep=sweep, sunday=today.weekday() == 6, inside=inside,
+        sunday=today.weekday() == 6, inside=inside,
         prov=dict(reads=[f'{p.split("/")[-1].replace(".json", "")} {n}/{n}' for p, n in reads],
                   rhythms=(f"{RHYTHMS_NOTE[a.rhythms]['read_total']}/{RHYTHMS_NOTE[a.rhythms]['read_total']} ({nrh} active rows used)"
                            if RHYTHMS_NOTE.get(a.rhythms, {}).get('read_total') else f'{nrh}/{nrh}'), calendar=cal.get('read', {}),
@@ -795,7 +862,8 @@ def main():
     plan_path = a.plan_out or re.sub(r'\.html?$', '', a.out) + '.plan.json'
     open(plan_path, 'w', encoding='utf-8').write(json.dumps(plan, ensure_ascii=False, indent=1))
     print(json.dumps(dict(picks=[(p['kind'], clean_title(p['row']['title'])) for p in picks], next=nxt,
-                          soon=len(soon), overdue=len(overdue), gaps=gaps, clashes=clashes, sweep=len(sweep),
+                          soon=len(soon), overdue=len(overdue), gaps=gaps, clashes=clashes,
+                          hidden=dropped['hidden'], quickies=dropped['quickie'],
                           today_rows=len(plan['today_rows']), today_asks=len(plan['today_asks']),
                           prep=len(plan['prep']), conflicts=len(plan['conflicts']), past_date=len(plan['overdue']), plan=plan_path),
                      ensure_ascii=False, indent=1))
