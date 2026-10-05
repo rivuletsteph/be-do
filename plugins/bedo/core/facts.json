@@ -82,12 +82,14 @@
   "close": {"dawn": "🌅 dawn flow close", "dusk": "🌄 dusk flow close"},
   "groups": ["flow", "optional"],
   "never_held_open": ["optional"],
+  "widget": {"bar": {"dawn": "#EFA038", "dusk": "#7B6FD6"}},
   "core": {
    "dawn": ["🥤 morning water", "🤸🏻‍♀️ morning movement", "☕ coffee", "🪐 morning oura", "🌦️ weather check", "👁️ look ahead", "⚡ intention check", "🙏 gratitude", "📿 morning mantra", "📗 morning book", "🌅 dawn flow close"],
    "dusk": null
   },
   "about_core": "A228, 2 Oct 2026: the core prints one line each in a code block; every other remaining step goes on ONE line underneath. Nothing leaves the catalog and everything counts toward done. The dusk core is not set yet (null prints every step as core)."
  },
+ "about_widget": "A237, 2 Oct 2026: the remaining list on a widget surface is a pill strip. Dawn's bar is #EFA038, the marigold she named for spirit; dusk's is #7B6FD6, the blue-violet of the ☑️ box — her words 4 Oct 2026: dusk should be more of a purple, something like ☑️.",
  "catalog_fields": {"practice": "practice", "phase": "phase", "group": "group", "order": "order", "active": "active", "zero_duration": "zero duration"},
  "preflight": {"newest_row_within_hours": 36},
  "window_chats": ["my day", "my week", "my month", "my season", "my year"],

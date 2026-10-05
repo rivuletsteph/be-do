@@ -179,6 +179,19 @@ class Remaining(unittest.TestCase):
         self.assertEqual([r['practice'] for r in R.on_day(week, dt.date(2026, 10, 4), LOCAL)],
                          ['🥤 morning water', '📿 morning mantra'])
 
+    def test_the_widget_is_her_pill_strip(self):
+        steps = RL.flow_steps(CAT, 'dusk')
+        day = [row('🫖 evening tea', '2026-10-04 20:00', status=DONE_LOG)]
+        html = RL.widget('dusk', steps, day)
+        self.assertIn(F['flows']['widget']['bar']['dusk'], html)          # the dusk colour, not dawn's
+        self.assertNotIn(F['flows']['widget']['bar']['dawn'], html)
+        self.assertNotIn('of 4', html)                                    # no count, no caption (A237)
+        self.assertNotIn('🌬', html)                                      # glyphs only as numeric references
+        self.assertIn('&#x1F32C;&#xFE0F;', html)
+        self.assertEqual(html.count('class="p"'), 3)                      # remaining only: tea is done
+        self.assertNotIn('sendPrompt(t);n', html.split('onclick=function(){cur=')[0])   # a tap opens the note, sends nothing
+        self.assertEqual(RL.short('📧 clear gmail inbox'), ('📧', 'gmail inbox'))
+
     def test_the_catalog_read_must_be_complete(self):
         src = {'records': [{'id': 'r1', 'createdTime': 'x', 'fields': {'practice': '☕ coffee'}}],
                'metadata': {'totalRecordCount': 2}}
