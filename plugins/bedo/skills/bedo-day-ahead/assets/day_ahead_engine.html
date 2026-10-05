@@ -146,12 +146,6 @@ summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-of
 .further{margin-top:12px;background:var(--past-soft);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--ink)}
 .further b{color:var(--past);font-weight:500}
 
-/* sweep */
-.sweep{list-style:none;margin:0;padding:0;display:grid;gap:6px}
-.sweep li{display:flex;gap:10px;align-items:baseline;font-size:13.5px;color:var(--muted)}
-.sweep .s{font:400 11px var(--mono);color:var(--faint);white-space:nowrap}
-.sweep .q{margin-left:auto;font-size:11.5px;color:var(--accent);white-space:nowrap}
-
 .prov{font:400 11px/1.5 var(--mono);color:var(--faint);margin:0;border-top:1px solid var(--rule);padding-top:12px}
 @media (prefers-reduced-motion:no-preference){.rec,.day{transition:background .2s}}
 </style>
@@ -174,6 +168,16 @@ page.append($(`<header>
   <h1>${esc(D.dateLabel)}${D.secure&&D.secure.state==='secure'?' <span class="sb" title="secure base">⏏️</span>':''}</h1>
   ${D.secure&&D.secure.state!=='secure'?`<p class="sbx">⏏️ ${esc(D.secure.state)}${D.secure.words?' — '+esc(D.secure.words):''}</p>`:''}
   <p class="lead">${esc(D.lead)}</p></header>`));
+
+/* past its date — at the top, never folded away: each one needs the user's word
+   (5 Oct 2026: "when they're past the date they arguably need to go up at the top") */
+if (D.overdue && D.overdue.length){
+  const n = D.overdue.length;
+  const sec = $(`<section class="pastdue"><h2>past its date</h2><p class="sub">${n} ${n===1?'thing needs':'things need'} your word — done, a new date, or drop · oldest first</p><ul class="list"></ul></section>`);
+  const ul = sec.querySelector('ul');
+  D.overdue.forEach(s=>ul.append($(`<li><span class="d past">${esc(short(s.date))}<span class="late">${s.late} ${s.late===1?'day':'days'}</span></span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}<span class="resolve"><span>done</span><span>new date</span><span>drop</span></span></span></li>`)));
+  page.append(sec);
+}
 
 /* word + secure base */
 if (D.word) page.append($(`<section class="frame">
@@ -220,16 +224,6 @@ const card = (t, why) => {
 D.pareto.forEach(p=>tbox.append(card(p, p.kind)));
 (D.tasks||[]).forEach(t=>tbox.append(card(t, t.kind==='dated'?'':t.kind)));
 page.append(three);
-
-/* past its date — never folded away: each one needs the user's word */
-if (D.overdue && D.overdue.length){
-  const n = D.overdue.length;
-  const sec = $(`<section class="pastdue"><h2>past its date</h2><p class="sub">${n} ${n===1?'thing needs':'things need'} your word — done, a new date, or drop · oldest first</p><ul class="list"></ul></section>`);
-  const ul = sec.querySelector('ul');
-  D.overdue.forEach(s=>ul.append($(`<li><span class="d past">${esc(short(s.date))}<span class="late">${s.late} ${s.late===1?'day':'days'}</span></span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}<span class="resolve"><span>done</span><span>new date</span><span>drop</span></span></span></li>`)));
-  page.append(sec);
-}
-
 
 
 /* the next fourteen days */
@@ -291,16 +285,8 @@ if (D.overdue && D.overdue.length){
   page.append(sec);
 })();
 
-/* still true? */
-if (!D.sunday && D.sweep.length){
-  const sec=$(`<section><h2>still true?</h2><p class="sub">the five oldest things marked in motion</p><ul class="sweep"></ul></section>`);
-  const ul=sec.querySelector('ul');
-  D.sweep.forEach(s=>ul.append($(`<li><span class="s">${esc(short(s.since))}</span><span>${esc(s.title)}</span><span class="q">still true?</span></li>`)));
-  page.append(sec);
-}
-
 /* provenance */
 const P=D.prov;
-page.append($(`<p class="prov">${esc(D.date)} · stream ${esc(P.reads.join(' · '))} · rhythms ${esc(P.rhythms)} · ${P.unique} rows deduped by record id, live base first · ${P.keys} keys, latest row per key · ${P.open} open after the read filter (queue ${P.dropped.queue}, waiting on ${P.dropped.waiting}, media ${P.dropped.media} set aside) · calendars ${esc(P.calendar.window||'')}: ${Object.entries(P.calendar).filter(([k])=>k!=='window').map(([k,v])=>esc(k)+' '+esc(v)).join(', ')}</p>`));
+page.append($(`<p class="prov">${esc(D.date)} · stream ${esc(P.reads.join(' · '))} · rhythms ${esc(P.rhythms)} · ${P.unique} rows deduped by record id, live base first · ${P.keys} keys, latest row per key · ${P.open} open after the read filter (queue ${P.dropped.queue}, waiting on ${P.dropped.waiting}, media ${P.dropped.media}, quickies ${P.dropped.quickie||0}, hidden drives ${P.dropped.hidden||0} set aside) · calendars ${esc(P.calendar.window||'')}: ${Object.entries(P.calendar).filter(([k])=>k!=='window').map(([k,v])=>esc(k)+' '+esc(v)).join(', ')}</p>`));
 })();
 </script>

@@ -15,6 +15,8 @@
   "prep_lead_days": 1,
   "own_practices": [],
   "weighing_phrases": [],
+  "hide_drives": [],
+  "hide_keep": [],
   "week_word_title": "",
   "week_zero_sunday": "YYYY-MM-DD",
   "week_zero_number": 0,
@@ -39,7 +41,8 @@
       "rhythm": "",
       "waiting": "",
       "queue": "",
-      "event": ""
+      "event": "",
+      "quickie": ""
     },
     "rhythms": {
       "name": "",

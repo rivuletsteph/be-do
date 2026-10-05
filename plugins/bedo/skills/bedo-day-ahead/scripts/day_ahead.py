@@ -42,6 +42,10 @@ STREAM_KEYS = ('title', 'key', 'details', 'when', 'end', 'target',
 # writing blind is how a duplicate row gets made.
 LINK_KEY = 'event'
 HAS_LINK = False
+# The quickie checkbox. Quickies are offered when the user says they have a few
+# minutes, never on this page (5 Oct 2026). Optional: without it, nothing is hidden.
+QUICKIE_KEY = 'quickie'
+HIDE = dict(drives=(), keep=())  # filled from the local settings file
 RHYTHM_KEYS = ('name', 'code', 'type', 'status', 'target', 'parent',
                'emoji', 'dest', 'goal')
 F = {}
@@ -126,9 +130,20 @@ def plainly_media(r):
     return p.startswith(MEDIA) or (p.startswith('⚡') and t.lstrip('⚡ ').startswith(MEDIA))
 
 
+def hidden_drive(r):
+    """A row on a drive the user keeps off this page (hide_drives) — unless its title
+    names one of their own reviews (hide_keep), which stay. 5 Oct 2026: build work
+    on the system itself is not the next right thing to do; their own weekly and
+    monthly reviews and look aheads are."""
+    if (r['rhythm'] or '') not in HIDE['drives']:
+        return False
+    t = (r['title'] or '').lower()
+    return not any(k.lower() in t for k in HIDE['keep'])
+
+
 def filtered_open(latest):
     """Filtered at the READ, before anything is shown."""
-    out, dropped = [], dict(queue=0, waiting=0, media=0)
+    out, dropped = [], dict(queue=0, waiting=0, media=0, quickie=0, hidden=0)
     for r in latest.values():
         if r['status'] not in OPEN:
             continue
@@ -138,6 +153,10 @@ def filtered_open(latest):
             dropped['waiting'] += 1; continue
         if plainly_media(r):
             dropped['media'] += 1; continue
+        if r.get(QUICKIE_KEY):
+            dropped['quickie'] += 1; continue
+        if hidden_drive(r):
+            dropped['hidden'] += 1; continue
         out.append(r)
     return out, dropped
 
@@ -613,6 +632,9 @@ def install_local(L):
     else:
         print('WARNING: local settings has no fields.stream.event — today rows are asked, not written',
               file=sys.stderr)
+    if (fields.get('stream') or {}).get(QUICKIE_KEY):
+        F[QUICKIE_KEY] = fields['stream'][QUICKIE_KEY]
+    HIDE.update(drives=tuple(L.get('hide_drives') or ()), keep=tuple(L.get('hide_keep') or ()))
     if 'utc_offset_hours' not in L:
         die('local settings: utc_offset_hours is missing')
     UTC_OFFSET = dt.timedelta(hours=L['utc_offset_hours'])
@@ -740,16 +762,6 @@ def main():
     plan['overdue'] = [dict(id=o['id'], key=o['key'], title=o['title'], drive=o['drive'], target=o['date'], days_late=o['late'])
                        for o in overdue]
 
-    # quick sweep — five oldest ▶️, none on Sunday
-    sweep = []
-    picked = {p['row']['id'] for p in picks}
-    if today.weekday() != 6:
-        mot = [r for r in open_rows if r['status'] == '▶️ in motion' and r['id'] not in picked
-               and (r['practice'] or '⚡ action') == '⚡ action']
-        mot.sort(key=lambda r: chains[r['key'] or r['id']][0]['created'])
-        sweep = [dict(title=clean_title(r['title']), since=local(chains[r['key'] or r['id']][0]['created']).date().isoformat())
-                 for r in mot[:5]]
-
     # the lead — one line, spoken to the user
     first = days[0]
     ends = [e['title'] for e in first['events'] if e['when'].startswith('ends')]
@@ -783,7 +795,7 @@ def main():
         map=dict(start=today.isoformat(), end=L['map_end'], lanes=lanes, dests=list(dests.values()), away=away),
         soon=soon, overdue=overdue,
         days=days, gaps=gaps, clashes=clashes,
-        sweep=sweep, sunday=today.weekday() == 6, inside=inside,
+        sunday=today.weekday() == 6, inside=inside,
         prov=dict(reads=[f'{p.split("/")[-1].replace(".json", "")} {n}/{n}' for p, n in reads],
                   rhythms=(f"{RHYTHMS_NOTE[a.rhythms]['read_total']}/{RHYTHMS_NOTE[a.rhythms]['read_total']} ({nrh} active rows used)"
                            if RHYTHMS_NOTE.get(a.rhythms, {}).get('read_total') else f'{nrh}/{nrh}'), calendar=cal.get('read', {}),
@@ -795,7 +807,8 @@ def main():
     plan_path = a.plan_out or re.sub(r'\.html?$', '', a.out) + '.plan.json'
     open(plan_path, 'w', encoding='utf-8').write(json.dumps(plan, ensure_ascii=False, indent=1))
     print(json.dumps(dict(picks=[(p['kind'], clean_title(p['row']['title'])) for p in picks], next=nxt,
-                          soon=len(soon), overdue=len(overdue), gaps=gaps, clashes=clashes, sweep=len(sweep),
+                          soon=len(soon), overdue=len(overdue), gaps=gaps, clashes=clashes,
+                          hidden=dropped['hidden'], quickies=dropped['quickie'],
                           today_rows=len(plan['today_rows']), today_asks=len(plan['today_asks']),
                           prep=len(plan['prep']), conflicts=len(plan['conflicts']), past_date=len(plan['overdue']), plan=plan_path),
                      ensure_ascii=False, indent=1))

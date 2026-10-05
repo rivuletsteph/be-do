@@ -264,18 +264,27 @@ skips it and says so in one line.
 
 ## What the page shows, in order
 
-Set by the user between 1 and 3 Oct 2026; the engine draws exactly this.
+Set by the user between 1 and 5 Oct 2026; the engine draws exactly this.
+
+**The test for every item** (5 Oct 2026, in their words): *what is the next
+right thing to do — the step that is waiting on me to take.* Every item
+carries both its drive or rhythm (what it serves) and the one step waiting on
+the user. A project with no named next step is the defect.
 
 1. **The date**, with ⏏️ beside it when the base is secure — a small emoji,
    no callout. Anything other than secure gets one line under it, in the
    user's words.
-2. **Today on the calendar, first** — every event as the calendar shows it
+2. **Past its date, at the top** — every open row past its target, oldest
+   first, never folded away (see `overdue` above). Empty when the morning's
+   answers are in.
+3. **This week's word.**
+4. **Today on the calendar** — every event as the calendar shows it
    (its own title and glyphs, start and end, a 🗓️ link), in the day behind's
    event cards, with its drive underneath. A child's calendar gets the ochre
    edge.
-3. **Your intentions** — only the slots the user named, in their words; three
+5. **Your intentions** — only the slots the user named, in their words; three
    empty slots before they name any.
-4. **After the calendar** — at most `max_tasks` (10) action cards: be•do's
+6. **After the calendar** — at most `max_tasks` (10) action cards: be•do's
    picks first, then what is due within `task_horizon_days` (7), never a row
    already on today's calendar. Each card: the date on the left (`today`, or
    the weekday and day; plum once passed), the status and ⚡ **drawn, not
@@ -283,12 +292,21 @@ Set by the user between 1 and 3 Oct 2026; the engine draws exactly this.
    in motion, teal with a check when done, dashed for a potential, and a gold
    bolt — then the title in semibold, the drive's emoji and name beneath, and
    why it rose (`someone waiting`, `in motion`…) in small type.
-5. **Past its date** — every open row past its target, oldest first, never
-   folded away (see `overdue` above). Empty when the morning's answers are in.
-6. **The next fourteen days** — both calendars matched against the stream,
+7. **The next fourteen days** — both calendars matched against the stream,
    with `no row yet` and `clash` tags. Each due line starts with the same
    drawn status and bolt, then its drive's emoji (the drive's name on hover).
-7. **The map** of the three along their drives, then what is still true.
+8. **The map** of the three along their drives.
+
+**Kept off the page, at the read** (5 Oct 2026):
+- **Build work on the system itself** — any row on a drive named in
+  `hide_drives`, *except* a row whose title names one of the user's own
+  reviews (`hide_keep`: their weekly and monthly reviews and look aheads).
+  Those are theirs, not build work, and stay.
+- **⏱️ quickies** — the row's `quickie` checkbox (`fields.stream.quickie`).
+  Quickies are offered when the user says they have a few minutes, never here.
+- The **still-true strip** is gone (one of the five V53 drops).
+
+The provenance line counts what each filter set aside.
 
 **Light for now** (`data-bedo="day"`, fixed; the day behind is dark), in the
 now palette (`plugins/bedo/assets/now-palette.css`), which `test_palette.py`
