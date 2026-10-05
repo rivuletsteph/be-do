@@ -192,8 +192,10 @@ class Preflight(unittest.TestCase):
         line = P.chat_name(dt.date(2026, 10, 4))
         self.assertEqual(line, '▶️1004 ☀️ Sun ' + P.MARK + ' W41 🔆 my day')
         self.assertEqual(ord(P.MARK), 0x1684E)
+        self.assertEqual(P.chat_name(dt.date(2026, 10, 4), part='c'),
+                         '▶️1004c ☀️ Sun ' + P.MARK + ' W41 🔆 my day')      # her example, 4 Oct
         self.assertEqual(P.chat_name(dt.date(2026, 9, 18), part='B', status='✔️'),
-                         '✔️0918 🏆 Fri ' + P.MARK + ' W38 🔆 my day B')    # letters sort; P1 P2 did not
+                         '✔️0918b 🏆 Fri ' + P.MARK + ' W38 🔆 my day')      # lowercase, right after the date
         self.assertEqual(P.chat_name(dt.date(2026, 9, 18), part=1), P.chat_name(dt.date(2026, 9, 18), part='a'))
         self.assertEqual(P.chat_name(dt.date(2026, 10, 4), 'week', week=40), '▶️' + P.MARK + ' my week W40')
         self.assertNotIn('be•do', line)
