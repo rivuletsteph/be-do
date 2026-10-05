@@ -121,7 +121,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 - Time is the sum of working stretches (gaps over 15 minutes split them), never the envelope. A window chat's ⚡ row carries no duration and no drive; 📲 capture rows hold the minutes.
 - ⏯️ only when the chat ends with a next-session prompt that opens with objective and done when.
 - *Builder edit* is hers to say and be•do's to classify: the page draws it wrong → code (a backlog item); what a page should contain → an amendment.
-- **Build work for be•do lives in `docs/backlog.md`, never as a stream row.** A build idea she voices goes into the backlog by pull request, with her words in the Drive copy; the stream logs only the session that does the work. When an item ships, it moves to Done.
+- **Build work for be•do lives in `docs/backlog.md`, never as a stream row.** A build idea she voices goes into the backlog by pull request, with her words in the Drive copy — from Cowork, which can't push, it goes to the Drive inbox `be•do/code/backlog-inbox.md` for the next laptop session; the stream logs only the session that does the work. When an item ships, it moves to Done.
 - Every be•do build ends with a recurring cost removed, named in the entry.
 
 ## J11 · The close
@@ -170,5 +170,5 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 
 Each skill carries its own procedure; this file doesn't repeat them:
 `clear-inbox` · `provisions` · `shopping-watch` · `session-entry` · `chat-title` ·
-`bedo-day-ahead` · `bedo-look-behind` · `bedo-ahead-review` · `bedo-weekly-close`,
+`bedo-day-ahead` · `bedo-look-behind` · `bedo-ahead-review` · `bedo-weekly-close` · `bedo-checks`,
 and the screen-time spec for her son's quest.

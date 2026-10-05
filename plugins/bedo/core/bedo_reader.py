@@ -141,6 +141,21 @@ def as_rows(recs, fields):
     return rows
 
 
+def on_day(rows, day, local):
+    """Rows whose own datetime falls on a local day — so a file holding a whole
+    week reads the same as the filtered read of one day."""
+    import datetime as dt
+    out = []
+    for r in rows:
+        s = r.get('datetime')
+        if not s:
+            continue
+        t = dt.datetime.fromisoformat(s.replace('Z', '+00:00'))
+        if (t + dt.timedelta(hours=offset_hours(local, t))).date() == day:
+            out.append(r)
+    return out
+
+
 def stream_rows(sources, fields):
     """The common case, in one call: read every base live first, dedupe by
     record id, map field ids to names, resolve the chains. `fields` maps a name
