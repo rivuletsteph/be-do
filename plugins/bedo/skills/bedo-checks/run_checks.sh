@@ -7,6 +7,7 @@
 #   bash run_checks.sh dusk      [--date YYYY-MM-DD] [--chats chats.json] [--write]
 #   bash run_checks.sh entry     row.json [--base "w41 be•do"]
 #   bash run_checks.sh stretches FILE        # stamps, a claude.ai chat read, or a transcript
+#   bash run_checks.sh order [--json]        # her predicted order: typical times to write to the catalog
 #
 # With an Airtable token (AIRTABLE_PAT, a bedo_secrets.json, or a Claude cloud
 # session's proxy) the checks read Airtable themselves. Without one, read through
@@ -75,6 +76,11 @@ case "$CMD" in
     [ -d "$W/core" ] || fetch_core; find_local
     if live_or_files "--day today.json --catalog practices.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_dusk_audit.py" "$@" ;;
+  order)
+    [ -d "$W/core" ] || fetch_core; find_local
+    if has_files "$@"; then :; elif (cd "$W/core" && "$PY" -c 'import bedo_air, sys; sys.exit(0 if bedo_air.can_read() else 1)'); then set -- --live "$@"
+    else echo "NO TOKEN HERE: pass --stream (each weekly base, live first) and --catalog files"; exit 3; fi
+    "$PY" "$W/core/bedo_order.py" "$@" ;;
   stretches)
     [ -d "$W/core" ] || fetch_core; find_local
     "$PY" "$W/core/bedo_stretches.py" "$@" ;;
@@ -99,5 +105,5 @@ for r in rows if isinstance(rows, list) else [rows]:
 sys.exit(1 if bad else 0)
 E
     ;;
-  *) echo "usage: run_checks.sh preflight|remaining|dusk|entry|stretches [args]"; exit 2 ;;
+  *) echo "usage: run_checks.sh preflight|remaining|dusk|entry|stretches|order [args]"; exit 2 ;;
 esac

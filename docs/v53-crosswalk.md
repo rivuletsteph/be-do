@@ -410,7 +410,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | A234 | 10-02 | a moment takes its practice's usual length | code ✓ | look-behind (usual length) |
 | A235 | 10-02 | rules she has settled go into code | judgment | J0 |
 | A236 | 10-02 | the build order (this migration first) | drop · state | lives in the stream as an action row |
-| A237 | 10-02 | the pill strip spec | code | core/bedo_remaining --widget is built; next: the predicted order (minutes since wake), backlog 261002_0620 |
+| A237 | 10-02 | the pill strip spec | code | core/bedo_remaining --widget and the predicted order (bedo_order) are built; next: sunrise holding back morning sun |
 | A238 | 10-02 | an unused intention slot is not drawn | code | next: day-ahead engine |
 | A239 | 10-02 | an intention carries a when and why, not a date | judgment | J9 |
 | A240 | 10-02 | noticing, offered at the dawn close | judgment | J8 |

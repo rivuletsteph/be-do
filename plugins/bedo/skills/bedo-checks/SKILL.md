@@ -17,6 +17,7 @@ only where nothing can execute, and then copy the same shape.
 | before any stream write | `entry row.json` | write only rows that print `ok`; fix every `FIX` first |
 | before the dusk close row | `dusk` | do the fixes it names; ask her only what is hers, as one list; the flag line goes after the close |
 | a session entry | `stretches FILE` | the time spent is the sum it prints, and the stretches are named in the `[be•do]` block |
+| the weekly close | `order --json` | her predicted order: each flow practice's typical time from the last weeks of her rows (dawn as minutes after waking, dusk as clock time). Write the printed updates to the catalog's `typical time` field with the connector |
 
 ## Running it
 

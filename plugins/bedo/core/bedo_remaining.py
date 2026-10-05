@@ -45,13 +45,54 @@ def _hhmm(s):
     return dt.time(int(h), int(m))
 
 
-def flow_steps(cat, flow):
+def typical_minutes(value):
+    """The catalog's `typical time`, as minutes to sort by: 'wake+25' → 25 for
+    dawn; '20:40' → 1240 for dusk, with after-midnight counted as late that
+    night ('00:15' → 1455). Anything else → None."""
+    v = (value or '').strip()
+    m = re.fullmatch(r'wake\+(\d+)', v)
+    if m:
+        return int(m.group(1))
+    m = re.fullmatch(r'(\d{1,2}):(\d{2})', v)
+    if m:
+        h, mm = int(m.group(1)), int(m.group(2))
+        return h * 60 + mm + (1440 if h < 5 else 0)
+    return None
+
+
+def flow_steps(cat, flow, first=()):
     """The open flow's steps: active, in the flow's phase, a flow or optional
-    step (or any step the catalog gave an order in that phase), in order."""
+    step (or any step the catalog gave an order in that phase), in her
+    predicted order (A237):
+      1  what she says she is doing next (`first`), that time only
+      2  her stated sequences (facts flows.sequences) — they beat any median
+      3  the typical time observed from her rows (bedo_order)
+      4  steps with no typical time, in the catalog's order
+      5  the flow close, always last"""
     phase = FLOWS['phase'][flow]
     steps = [r for r in cat if r.get('active') and r.get('phase') == phase and r.get('practice')
              and (r.get('group') in FLOWS['groups'] or r.get('order') is not None)]
-    steps.sort(key=lambda r: (r.get('order') is None, r.get('order') or 0, r['practice']))
+    close = norm(FLOWS['close'][flow])
+
+    def key(r):
+        t = typical_minutes(r.get('typical_time'))
+        return (norm(r['practice']) == close, t is None, t or 0,
+                r.get('order') is None, r.get('order') or 0, r['practice'])
+    steps.sort(key=key)
+    at = lambda name: next((i for i, r in enumerate(steps) if norm(r['practice']) == norm(name)), None)
+    for _ in range(len(steps)):                   # a stated sequence moves the later step after the earlier
+        moved = False
+        for a, b in FLOWS.get('sequences', {}).get(flow, []):
+            ia, ib = at(a), at(b)
+            if ia is not None and ib is not None and ib < ia:
+                steps.insert(ia, steps.pop(ib))
+                moved = True
+        if not moved:
+            break
+    for name in reversed([f for f in first if f]):
+        i = at(name)
+        if i is not None and norm(steps[i]['practice']) != close:
+            steps.insert(0, steps.pop(i))
     return steps
 
 
@@ -191,6 +232,7 @@ def main(argv=None):
     ap.add_argument('--date', help='YYYY-MM-DD, default today')
     ap.add_argument('--voice', action='store_true')
     ap.add_argument('--widget', action='store_true', help='the pill strip, as HTML for a widget surface')
+    ap.add_argument('--next', action='append', default=[], help='what she says she is doing next; goes first')
     a = ap.parse_args(argv)
     L = load_local()
     now = dt.datetime.now(dt.timezone.utc)
@@ -211,7 +253,7 @@ def main(argv=None):
     if not flow:
         print('no flow open')
         return
-    steps = flow_steps(cat, flow)
+    steps = flow_steps(cat, flow, a.next)
     print(spoken(flow, steps, rows) if a.voice else widget(flow, steps, rows) if a.widget
           else render(flow, steps, rows))
 

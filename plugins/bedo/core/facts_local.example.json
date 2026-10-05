@@ -13,6 +13,7 @@
   "quickie": "fld…", "promote": "fld…", "device": "fld…", "chat": "fld…",
   "calendar_event": "fld…", "photo": "fld…"
  },
+ "practices_fields": {"practice": "fld…", "phase": "fld…", "group": "fld…", "order": "fld…", "active": "fld…", "zero_duration": "fld…", "typical_time": "fld…"},
  "bases": {
   "amendments": ["app…", "tbl…"],
   "practices": ["app…", "tbl…"],

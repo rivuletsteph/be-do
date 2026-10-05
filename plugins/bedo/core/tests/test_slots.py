@@ -16,6 +16,7 @@ import bedo_remaining as RL  # noqa: E402
 import bedo_stretches as ST  # noqa: E402
 import bedo_dusk_audit as D  # noqa: E402
 import bedo_air as A  # noqa: E402
+import bedo_order as O  # noqa: E402
 
 F = R.FACTS
 ACTION, CAPTURE = F['practice']['action'], F['practice']['capture']
@@ -124,8 +125,9 @@ class Remaining(unittest.TestCase):
     def test_built_from_the_catalog_in_predicted_order(self):
         names = [s['practice'] for s in RL.flow_steps(CAT, 'dawn')]
         self.assertNotIn('🤲 sun salutations', names)           # inactive
-        self.assertEqual(names[0], '🥤 morning water')
-        self.assertEqual(names[-1], '😶 wake')                   # no order goes last
+        self.assertEqual(names[0], '🔅 morning sun')                       # no typical times: catalog order…
+        self.assertGreater(names.index('🥤 morning water'), names.index('☕ coffee'))   # …but water after coffee
+        self.assertEqual(names[-2:], ['😶 wake', '🌅 dawn flow close'])   # no order goes late; the close is last
         self.assertLess(names.index('📿 morning mantra'), names.index('🌅 dawn flow close'))
 
     def test_A127_a_catalog_step_is_never_dropped_from_the_list(self):
@@ -191,6 +193,43 @@ class Remaining(unittest.TestCase):
         self.assertEqual(html.count('class="p"'), 3)                      # remaining only: tea is done
         self.assertNotIn('sendPrompt(t);n', html.split('onclick=function(){cur=')[0])   # a tap opens the note, sends nothing
         self.assertEqual(RL.short('📧 clear gmail inbox'), ('📧', 'gmail inbox'))
+
+    def test_her_predicted_order(self):
+        def st(name, t, order):
+            return dict(step(name, 'dawn', order), typical_time=t)
+        cat = [st('🌅 dawn flow close', None, 16), st('🥤 morning water', 'wake+20', 2),   # data says early…
+               st('☕ coffee', 'wake+43', 6), st('🤸🏻‍♀️ morning movement', 'wake+46', 4),
+               st('💪 strength training', 'wake+60', 4.2), st('🔅 morning sun', 'wake+66', 3),
+               st('📗 morning book', None, 12), st('🚽 bm', 'wake+8', 14)]
+        names = [s['practice'] for s in RL.flow_steps(cat, 'dawn')]
+        self.assertEqual(names, ['🚽 bm', '☕ coffee', '🥤 morning water', '🤸🏻‍♀️ morning movement',
+                                 '🔅 morning sun', '💪 strength training', '📗 morning book',
+                                 '🌅 dawn flow close'])
+        # …but water comes after the first coffee and the block after the sun: her sequences win;
+        # no typical time sorts after the observed ones; the close is last
+        first = [s['practice'] for s in RL.flow_steps(cat, 'dawn', ['📗 morning book'])]
+        self.assertEqual(first[0], '📗 morning book')                    # what she says she's doing next
+        self.assertEqual(first[-1], '🌅 dawn flow close')
+
+    def test_typical_time_reads_and_writes(self):
+        self.assertEqual(RL.typical_minutes('wake+25'), 25)
+        self.assertEqual(RL.typical_minutes('20:40'), 1240)
+        self.assertEqual(RL.typical_minutes('00:15'), 1455)              # after midnight is late, not early
+        self.assertIsNone(RL.typical_minutes('evenings'))
+        self.assertEqual((O.write('dawn', 25.4), O.write('dusk', 1455)), ('wake+25', '00:15'))
+
+    def test_typical_time_is_observed_from_her_rows(self):
+        cat = [step('😶 wake', 'dawn', None), step('☕ coffee', 'dawn', 6), step('🫖 evening tea', 'dusk', 34)]
+        rows = []
+        for d in ('2026-09-28', '2026-09-29', '2026-09-30'):
+            rows += [row('😶 wake', f'{d} 06:00', status=DONE_LOG), row('☕ coffee', f'{d} 06:20', status=DONE_LOG),
+                     row('🫖 evening tea', f'{d} 20:40', status=DONE_LOG)]
+        rows.append(row('🫖 evening tea', '2026-10-01 09:00', status=DONE_LOG))    # filed next morning: not its time
+        rows.append(row('☕ coffee', '2026-10-01 06:00', status=INT))              # a plan is not a lived time
+        got = {s['practice']: v for s, v, _ in O.typical(rows, cat, LOCAL)}
+        self.assertEqual(got['☕ coffee'], 'wake+20')
+        self.assertEqual(got['🫖 evening tea'], '20:40')
+        self.assertEqual(got['😶 wake'], 'wake+0')
 
     def test_the_catalog_read_must_be_complete(self):
         src = {'records': [{'id': 'r1', 'createdTime': 'x', 'fields': {'practice': '☕ coffee'}}],
