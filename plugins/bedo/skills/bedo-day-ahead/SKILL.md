@@ -306,6 +306,17 @@ the user. A project with no named next step is the defect.
   Quickies are offered when the user says they have a few minutes, never here.
 - The **still-true strip** is gone (one of the five V53 drops).
 
+**Practices with a cadence** (5 Oct 2026, making A132 of 13 Sep real): the
+practices catalog carries a `cadence` field, free text like `weekly · Monday`
+— chosen, where `regularity` and `drift` are observed. When the settings name
+the catalog (`practices_base`, `practices_table`, `fields.practices` with
+`name`, `active`, `cadence`), the fetch reads it and the build draws each active
+practice with a cadence on its weekday: first in the task list today, first
+among the due lines in the next fourteen days. It shows done (teal check) once
+a row logged that day, not open, carries that practice; its drive is the drive
+of the latest row that carried it. Nothing here is a parallel mechanism —
+cadence lives on the practice, as A132 asked.
+
 The provenance line counts what each filter set aside.
 
 **Light for now** (`data-bedo="day"`, fixed; the day behind is dark), in the

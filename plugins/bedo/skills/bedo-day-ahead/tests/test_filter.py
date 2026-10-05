@@ -41,7 +41,21 @@ def main():
     da.HIDE.update(drives=(), keep=())
     out, dropped = da.filtered_open({r['id']: r for r in rows})
     assert dropped['hidden'] == 0 and len(out) == 4, (dropped, len(out))
-    print('ok — hidden drives, their own reviews kept, quickies off the page')
+    # a practice with a cadence: drawn on its day, done once a row that day carries it,
+    # its drive read off the latest row that carried it
+    import datetime as dt
+    assert da.cadence_days('weekly · Monday') == [0]
+    assert da.cadence_days('weekly · Tue, Fri') == [1, 4]
+    assert da.cadence_days('monthly') == []
+    practices = [dict(name='🌊 river check', cadence='weekly · Monday')]
+    mon = dt.date(2026, 10, 5)
+    logged = [dict(row('River check — all clear', 'River Drive', status='✅ done'),
+                   practice='🌊 river check', when='2026-10-05T13:12:00.000Z', created='2026-10-05T13:12:00.000Z')]
+    got = da.standing_steps(practices, logged, mon, 14)
+    assert sorted(got) == [mon, dt.date(2026, 10, 12)], sorted(got)
+    assert got[mon][0]['st'] == '✅' and got[dt.date(2026, 10, 12)][0]['st'] == '⬜', got
+    assert got[mon][0]['every'] == 'Mon' and got[mon][0]['drive'] == 'River Drive', got
+    print('ok — hidden drives, their own reviews kept, quickies off the page, cadence')
 
 
 if __name__ == '__main__':

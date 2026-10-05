@@ -24,6 +24,8 @@
   "utc_offset_hours": 0,
   "rhythms_base": "",
   "rhythms_table": "",
+  "practices_base": "",
+  "practices_table": "",
   "artifact_url": "",
   "drive_name_example": "",
   "note_records": {},
@@ -54,6 +56,11 @@
       "emoji": "",
       "dest": "",
       "goal": ""
+    },
+    "practices": {
+      "name": "",
+      "active": "",
+      "cadence": ""
     }
   }
 }
