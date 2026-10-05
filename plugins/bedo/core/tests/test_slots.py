@@ -211,6 +211,28 @@ class Remaining(unittest.TestCase):
         self.assertEqual(first[0], '📗 morning book')                    # what she says she's doing next
         self.assertEqual(first[-1], '🌅 dawn flow close')
 
+    def test_sunrise_holds_back_morning_sun(self):
+        # 2 Oct: woke 5:24, sunrise 7:27 — sun can't come at its usual wake+66
+        w = [row('🌦️ weather check', '2026-10-01 07:32', status=DONE_LOG,
+                 details='> SUN — sunrise 7:26a, sunset 7:18p.')]
+        self.assertEqual(RL.sunrise(w, LOCAL), (dt.date(2026, 10, 1), 7 * 60 + 26))
+        w.append(row('🌦️ weather check', '2026-10-02 06:00', status=DONE_LOG,
+                      details='SUN · sunrise 7:27 am · sunset 7:15 pm'))
+        self.assertEqual(RL.sunrise(w, LOCAL)[1], 7 * 60 + 27)           # the newest one
+        day = [row('😶 wake', '2026-10-02 05:24', status=DONE_LOG)]
+        gate = RL.sun_gate(day, RL.sunrise(w, LOCAL), LOCAL)
+        self.assertEqual(list(gate.values()), [123])
+
+        def st(name, t):
+            return dict(step(name, 'dawn', None), typical_time=t)
+        cat = [st('🔅 morning sun', 'wake+66'), st('💪 strength training', 'wake+70'),
+               st('👁️ look ahead', 'wake+116'), st('🙏 gratitude', 'wake+200')]
+        names = [s['practice'] for s in RL.flow_steps(cat, 'dawn', (), gate)]
+        self.assertEqual(names, ['👁️ look ahead', '🔅 morning sun', '💪 strength training', '🙏 gratitude'])
+        self.assertEqual(RL.sun_gate([], RL.sunrise(w, LOCAL), LOCAL), {})   # no wake row: nothing held
+        late = [row('😶 wake', '2026-10-02 07:40', status=DONE_LOG)]
+        self.assertEqual(RL.sun_gate(late, RL.sunrise(w, LOCAL), LOCAL), {})  # up after sunrise: nothing held
+
     def test_typical_time_reads_and_writes(self):
         self.assertEqual(RL.typical_minutes('wake+25'), 25)
         self.assertEqual(RL.typical_minutes('20:40'), 1240)
