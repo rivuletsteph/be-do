@@ -60,13 +60,45 @@ def typical_minutes(value):
     return None
 
 
-def flow_steps(cat, flow, first=()):
+_SUNRISE = re.compile(r'sunrise\D{0,3}(\d{1,2}):(\d{2})\s*([ap])', re.I)
+
+
+def sunrise(rows, loc):
+    """(date, minutes after midnight) of the newest sunrise her weather check
+    wrote down ('sunrise 7:27 am', 'sunrise 7:26a'), or None. A day or two old
+    is fine: it moves about a minute a day, and no location is ever stored."""
+    for r in sorted(rows, key=lambda r: r.get('datetime') or '', reverse=True):
+        m = _SUNRISE.search(r.get('details') or '')
+        if m and r.get('datetime'):
+            h, mm, ap = int(m.group(1)) % 12, int(m.group(2)), m.group(3).lower()
+            t = dt.datetime.fromisoformat(r['datetime'].replace('Z', '+00:00'))
+            return (t + dt.timedelta(hours=offset_hours(loc, t))).date(), (h + (12 if ap == 'p' else 0)) * 60 + mm
+    return None
+
+
+def sun_gate(day_rows, rise, loc):
+    """{practice: minutes after today's wake it can't come before} — sunrise
+    holds back the steps facts names (A237). Needs today's 😶 wake row; without
+    it there is nothing to measure from and nothing is held."""
+    if not rise:
+        return {}
+    wakes = [r['datetime'] for r in day_rows if norm(r.get('practice')) == norm(FLOWS['wake']) and r.get('datetime')]
+    if not wakes:
+        return {}
+    t = dt.datetime.fromisoformat(min(wakes).replace('Z', '+00:00'))
+    w = t + dt.timedelta(hours=offset_hours(loc, t))
+    after = rise[1] - (w.hour * 60 + w.minute)
+    return {norm(p): after for p in FLOWS['after_sunrise']} if after > 0 else {}
+
+
+def flow_steps(cat, flow, first=(), not_before=None):
     """The open flow's steps: active, in the flow's phase, a flow or optional
     step (or any step the catalog gave an order in that phase), in her
     predicted order (A237):
       1  what she says she is doing next (`first`), that time only
       2  her stated sequences (facts flows.sequences) — they beat any median
-      3  the typical time observed from her rows (bedo_order)
+      3  the typical time observed from her rows (bedo_order), held back
+         past sunrise for the steps that wait for it (`not_before`)
       4  steps with no typical time, in the catalog's order
       5  the flow close, always last"""
     phase = FLOWS['phase'][flow]
@@ -76,6 +108,9 @@ def flow_steps(cat, flow, first=()):
 
     def key(r):
         t = typical_minutes(r.get('typical_time'))
+        nb = (not_before or {}).get(norm(r['practice']))
+        if nb is not None:
+            t = max(t, nb) if t is not None else nb
         return (norm(r['practice']) == close, t is None, t or 0,
                 r.get('order') is None, r.get('order') or 0, r['practice'])
     steps.sort(key=key)
@@ -238,7 +273,7 @@ def main(argv=None):
     now = dt.datetime.now(dt.timezone.utc)
     now_local = now + dt.timedelta(hours=offset_hours(L, now))
     day = dt.date.fromisoformat(a.date) if a.date else now_local.date()
-    fields = {**{k: k for k in ('practice', 'status', 'datetime')}, **L.get('stream_fields', {})}
+    fields = {**{k: k for k in ('practice', 'status', 'datetime', 'details')}, **L.get('stream_fields', {})}
     if a.live:
         from bedo_air import Air, read_day, read_catalog
         air = Air()
@@ -248,12 +283,23 @@ def main(argv=None):
             sys.exit('give --live, or both --catalog and --day')
         cat_src, day_src = a.catalog, a.day
     cat = catalog(cat_src, L.get('practices_fields'))
-    rows = on_day(as_rows(complete(day_src, 'day'), fields), day, L)
+    every = as_rows(complete(day_src, 'day'), fields)
+    rows = on_day(every, day, L)
     flow = a.flow or open_flow(now_local, rows)
     if not flow:
         print('no flow open')
         return
-    steps = flow_steps(cat, flow, a.next)
+    gate = {}
+    if flow == 'dawn':
+        rise = sunrise(every, L)
+        if not rise and a.live:                      # the weather check often comes after the sun
+            for back in (1, 2, 3):
+                prev = as_rows(complete(read_day(air, L, day - dt.timedelta(days=back))[0], 'day'), fields)
+                rise = sunrise(prev, L)
+                if rise:
+                    break
+        gate = sun_gate(rows, rise, L)
+    steps = flow_steps(cat, flow, a.next, gate)
     print(spoken(flow, steps, rows) if a.voice else widget(flow, steps, rows) if a.widget
           else render(flow, steps, rows))
 

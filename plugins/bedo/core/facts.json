@@ -82,6 +82,8 @@
   "close": {"dawn": "🌅 dawn flow close", "dusk": "🌄 dusk flow close"},
   "groups": ["flow", "optional"],
   "never_held_open": ["optional"],
+  "wake": "😶 wake",
+  "after_sunrise": ["🔅 morning sun"],
   "sequences": {
    "dawn": [["☕ coffee", "🥤 morning water"], ["🔅 morning sun", "🧎‍♀️ hip exercises"], ["🔅 morning sun", "💪 strength training"], ["🔅 morning sun", "🌬️ morning breaths"]],
    "dusk": []

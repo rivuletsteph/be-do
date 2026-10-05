@@ -10,8 +10,8 @@ V53 is V52 and its active amendments rebuilt around *log what matters*, in four 
 | **drop** | cut, with one line on why | **drop** that touches what she logs or sees took her yes; **drop · superseded** is a rule a later one already replaced; **drop · state** is week state, not a rule |
 
 **V52, 140 rows** (each heading; the sixteen invariants one row each): code ✓ 42 · code 6 · facts 15 · judgment 57 · drop 20.  
-**Active amendments, 263 rows:** code ✓ 71 · code 20 · facts 25 · judgment 105 · drop 42.  
-Every row is placed once. 113 rows are enforced in code today.
+**Active amendments, 263 rows:** code ✓ 72 · code 19 · facts 25 · judgment 105 · drop 42.  
+Every row is placed once. 114 rows are enforced in code today.
 
 Amendments are listed by number in date order (A1 is the oldest active row, 15 Aug 2026). Her own titles and the record ids are in her copy of this file in Drive; the repo holds no ids and no names.
 
@@ -410,7 +410,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | A234 | 10-02 | a moment takes its practice's usual length | code ✓ | look-behind (usual length) |
 | A235 | 10-02 | rules she has settled go into code | judgment | J0 |
 | A236 | 10-02 | the build order (this migration first) | drop · state | lives in the stream as an action row |
-| A237 | 10-02 | the pill strip spec | code | core/bedo_remaining --widget and the predicted order (bedo_order) are built; next: sunrise holding back morning sun |
+| A237 | 10-02 | the pill strip spec | code ✓ | core/bedo_remaining --widget, the predicted order (bedo_order) and the sunrise hold |
 | A238 | 10-02 | an unused intention slot is not drawn | code | next: day-ahead engine |
 | A239 | 10-02 | an intention carries a when and why, not a date | judgment | J9 |
 | A240 | 10-02 | noticing, offered at the dawn close | judgment | J8 |
