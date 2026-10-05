@@ -29,7 +29,18 @@ def find_token():
 
 
 def can_read():
-    return bool(find_token()) or os.environ.get('CLAUDE_CODE_REMOTE') == 'true'
+    """True only when Airtable will actually answer. A token here is enough. A
+    session that only looks like a cloud one is asked once: Cowork sets the
+    same flag but carries no credential, and its proxy's request comes back 401."""
+    if find_token():
+        return True
+    if os.environ.get('CLAUDE_CODE_REMOTE') != 'true':
+        return False
+    try:
+        with urllib.request.urlopen(urllib.request.Request(API + 'meta/bases'), timeout=20):
+            return True
+    except (urllib.error.URLError, OSError):
+        return False
 
 
 class Air:
@@ -53,6 +64,8 @@ class Air:
             except urllib.error.HTTPError as e:
                 if e.code == 429 and n < 3:
                     time.sleep(30); continue
+                if e.code in (401, 403) and not self.pat:
+                    die('NO TOKEN HERE: Airtable refused this session — read through the connector and pass files')
                 die(f'{path}: HTTP {e.code}')
 
     def bases(self):
