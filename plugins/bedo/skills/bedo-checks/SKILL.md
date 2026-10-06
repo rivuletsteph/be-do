@@ -57,10 +57,37 @@ the repo.
     that field `desc`, `filters` that field `<=` `{"mode": "today"}` in her time
     zone, `pageSize` 5. Save the result as it came; its total will be larger
     than five, and that is fine for this read only.
-  - `remaining --catalog practices.json --day today.json`
+  - `remaining --catalog practices.tsv --day today.tsv` — it runs every
+    reply, so write both in **the compact form** below, never the connector's
+    JSON:
+    - `practices.tsv`, **once per chat**, reused every reply after: one read of
+      the catalog filtered to `active` checked and `phase` the open flow's
+      (a filter takes the choice's id: one `get_table_schema` call for the
+      `phase` field alone gives it), fields `practice`,
+      `group`, `order`, `typical time`. Line one carries what every row
+      shares, tab-separated: `total N`, `active=true`, `phase=🌅 dawn`.
+    - `today.tsv`, fresh every reply: today's stream rows (`datetime` `=`
+      `{"mode": "today"}` in her time zone), fields `datetime` and `practice`
+      only — never status, never details. The one exception is the 🌦️ weather
+      check row: once it exists, read its `details` once (by its record id)
+      and carry its sunrise into that row's `details` cell in every
+      `today.tsv` after — the sunrise orders the steps that wait for the sun.
   - `dusk --day today.json --catalog practices.json`
 
-  Each file is the connector's result as it came — `{"records": [...],
+  **The compact form** (`.tsv`, tabs between cells): line one `total N` with
+  the connector's own `totalRecordCount`, then any `name=value` every row
+  shares; line two the columns by their logical names (`typical_time`, not
+  `typical time`); then one record per line, the cells copied as they came —
+  a select's `name` only. A blank cell is left blank.
+
+  ```
+  total 2
+  datetime	practice	details
+  2026-10-05T11:32:00.000Z	😶 wake
+  2026-10-05T14:25:00.000Z	🌦️ weather check	sunrise 7:27 am
+  ```
+
+  Every other file is the connector's result as it came — `{"records": [...],
   "metadata": {"totalRecordCount": n}}`, or the saved `[{"text": "…"}]` wrapper.
   **Every other read must be complete:** if the result has no total, page until there is
   no offset and write the total yourself. A short read stops the check (I11),

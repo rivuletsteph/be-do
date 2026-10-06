@@ -152,6 +152,36 @@ class Remaining(unittest.TestCase):
         day = [row('🤸‍♀️ morning movement', '2026-10-04 07:10', status=DONE_LOG)]
         self.assertNotIn('morning movement', RL.render('dawn', RL.flow_steps(CAT, 'dawn'), day))
 
+    def test_the_compact_form_reads_as_the_connector_read(self):
+        # 6 Oct: in Cowork every cell read is a cell the chat writes out again,
+        # so the chat writes only the columns the list uses, as .tsv.
+        cat_ids = {k: 'fld' + k.upper() for k in F['catalog_fields']}   # ids by field, as facts_local names them
+        dawn = F['flows']['phase']['dawn']
+        cat_tsv = (f'total 3\tactive=true\tphase={dawn}\n'
+                   'practice\tgroup\torder\ttypical_time\n'
+                   '☕ coffee\tflow\t6\twake+43\n'
+                   '🥤 morning water\tflow\t2\twake+112\n'
+                   '🌅 dawn flow close\tflow\t16\n')
+        day_tsv = ('total 2\n'
+                   'datetime\tpractice\tdetails\n'
+                   f'{z("2026-10-06 06:32")}\t😶 wake\n'
+                   f'{z("2026-10-06 07:20")}\t🌦️ weather check\tsunrise 7:27 am\n')
+        with tempfile.TemporaryDirectory() as d:
+            cp, dp = os.path.join(d, 'practices.tsv'), os.path.join(d, 'today.tsv')
+            open(cp, 'w', encoding='utf-8').write(cat_tsv)
+            open(dp, 'w', encoding='utf-8').write(day_tsv)
+            cat = RL.catalog(cp, cat_ids)
+            day = R.as_rows(R.complete(dp), {'practice': 'fldP', 'datetime': 'fldD', 'details': 'fldX'})
+            self.assertEqual([s['practice'] for s in RL.flow_steps(cat, 'dawn')],
+                             ['☕ coffee', '🥤 morning water', '🌅 dawn flow close'])
+            self.assertEqual(cat[0]['order'], 6)
+            self.assertEqual(RL.sunrise(day, LOCAL), (dt.date(2026, 10, 6), 7 * 60 + 27))
+            self.assertEqual(RL.logged(day), {RL.norm('😶 wake'), RL.norm('🌦️ weather check')})
+            open(dp, 'w', encoding='utf-8').write(day_tsv.replace('total 2', 'total 3'))
+            with self.assertRaises(SystemExit) as e:                 # a short read still stops (I11)
+                R.complete(dp)
+            self.assertIn('truncated', str(e.exception))
+
     def test_only_required_steps_hold_the_flow_open(self):
         steps = RL.flow_steps(CAT, 'dawn')
         held = RL.holds_open(steps, [], 'dawn')
