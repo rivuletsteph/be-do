@@ -60,8 +60,8 @@ the repo.
   - `remaining --catalog practices.tsv --day today.tsv` — it runs every
     reply, so write both in **the compact form** below, never the connector's
     JSON:
-    - `practices.tsv`, **once per chat**, reused every reply after: one read of
-      the catalog filtered to `active` checked and `phase` the open flow's
+    - `practices.tsv`, **once per flow**, reused every reply after: one read
+      of the catalog filtered to `active` checked and `phase` the open flow's
       (a filter takes the choice's id: one `get_table_schema` call for the
       `phase` field alone gives it), fields `practice`,
       `group`, `order`, `typical time`. Line one carries what every row
@@ -72,7 +72,15 @@ the repo.
       check row: once it exists, read its `details` once (by its record id)
       and carry its sunrise into that row's `details` cell in every
       `today.tsv` after — the sunrise orders the steps that wait for the sun.
-  - `dusk --day today.json --catalog practices.json`
+  - `dusk --day dusk_day.tsv --catalog practices.tsv`, once, before the dusk
+    close — also the compact form. `practices.tsv` is the dusk one above.
+    `dusk_day.tsv` is today's rows with these columns: `datetime`, `end`,
+    `time_spent`, `status`, `practice`, `title`, `attention`, `target`, then
+    `person`, `rhythm`, `waiting_on`, `queue`, `calendar_event` written as
+    `✓` when the row has one and blank when not — the audit asks only whether
+    they are there — then `details`, holding **only** the `for my day:` line
+    when the row's details carry one, blank otherwise. Add a `chat` column (the
+    row's chat link) only when passing `--chats`.
 
   **The compact form** (`.tsv`, tabs between cells): line one `total N` with
   the connector's own `totalRecordCount`, then any `name=value` every row
