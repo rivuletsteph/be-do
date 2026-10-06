@@ -400,6 +400,29 @@ class DuskAudit(unittest.TestCase):
                 row(ACTION, '2026-10-02 09:00', status=INT, title='⚡ a to-do', person='x')]
         self.assertEqual(audit(rows)['findings']['open_past'], ['⚡ the vet (2:00 PM)'])
 
+    def test_the_compact_form_audits_as_the_connector_read(self):
+        # 6 Oct: the day's JSON read was 58 KB for the chat to write out again;
+        # the compact form keeps the cells the audit reads, a link field as a
+        # mark, and only the `for my day:` line of details — 8.6 KB, same audit.
+        fmd = F['dusk_audit']['for_my_day']
+        tsv = ('total 3\n'
+               'datetime\tend\ttime_spent\tstatus\tpractice\ttitle\tattention\tperson\trhythm\tcalendar_event\tdetails\n'
+               f'{z("2026-10-02 14:00")}\t\t\t{INT}\t{ACTION}\t⚡ the vet\t\t✓\t\t✓\n'
+               f'{z("2026-10-02 09:00")}\t{z("2026-10-02 10:00")}\t\t{DONE}\t{ACTION}\ta\t\t✓\t✓\t\t{fmd} attention · feeling\n'
+               f'{z("2026-10-02 11:00")}\t\t5400\t{MOT}\t{ACTION}\tb\t\t\t✓\n')
+        names = ('datetime', 'end', 'time_spent', 'status', 'practice', 'title', 'attention', 'person',
+                 'rhythm', 'calendar_event', 'details', 'queue', 'waiting_on', 'target', 'chat', 'key')
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, 'today.tsv')
+            open(p, 'w', encoding='utf-8').write(tsv)
+            rows = R.as_rows(R.complete(p), {k: 'fld' + k for k in names})
+        f = audit(rows)['findings']
+        self.assertEqual(f['open_past'], ['⚡ the vet (2:00 PM)'])
+        self.assertEqual(f['attention'], ['a → 🌕 full', 'b → 🌓 partial'])
+        self.assertEqual(f['for_my_day'], ['a — attention · feeling'])
+        self.assertEqual(f['no_person'], ['b'])
+        self.assertEqual(f['no_rhythm'], [])
+
     def test_2_an_end_before_its_start(self):
         rows = [row(ACTION, '2026-10-02 19:25', end=z('2026-10-02 14:00'), status=DONE, title='⚡ greenhouse',
                     attention='🌕 full', rhythm='r', person='x')]
