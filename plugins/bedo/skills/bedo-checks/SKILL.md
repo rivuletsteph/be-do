@@ -49,14 +49,20 @@ the repo.
   checks by hand.** Read through the Airtable connector, save each result to a
   file, and run the same command again with the files:
   - `preflight --bases names.json --stream recent.json` — `names.json` is
-    `{"w41 be•do": "app…", …}` from listing the bases; `recent.json` is the live
-    weekly base's stream rows from the last two days.
+    `{"w41 be•do": "app…", …}` from searching the bases for `be•do`;
+    `recent.json` is **five rows, newest first, the datetime field only** —
+    preflight asks only how old the newest row is. Every row read here is a row
+    the chat writes out again, so never read more. One connector call on the
+    live weekly base's stream: `fieldIds` the stream's `datetime` field, `sort`
+    that field `desc`, `filters` that field `<=` `{"mode": "today"}` in her time
+    zone, `pageSize` 5. Save the result as it came; its total will be larger
+    than five, and that is fine for this read only.
   - `remaining --catalog practices.json --day today.json`
   - `dusk --day today.json --catalog practices.json`
 
   Each file is the connector's result as it came — `{"records": [...],
   "metadata": {"totalRecordCount": n}}`, or the saved `[{"text": "…"}]` wrapper.
-  **A read must be complete:** if the result has no total, page until there is
+  **Every other read must be complete:** if the result has no total, page until there is
   no offset and write the total yourself. A short read stops the check (I11),
   and that is the point. A file holding more than the day is fine; the checks
   keep only the day's rows.

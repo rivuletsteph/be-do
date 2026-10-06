@@ -319,6 +319,21 @@ class Preflight(unittest.TestCase):
         self.assertFalse(stop)
         self.assertEqual(text.splitlines()[0], P.chat_name(dt.date(2026, 10, 4)))   # line one, nothing else
 
+    def test_a_short_read_newest_first_is_enough(self):
+        # 6 Oct: Cowork read 125 rows to learn one thing, the newest. The
+        # connector's newest-first read of five says 396 in its total.
+        f = {'datetime': 'fldNkE4EwOCKlduKX'}
+        def dump(stamps, total):
+            return {'records': [{'id': 'rec%d' % i, 'createdTime': t,
+                                 'cellValuesByFieldId': {f['datetime']: t}} for i, t in enumerate(stamps)],
+                    'metadata': {'totalRecordCount': total}}
+        newest_first = ['2026-10-06T03:46:00.000Z', '2026-10-06T03:45:00.000Z', '2026-10-06T03:30:00.000Z']
+        self.assertEqual(len(P.stream_rows(dump(newest_first, 396), f)), 3)
+        with self.assertRaises(SystemExit) as e:                    # short and unsorted: it could hide the newest
+            P.stream_rows(dump(newest_first[::-1], 396), f)
+        self.assertIn('truncated', str(e.exception))
+        self.assertEqual(len(P.stream_rows(dump(newest_first[::-1], 3), f)), 3)   # complete: any order
+
 
 # ── the live read ──────────────────────────────────────────────────────────
 class LiveRead(unittest.TestCase):
