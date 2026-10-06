@@ -322,7 +322,7 @@ class Preflight(unittest.TestCase):
     def test_a_short_read_newest_first_is_enough(self):
         # 6 Oct: Cowork read 125 rows to learn one thing, the newest. The
         # connector's newest-first read of five says 396 in its total.
-        f = {'datetime': 'fldNkE4EwOCKlduKX'}
+        f = {'datetime': 'fldDATETIME'}
         def dump(stamps, total):
             return {'records': [{'id': 'rec%d' % i, 'createdTime': t,
                                  'cellValuesByFieldId': {f['datetime']: t}} for i, t in enumerate(stamps)],
