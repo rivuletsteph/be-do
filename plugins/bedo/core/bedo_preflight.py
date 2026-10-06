@@ -21,11 +21,11 @@ returned instead, so the turn pastes it rather than composes it (A219).
 
     python3 bedo_preflight.py --live                  # my day
     python3 bedo_preflight.py --live --kind week      # my week
-    python3 bedo_preflight.py --bases names.json --stream w41.json
+    python3 bedo_preflight.py --bases names.json --stream w41.json   # newest 5, newest first, is enough
 """
 import datetime as dt, json, re, sys
 
-from bedo_reader import FACTS, as_rows, complete, load_local, offset_hours
+from bedo_reader import FACTS, as_rows, complete, load_local, offset_hours, read_dump
 from bedo_entry import utc, week_number
 
 MARK = chr(int(FACTS['glyph_codepoints']['mark'][2:], 16))
@@ -77,6 +77,24 @@ def newest(rows, now):
     ts = [utc(r['datetime']) for r in rows if r.get('datetime')]
     ts = [t for t in ts if t <= now]
     return max(ts) if ts else None
+
+
+def stream_rows(src, fields):
+    """The stream rows preflight judges the base by. Preflight asks one thing,
+    the newest row, so a read sorted newest first answers it in five records:
+    in Cowork every record read is a record the chat writes out again, and a
+    full read cost 125 rows (6 Oct). A short read that is not newest first
+    could hide the newest row, so it stops (I11)."""
+    d = read_dump(src)
+    recs = d.get('records') if isinstance(d, dict) else None
+    tot = (d.get('metadata') or {}).get('totalRecordCount') if isinstance(d, dict) else None
+    if recs is not None and tot is not None and len(recs) == tot:
+        return as_rows(recs, fields)
+    rows = as_rows(recs or [], fields)
+    ts = [r.get('datetime') or '' for r in rows]
+    if rows and all(ts) and ts == sorted(ts, reverse=True):
+        return rows
+    return as_rows(complete(src, 'stream'), fields)   # stops, and says why
 
 
 def check_base(names, rows, now, day, local, handoff=None):
@@ -149,7 +167,7 @@ def main(argv=None):
         if not (a.bases and a.stream):
             sys.exit('give --live, or both --bases and --stream')
         names = json.load(open(a.bases, encoding='utf-8'))
-        rows = as_rows(complete(a.stream, 'stream'), fields)
+        rows = stream_rows(a.stream, fields)
     handoff = open(a.handoff, encoding='utf-8').read() if a.handoff else None
     text, stop = report(L, names, rows, now, a.kind, a.part, a.week, handoff)
     print(text)
