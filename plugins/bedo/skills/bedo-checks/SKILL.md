@@ -45,8 +45,9 @@ the repo.
   in `~/.bedo`, or a Claude cloud session whose proxy attaches the credential —
   the checks read Airtable themselves. No rows pass through the chat.
 - **Without one** (Cowork, a plain chat), the command says `NO TOKEN HERE` and
-  exits 3. Read through the Airtable connector, save each result to a file, and
-  pass the files:
+  exits 3. **That is expected, not a failure — it is not a reason to run the
+  checks by hand.** Read through the Airtable connector, save each result to a
+  file, and run the same command again with the files:
   - `preflight --bases names.json --stream recent.json` — `names.json` is
     `{"w41 be•do": "app…", …}` from listing the bases; `recent.json` is the live
     weekly base's stream rows from the last two days.
@@ -70,5 +71,6 @@ never as a stream row. The next be•do work session on the laptop moves it into
 
 ## If the download fails
 
-Say so plainly in one line and run the checks by hand from the same rules —
+Only a failed download — never `NO TOKEN HERE` — is a reason for this. Say so
+plainly in one line and run the checks by hand from the same rules —
 never from an older copy of the code.

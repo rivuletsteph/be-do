@@ -60,7 +60,8 @@ live_or_files() {   # $1 = what to say is needed; rest = the args
   local need=$1; shift
   if has_files "$@"; then return 1; fi
   if (cd "$W/core" && "$PY" -c 'import bedo_air, sys; sys.exit(0 if bedo_air.can_read() else 1)'); then return 0; fi
-  echo "NO TOKEN HERE: read through the Airtable connector and pass $need (see SKILL.md)"; exit 3
+  echo "NO TOKEN HERE: expected in Cowork or a plain chat, not a failure. Don't run the checks by hand."
+  echo "Read through the Airtable connector, save each result as a file, and run this again with $need (see SKILL.md)"; exit 3
 }
 
 case "$CMD" in
@@ -79,7 +80,8 @@ case "$CMD" in
   order)
     [ -d "$W/core" ] || fetch_core; find_local
     if has_files "$@"; then :; elif (cd "$W/core" && "$PY" -c 'import bedo_air, sys; sys.exit(0 if bedo_air.can_read() else 1)'); then set -- --live "$@"
-    else echo "NO TOKEN HERE: pass --stream (each weekly base, live first) and --catalog files"; exit 3; fi
+    else echo "NO TOKEN HERE: expected in Cowork or a plain chat, not a failure. Don't run the checks by hand."
+         echo "Read through the Airtable connector and run this again with --stream (each weekly base, live first) and --catalog files"; exit 3; fi
     "$PY" "$W/core/bedo_order.py" "$@" ;;
   stretches)
     [ -d "$W/core" ] || fetch_core; find_local
