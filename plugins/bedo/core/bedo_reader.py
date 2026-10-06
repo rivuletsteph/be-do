@@ -73,9 +73,45 @@ def cells(r):
     return r.get('cellValuesByFieldId', r.get('fields')) or {}
 
 
+def _cell(v):
+    v = v.strip()
+    if v.lower() in ('true', 'false'):
+        return v.lower() == 'true'
+    try:
+        return int(v) if v.lstrip('-').isdigit() else float(v) if v.replace('.', '', 1).lstrip('-').isdigit() else v
+    except ValueError:
+        return v
+
+
+def read_tsv(text):
+    """The compact form a Cowork chat writes, where every cell read is a cell
+    it writes out again (6 Oct). Line one is `total N` — the connector's own
+    count — then any `name=value` every row shares, tab-separated; line two
+    names the columns by their logical names; then one row per record. Blank
+    cells are left out. A record count that is not the total stops as any
+    short read does (I11)."""
+    lines = [l for l in text.splitlines() if l.strip()]
+    if not lines or not lines[0].startswith('total '):
+        die('a .tsv read starts with `total N`, the count the connector gave')
+    first = lines[0].split('\t')
+    total = int(first[0].split()[1])
+    shared = dict(x.split('=', 1) for x in first[1:] if '=' in x)
+    cols = [c.strip() for c in lines[1].split('\t')] if len(lines) > 1 else []
+    recs = []
+    for i, line in enumerate(lines[2:]):
+        f = {k: _cell(v) for k, v in shared.items()}
+        f.update({c: _cell(v) for c, v in zip(cols, line.split('\t')) if v.strip()})
+        recs.append({'id': f'tsv{i}', 'createdTime': '', 'fields': f})
+    return {'records': recs, 'metadata': {'totalRecordCount': total}}
+
+
 def read_dump(src):
     """A path, or an already-loaded dump. A saved tool result in a claude.ai
-    chat is wrapped as [{"text": "<json>"}]; accept that as-is."""
+    chat is wrapped as [{"text": "<json>"}]; accept that as-is. A .tsv path is
+    the compact form (read_tsv)."""
+    if isinstance(src, (str, os.PathLike)) and str(src).endswith('.tsv'):
+        with open(src, encoding='utf-8') as fh:
+            return read_tsv(fh.read())
     if isinstance(src, (str, os.PathLike)):
         with open(src, encoding='utf-8') as fh:
             d = json.load(fh)
@@ -135,7 +171,7 @@ def as_rows(recs, fields):
     rows = []
     for r in recs:
         c = cells(r)
-        row = {k: sv(c.get(v)) for k, v in fields.items()}
+        row = {k: sv(c.get(v, c.get(k))) for k, v in fields.items()}   # a .tsv names cells by logical name
         row.update(id=r['id'], created=r['createdTime'])
         rows.append(row)
     return rows
