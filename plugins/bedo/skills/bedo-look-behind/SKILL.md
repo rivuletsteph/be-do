@@ -365,6 +365,13 @@ Read these before second-guessing a number on the page.
   `typical_time.json`, and only where that median was earned — five observations and a tight spread.
   No median means no estimate; the minutes stay uncounted rather than guessed.
   The engine draws estimates striped and states the total.
+- **The grey is two things, drawn apart.** Minutes a row covers that no named
+  slice claims are "everything else", solid; minutes no row covers at all are
+  "nothing logged", dashed. Before 7 Oct 2026 both were one grey slice, and a
+  well-logged day read as half unaccounted for.
+- **A dropped intention check is never a line.** A ✖️ or ⨂ intention row is a
+  duplicate or a withdrawn one; the action check's glyph is read whether it
+  leads or closes each part of its title.
 - **The screen slice comes from the row's device field**, not from the practice,
   and only for rows the practice map didn't already place. Eating in front of
   the television is still eating.

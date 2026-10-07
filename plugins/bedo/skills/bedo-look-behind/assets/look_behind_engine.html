@@ -435,6 +435,8 @@ document.getElementById("ftn").textContent = `${met} of ${set} met` + (car ? ` \
  
 // how the day went: midnight to midnight. Each slice is solid for minutes logged off a device, hatched for minutes
 // on a device, and faded where the minutes are estimated (the user's word, 3 Oct 2026: time on a device made explicit).
+// The rest slice is solid for what a row covers but no slice names, and the minutes no row covers at all are drawn
+// apart, dashed, as nothing logged (the user's word, 7 Oct 2026: the grey read as unaccounted when most of it was logged).
 // each slice wears the palette by its key; a slice the palette doesn't name keeps the settings' colour
 DATA.pie.forEach(d => { if (["bed","move","food","travel","dev","log","else"].includes(d.k)) d.c = `var(--pie-${d.k})`; });
 const PIE = DATA.pie, fmtm = m => { m=Math.round(m); const h=Math.floor(m/60), r=m%60; return h ? (r ? `${h} h ${String(r).padStart(2,"0")}` : `${h} h`) : `${r} min`; };
@@ -444,24 +446,28 @@ document.getElementById("pieT").textContent = `${DATA.date} · 24 hours`;
   const R=100, r=58, pp=(a,rad)=>[rad*Math.sin(a),-rad*Math.cos(a)]; let a0=0; const g=document.getElementById("slices");
   // kind: "" logged off a device · "dev" logged on a device (hatched) · "est" estimated (faded)
   const arc=(d,m,kind)=>{ if(m<=0) return; const a1=a0+m/1440*2*Math.PI, big=a1-a0>Math.PI?1:0, [x0,y0]=pp(a0,R),[x1,y1]=pp(a1,R),[x2,y2]=pp(a1,r),[x3,y3]=pp(a0,r);
-    const el=document.createElementNS("http://www.w3.org/2000/svg","path");
-    el.setAttribute("d",`M${x0} ${y0}A${R} ${R} 0 ${big} 1 ${x1} ${y1}L${x2} ${y2}A${r} ${r} 0 ${big} 0 ${x3} ${y3}Z`); el.style.fill=d.c; el.dataset.k=d.k;
+    const el=document.createElementNS("http://www.w3.org/2000/svg","path"), gap=kind==="est"&&d.rest;
+    el.setAttribute("d",`M${x0} ${y0}A${R} ${R} 0 ${big} 1 ${x1} ${y1}L${x2} ${y2}A${r} ${r} 0 ${big} 0 ${x3} ${y3}Z`); el.dataset.k=gap?"__gap":d.k;
+    if(gap) el.classList.add("gapw"); else el.style.fill=d.c;
     if(kind==="dev"){ el.setAttribute("mask","url(#hatchmask)"); el.dataset.dev="1"; }
     if(kind==="est" && !d.rest) el.classList.add("est");
-    const t=document.createElementNS("http://www.w3.org/2000/svg","title"); t.textContent=`${d.n}: ${fmtm(m)}${kind==="dev"?" on a device":kind==="est"&&!d.rest?" estimated":""}`; el.appendChild(t); g.appendChild(el); a0=a1; };
+    const t=document.createElementNS("http://www.w3.org/2000/svg","title"); t.textContent=gap?`Nothing logged: ${fmtm(m)}`:`${d.n}: ${fmtm(m)}${kind==="dev"?" on a device":kind==="est"?" estimated":""}`; el.appendChild(t); g.appendChild(el); a0=a1; };
   PIE.forEach(d=>{ const dv=Math.min(d.dev||0,d.logged); arc(d,d.logged-dv,""); arc(d,dv,"dev"); arc(d,d.est,"est"); });
   const lg=document.getElementById("plg");
   const DV = DATA.pieDevice || {min: PIE.reduce((a,d)=>a+(d.dev||0),0), rows: []};
   const devli = DV.min ? `<li class="devrow"><button type="button" data-k="__dev" aria-pressed="false"><span class="psw dev"></span><span><span class="pn">\u{1F4F1} On a device</span><span class="pw">${esc((DV.rows||[]).join(", "))}</span><span class="pw">hatched, in whichever slice it falls</span></span><span class="ph">${fmtm(DV.min)}</span></button></li>` : "";
-  lg.innerHTML=devli+PIE.map(d=>`<li><button type="button" data-k="${d.k}" aria-pressed="false"><span class="psw" style="background:${d.c}"></span><span><span class="pn">${d.e?d.e+" ":""}${esc(d.n)}</span><span class="pw">${esc(d.w)}</span>${d.rest?"":`<span class="pw">${fmtm(d.logged)} logged${d.dev?` · ${fmtm(d.dev)} on a device`:""}${d.est?` · ${fmtm(d.est)} estimated`:""}</span>`}</span><span class="ph">${fmtm(d.m)}</span></button></li>`).join("");
+  // the rest slice lists only what a row covers; the minutes nothing covers get a row of their own, dashed
+  const REST = PIE.find(d=>d.rest), GAP = REST ? REST.est : 0;
+  const gapli = GAP ? `<li><button type="button" data-k="__gap" aria-pressed="false"><span class="psw gapsw"></span><span><span class="pn">Nothing logged</span><span class="pw">no row covers these minutes</span></span><span class="ph">${fmtm(GAP)}</span></button></li>` : "";
+  lg.innerHTML=devli+PIE.map(d=>d.rest&&!d.logged?"":`<li><button type="button" data-k="${d.k}" aria-pressed="false"><span class="psw" style="background:${d.c}"></span><span><span class="pn">${d.e?d.e+" ":""}${esc(d.n)}</span><span class="pw">${esc(d.w)}</span>${d.rest?`<span class="pw">logged, in no slice of its own</span>`:`<span class="pw">${fmtm(d.logged)} logged${d.dev?` · ${fmtm(d.dev)} on a device`:""}${d.est?` · ${fmtm(d.est)} estimated`:""}</span>`}</span><span class="ph">${fmtm(d.rest?d.logged:d.m)}</span></button></li>`).join("")+gapli;
   const pie=document.getElementById("pie"), cv=document.getElementById("cVal"), cl=document.getElementById("cLab"); let cur=null;
   const idle=()=>{ cv.textContent="24 h"; cl.textContent="the whole day"; }; idle();
   const focus=k=>{ cur=(k===cur)?null:k; pie.classList.toggle("focus",!!cur); g.querySelectorAll("path").forEach(p=>p.classList.toggle("on",cur==="__dev"?p.dataset.dev==="1":p.dataset.k===cur));
     lg.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.k===cur))); const d=PIE.find(x=>x.k===cur);
-    if(cur==="__dev"){ cv.textContent=fmtm(DV.min); cl.textContent="on a device"; } else if(d){ cv.textContent=fmtm(d.m); cl.textContent=d.n.toLowerCase(); } else idle(); };
+    if(cur==="__dev"){ cv.textContent=fmtm(DV.min); cl.textContent="on a device"; } else if(cur==="__gap"){ cv.textContent=fmtm(GAP); cl.textContent="nothing logged"; } else if(d){ cv.textContent=fmtm(d.rest?d.logged:d.m); cl.textContent=d.n.toLowerCase(); } else idle(); };
   g.addEventListener("click",e=>{const p=e.target.closest("path"); if(p) focus(p.dataset.k);});
   lg.addEventListener("click",e=>{const b=e.target.closest("button"); if(b) focus(b.dataset.k);});
   const est=PIE.filter(d=>!d.rest).reduce((a,d)=>a+d.est,0);
-  document.getElementById("unl").textContent=`Hatched is on a device: ${fmtm(DV.min)}. Faded is estimated: ${fmtm(est)}, from your own typical times. Solid is logged, off a device.`; }
+  document.getElementById("unl").textContent=`Hatched is on a device: ${fmtm(DV.min)}. Faded is estimated: ${fmtm(est)}, from your own typical times. Dashed is nothing logged: ${fmtm(GAP)}. Solid is logged, off a device.`; }
 document.getElementById("foot").textContent = DATA.read + ((DRAFT.lead || DRAFT.story) ? " · " + [DRAFT.lead && "lead", DRAFT.story && "story"].filter(Boolean).join(" and ") + " drafted, not yet edited" : "");
 </script>

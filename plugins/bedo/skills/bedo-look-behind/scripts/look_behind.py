@@ -724,7 +724,9 @@ def main():
     for r in day_rows:
         if r['_pr'] in acp:
             tail = r['_title'].split('\u2014', 1)[-1]
-            checks = [next((g for g in OUTCOME if part.strip().startswith(g)), '')
+            # the glyph leads each part, or closes it ('show up fully at work ✅')
+            checks = [next((g for g in OUTCOME if part.strip().startswith(g)
+                            or part.strip().endswith(g)), '')
                       for part in tail.split('\u00b7')]
             # a line per intention in the details, glyph first or after an arrow:
             #   ✅ Show up at the meeting — the check-in ran 10:30 to 11:30 …
@@ -737,7 +739,12 @@ def main():
                 what = ln.split(' \u2014 ', 1)[1] if ' \u2014 ' in ln else ''
                 happened.append((g, to_you(what)))
     intentions = []
-    for r in (r for r in day_rows if r['_pr'] in ip):
+    # a dropped or skipped intention check is a duplicate or a withdrawn one, never
+    # a line on the page (7 Oct 2026: a second chat's copy showed the day's one
+    # intention twice)
+    gone = ('\u2716', '\u2a02')                                     # ✖️ ⨂
+    for r in (r for r in day_rows if r['_pr'] in ip
+              and not (r.get('status') or '').startswith(gone)):
         st = r.get('status')
         own = DONE if st in done_st else CARRIED if st in motion else ''
         words = her_words(r.get('details'))

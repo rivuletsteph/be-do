@@ -132,6 +132,8 @@ STREAM = [
         details='left: example step one · example step two · example step three'
                 + "\n———\n[be•do] a block that is not the user's",
         deliv='https://example.invalid/one'),
+    # a second chat's copy of the first intention, dropped as a duplicate: never a line
+    row('⚡ intention check', 525, status='✖️ dropped', title='First example intention'),
 
     # ── four rows that must score nothing, each by a different rule
     row('⚡ action', 600, 780, wellness='🔥 fire', status='⬜ intention',
@@ -266,6 +268,7 @@ EXPECT = {
     # from a device is 'logging the day'. The fixture's other device rows are
     # spans with no drive (43 minutes), so they fall to everything else.
     # a 📲 capture span is logging the day — Being, never drive work (amendment, 3 Oct 2026)
+    'rest_logged': 554,
     'pie_minutes': {'bed': (459, 0), 'move': (10, 130), 'food': (83, 75), 'dev': (0, 89), 'log': (40, 0)},
     'destinations': [
         {'name': 'be•do', 'glyph': MARK, 'work': [
@@ -282,7 +285,7 @@ EXPECT = {
              'done': STEPS},
         ]},
     ],
-    'read': 'w39 · 33/33',
+    'read': 'w39 · 34/34',
 }
 
 
@@ -366,7 +369,11 @@ def main():
           {p['k']: (p['logged'], p['est']) for p in D['pie'] if not p.get('rest')},
           EXPECT['pie_minutes'])
     check('pie slices', [p['k'] for p in D['pie']], ['bed', 'move', 'food', 'dev', 'log', 'else'])
-    check('pie rest slice', [p for p in D['pie'] if p.get('rest')][0]['n'], 'Everything else')
+    rest = [p for p in D['pie'] if p.get('rest')][0]
+    check('pie rest slice', rest['n'], 'Everything else')
+    # the rest slice counts what a row covers but no slice names, so the engine can
+    # draw the minutes nothing covers apart, as nothing logged (7 Oct 2026)
+    check('pie rest slice logged', rest['logged'], EXPECT['rest_logged'])
     check('effectiveness.destinations', D['effectiveness']['destinations'],
           EXPECT['destinations'])
     check('effectiveness.secure', D['effectiveness']['secure'], 'secure')
