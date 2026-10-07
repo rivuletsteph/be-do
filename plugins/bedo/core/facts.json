@@ -122,5 +122,19 @@
   "about": "be•do never sets a standing unasked; a reading item clear-inbox files is the one exception (stories, want)"
  },
  "ahead_review": {"older_than_days": 14, "statuses": ["⬜ intention", "▶️ in motion"], "by_day_of_month": 5},
- "airtable": {"record_ceiling_per_base": 1000, "bulk_batch": 50}
+ "airtable": {"record_ceiling_per_base": 1000, "bulk_batch": 50},
+
+ "meals": {
+  "_about": "Her rules, 7 Oct 2026 (amendment recjqbbyTntq6zP3p): an educated guess, not a hard rule, and the onus is on be•do, not on her logging every minute. be•do places each meal's prep and eating from context, writes them ESTIMATED FROM CONTEXT, and tells her what went in the record so she can say if it is accurate.",
+  "meal_words": ["breakfast", "lunch", "dinner", "snack", "meal"],
+  "prep_words": ["breakfast prep", "lunch prep", "dinner prep", "meal prep"],
+  "prep_practice": {"breakfast": "🍳 meal prep", "lunch": "🍳 lunch prep", "dinner": "🍳 dinner prep", "meal": "🍳 meal prep"},
+  "eat_minutes": {"breakfast": 15, "lunch": 20, "dinner": 30, "snack": 10, "meal": 30},
+  "prep_minutes": {"out": 20, "simple": 15, "straightforward": 30, "cooked": 45},
+  "prep_why": {"out": "ordering and picking it up", "simple": "a simple meal she made, like a sandwich", "straightforward": "a really straightforward dinner she cooked", "cooked": "a dinner she cooked; most take 45 minutes to an hour"},
+  "out_words": ["restaurant", "takeout", "take-out", "to go", "ordered", "picked up", "pick up", "drive-thru", "drive thru", "delivery", "doordash", "deli", "café", "cafe", "grill", "diner"],
+  "simple_words": ["sandwich", "toast", "salad", "wrap", "quesadilla", "cereal", "oatmeal", "yogurt", "leftover", "smoothie", "bagel", "pb&j", "eggs"],
+  "straightforward_words": ["quick", "easy", "simple", "frozen", "boxed", "sheet pan", "pasta", "spaghetti", "grilled cheese", "breakfast for dinner"],
+  "prep_window_minutes": 180
+ }
 }

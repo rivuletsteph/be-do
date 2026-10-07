@@ -310,6 +310,14 @@ page goes out:
   cooking between home and "dinner made"), else 📝 log — its `[be•do]` block
   saying ESTIMATED FROM CONTEXT, not logged by the user, and naming the clues. Only
   a stretch with no clue on either side stays open, named in one line.
+- `meals` — a meal with no minutes, or no prep row before it. Place it by her
+  rules, don't ask her for times (amendment `recjqbbyTntq6zP3p`, 7 Oct 2026):
+  `bash run_checks.sh meals --json` proposes each meal's prep (ordering out 20,
+  a simple meal 15, a straightforward dinner 30, a cooked dinner 45) and its
+  eating; write them ESTIMATED FROM CONTEXT, then show her the list as what went
+  in the record and ask if it's accurate. Timeline beats the defaults.
+- `no_sleep` — no sleep row for last night, so the morning draws as nothing
+  logged. Write it from the morning Oura row (in bed to out of bed).
 - And the calendar: read the day's events after the user has corrected them, give
   each one that happened its own row (a 🗓️ calendar event, ✅ done, titled as
   the calendar line, with the event link), and note any drift from the plan.
