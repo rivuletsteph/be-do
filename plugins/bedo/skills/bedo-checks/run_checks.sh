@@ -2,6 +2,7 @@
 # be•do's checks, run rather than remembered. The core comes fresh from the
 # version store on every preflight; the other commands reuse that copy.
 #
+#   bash run_checks.sh judgment   # the judgment file, read in full at the first reply
 #   bash run_checks.sh preflight [--kind week --week N] [--part B] [--handoff FILE]
 #   bash run_checks.sh remaining [--flow dawn|dusk] [--voice]
 #   bash run_checks.sh dusk      [--date YYYY-MM-DD] [--chats chats.json] [--write]
@@ -44,7 +45,9 @@ fetch_core() {
   else   # in Cowork the tarball can come back as a JSON refusal; a clone works there
     rm -rf "$T/be-do-main"; git clone -q --depth 1 https://github.com/rivuletsteph/be-do "$T/be-do-main"
   fi
-  rm -rf "$W/core"; cp -r "$T/be-do-main/plugins/bedo/core" "$W/core"; rm -rf "$T"
+  rm -rf "$W/core"; cp -r "$T/be-do-main/plugins/bedo/core" "$W/core"
+  cp "$T/be-do-main/docs/v53-judgment.md" "$W/core/judgment.md" 2>/dev/null || true
+  rm -rf "$T"
 }
 
 find_local() {
@@ -67,6 +70,10 @@ live_or_files() {   # $1 = what to say is needed; rest = the args
 }
 
 case "$CMD" in
+  judgment)   # the project's instructions, fresh from the version store: nothing to paste
+    fetch_core
+    [ -f "$W/core/judgment.md" ] || { echo "judgment file missing from the download"; exit 1; }
+    cat "$W/core/judgment.md" ;;
   preflight)
     fetch_core; find_local
     if live_or_files "--bases names.json --stream recent.json" "$@"; then set -- --live "$@"; fi
@@ -113,5 +120,5 @@ for r in rows if isinstance(rows, list) else [rows]:
 sys.exit(1 if bad else 0)
 E
     ;;
-  *) echo "usage: run_checks.sh preflight|remaining|dusk|meals|entry|stretches|order [args]"; exit 2 ;;
+  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|entry|stretches|order [args]"; exit 2 ;;
 esac

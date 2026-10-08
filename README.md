@@ -19,7 +19,7 @@ The master instructions are now three things, not one long document
 |---|---|
 | the invariants, enforced and tested | `plugins/bedo/core` — `bedo_reader` (I11 · I15 · I5), `bedo_entry` (the entry check), `bedo_split` (I16 and the carry-verify), `bedo_export`, `bedo_preflight` (the chat-name line, the clock, the base), `bedo_remaining` (the flow list), `bedo_dusk_audit` (the one-pass list), `bedo_stretches` (a chat's time), `bedo_air` (the live read) |
 | strings, glyphs, thresholds | `plugins/bedo/core/facts.json` ships; `facts_local.json` holds one person's ids and is gitignored (`facts_local.example.json` is its shape) |
-| what needs judgment | `docs/v53-judgment.md` — also the text for the claude.ai project's instructions |
+| what needs judgment | `docs/v53-judgment.md` — the claude.ai project loads it at each chat's first reply with `run_checks.sh judgment`; the project itself holds only a pointer |
 
 Every builder and `plugins/bedo/close/close.py` read the stream through
 `bedo_reader`; the runners copy the core beside their scripts. All tests, one

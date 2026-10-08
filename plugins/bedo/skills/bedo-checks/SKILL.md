@@ -12,6 +12,7 @@ only where nothing can execute, and then copy the same shape.
 
 | when | command | what the chat does with it |
 |---|---|---|
+| the first reply of every be•do chat, before anything else | `judgment` | prints `docs/v53-judgment.md` fresh from the version store. It IS the project's instructions; the project holds only a short pointer to this command, so nobody pastes the long file on a phone. Read every line and follow it for the whole chat. If the download fails, say so in one line and work from the skills |
 | the first reply of every be•do chat | `preflight` | line one is the chat's title — put it alone, first, in a code box. Then the clock and the base. A `STOP` means no read or write until the base is right |
 | every reply while a flow is open | `remaining --widget` | hand the HTML to the widget tool exactly as printed — her pill strip (A237). Where a widget can't render, `remaining` prints the block and the one line; `--voice` gives one spoken line |
 | before any stream write | `entry row.json` | write only rows that print `ok`; fix every `FIX` first |
@@ -23,6 +24,7 @@ only where nothing can execute, and then copy the same shape.
 ## Running it
 
 ```
+bash run_checks.sh judgment                  # the judgment file, every chat's first reply
 bash run_checks.sh preflight                 # my day; --part B when the day already has a chat
 bash run_checks.sh preflight --kind week --week 40
 bash run_checks.sh remaining --widget        # the open flow as her pill strip; --flow dawn|dusk to name one
