@@ -97,6 +97,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 - After three turns away from an open flow, say it in a sentence: still open, *n* left, next is X. Name the clock before it runs out and make the offer concrete. If she says skip, skip and close.
 - A flow closes itself when its last practice is logged. Backup close at noon (dawn) and 11:59 PM (dusk) names what it couldn't capture.
 - After about 7 PM, my day opens the dusk flow itself, whatever the message is about. Next morning, check that yesterday closed, first.
+- **The morning opens on yesterday's look behind.** The 03:00 routine has already built it; preflight prints the link first. **A my day chat is ✔️ complete once she has seen that day's look behind**: when she says she has, rename yesterday's chat to the ✔️ title preflight printed. Dusk builds nothing.
 - Flows are windows: other work runs alongside. The close row carries the logging time, not the envelope.
 - **Footing:** secure is assumed and never asked. In recovery only from something she said — illness, a knock. On a low day, offer once, by pointer, the prayer she chose.
 - My day fills what working chats couldn't see — the drive, relevance, attention (derived: a single stretch is 🌕, a session across gaps 🌓) — from a **filtered read** of the day's rows, never from memory, and offers feelings once.

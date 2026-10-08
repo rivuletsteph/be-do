@@ -20,12 +20,12 @@ When one ships, its line moves to **Done** with the PR that closed it.
 
 | key | status | item |
 |---|---|---|
+| 260924_2221b | The day behind fires at 03:00 Central and lands on the living page; the routine drafts the words, dusk builds nothing, a failure is a push notification. A my day chat is ✔️ once its look behind is seen. | routine trig_01TVzvCv9aDCJ4FWvC4qr9y1, 8 Oct 2026 |
 | 260915_0744 | ⬜ | One codebase for the behind and ahead pages — mobile, nightly, reading Airtable, depersonalised |
 | 260921_1444c | ⬜ | The day behind's folded "more" — river, map, flows, self-check |
 | 260921_1444b | ⬜ | The day ahead as the day behind's mirror — her intentions in the same slots, linked both ways |
 | 260921_1444 | ⬜ | Photos on the day behind — a shared photo link and up to five thumbnails, fetched at build time |
 | 260924_0933b | ▫️ | Day ahead: turn the calendar and open rows into a real what-to-do-today list |
-| 260924_2221b | ▫️ | Fire the day behind on a schedule, and decide where the page lands |
 | 260924_2240 | ▫️ | Make the pages black in the engine, not just locally |
 | 260924_2255 | ▫️ | Day behind: split the three intentions; read company from logged rows only |
 | 260925_0747 | ⬜ | Day-ahead builder — a child's school calendar is coverage, not a clash; emit the doctype; make prep actually draft |

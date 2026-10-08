@@ -1,8 +1,10 @@
-# The morning routine — finishing yesterday's look behind
+# The morning routine — building yesterday's look behind
 
 A Claude Code cloud routine, due at **03:00 in the user's time zone**, that
-finishes yesterday's look behind by itself: re-reads the rows, takes the words
-the dusk chat left in the stream, builds the **final**, publishes, saves. It
+builds yesterday's look behind by itself, so it is already on the living page
+when the morning chat opens: reads the rows, takes the words the dusk chat left
+in the stream if there are any and **drafts them itself if not**, builds,
+publishes. It
 reads this file from the version store at the start of every run and follows
 it; nothing personal is in it — every specific comes from
 `look_behind_local.json`, which the routine's environment carries with the
@@ -10,6 +12,32 @@ installed skill.
 
 **It builds yesterday, never today**: the user's local date at the moment it
 fires, minus one. The first line of anything it writes states the date built.
+**Only yesterday**: an older day with no page is named in its account, not
+built — the living page shows one day, and that day is yesterday.
+
+**Who writes the words** (decided 8 Oct 2026, backlog 260924_2221b): the
+routine. The builder refuses to build without a lead and a story, and at 03:00
+nobody is there to write them, so the routine drafts them from the digest and
+marks them as a draft (the 28 Sep amendment allows it). Dusk is not asked to
+write them or to build anything: less time in the system at the end of the
+day. If a dusk chat did leave words in a look behind row, the routine uses
+them as they stand. The morning chat shows the draft and she edits or accepts
+it there (`SKILL.md`, *Editing is one command*).
+
+**Failures reach her phone, never the page.** The routine is created with push
+notifications on. A run that cannot build publishes nothing — the page keeps
+the last good day — and its final message opens with `FAILED <date>:` and the
+one reason, which is what the notification carries.
+
+## The routine as created (8 Oct 2026)
+
+- `trig_01TVzvCv9aDCJ4FWvC4qr9y1`, created from a Claude Code session with `create_trigger`: a fresh session on
+  every firing, `CRON_TZ=America/Chicago 0 3 * * *`, push notifications on, no
+  connectors (none are needed to build and publish).
+- Its prompt is short and points here: *read `MORNING.md` from the version
+  store and follow it*. Change this file, not the routine, to change what it does.
+- First run by hand on 8 Oct 2026 for 7 Oct: no dusk row (dusk didn't close),
+  the words drafted and marked, built, published to the living page.
 
 ## The routine itself
 
@@ -41,7 +69,7 @@ fires, minus one. The first line of anything it writes states the date built.
 
 | step | allowed? |
 |---|---|
-| publish the final to the living page | *asked — pending* |
+| publish to the living page | **yes** — her word, 8 Oct 2026 |
 | update the look behind's log row (status, link, the words block) | *asked — pending; yes is what makes the row the channel* |
 | sync the calendar from the stream | *asked — pending* |
 | a day with no ⏏️ secure base row | build `secure`, the assumed default since 29 Sep, and say the row was absent |
@@ -67,18 +95,14 @@ it is the only place the routine looks.
    session. **If it aborts with *no base named "w## be•do"*, the week has
    turned and the new base is not cloned yet** (the Sunday close does that):
    say so and stop. Never fall back to the old week's base.
-3. **Which days.**
+3. **Is yesterday already final?**
    ```
    python3 scripts/look_behind_log.py --today <today> --local look_behind_local.json \
      --stream data/w##.json [--stream data/w##-prev.json] --cap 3
    ```
-   `to_build` lists the days with no final yet, oldest first, at most three
-   back. Empty: nothing to do, say so, stop. Several: each in order, so the
-   most recent day is built last and is the one left on the living page. A day
-   marked `unreachable` (its week was not fetched) is named and not built; a
-   run that finds three days missing says so plainly — a week of missed pages
-   is a sign to ask, not to catch up unattended.
-4. **For each day, in order:**
+   If yesterday is not in `to_build`, a final already exists: say so, stop.
+   Any older day in `to_build` is named in the account, not built.
+4. **Yesterday:**
    1. **The words, from the dusk row.**
       ```
       bash run_look_behind.sh words <day> --from-stream data/w##.json [--from-stream data/w##-prev.json] \
@@ -94,8 +118,11 @@ it is the only place the routine looks.
       is none (the table above).
    3. **Build**: `bash run_look_behind.sh build <day> <state>`. Read what it
       printed. An abort is the end of that day, named, not worked around.
-   4. **Publish** (if allowed): the Artifact tool, `url` = `artifact_url` from
-      the settings, the same file path every day.
+   4. **Publish**: the Artifact tool, `url` = `artifact_url` from the
+      settings. A fresh session has not viewed the live page, so the first
+      publish is refused and hands back the live version: read it through, and
+      publish again — the living page is replaced whole every day, so there is
+      nothing on it to merge.
    5. **Save to Drive** (if a Drive tool exists): the week's folder by name,
       created by the same rule if missing and said so; never over a page
       already there without saying what it replaced.
@@ -108,8 +135,9 @@ it is the only place the routine looks.
       that datetime** (an amendment) — a Monday routine
       writing Sunday's row across a week boundary is the case that rule is for.
    7. **Sync the calendar** (if allowed): `SKILL.md` step 8.
-5. **Its own account**, one line per day built: the date, draft or final
-   words, what was published and saved, and what it could not do and why.
+5. **Its own account**, the run's last message: one line — the date, draft or
+   dusk words, published or not, the QA items the morning chat will meet, and
+   what it could not do and why. On any failure the line opens `FAILED <date>:`.
 
 ## What it never does
 
@@ -118,3 +146,4 @@ it is the only place the routine looks.
   touched.
 - Print a token: it never holds one.
 - Publish a page that failed to build, or a day with too little on it.
+- Ask anything: nobody is there. A question is a `FAILED` line.

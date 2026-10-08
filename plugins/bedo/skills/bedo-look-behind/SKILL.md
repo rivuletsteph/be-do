@@ -333,27 +333,33 @@ reading:
 - `circles_read` at zero means the connections read didn't arrive and the
   people chips are in bare order of appearance.
 
-## Dusk, on call: the draft
+## Dusk: nothing to build
 
-At the end of the dusk flow, in whatever chat is running it, build the day's
-look behind **as a draft** and show it. The day is not over — sleep and the
-late rows land after — and the words are be•do's until the user says
-otherwise, so the mark is right. Steps 1–7 above with `--draft` at step 2;
-the calendar sync (step 8) runs here too, at the dusk close, as before.
-
-If the user edits the words there and then, the parts they touch stop being
-a draft (`words … --set-lead … --to-page`, republish), and the log row's block
-is rewritten to match. The morning routine builds the final from whatever the
-row says in the morning.
+Dusk does not build the look behind (8 Oct 2026, backlog 260924_2221b): the
+03:00 routine builds yesterday from the whole day's rows and drafts the words
+itself. If the user says the lead or the story at dusk, write them with
+`words … --new` and log the row with `--row-block` (step 7); the routine uses
+them as they stand. Otherwise dusk leaves it. The calendar sync (step 8) still
+runs at the dusk close.
 
 ## Morning, by itself: the routine
 
-A cloud routine, due at 03:00 in the user's time zone, finishes yesterday's
-look behind: re-reads the rows, takes the words from the dusk row, builds the
-final, publishes, saves. **It builds yesterday, never today**, states the date
-it built in its first line, and if it missed a day builds each missed day in
-order, oldest first. The whole of it is in `MORNING.md`, which the routine
-reads from the version store on every run.
+A cloud routine at 03:00 in the user's time zone builds yesterday's look
+behind and publishes it to the living page, so the morning chat opens on it.
+**It builds yesterday, never today**, states the date in its first line, drafts
+the words when no dusk row carries them, and on a failure publishes nothing and
+says `FAILED` — the routine pushes that to the phone. The whole of it is in
+`MORNING.md`, which the routine reads from the version store on every run.
+
+## Morning, in the chat: seen means complete
+
+The morning chat shows yesterday's look behind first — preflight prints the
+link and the title yesterday's chat will take. If the words are still a draft,
+show the lead and story and offer the edit commands above. **When the user
+says they have seen it, yesterday's my day chat is complete**: rename it to the
+✔️ title preflight printed (the chat-title skill's rename), or give them the
+line to rename it where no rename reaches. Seeing the look behind is what
+closes a day.
 
 ## What the builder decides, so you don't have to
 
