@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Meals: the minutes be•do places so she doesn't have to log them (7 Oct 2026,
-amendment recjqbbyTntq6zP3p).
+the meals amendment).
 
 Her words: *I want you to make an educated guess … I don't want to have to be
 logging every second in order to get a fairly accurate picture … you could also
@@ -52,7 +52,7 @@ def is_prep(row):
 
 def prep_class(row, people=()):
     """What the meal reads as, from its title and her words. `people` are names
-    whose possessive is a person, not a place ("Johnny's lunch")."""
+    whose possessive is a person, not a place ("Ana's lunch")."""
     title = row.get('title') or ''
     text = (title + ' ' + (row.get('details') or '').split(DIVIDER, 1)[0]).lower()
     if any(w in text for w in M['out_words']):

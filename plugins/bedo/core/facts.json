@@ -125,7 +125,7 @@
  "airtable": {"record_ceiling_per_base": 1000, "bulk_batch": 50},
 
  "meals": {
-  "_about": "Her rules, 7 Oct 2026 (amendment recjqbbyTntq6zP3p): an educated guess, not a hard rule, and the onus is on be•do, not on her logging every minute. be•do places each meal's prep and eating from context, writes them ESTIMATED FROM CONTEXT, and tells her what went in the record so she can say if it is accurate.",
+  "_about": "Her rules, 7 Oct 2026 (the meals amendment): an educated guess, not a hard rule, and the onus is on be•do, not on her logging every minute. be•do places each meal's prep and eating from context, writes them ESTIMATED FROM CONTEXT, and tells her what went in the record so she can say if it is accurate.",
   "meal_words": ["breakfast", "lunch", "dinner", "snack", "meal"],
   "prep_words": ["breakfast prep", "lunch prep", "dinner prep", "meal prep"],
   "prep_practice": {"breakfast": "🍳 meal prep", "lunch": "🍳 lunch prep", "dinner": "🍳 dinner prep", "meal": "🍳 meal prep"},

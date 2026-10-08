@@ -24,7 +24,7 @@ One pass, in this order (A250, then the gate and the flag):
   ·  the daily flag: one line, at most five things, or three words
   ·  meals: every meal's prep and eating placed from context, written as
      ESTIMATED FROM CONTEXT, and shown to her as what went in the record
-     (amendment recjqbbyTntq6zP3p, 7 Oct 2026). be•do's job, never in the flag.
+     (the meals amendment, 7 Oct 2026). be•do's job, never in the flag.
 
 An observation, never a score. Nothing here writes unless --write is given,
 and then only the derived attention.

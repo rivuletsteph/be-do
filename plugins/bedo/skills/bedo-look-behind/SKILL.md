@@ -311,7 +311,7 @@ page goes out:
   saying ESTIMATED FROM CONTEXT, not logged by the user, and naming the clues. Only
   a stretch with no clue on either side stays open, named in one line.
 - `meals` — a meal with no minutes, or no prep row before it. Place it by her
-  rules, don't ask her for times (amendment `recjqbbyTntq6zP3p`, 7 Oct 2026):
+  rules, don't ask her for times (the meals amendment, 7 Oct 2026):
   `bash run_checks.sh meals --json` proposes each meal's prep (ordering out 20,
   a simple meal 15, a straightforward dinner 30, a cooked dinner 45) and its
   eating; write them ESTIMATED FROM CONTEXT, then show her the list as what went

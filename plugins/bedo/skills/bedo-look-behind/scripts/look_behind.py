@@ -529,7 +529,7 @@ def main():
         qa['unexplained'] = gaps
     # the night before: a morning with no sleep row draws its first hours as nothing
     # logged. Fill it from the morning Oura row, never leave it (amendment
-    # recjqbbyTntq6zP3p, 7 Oct 2026)
+    # the meals amendment, 7 Oct 2026)
     bed_pr = {norm(p) for c in (L.get('pie') or []) if c.get('k') == 'bed' for p in (c.get('practices') or [])}
     if bed_pr and not any(r['_pr'] in bed_pr and r['_e'] and r['_s'] < 6 * 60 for r in day_rows):
         qa['no_sleep'] = ['no sleep row for last night \u2014 write it from the morning Oura row']
