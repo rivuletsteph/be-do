@@ -12,9 +12,10 @@ only where nothing can execute, and then copy the same shape.
 
 | when | command | what the chat does with it |
 |---|---|---|
+| the first reply of every be•do chat, before anything else | `judgment` | prints `docs/v53-judgment.md` fresh from the version store. It IS the project's instructions; the project holds only a short pointer to this command, so nobody pastes the long file on a phone. Read every line and follow it for the whole chat. If the download fails, say so in one line and work from the skills |
 | the first reply of every be•do chat | `preflight` | line one is the chat's title — put it alone, first, in a code box. Then the clock and the base. A `STOP` means no read or write until the base is right |
 | every reply while a flow is open | `remaining --widget` | hand the HTML to the widget tool exactly as printed — her pill strip (A237). Where a widget can't render, `remaining` prints the block and the one line; `--voice` gives one spoken line |
-| before any stream write | `entry row.json` | write only rows that print `ok`; fix every `FIX` first |
+| before any stream write | `entry row.json --chat MMDD` | write only rows that print `ok`; fix every `FIX` first. In a my day chat, `--chat` is the date in its title (`1007` for ▶️1007b): a `new day` line means the day has turned — waking on a later date, or a row past noon the next day. Don't write it here. Tell her the day has turned, close this chat's day, and give her one line to open the new chat with |
 | before the dusk close row | `dusk` | do the fixes it names; ask her only what is hers, as one list; the flag line goes after the close |
 | the dusk close, and the look behind | `meals --json` | every meal's prep and eating placed from context (her rules, the meals amendment): write the proposed rows ESTIMATED FROM CONTEXT through `entry`, then show her the printed list as what went in the record and ask if it's accurate. Never ask her to fill the times in |
 | a session entry | `stretches FILE` | the time spent is the sum it prints, and the stretches are named in the `[be•do]` block |
@@ -23,12 +24,13 @@ only where nothing can execute, and then copy the same shape.
 ## Running it
 
 ```
+bash run_checks.sh judgment                  # the judgment file, every chat's first reply
 bash run_checks.sh preflight                 # my day; --part B when the day already has a chat
 bash run_checks.sh preflight --kind week --week 40
 bash run_checks.sh remaining --widget        # the open flow as her pill strip; --flow dawn|dusk to name one
 bash run_checks.sh dusk                      # today; --date YYYY-MM-DD for another day
 bash run_checks.sh meals                     # the day's meals: prep and eating, placed from context
-bash run_checks.sh entry row.json --base "w41 be•do"
+bash run_checks.sh entry row.json --base "w41 be•do" --chat 1008
 bash run_checks.sh stretches transcript.jsonl
 ```
 

@@ -116,12 +116,14 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 ## J10 · Working sessions
 
 - Every chat is a window (my day · week · month · season · year), a drive chat, or a query; the first reply infers which.
+- **A my day chat holds one day: the date in its title.** Before any stream write, the entry check runs with `--chat MMDD`. A `new day` line means she has woken on a later date, or it's past noon the day after: say the day has turned, write nothing there, and give her the line to open the new chat. A dusk running past midnight is still the same day.
+- **A chat that grows heavy says so, once.** Nothing can measure the context, so count what fills it: about forty exchanges, or a full table or a whole page build read into the chat, or a reply that has to re-read what it should still hold. Then offer one line: this chat is getting full, and a fresh one will be faster and sharper. Give her a short handoff to paste into it: the day, what's open, what's next. Offer it once, not every reply; going on is her choice.
 - A drive chat or query opens with **objective**, **done when**, drive and step, model and effort with a one-line reason.
 - It ends with **one session entry**: what was done (met / partly / not against the objective first), deliverable, chat link and title, model, device; *still open* is its point. No feeling asked; attention and relevance left for my day.
 - Time is the sum of working stretches (gaps over 15 minutes split them), never the envelope. A window chat's ⚡ row carries no duration and no drive; 📲 capture rows hold the minutes.
 - ⏯️ only when the chat ends with a next-session prompt that opens with objective and done when.
 - *Builder edit* is hers to say and be•do's to classify: the page draws it wrong → code (a backlog item); what a page should contain → an amendment.
-- **Build work for be•do lives in `docs/backlog.md`, never as a stream row.** A build idea she voices goes into the backlog by pull request, with her words in the Drive copy — from Cowork, which can't push, it goes to the Drive inbox `be•do/code/backlog-inbox.md` for the next laptop session; the stream logs only the session that does the work. When an item ships, it moves to Done.
+- **Build work for be•do lives in `docs/backlog.md`, never as a stream row.** A build idea she voices goes into the backlog by pull request, with her words in the Drive copy — from a chat that can't push, it goes to its own Drive inbox file (J15) for the next Claude Code session; the stream logs only the session that does the work. When an item ships, it moves to Done.
 - Every be•do build ends with a recurring cost removed, named in the entry.
 
 ## J11 · The close
