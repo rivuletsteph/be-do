@@ -15,8 +15,12 @@ Carried over from the standalone pie with two changes the canon asks for:
 
 Twenty-four hours is the cap. When two rows are open at once the earlier slice
 in the category order wins the minute, so nothing is split in half and nothing
-is counted twice. What no row covers is the rest slice, which the engine fills
-out to the remainder of the day.
+is counted twice. The rest slice holds two kinds of minute, and the page tells
+them apart (the user's word, 7 Oct 2026: a whole lot of the day looked
+unaccounted for when most of it was logged): minutes a row covers that no named
+slice claims are its `logged` minutes, drawn solid, and minutes no row covers at
+all are what the engine fills out to the remainder of the day, drawn dashed as
+nothing logged.
 """
 
 DAY_MINUTES = 1440
@@ -86,6 +90,18 @@ def build(rows, cats, max_titles=4):
         if k and on_dev[m]:
             dev[k] += 1
 
+    # the rest slice's own logged minutes: covered by some row's span, but by no
+    # named slice. Whatever is left after them is the day with nothing logged.
+    rest_k = next((c["k"] for c in cats if c.get("rest")), None)
+    covered = [False] * DAY_MINUTES
+    for r in rows:
+        if r.get("s") is not None and r.get("e"):
+            for m in range(max(0, r["s"]), min(DAY_MINUTES, r["e"])):
+                covered[m] = True
+    rest_logged = sum(1 for m in range(DAY_MINUTES) if covered[m] and not slice_of[m])
+    rest_dev = sum(1 for m in range(DAY_MINUTES)
+                   if covered[m] and not slice_of[m] and on_dev[m])
+
     est = {k: 0 for k in order}
     for r in rows:
         if r.get("cat") in est and not r.get("e") and r.get("est"):
@@ -105,9 +121,17 @@ def build(rows, cats, max_titles=4):
         trimmed = want - sum(scaled.values())
         est = scaled
 
+    # An estimate lands inside a covered minute as often as not (a snack during a
+    # long stretch), so the rest slice gives way to the estimates rather than
+    # trimming them: the day stays twenty-four hours and nothing logged stays >= 0.
+    rest_logged = max(0, min(rest_logged, DAY_MINUTES - sum(logged.values()) - sum(est.values())))
+    rest_dev = min(rest_dev, rest_logged)
+
     titles = {k: [] for k in order + [c["k"] for c in cats if c.get("rest")]}
     for r in rows:
         k, t = r.get("cat"), (r.get("title") or "").strip()
+        if not k and r.get("s") is not None and r.get("e"):
+            k = rest_k                # a span no slice names: say what the rest slice holds
         if k in titles and t and t not in titles[k]:
             titles[k].append(t)
 
@@ -115,12 +139,12 @@ def build(rows, cats, max_titles=4):
     for c in cats:
         k = c["k"]
         d = {"k": k, "e": c.get("e", ""), "n": c.get("n", k), "c": c.get("c", "#B9B5C4"),
-             "logged": 0 if c.get("rest") else logged.get(k, 0),
+             "logged": rest_logged if c.get("rest") else logged.get(k, 0),
              "est": 0 if c.get("rest") else est.get(k, 0),
-             "dev": 0 if c.get("rest") else dev.get(k, 0),
+             "dev": rest_dev if c.get("rest") else dev.get(k, 0),
              "w": c.get("w") or ", ".join(titles.get(k, [])[:max_titles])}
         if c.get("rest"):
-            d["rest"] = True          # the engine fills its minutes out to the day
+            d["rest"] = True          # the engine fills the nothing-logged minutes out to the day
         pie.append(d)
     devrows = []
     for r in rows:

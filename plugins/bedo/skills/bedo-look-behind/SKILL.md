@@ -310,6 +310,14 @@ page goes out:
   cooking between home and "dinner made"), else 📝 log — its `[be•do]` block
   saying ESTIMATED FROM CONTEXT, not logged by the user, and naming the clues. Only
   a stretch with no clue on either side stays open, named in one line.
+- `meals` — a meal with no minutes, or no prep row before it. Place it by her
+  rules, don't ask her for times (the meals amendment, 7 Oct 2026):
+  `bash run_checks.sh meals --json` proposes each meal's prep (ordering out 20,
+  a simple meal 15, a straightforward dinner 30, a cooked dinner 45) and its
+  eating; write them ESTIMATED FROM CONTEXT, then show her the list as what went
+  in the record and ask if it's accurate. Timeline beats the defaults.
+- `no_sleep` — no sleep row for last night, so the morning draws as nothing
+  logged. Write it from the morning Oura row (in bed to out of bed).
 - And the calendar: read the day's events after the user has corrected them, give
   each one that happened its own row (a 🗓️ calendar event, ✅ done, titled as
   the calendar line, with the event link), and note any drift from the plan.
@@ -365,6 +373,13 @@ Read these before second-guessing a number on the page.
   `typical_time.json`, and only where that median was earned — five observations and a tight spread.
   No median means no estimate; the minutes stay uncounted rather than guessed.
   The engine draws estimates striped and states the total.
+- **The grey is two things, drawn apart.** Minutes a row covers that no named
+  slice claims are "everything else", solid; minutes no row covers at all are
+  "nothing logged", dashed. Before 7 Oct 2026 both were one grey slice, and a
+  well-logged day read as half unaccounted for.
+- **A dropped intention check is never a line.** A ✖️ or ⨂ intention row is a
+  duplicate or a withdrawn one; the action check's glyph is read whether it
+  leads or closes each part of its title.
 - **The screen slice comes from the row's device field**, not from the practice,
   and only for rows the practice map didn't already place. Eating in front of
   the television is still eating.

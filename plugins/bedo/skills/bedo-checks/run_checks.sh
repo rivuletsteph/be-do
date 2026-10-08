@@ -5,6 +5,7 @@
 #   bash run_checks.sh preflight [--kind week --week N] [--part B] [--handoff FILE]
 #   bash run_checks.sh remaining [--flow dawn|dusk] [--voice]
 #   bash run_checks.sh dusk      [--date YYYY-MM-DD] [--chats chats.json] [--write]
+#   bash run_checks.sh meals     [--date YYYY-MM-DD] [--json]   # each meal's prep and eating, placed from context
 #   bash run_checks.sh entry     row.json [--base "w41 be•do"]
 #   bash run_checks.sh stretches FILE        # stamps, a claude.ai chat read, or a transcript
 #   bash run_checks.sh order [--json]        # her predicted order: typical times to write to the catalog
@@ -15,6 +16,7 @@
 #   preflight --bases names.json --stream recent.json
 #   remaining --catalog practices.json --day today.json
 #   dusk      --day today.json --catalog practices.json
+#   meals     --day today.json
 # A command given no files and no token says so and exits 3.
 #
 # Overrides: BC_DIR (where the core is kept, default ~/bedo-checks),
@@ -77,6 +79,10 @@ case "$CMD" in
     [ -d "$W/core" ] || fetch_core; find_local
     if live_or_files "--day today.json --catalog practices.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_dusk_audit.py" "$@" ;;
+  meals)
+    [ -d "$W/core" ] || fetch_core; find_local
+    if live_or_files "--day today.json" "$@"; then set -- --live "$@"; fi
+    "$PY" "$W/core/bedo_meals.py" "$@" ;;
   order)
     [ -d "$W/core" ] || fetch_core; find_local
     if has_files "$@"; then :; elif (cd "$W/core" && "$PY" -c 'import bedo_air, sys; sys.exit(0 if bedo_air.can_read() else 1)'); then set -- --live "$@"
@@ -107,5 +113,5 @@ for r in rows if isinstance(rows, list) else [rows]:
 sys.exit(1 if bad else 0)
 E
     ;;
-  *) echo "usage: run_checks.sh preflight|remaining|dusk|entry|stretches|order [args]"; exit 2 ;;
+  *) echo "usage: run_checks.sh preflight|remaining|dusk|meals|entry|stretches|order [args]"; exit 2 ;;
 esac

@@ -527,6 +527,32 @@ def main():
                     gaps.append(f"{clock(g)}\u2013{clock(m)} ({m - g} min)")
             m += 1
         qa['unexplained'] = gaps
+    # the night before: a morning with no sleep row draws its first hours as nothing
+    # logged. Fill it from the morning Oura row, never leave it (amendment
+    # the meals amendment, 7 Oct 2026)
+    bed_pr = {norm(p) for c in (L.get('pie') or []) if c.get('k') == 'bed' for p in (c.get('practices') or [])}
+    if bed_pr and not any(r['_pr'] in bed_pr and r['_e'] and r['_s'] < 6 * 60 for r in day_rows):
+        qa['no_sleep'] = ['no sleep row for last night \u2014 write it from the morning Oura row']
+    # meals: each one's prep and eating are be\u2022do's to place from context, by her
+    # rules (run_checks.sh meals), and hers only to confirm (same amendment)
+    try:
+        import bedo_meals as ML
+    except Exception:                 # an older core with no meal rules: no meal QA, never a failed build
+        ML = None
+    if ML:
+        meals = [r for r in lived if ML.kind_of(r)]
+        preps = [r for r in lived if ML.is_prep(r)]
+        need = []
+        for r in meals:
+            k = ML.kind_of(r)
+            why = [] if r['_e'] else ['no minutes']
+            again = any(ML.kind_of(o) == k and o is not r and r['_s'] - 180 <= o['_s'] < r['_s'] for o in meals)
+            if k != 'snack' and not again and not any(r['_s'] - 180 <= p['_s'] <= r['_s'] for p in preps):
+                why.append('no prep row')
+            if why:
+                need.append(f"{r['_title']} ({clock(r['_s'])}) \u2014 {', '.join(why)}")
+        if need:
+            qa['meals'] = need
     work = sorted([r for r in lived if r['_e'] and (r.get('rhythm') or '').strip()], key=lambda r: r['_s'])
     for a_, b_ in zip(work, work[1:]):
         if b_['_s'] < a_['_e']:
@@ -724,7 +750,9 @@ def main():
     for r in day_rows:
         if r['_pr'] in acp:
             tail = r['_title'].split('\u2014', 1)[-1]
-            checks = [next((g for g in OUTCOME if part.strip().startswith(g)), '')
+            # the glyph leads each part, or closes it ('show up fully at work ✅')
+            checks = [next((g for g in OUTCOME if part.strip().startswith(g)
+                            or part.strip().endswith(g)), '')
                       for part in tail.split('\u00b7')]
             # a line per intention in the details, glyph first or after an arrow:
             #   ✅ Show up at the meeting — the check-in ran 10:30 to 11:30 …
@@ -737,7 +765,12 @@ def main():
                 what = ln.split(' \u2014 ', 1)[1] if ' \u2014 ' in ln else ''
                 happened.append((g, to_you(what)))
     intentions = []
-    for r in (r for r in day_rows if r['_pr'] in ip):
+    # a dropped or skipped intention check is a duplicate or a withdrawn one, never
+    # a line on the page (7 Oct 2026: a second chat's copy showed the day's one
+    # intention twice)
+    gone = ('\u2716', '\u2a02')                                     # ✖️ ⨂
+    for r in (r for r in day_rows if r['_pr'] in ip
+              and not (r.get('status') or '').startswith(gone)):
         st = r.get('status')
         own = DONE if st in done_st else CARRIED if st in motion else ''
         words = her_words(r.get('details'))

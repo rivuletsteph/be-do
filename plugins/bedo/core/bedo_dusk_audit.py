@@ -22,6 +22,9 @@ One pass, in this order (A250, then the gate and the flag):
      catalog (A149) — one list, not a question per step
   ·  ⚡ rows still carrying a `for my day:` list (V52 › my day finishes them)
   ·  the daily flag: one line, at most five things, or three words
+  ·  meals: every meal's prep and eating placed from context, written as
+     ESTIMATED FROM CONTEXT, and shown to her as what went in the record
+     (the meals amendment, 7 Oct 2026). be•do's job, never in the flag.
 
 An observation, never a score. Nothing here writes unless --write is given,
 and then only the derived attention.
@@ -35,6 +38,7 @@ from bedo_reader import FACTS, as_rows, complete, load_local, offset_hours, on_d
 from bedo_entry import is_action, utc
 import bedo_remaining as RL
 import bedo_stretches as ST
+import bedo_meals as ML
 
 ST_ = FACTS['status']
 INTENTION = ST_['plans'][1]
@@ -80,7 +84,7 @@ def derive_attention(r):
     return None
 
 
-def audit(rows, now, off, steps=None, chats=(), day=None):
+def audit(rows, now, off, steps=None, chats=(), day=None, people=()):
     """The one pass. `rows` are the day's rows under logical names; `steps` the
     dusk flow's catalog steps; `chats` [{title, url|id, times}]. Returns a dict
     of findings, the attention writes, and the flag line."""
@@ -92,7 +96,7 @@ def audit(rows, now, off, steps=None, chats=(), day=None):
             window_rows |= {r['id'] for r in acts if chat_of(r, [ch])}
     f = {k: [] for k in ('open_past', 'end_before_start', 'attention', 'no_attention', 'chat_no_entry',
                          'uncaptured', 'action_row', 'gate', 'for_my_day', 'no_rhythm', 'no_duration',
-                         'no_person', 'target_today')}
+                         'no_person', 'target_today', 'meals')}
 
     for r in rows:                                                    # 1
         if (r.get('status') == INTENTION and r.get('calendar_event') and r.get('datetime')
@@ -146,7 +150,9 @@ def audit(rows, now, off, steps=None, chats=(), day=None):
         if is_action(r) and r.get('status') in OPEN and r.get('target') and day \
                 and (utc(r['target']) + dt.timedelta(hours=off)).date() == day:
             f['target_today'].append(_name(r))
-    return {'findings': f, 'writes': writes, 'flag': flag(f)}
+    meals = ML.propose(rows, off, people)
+    f['meals'] = [m['line'] for m in meals]
+    return {'findings': f, 'writes': writes, 'flag': flag(f), 'meals': meals}
 
 
 def flag(f):
@@ -175,7 +181,8 @@ TITLES = [('open_past', '1 open, time passed — close from the day\'s rows, or 
           ('uncaptured', '5 stretches with no 📲 capture'),
           ('action_row', '5 ⚡ row against its stretches'),
           ('gate', 'gate — still to capture before the close'),
-          ('for_my_day', 'for my day, still listed')]
+          ('for_my_day', 'for my day, still listed'),
+          ('meals', 'meals — write these ESTIMATED FROM CONTEXT, then show her what went in the record')]
 
 
 def render(res, label):
@@ -228,7 +235,7 @@ def main(argv=None):
             if 'transcript' in ch:
                 ch['times'] = ST.times_from(ch.pop('transcript'))
             chats.append(ch)
-    res = audit(rows, now, off, steps, chats, day)
+    res = audit(rows, now, off, steps, chats, day, (L.get('people') or {}).values())
     if a.json:
         print(json.dumps(res, ensure_ascii=False, indent=1))
     else:
