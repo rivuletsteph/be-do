@@ -164,7 +164,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 
 - **GitHub runs, Drive records.** If someone could use it without seeing anything of hers, it goes to GitHub; nothing personal, ever.
 - Every document a chat makes gets a copy in its week's Drive folder (a window document under the window it covers), date-first, no emoji — and only if be•do can say in one line what she does with it. Verify a Drive write by reading back a changed line.
-- **A build idea from a chat that can't push** goes to the one `backlog-inbox.md` in Drive (`be•do/code`): search for it, read it, and update that file by its id — a line under today's date. Never create a second; if two exist, write to neither and say so. A Claude Code session on the repo empties it into `docs/backlog.md` by pull request and leaves the header.
+- **A build idea from a chat that can't push** goes to Drive (`be•do/code`) as its own file, `backlog-inbox-YYMMDD-HHMM.md`, holding only the new lines. The Drive connector can't change a file's contents, so never rewrite or re-create an earlier inbox file — a second copy is how two came to share one name. A Claude Code session on the repo moves every inbox file into `docs/backlog.md` by pull request and then trashes them.
 - Model: no model where a script will do · Sonnet, low effort, for mechanical work · Opus for judgment. High effort only while the shape is undecided.
 
 ## J16 · What the skills hold

@@ -6,9 +6,9 @@ not life, and rode the weekly carry every week. Her own words, the record ids
 and every detail are in her copy of this file in Drive (`be•do/code`); this copy
 holds no names.
 
-A chat that can't push writes a build idea to `backlog-inbox.md` in the same
-Drive folder, one file updated in place (J15). A Claude Code session moves those
-lines here and empties it; an item from the inbox is keyed by the day it was
+A chat that can't push writes a build idea to its own
+`backlog-inbox-YYMMDD-HHMM.md` in the same Drive folder (J15). A Claude Code
+session moves those lines here and trashes the files; an item from the inbox is keyed by the day it was
 captured and a letter.
 
 Each item keeps its action key (`YYMMDD_HHMM`), so it traces back to the CSV
