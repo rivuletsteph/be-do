@@ -15,6 +15,9 @@ Each check is a rule a chat used to have to remember:
   week a row goes in the base whose week contains its own datetime
   gratitude one bullet per thing, her words, so she sees whether she reached three
   milestone a 🪨 milestone always names the drive (or drives) it moved
+  day  a my day chat holds one day: waking on a later date, or any row past
+       noon the next day, means a new day has started and needs its own chat
+       (8 Oct 2026: a Wednesday chat carried Thursday's morning flow)
 
 `row` uses the logical names in facts_local.example.json's stream_fields:
 datetime, end, time_spent, status, practice, key, details, phase, wellness,
@@ -78,8 +81,30 @@ def details_problems(d):
     return out
 
 
-def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•do'):
+def chat_day_problem(row, chat_day, utc_offset_hours):
+    """A my day chat is for one day: the date in its title. A row that shows
+    the next day has begun — waking, or anything past noon the day after —
+    belongs in a new chat. Noon is the dawn flow's backup close."""
+    start = row.get('datetime')
+    if not (chat_day and start and start.endswith('Z') and utc_offset_hours is not None):
+        return None
+    local = utc(start) + dt.timedelta(hours=utc_offset_hours)
+    if local.date() <= chat_day:
+        return None
+    woke = (row.get('practice') or '').strip() == FACTS['flows']['wake']
+    noon_next = dt.datetime.combine(chat_day + dt.timedelta(days=1), dt.time(12), local.tzinfo)
+    if woke or local >= noon_next:
+        why = 'she woke' if woke else 'this row is'
+        return (f'new day: this chat is for {chat_day:%a %d %b}, and {why} on {local:%a %d %b} — '
+                f'stop and ask her to open a new my day chat; write this row there, not here')
+    return None
+
+
+def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•do', chat_day=None):
     out = []
+    nd = chat_day_problem(row, chat_day, utc_offset_hours)
+    if nd:
+        out.append(nd)
     st, key = row.get('status'), (row.get('key') or '').strip()
     if st not in ALL_STATUSES:
         out.append(f'status: {st!r} is not one of the eight choices (I4)')

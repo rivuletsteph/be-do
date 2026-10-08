@@ -157,6 +157,19 @@ class Entry(unittest.TestCase):
         self.assertTrue(any(x.startswith('milestone') for x in E.problems(good_row(**m))))
         self.assertEqual(E.problems(good_row(rhythm='a drive', **m)), [])
 
+    def test_a_new_day_needs_its_own_chat(self):
+        wed = dt.date(2026, 10, 7)
+        woke = good_row(practice=F['flows']['wake'], status='◉ done', key='',
+                        datetime='2026-10-08T12:17:00.000Z')         # Thu 7:17 local
+        self.assertTrue(any(m.startswith('new day') for m in E.problems(woke, utc_offset_hours=-5, chat_day=wed)))
+        late = good_row(datetime='2026-10-08T04:30:00.000Z')            # Wed 11:30 pm local
+        self.assertEqual(E.problems(late, utc_offset_hours=-5, chat_day=wed), [])
+        after_midnight = good_row(datetime='2026-10-08T06:30:00.000Z')  # Thu 1:30 am, dusk running late
+        self.assertEqual(E.problems(after_midnight, utc_offset_hours=-5, chat_day=wed), [])
+        noon = good_row(datetime='2026-10-08T17:30:00.000Z')            # Thu 12:30 pm
+        self.assertTrue(any(m.startswith('new day') for m in E.problems(noon, utc_offset_hours=-5, chat_day=wed)))
+        self.assertEqual(E.problems(woke, utc_offset_hours=-5), [])      # no chat day given: no check
+
     def test_a_row_goes_in_its_own_weeks_base(self):
         # Sunday 4 Oct, 10 PM local, is W41 — not the base that happens to be open
         late_sunday = good_row(datetime='2026-10-05T03:00:00.000Z', key='261004_2200')

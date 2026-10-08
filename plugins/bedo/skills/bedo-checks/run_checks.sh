@@ -7,7 +7,7 @@
 #   bash run_checks.sh remaining [--flow dawn|dusk] [--voice]
 #   bash run_checks.sh dusk      [--date YYYY-MM-DD] [--chats chats.json] [--write]
 #   bash run_checks.sh meals     [--date YYYY-MM-DD] [--json]   # each meal's prep and eating, placed from context
-#   bash run_checks.sh entry     row.json [--base "w41 be•do"]
+#   bash run_checks.sh entry     row.json [--base "w41 be•do"] [--chat MMDD]   # MMDD: a my day chat's date, from its title
 #   bash run_checks.sh stretches FILE        # stamps, a claude.ai chat read, or a transcript
 #   bash run_checks.sh order [--json]        # her predicted order: typical times to write to the catalog
 #
@@ -101,18 +101,24 @@ case "$CMD" in
     "$PY" "$W/core/bedo_stretches.py" "$@" ;;
   entry)
     [ -d "$W/core" ] || fetch_core; find_local
-    ROW=${1:?usage: run_checks.sh entry row.json [--base NAME]}; shift
-    BASE=""; [ "${1:-}" = --base ] && BASE=${2:-}
-    "$PY" - "$W/core" "$ROW" "$BASE" <<'E'
-import json, sys
+    ROW=${1:?usage: run_checks.sh entry row.json [--base NAME] [--chat MMDD]}; shift
+    BASE=""; CHAT=""
+    while [ $# -gt 0 ]; do case "$1" in --base) BASE=${2:-}; shift 2;; --chat) CHAT=${2:-}; shift 2;; *) shift;; esac; done
+    "$PY" - "$W/core" "$ROW" "$BASE" "$CHAT" <<'E'
+import datetime as dt, json, sys
 sys.path.insert(0, sys.argv[1])
-from bedo_entry import problems
+from bedo_entry import problems, utc
 from bedo_reader import load_local
 L = load_local()
 rows = json.load(open(sys.argv[2], encoding='utf-8'))
+rows = rows if isinstance(rows, list) else [rows]
+chat = None
+if sys.argv[4]:   # the chat's MMDD, from its title; the year is the row's (a January chat in December is not a case)
+    y = utc(rows[0]['datetime']).year if rows and (rows[0].get('datetime') or '').endswith('Z') else dt.date.today().year
+    chat = dt.date(y, int(sys.argv[4][:2]), int(sys.argv[4][2:4]))
 bad = 0
-for r in rows if isinstance(rows, list) else [rows]:
-    p = problems(r, sys.argv[3] or None, L.get('utc_offset_hours'), L.get('weekly_name', 'w{n} be•do'))
+for r in rows:
+    p = problems(r, sys.argv[3] or None, L.get('utc_offset_hours'), L.get('weekly_name', 'w{n} be•do'), chat)
     print(('ok    ' if not p else 'FIX   ') + (r.get('title') or r.get('practice') or '?'))
     for x in p:
         print('      · ' + x)
