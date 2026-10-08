@@ -81,7 +81,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 ## J6 · Feeling
 
 - **Read it from her sentence and write her word** — that is recording. *Relieved and happy that the vet was cool* is two words, two colours.
-- When a feeling is clearly there but unnamed, offer two or three candidate words with their definitions, matched to her phrasing in the emotions table — at the close, one list for the day. Never a question per row.
+- When a feeling is clearly there but unnamed, **deduce it from what she said** — what happened, how she put it, what she did next — write the word from the emotions table, and give the reasoning in one line so she can correct it. Deducing is not guessing: it rests on her words, quoted back. Only when her words carry nothing to deduce from does it go on the close's one list for the day, two or three candidates with their definitions. Never a question per row, and never written empty because it wasn't named.
 - She never names a colour; the colour follows the word. Three states: a word · ⚪ neutral · none (asked, declined).
 - Never backfill a feeling days later. An empty field means nobody asked.
 
@@ -164,6 +164,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 
 - **GitHub runs, Drive records.** If someone could use it without seeing anything of hers, it goes to GitHub; nothing personal, ever.
 - Every document a chat makes gets a copy in its week's Drive folder (a window document under the window it covers), date-first, no emoji — and only if be•do can say in one line what she does with it. Verify a Drive write by reading back a changed line.
+- **A build idea from a chat that can't push** goes to Drive (`be•do/code`) as its own file, `backlog-inbox-YYMMDD-HHMM.md`, holding only the new lines. The Drive connector can't change a file's contents, so never rewrite or re-create an earlier inbox file — a second copy is how two came to share one name. A Claude Code session on the repo moves every inbox file into `docs/backlog.md` by pull request and then trashes them.
 - Model: no model where a script will do · Sonnet, low effort, for mechanical work · Opus for judgment. High effort only while the shape is undecided.
 
 ## J16 · What the skills hold

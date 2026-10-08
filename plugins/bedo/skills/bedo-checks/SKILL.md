@@ -16,6 +16,7 @@ only where nothing can execute, and then copy the same shape.
 | every reply while a flow is open | `remaining --widget` | hand the HTML to the widget tool exactly as printed — her pill strip (A237). Where a widget can't render, `remaining` prints the block and the one line; `--voice` gives one spoken line |
 | before any stream write | `entry row.json` | write only rows that print `ok`; fix every `FIX` first |
 | before the dusk close row | `dusk` | do the fixes it names; ask her only what is hers, as one list; the flag line goes after the close |
+| the dusk close, and the look behind | `meals --json` | every meal's prep and eating placed from context (her rules, the meals amendment): write the proposed rows ESTIMATED FROM CONTEXT through `entry`, then show her the printed list as what went in the record and ask if it's accurate. Never ask her to fill the times in |
 | a session entry | `stretches FILE` | the time spent is the sum it prints, and the stretches are named in the `[be•do]` block |
 | the weekly close | `order --json` | her predicted order: each flow practice's typical time from the last weeks of her rows (dawn as minutes after waking, dusk as clock time). Write the printed updates to the catalog's `typical time` field with the connector |
 
@@ -26,6 +27,7 @@ bash run_checks.sh preflight                 # my day; --part B when the day alr
 bash run_checks.sh preflight --kind week --week 40
 bash run_checks.sh remaining --widget        # the open flow as her pill strip; --flow dawn|dusk to name one
 bash run_checks.sh dusk                      # today; --date YYYY-MM-DD for another day
+bash run_checks.sh meals                     # the day's meals: prep and eating, placed from context
 bash run_checks.sh entry row.json --base "w41 be•do"
 bash run_checks.sh stretches transcript.jsonl
 ```
