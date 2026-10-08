@@ -36,6 +36,10 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 261002_0620 | ⬜ | The remaining-practices page — pinned, live, tappable, ordered by minutes since wake |
 | 261002_0821 | ▫️ | A standard be•do palette — the default theme for every page |
 | 260926_1255 | ▫️ | Move the page builders to an Apps Script web app reading Airtable directly (after the pages settle) |
+| 260926_1045 | ▶️ | The token budget page on Apps Script — paused at step 1 of the walkthrough; step 3 opens on one decision (rewrite the builders in JavaScript, or let Apps Script only serve and file); a Drive snapshot per token window |
+| 261003_1433 | ▶️ | The daily measure checked against how the day felt; meals logged with how they were made and whether she ate with intention; the wellness wheel's role; the unmerged `claude/look-behind-dark-palette` branch — merge or let go |
+| 261004_1045 | ▶️ | Base flow card shipped; next the look behind and look ahead for day, week and month — an earthy palette, the look ahead light and the look behind dark; later nutrition folded into body |
+| 261004_1536 | ▶️ | Page cards from her review of every past page — card 2 (perhaps the dark mirror of card 1), whether the forward map gets its own card, card 1 into the day ahead itself |
 
 ## Calendar
 
@@ -77,6 +81,9 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 260905_1804 | ▫️ | Inventory the recipes in Drive and wire them into the provisions planner |
 | 260812_1205 | ▫️ | A deep pass on the connections table — duplicates, circles, held names, missing surnames |
 | 260926_1130 | ▶️ | A provisions session left open on 26 Sep — reconcile done, close the row |
+| 260925_0726b | ▶️ | A books catalog base — the reading inventory is cued; still the store's data export for dates, the e-reader screenshots, which Drive folder holds the notes, whether read-alouds are marked as the child's |
+| 260925_1105 | ▶️ | Four catalogs, one shape — books, places, recipes, and the queued stories rows migrating into books; two decisions are hers: does location history feed places, and is "lived" a standing or its own field |
+| 261005_1440 | ▶️ | Places and visits from location history — loaded for one month; export and load the rest, turn the older pings into visits, decide where it lives (local and Drive, or a base too), check three names |
 
 ## Drives
 
@@ -100,3 +107,4 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | key | item | shipped |
 |---|---|---|
 | 261004_1534 | Preflight prints the chat's title first, alone, with the day's letter (A, B); the checks run from Cowork through the bedo-checks skill. Her words: anything you can do to keep, make this run smoothly is great. | bedo-checks, 4 Oct 2026 |
+| 261004_1342 | V53 in code — the reader, the entry check, the split plan, the crosswalk and the judgment file; then preflight, the dusk audit, the remaining list and stretches. Left for her: paste the judgment file into the project instructions. | PRs 7, 8, 19–22 |
