@@ -606,6 +606,10 @@ def main():
     for c in cats:
         for p in c.get('practices') or []:
             cat_of[norm(p)] = c['k']
+    # Cooking is food (the meals amendment, 7 Oct 2026). Every practice named
+    # "… prep" in the catalog is a meal's prep, so one the settings left
+    # unplaced goes to the food slice here, and a new one needs no new upload.
+    food = next((c['k'] for c in cats if c['k'] == 'food'), None)
     # A screen is a property of the row, not of the practice — the same action
     # is on a laptop one hour and on nothing the next. So the device field
     # decides the screen slice, and only for rows the practice map didn't
@@ -656,7 +660,7 @@ def main():
             # the user's word first, then the median of their own timed rows
             t = typical.get(r['_pr'])
             est = (practices.get(r['_pr']) or {}).get('typical') or (t['median_min'] if t else None)
-        cat = cat_of.get(r['_pr'])
+        cat = cat_of.get(r['_pr']) or (food if food and r['_pr'].endswith(' prep') else None)
         if dev_slice and r['_pr'] in logging_pr:
             cat = log_slice['k']
             if not r['_e']:
