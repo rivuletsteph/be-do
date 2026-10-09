@@ -23,15 +23,19 @@ returned instead, so the turn pastes it rather than composes it (A219).
              yesterday's chat takes once she says she has seen it — a my day
              chat is ✔️ complete once its look behind has been seen (her word,
              8 Oct 2026).
+  paper      an active amendment no check in code enforces is named, one line
+             each: `rule on paper only` (9 Oct 2026). The map from amendment
+             to check is hers, in facts_local (bedo_rules says how).
 
     python3 bedo_preflight.py --live                  # my day
     python3 bedo_preflight.py --live --kind week      # my week
-    python3 bedo_preflight.py --bases names.json --stream w41.json   # newest 5, newest first, is enough
+    python3 bedo_preflight.py --bases names.json --stream w41.json [--amendments amendments.json]
 """
 import datetime as dt, glob, json, re, sys
 
 from bedo_reader import FACTS, as_rows, complete, load_local, offset_hours, read_dump
 from bedo_entry import utc, week_number
+import bedo_rules
 
 MARK = chr(int(FACTS['glyph_codepoints']['mark'][2:], 16))
 DAY3 = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -148,7 +152,7 @@ def yesterday_line(day, url):
             f'       once she has seen it, yesterday\'s chat becomes {seen}')
 
 
-def report(local, names, rows, now=None, kind='day', part=None, week=None, handoff=None):
+def report(local, names, rows, now=None, kind='day', part=None, week=None, handoff=None, amendments=None):
     now, now_local, off, probs = clock(local, now)
     day = now_local.date()
     want, bprobs, stop = check_base(names, rows, now, day, local, handoff)
@@ -161,6 +165,8 @@ def report(local, names, rows, now=None, kind='day', part=None, week=None, hando
     if kind == 'day':
         lines.append(yesterday_line(day, look_behind_url(local)))
     lines += ['⚠ ' + p for p in probs + bprobs]
+    if amendments is not None:
+        lines += ['⚠ ' + p for p in bedo_rules.lines(amendments, local.get('amendment_checks'))]
     if stop:
         lines.append('STOP: verify the base before any read or write (I2)')
     return '\n'.join(lines), stop
@@ -176,6 +182,7 @@ def main(argv=None):
     ap.add_argument('--part', help="the chat's letter when the day has more than one: a, b, c…")
     ap.add_argument('--week', type=int, help='the week under review, for a my week chat')
     ap.add_argument('--handoff', help='the week\'s handoff file')
+    ap.add_argument('--amendments', help='a read of the amendments table')
     a = ap.parse_args(argv)
     L = load_local()
     fields = {'datetime': L.get('stream_fields', {}).get('datetime', 'datetime')}
@@ -192,13 +199,16 @@ def main(argv=None):
                            formula=f"IS_BEFORE({{{f}}}, NOW())",
                            **{'sort[0][field]': f, 'sort[0][direction]': 'desc'})
             rows = as_rows(src['records'], fields)
+        amend = (L.get('bases') or {}).get('amendments')
+        amendments = bedo_rules.active(air.records(*amend, by_id=bool(L.get('amendments_fields'))), L) if amend else None
     else:
         if not (a.bases and a.stream):
             sys.exit('give --live, or both --bases and --stream')
         names = json.load(open(a.bases, encoding='utf-8'))
         rows = stream_rows(a.stream, fields)
+        amendments = bedo_rules.active(complete(a.amendments, 'amendments'), L) if a.amendments else None
     handoff = open(a.handoff, encoding='utf-8').read() if a.handoff else None
-    text, stop = report(L, names, rows, now, a.kind, a.part, a.week, handoff)
+    text, stop = report(L, names, rows, now, a.kind, a.part, a.week, handoff, amendments)
     print(text)
     sys.exit(1 if stop else 0)
 

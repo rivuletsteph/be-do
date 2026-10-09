@@ -58,8 +58,11 @@ def prep_class(row, people=()):
     if any(w in text for w in M['out_words']):
         return 'out'
     # a place named in the possessive — "McAlister's veggie sandwich" — is a
-    # business, unless it is one of her people
+    # business, unless it is one of her people. Family ("Mom's cornbread") made
+    # it themselves: no prep of hers to place
     for m in re.finditer(r"\b([A-Z][\w&]*)['’]s\b", title):
+        if m.group(1).lower() in M.get('family_words', []):
+            return 'theirs'
         if not any(m.group(1).lower() in (p or '').lower() for p in people):
             return 'out'
     k = kind_of(row)
@@ -99,8 +102,10 @@ def propose(rows, off, people=()):
         # a second sitting of the same meal (half the sandwich saved for later) was
         # already made: it gets its eating, not another prep
         again = any(kind_of(o) == k and o is not r and s - win <= utc(o['datetime']) < s for o in mine)
-        if k != 'snack' and not has_prep and not again:
-            c = prep_class(r, people)
+        c = prep_class(r, people) if k != 'snack' and not has_prep and not again else None
+        if c == 'theirs':
+            notes.append('made by them — no prep of yours')
+        elif c:
             n = M['prep_minutes'][c]
             ps = s - dt.timedelta(minutes=n)
             why = M['prep_why'][c]

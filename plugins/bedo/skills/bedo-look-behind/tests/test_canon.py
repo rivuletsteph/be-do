@@ -252,14 +252,15 @@ EXPECT = {
          'url': 'https://example.invalid/one'},
     ],
     'slotsMax': 3,
-    # overlapping time counts once and the lived thing wins (3 Oct 2026): the body
-    # sessions share minutes with the lunch, the walk and two shorter air sessions,
-    # and keep only what those leave. Tending carries the 40-minute capture as
-    # logging (40/6 = 6.7), which stays off the wheel itself.
+    # two things at once both count (9 Oct 2026, replacing 3 Oct's 'the lived thing
+    # wins'): the three body sessions weigh their full 120 + 120 + 116 minutes though
+    # they share some with the lunch, the walk and the air sessions, and air is the
+    # canon's own 83 + 65. Tending carries the 40-minute capture as logging
+    # (40/6 = 6.7), which stays off the wheel itself.
     'balance': {
-        'domains': {'heart': 29.0, 'mind': 6.0, 'body': 15.3, 'spirit': 21.0,
-                    'water': 1.0, 'air': 19.7, 'earth': 7.0, 'fire': 11.0},
-        'tending': 20.7, 'growing': 24.7,
+        'domains': {'heart': 29.0, 'mind': 6.0, 'body': 59.3, 'spirit': 21.0,
+                    'water': 1.0, 'air': 24.7, 'earth': 7.0, 'fire': 11.0},
+        'tending': 20.7, 'growing': 29.7,
         'note': 'Sleep, plans and other people’s own rows count zero. '
                 'Weighted by effort; rows with a real span count their minutes.',
     },
@@ -268,8 +269,12 @@ EXPECT = {
     # from a device is 'logging the day'. The fixture's other device rows are
     # spans with no drive (43 minutes), so they fall to everything else.
     # a 📲 capture span is logging the day — Being, never drive work (amendment, 3 Oct 2026)
-    'rest_logged': 554,
-    'pie_minutes': {'bed': (459, 0), 'move': (10, 130), 'food': (83, 75), 'dev': (0, 89), 'log': (40, 0)},
+    # Work on a drive or rhythm is Doing whether or not a screen was involved (9 Oct
+    # 2026, rule 7): the five spans carrying one (83 + 65 + 24 + 24 + 42) leave the
+    # rest slice for Doing. Play is its own slice and holds nothing here.
+    'rest_logged': 316,
+    'pie_minutes': {'bed': (459, 0), 'move': (10, 130), 'food': (83, 75), 'dev': (238, 89),
+                    'play': (0, 0), 'log': (40, 0)},
     'destinations': [
         {'name': 'be•do', 'glyph': MARK, 'work': [
             {'drive': f'{MARK} be•do drive',
@@ -334,7 +339,7 @@ def main():
                         '--local', p_loc, '--stream', p_stream, '--rhythms', p_rhy,
                         '--practices', p_pra, '--connections', p_con,
                         '--typical', p_typ, '--words', p_wor,
-                        '--template', ENGINE, '--out', out, '--secure', 'secure'],
+                        '--template', ENGINE, '--out', out, '--secure', 'secure', '--shape-check'],
                        capture_output=True, text=True, encoding='utf-8',
                        env=dict(os.environ, PYTHONIOENCODING='utf-8'))
     print(r.stdout or '', r.stderr or '')
@@ -368,7 +373,9 @@ def main():
     check('pie minutes',
           {p['k']: (p['logged'], p['est']) for p in D['pie'] if not p.get('rest')},
           EXPECT['pie_minutes'])
-    check('pie slices', [p['k'] for p in D['pie']], ['bed', 'move', 'food', 'dev', 'log', 'else'])
+    check('pie slices', [p['k'] for p in D['pie']], ['bed', 'move', 'food', 'dev', 'play', 'log', 'else'])
+    check('a fixture with no dayqa and no device builds, and its QA names both',
+          len(json.loads(r.stdout[r.stdout.index('{'):])['qa'].get('not_yet_whole', [])), 2)
     rest = [p for p in D['pie'] if p.get('rest')][0]
     check('pie rest slice', rest['n'], 'Everything else')
     # the rest slice counts what a row covers but no slice names, so the engine can
@@ -416,7 +423,7 @@ def main():
                              '--local', p_loc, '--stream', p_stream, '--rhythms', p_rhy,
                              '--practices', p_pra, '--connections', p_con,
                              '--typical', p_typ, '--words', w(name + '.json', words),
-                             '--template', ENGINE, '--out', o, '--secure', 'secure'],
+                             '--template', ENGINE, '--out', o, '--secure', 'secure', '--shape-check'],
                             capture_output=True, text=True, encoding='utf-8',
                             env=dict(os.environ, PYTHONIOENCODING='utf-8'))
         data = None

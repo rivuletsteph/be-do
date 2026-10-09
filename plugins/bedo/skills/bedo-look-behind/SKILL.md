@@ -293,6 +293,27 @@ chat except the digest the words are written from.
    **happened**, the stream wins. This step is what keeps the two agreeing.
    `tests/test_calendar_sync.py` checks the plan; run it after any change.
 
+**What the day is still missing** (9 Oct 2026: don't stop the process because
+it's missing some little detail). The page always builds. The QA block's
+`not_yet_whole` names:
+- more than 10% of the day's rows that happened lacking device or wellness;
+- any row spanning more than 12 hours (an old row closed with today's end) —
+  its minutes are left out of the day, so it can't draw 680 minutes again;
+- no `dayqa shown …` line in the day's rows, if dayqa wasn't run at dusk.
+
+Fix what's quick from the clues; don't hold the page for the rest.
+
+**Two things at once both count** on the wheel: walking and journaling each
+weigh their full minutes (9 Oct, replacing 3 Oct's 'the lived thing wins').
+
+**The pie** (9 Oct 2026): walking, cycling, morning movement and any exercise
+are Moving whatever the settings' map says, and Moving wins a minute shared
+with anything else. 📺 show, 🎥 movie, 📼 video and 🎮 game are Play, never a
+drive slice. A row on a drive or rhythm with a real span is Doing — *work and
+drives* — whether or not a screen was used. **Who was in your day** reads only
+rows that happened (a plan's people are not met yet) and finds each person by
+any name they go by.
+
 **Clear the QA before publishing** (the user's word, 2 Oct 2026: a thorough QA every
 day). The build prints a `qa` block; work every item, in the stream, before the
 page goes out:

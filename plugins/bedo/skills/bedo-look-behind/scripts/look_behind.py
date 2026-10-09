@@ -36,6 +36,8 @@ import argparse, json, os, re, sys, datetime as dt
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from bedo_common import bedo_reader, complete, die, norm, offset_check, read_dump, sv, weekno  # noqa: E402
 import day_pie  # noqa: E402
+import bedo_people  # noqa: E402  (the core, beside or three folders up)
+from bedo_fill import word as practice_word  # noqa: E402
 
 # The field maps are the base's, not the builder's. install_local() fills them
 # from the local settings file before any read; the KEYS below are the
@@ -46,6 +48,7 @@ OPTIONAL_STREAM_KEYS = ('device', 'mentioned', 'emotion', 'emoword', 'spent', 'e
 RHYTHM_KEYS = ('name', 'type', 'status', 'emoji', 'dest')
 PRACTICE_KEYS = ('name', 'band', 'zero', 'group', 'typical')
 CONNECTION_KEYS = ('name', 'short', 'circles')
+OPTIONAL_CONNECTION_KEYS = ('aliases',)
 F, RF, PF, CF = {}, {}, {}, {}
 UTC_OFFSET = dt.timedelta(0)     # filled from the local settings file (I12)
 
@@ -65,6 +68,15 @@ DONE = '✅'                  # ✅ an intention met
 CARRIED = '▶️'         # ▶️ an intention carried
 DIVIDERS = ('———', '---', '——')
 BULLET = re.compile(r'^\s*[-•*✓•]\s+(.+?)\s*$')
+_ST = bedo_reader.FACTS['status']
+NOT_LIVED = set(_ST['plans']) | {_ST['actions'][4], _ST['logs'][2]}    # ▫️ ⬜ ✖️ ⨂: never happened
+# Movement counts no matter what else is happening (9 Oct 2026, rule 7): these are
+# Moving whatever the settings' map says, and Moving wins the minute on the pie
+MOVEMENT = {practice_word(p) for p in bedo_reader.FACTS['dayqa']['movement_practices']}
+# Entertainment is play, never a drive slice (rule 4). A settings file with no
+# play slice gets this one, before the rest slice
+PLAY = dict(k='play', e='\U0001F3AE', n='Play', c='#D9534F', practices=['show', 'movie', 'video', 'game'])
+GATE = bedo_reader.FACTS['dayqa']
 
 
 # ── reading ───────────────────────────────────────────────────────────────
@@ -83,6 +95,8 @@ def install_local(L):
         if missing and name not in ('practices', 'connections'):
             die(f"local settings: fields.{name} is missing {', '.join(missing)}")
         target.update({k: got[k] for k in keys if got.get(k)})
+        if name == 'connections':
+            target.update({k: got[k] for k in OPTIONAL_CONNECTION_KEYS if got.get(k)})
         if name == 'stream':
             # the device field arrived later than the rest; a stream without it
             # simply leaves the screen hours to the practice map
@@ -170,18 +184,37 @@ def load_practices(path, L):
     return out
 
 
-def load_connections(path):
+class Circles:
     """Who belongs to which circle, read live. A person carries several circles
-    and THE FIRST ONE LISTED is the one they are grouped by. Keyed on both the
-    full name and the short one, because the stream's person field carries
-    whichever one the user typed, sometimes with a glyph in front of it."""
+    and THE FIRST ONE LISTED is the one they are grouped by. A person is found
+    by ANY name they go by (9 Oct 2026: her parents showed under no circle yet
+    because the stream wrote a third form of their names): full, short, any
+    alias, and the first word of each when only one person has it. See
+    core/bedo_people."""
+
+    def __init__(self, people=(), circle=None):
+        self.index = bedo_people.Index(people)
+        self.circle = circle or {}
+
+    def get(self, name):
+        k = self.index.find(name)
+        return self.circle.get(k) if k else None
+
+    def values(self):
+        return self.circle.values()
+
+    def __len__(self):
+        return len(self.circle)
+
+
+def load_connections(path):
     if not path:
-        return {}
+        return Circles()
     if not CF.get('name') or not CF.get('circles'):
         die('local settings: fields.connections needs name and circles to read '
             'a connections dump')
     recs, _, _ = complete(path)
-    out = {}
+    people, circle = [], {}
     for r in recs:
         c = r.get('cellValuesByFieldId') or {}
         circles = c.get(CF['circles']) or []
@@ -190,10 +223,11 @@ def load_connections(path):
         first = sv(circles[0]) if circles else None
         if not first:
             continue
-        for key in (sv(c.get(CF['name'])), sv(c.get(CF.get('short')))):
-            if key:
-                out[norm(key)] = first
-    return out
+        names = [sv(c.get(CF['name'])), sv(c.get(CF.get('short')))]
+        names += bedo_people.split_aliases(c.get(CF.get('aliases'))) if CF.get('aliases') else []
+        people.append((r['id'], [n for n in names if n]))
+        circle[r['id']] = first
+    return Circles(people, circle)
 
 
 # ── small shapes ──────────────────────────────────────────────────────────
@@ -315,6 +349,34 @@ def split_do(rows, rhythms, L):
     return round(tending, 1), round(growing, 1)
 
 
+# ── the gate ──────────────────────────────────────────────────────────────
+def gate(day_rows, L, day):
+    """What the day is still missing, for the QA block — never a stopped build.
+    Her words, 9 Oct: don't stop the process because it's missing some little
+    detail that doesn't really matter in the scheme of things. So the page
+    builds, and this names: more than 10% of the day's rows lacking device or
+    wellness; a row spanning more than 12 h (its minutes are left out of the
+    day, see main); dayqa not yet shown at the dusk close."""
+    out = []
+    lived = [r for r in day_rows if r.get('status') not in NOT_LIVED]
+    lack = [r for r in lived if not (r.get('device') or '').strip() or not (r.get('wellness') or '').strip()]
+    cap = GATE['unfilled_share_max']
+    if lived and len(lack) / len(lived) > cap:
+        out.append(f'{len(lack)} of {len(lived)} rows lack device or wellness '
+                   f'({len(lack) / len(lived):.0%}, over {cap:.0%}): '
+                   + ', '.join(r['_title'][:30] for r in lack[:5]) + (' …' if len(lack) > 5 else ''))
+    hours = bedo_reader.FACTS['entry_rules']['max_span_hours']
+    for r in day_rows:
+        a, b = local(r.get('when')), local(r.get('end'))
+        if a and b and b - a > dt.timedelta(hours=hours):
+            out.append(f'{r["_title"][:40]} spans {(b - a).total_seconds() / 3600:.0f} h '
+                       f'({a:%d %b %H:%M} to {b:%d %b %H:%M}), over {hours} h')
+    if not any(GATE['marker'] in (r.get('details') or '') for r in day_rows):
+        out.append(f'dayqa has not been shown for {day}: run_checks.sh dayqa {day}, show her the list, '
+                   f'write what she accepts, and put its marker line ({GATE["marker"]} …) in the dusk close row')
+    return out
+
+
 # ── main ──────────────────────────────────────────────────────────────────
 def main():
     ap = argparse.ArgumentParser()
@@ -334,6 +396,8 @@ def main():
     ap.add_argument('--usual-min', type=int)
     ap.add_argument('--allow-unwritten', action='store_true',
                     help='build with the lead and the story empty — for a shape check only')
+    ap.add_argument('--shape-check', action='store_true',
+                    help='kept for older callers: the build no longer stops on what the day is missing')
     a = ap.parse_args()
 
     L = json.load(open(a.local, encoding='utf-8'))
@@ -376,10 +440,17 @@ def main():
 
     # ── the day's rows, and what each one is worth ────────────────────────
     day_rows = []
+    over = dt.timedelta(hours=bedo_reader.FACTS['entry_rules']['max_span_hours'])
     for r in latest.values():
         s, e = spans(r, day)
         if s is None:
             continue
+        # a row over 12 h is an old row closed with today's end, not a day's
+        # work: its minutes are left out, and the QA names it (9 Oct 2026: on
+        # 8 Oct two such rows drew 680 minutes on a device)
+        a_, b_ = local(r.get('when')), local(r.get('end'))
+        if a_ and b_ and b_ - a_ > over:
+            e = None
         pr = norm(r.get('practice'))
         cat = practices.get(pr) or {}
         people = [p.strip() for p in (r.get('person') or '').split(',') if p.strip()]
@@ -557,25 +628,17 @@ def main():
     for a_, b_ in zip(work, work[1:]):
         if b_['_s'] < a_['_e']:
             qa['overlapping_work'].append(f"{a_['_title'][:50]} / {b_['_title'][:50]}")
+    missing = gate(day_rows, L, day)
+    if missing:
+        qa['not_yet_whole'] = missing
     ages = sorted((day - key_day(r)).days for r in books)
     booked = {'n': len(books), 'oldest': ages[-1] if ages else 0}
 
     # ── balance ──────────────────────────────────────────────────────────
-    # Overlapping time counts once, and the lived thing wins (the user's word,
-    # 3 Oct 2026): a work session running in the background while she was at the
-    # vet does not also fill the vet's hour. Minutes are claimed lived rows first,
-    # then sessions (⚡ actions), shortest first in each, and a span row is
-    # weighed by the minutes it kept. Rows with no span keep their effort band.
-    act_set = {norm(x) for x in (L.get('action_practices') or ['action'])}
-    taken = [False] * (24 * 60)
-    spanned = [r for r in scoring if r['_mins']]
-    for r in sorted(spanned, key=lambda r: (r['_pr'] in act_set, r['_mins'])):
-        kept = 0
-        for m in range(max(0, r['_s']), min(24 * 60, r['_e'])):
-            if not taken[m]:
-                taken[m] = True
-                kept += 1
-        r['_wmins'] = kept
+    # Two things at once both count (her words, 9 Oct 2026: if I'm walking and
+    # journaling they both count). Every row weighs its own full minutes,
+    # overlap or not; nothing is beaten out. This replaces 3 Oct's 'the lived
+    # thing wins the minute'. Rows with no span keep their effort band.
     domains = effort(scoring, L)
     # what sits under each domain, heaviest first, so the wheel can be opened
     # and read (25 Sep 2026). Same weight as effort(): minutes over the divisor
@@ -602,10 +665,20 @@ def main():
     cats = L.get('pie') or []
     if not cats:
         die('local settings: pie is empty — the five slices and their practices live there')
+    if not any(c['k'] == PLAY['k'] for c in cats):
+        at = next((i for i, c in enumerate(cats) if c.get('rest')), len(cats))
+        cats = cats[:at] + [PLAY] + cats[at:]
     cat_of = {}
     for c in cats:
         for p in c.get('practices') or []:
             cat_of[norm(p)] = c['k']
+    play_k = next(c['k'] for c in cats if c['k'] == PLAY['k'])
+    for p in next(c for c in cats if c['k'] == play_k).get('practices') or []:
+        cat_of[norm(p)] = play_k                 # play wins its practices from any other slice
+    move_k = next((c['k'] for c in cats if c['k'] == 'move'), None)
+    if move_k:
+        for p in MOVEMENT:
+            cat_of[p] = move_k
     # Cooking is food (the meals amendment, 7 Oct 2026). Every practice named
     # "… prep" in the catalog is a meal's prep, so one the settings left
     # unplaced goes to the food slice here, and a new one needs no new upload.
@@ -637,7 +710,7 @@ def main():
     logging_pr = {norm(x) for x in (L.get('logging_practices') or ['capture'])}
     if dev_slice and not any(c['k'] == log_slice['k'] for c in cats):
         at = next((i for i, c in enumerate(cats) if c.get('rest')), len(cats))
-        cats = [dict(c, n=L.get('device_doing_name', 'Doing \u00b7 moving drives forward'))
+        cats = [dict(c, n=L.get('device_doing_name', 'Doing \u00b7 work and drives'))
                 if c['k'] == dev_slice else c for c in cats]
         cats = cats[:at] + [dict(log_slice, practices=[])] + cats[at:]
     # ON A DEVICE (the user's word, 3 Oct 2026): a row with real minutes and a
@@ -671,6 +744,10 @@ def main():
             cat = log_slice['k']
             if not r['_e']:
                 est = est or log_min
+        # work on a drive is Doing whether or not a screen was involved (9 Oct 2026,
+        # rule 7: a meeting held in person had fallen to everything else)
+        if not cat and dev_slice and (r.get('rhythm') or '').strip() and r['_e']:
+            cat = dev_slice
         if not cat and dev_slice and r.get('device') and norm(r['device']) not in dev_off:
             if (r.get('rhythm') or '').strip():
                 cat = dev_slice
@@ -680,12 +757,16 @@ def main():
             # a span with no drive (a 📍 place, a stretch somewhere) is neither
             # device time nor logging: it stays with everything else
         prows.append(dict(cat=cat, s=r['_s'], e=r['_e'], est=est, title=r['_title'], dev=on_device(r)))
-    pie, trimmed, devrows = day_pie.build(prows, cats, max_titles=L.get('pie_max_titles', 4))
+    pie, trimmed, devrows = day_pie.build(prows, cats, max_titles=L.get('pie_max_titles', 4),
+                                          first=[move_k] if move_k else ())
 
     # ── who was in your day ──────────────────────────────────────────────
     order = L.get('circle_order') or sorted(set(circles.values()))
+    # only rows that happened (9 Oct 2026: a plan for Friday put two people on
+    # Thursday's page she never saw — "I didn't directly interact with" them)
+    met_rows = [r for r in day_rows if r.get('status') not in noscore | NOT_LIVED]
     covered, first = {}, {}
-    for r in day_rows:          # already in time order, so the chips are too
+    for r in met_rows:          # already in time order, so the chips are too
         for p in r['_people']:
             if p == self_name:
                 continue
@@ -712,12 +793,12 @@ def main():
         return f'{clock_short(merged[0][0])}–{clock_short(merged[-1][1])}'
 
     def circle_rank(p):
-        c = circles.get(norm(p))
+        c = circles.get(p)
         return order.index(c) if c in order else len(order)
     # the outer ring: people who came up, hung off whoever they came up with.
     # A mentioned name with no one but her in person on its row is not drawn.
     via = {}
-    for r in day_rows:
+    for r in met_rows:
         direct = [p for p in r['_people'] if p != self_name]
         for m in r.get('_mentioned') or []:
             if m == self_name or m in first:
@@ -728,9 +809,9 @@ def main():
                     via[p].append(m)
     # grouped by first circle, sized by how many of the day's rows were shared,
     # as the person text writes them (25 Sep)
-    shared = {p: sum(1 for r in day_rows if p in r['_people']) for p in first}
+    shared = {p: sum(1 for r in met_rows if p in r['_people']) for p in first}
     who = [dict({'name': p, 'when': when_of(p),
-                 'circle': circles.get(norm(p)) or '', 'n': shared[p]},
+                 'circle': circles.get(p) or '', 'n': shared[p]},
                 **({'via': via[p]} if via.get(p) else {}))
            for p in sorted(first, key=lambda p: (circle_rank(p), -shared[p], first[p]))]
 

@@ -108,7 +108,7 @@ class Reader(unittest.TestCase):
 
 def good_row(**over):
     row = {'datetime': '2026-10-05T14:00:00.000Z', 'status': INT, 'practice': ACTION,
-           'key': '261005_0900', 'details': 'my words\n' + F['divider'] + '\n[be•do] a note'}
+           'key': '261005_0900', 'wellness': '💨 air', 'device': '💻 laptop', 'details': 'my words\n' + F['divider'] + '\n[be•do] a note'}
     row.update(over)
     return row
 
@@ -131,7 +131,7 @@ class Entry(unittest.TestCase):
         self.assertTrue(E.problems(good_row(status='⬜')))
         self.assertTrue(E.problems(good_row(wellness='💨 Air')))
         self.assertTrue(E.problems(good_row(emotion=['🟡'])))
-        self.assertTrue(E.problems(good_row(attention='🌕 full', practice='📝 log', status=LOG, key='')))
+        self.assertTrue(E.problems(good_row(attention='🌕')))
 
     def test_one_divider_of_em_dashes(self):
         self.assertTrue(any('three em dashes' in m for m in

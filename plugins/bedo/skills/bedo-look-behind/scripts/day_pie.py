@@ -61,7 +61,7 @@ def paint(rows, order):
     return slice_of
 
 
-def build(rows, cats, max_titles=4):
+def build(rows, cats, max_titles=4, first=()):
     """The DATA.pie list, in the shape the engine reads.
 
     cats: ordered list of {'k','e','n','c'} with the rest slice last, carrying
@@ -69,10 +69,14 @@ def build(rows, cats, max_titles=4):
     rows: dicts with 'cat', 's', 'e', 'est' (estimated minutes for a row with
     no span) and 'title'.
 
+    `first` names slices that win a shared minute whatever their place in the
+    list: Moving (9 Oct 2026, her words: movement counts no matter what I'm
+    doing). The list order still decides how the pie is drawn.
+
     Returns (pie, trimmed) — trimmed is the estimated minutes dropped to keep
     the day inside twenty-four hours, and is reported rather than hidden."""
     order = [c["k"] for c in cats if not c.get("rest")]
-    slice_of = paint(rows, order)
+    slice_of = paint(rows, [k for k in first if k in order] + [k for k in order if k not in first])
 
     logged = {k: 0 for k in order}
     for k in slice_of:

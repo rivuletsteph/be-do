@@ -41,6 +41,7 @@
   "circle_order": [],
 
   "device_slice": "dev",
+  "device_doing_name": "Doing · work and drives",
   "device_off": [],
 
   "pie_max_titles": 4,
@@ -49,6 +50,7 @@
     { "k": "move", "e": "", "n": "Moving",          "c": "#2FA39A", "practices": [] },
     { "k": "food", "e": "", "n": "Food",            "c": "#E0703E", "practices": [] },
     { "k": "dev",  "e": "", "n": "On a device",     "c": "#8E3FCF", "practices": [] },
+    { "k": "play", "e": "🎮", "n": "Play",          "c": "#D9534F", "practices": ["show", "movie", "video", "game"] },
     { "k": "else", "e": "", "n": "Everything else", "c": "#B9B5C4", "rest": true }
   ],
 
@@ -87,7 +89,8 @@
     "connections": {
       "name": "",
       "short": "",
-      "circles": ""
+      "circles": "",
+      "aliases": ""
     }
   }
 }
