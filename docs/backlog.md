@@ -106,5 +106,8 @@ When one ships, its line moves to **Done** with the PR that closed it.
 
 | key | item | shipped |
 |---|---|---|
+| 261009a | Day ahead: be•do's three get their own section under the intentions, with why each rose and the next in line; chosen per J9 (someone waiting · target passed · in motion · weighing), never a calendar event's own row, one slot per person waiting; the dawn builds a draft before the intention check so the three are in view. Her words: I'm not seeing the Pareto 3 … recommend what three things I could do today that would move the ball forward the most. | day ahead, 9 Oct 2026 |
+| 261008b | Day ahead: section order — her intentions, then the three, then the week's word, then the calendar. Her words: my daily intention above the week's intention, then the calendar. | day ahead, 9 Oct 2026 |
+| 261009b | Day ahead: a row that is a calendar event's own no longer repeats in the task list, and a pick past its date shows once. Her words: there's some things on it that are duplicated. | day ahead, 9 Oct 2026 |
 | 261004_1534 | Preflight prints the chat's title first, alone, with the day's letter (A, B); the checks run from Cowork through the bedo-checks skill. Her words: anything you can do to keep, make this run smoothly is great. | bedo-checks, 4 Oct 2026 |
 | 261004_1342 | V53 in code — the reader, the entry check, the split plan, the crosswalk and the judgment file; then preflight, the dusk audit, the remaining list and stretches. Left for her: paste the judgment file into the project instructions. | PRs 7, 8, 19–22 |

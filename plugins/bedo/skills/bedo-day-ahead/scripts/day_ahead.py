@@ -203,8 +203,15 @@ def sentence_with(text, pats):
 
 
 # ---------------------------------------------------------------- pareto three
-def pareto(open_rows, chains, rhythms, today, L):
+# J9: be•do's three, from uncalendared work, deduped by subject, in the order of pull
+# someone waiting · target passed · in motion · named as weighing on the user.
+KINDS = ('someone waiting', 'target passed', 'in motion', 'weighing on you')
+
+
+def pareto(open_rows, chains, rhythms, today, L, calendared=frozenset()):
     self_name = L['self_person']
+    # a calendar event never needs recommending: a row that is an event's own is left out
+    pool = [r for r in open_rows if r['id'] not in calendared]
 
     def drive_of(r):
         return rhythms.get(r['rhythm'] or '')
@@ -216,33 +223,27 @@ def pareto(open_rows, chains, rhythms, today, L):
     def tgt(r):
         return local(r['target']).date() if r['target'] else None
 
-    # 1 · in motion — the ▶️ row whose target sits closest to today
-    motion = [r for r in open_rows if r['status'] == '▶️ in motion' and tgt(r) and drive_of(r)]
-    motion.sort(key=lambda r: abs((tgt(r) - today).days))
-    # 2 · someone waiting — another person on the row, due within three days
+    # someone waiting — another person on the row, due within three days
     def others(r):
         ps = [p.strip() for p in (r['person'] or '').split(',') if p.strip()]
         return [p for p in ps if p != self_name]
-    waiting = [r for r in open_rows if others(r) and tgt(r) and -1 <= (tgt(r) - today).days <= 3]
+    waiting = [r for r in pool if others(r) and tgt(r) and -1 <= (tgt(r) - today).days <= 3]
     waiting.sort(key=lambda r: tgt(r))
-    # 3 · named as weighing — the user's own words anywhere in the chain
+    # target passed — open past its date, the most recently passed first (still live)
+    passed = [r for r in pool if tgt(r) and tgt(r) < today]
+    passed.sort(key=lambda r: tgt(r), reverse=True)
+    # in motion — the ▶️ row whose target sits closest to today
+    motion = [r for r in pool if r['status'] == '▶️ in motion' and tgt(r) and drive_of(r)]
+    motion.sort(key=lambda r: abs((tgt(r) - today).days))
+    # named as weighing — the user's own words anywhere in the chain
     weigh = []
-    for r in open_rows:
+    for r in pool:
         for link in reversed(chains[r['key'] or r['id']]):
             s = sentence_with(her_words(link['details']), L['weighing_phrases'])
             if s:
                 weigh.append((r, s, link['created'])); break
     weigh.sort(key=lambda x: x[2], reverse=True)  # most recently said first
 
-    picks, used, lanes = [], set(), {}
-    def take(kind, cands, why):
-        for c in cands:
-            r = c[0] if isinstance(c, tuple) else c
-            if r['id'] in used or lanes.get(lane(r), 0) >= 2:
-                continue
-            used.add(r['id']); lanes[lane(r)] = lanes.get(lane(r), 0) + 1
-            picks.append(dict(kind=kind, row=r, why=why(c)))
-            return
     def due_phrase(r):
         t = tgt(r)
         if not t:
@@ -250,27 +251,58 @@ def pareto(open_rows, chains, rhythms, today, L):
         n = (t - today).days
         return ('due today' if n == 0 else 'due tomorrow' if n == 1 else
                 f'due {fmt_day(t)}' if n > 0 else f'target passed {fmt_day(t)}')
-    take('in motion', motion, lambda r: f'already moving · {due_phrase(r)} · retargeted {len(chains[r["key"]]) - 1}×')
-    take('someone waiting', waiting, lambda r: f'{", ".join(others(r))} is waiting · {due_phrase(r)}')
-    take('weighing on you', weigh, lambda c: f'your words: “{c[1]}” · {due_phrase(c[0])}')
-    # the next candidate in line for each slot, named quietly, not rendered as a list
+    whys = {
+        'someone waiting': lambda r: f'{", ".join(others(r))} is waiting · {due_phrase(r)}',
+        'target passed': lambda r: f'{due_phrase(r)} · still open',
+        'in motion': lambda r: f'already moving · {due_phrase(r)} · retargeted {len(chains[r["key"] or r["id"]]) - 1}×',
+        'weighing on you': lambda c: f'your words: “{c[1]}” · {due_phrase(c[0])}',
+    }
+    cands = dict(zip(KINDS, (waiting, passed, motion, weigh)))
+    picks, used, lanes, words_seen, waited = [], set(), {}, set(), set()
+
+    def subject(r):  # deduped by subject, not only by row
+        return frozenset(w for w in words(clean_title(r['title'] or '')) if len(w) > 3)
+
+    def take(kind):
+        for c in cands[kind]:
+            r = c[0] if isinstance(c, tuple) else c
+            sub = subject(r)
+            if r['id'] in used or lanes.get(lane(r), 0) >= 2 or any(len(sub & s) >= 2 for s in words_seen):
+                continue
+            # one pick per person waiting: two asks from the same person read as one thing
+            if kind == 'someone waiting' and waited & set(others(r)):
+                continue
+            used.add(r['id']); lanes[lane(r)] = lanes.get(lane(r), 0) + 1; words_seen.add(sub)
+            if kind == 'someone waiting':
+                waited.update(others(r))
+            picks.append(dict(kind=kind, row=r, why=whys[kind](c)))
+            return True
+        return False
+    # one of each kind in the order of pull, then the slots still empty from the same order
+    for kind in KINDS:
+        if len(picks) < 3:
+            take(kind)
+    for kind in KINDS * 3:
+        if len(picks) < 3:
+            take(kind)
+    # the next candidate in line for each kind, named quietly, not rendered as a list
     nxt = []
-    for kind, cands in (('in motion', motion), ('someone waiting', waiting), ('weighing on you', weigh)):
-        for c in cands:
+    for kind in KINDS:
+        for c in cands[kind]:
             r = c[0] if isinstance(c, tuple) else c
             if r['id'] not in used:
                 nxt.append(dict(kind=kind, title=clean_title(r['title']))); break
     # the rest, in the same order of pull — taken in turn from each kind, no repeats —
-    # for the short list under the picks (the user's word, 2 Oct 2026: at most ten tasks)
+    # for the short list under the picks (the user's word, 2 Oct 2026: at most ten tasks).
+    # A row past its date has its own section, so it is not repeated here.
     more, seen = [], set(used)
-    pools = [[(k, c[0] if isinstance(c, tuple) else c) for c in cands]
-             for k, cands in (('in motion', motion), ('someone waiting', waiting), ('weighing on you', weigh))]
+    pools = [[(k, c[0] if isinstance(c, tuple) else c) for c in cands[k]] for k in KINDS if k != 'target passed']
     while any(pools):
-        for pool in pools:
-            while pool:
-                k, r = pool.pop(0)
-                # only what is due within the week (or already past): a far-off row is not today's
-                if r['id'] in seen or (tgt(r) and (tgt(r) - today).days > L.get('task_horizon_days', 7)):
+        for pool_ in pools:
+            while pool_:
+                k, r = pool_.pop(0)
+                # only what is due within the week: a far-off row is not today's
+                if r['id'] in seen or (tgt(r) and not (0 <= (tgt(r) - today).days <= L.get('task_horizon_days', 7))):
                     continue
                 seen.add(r['id'])
                 more.append(dict(kind=k, id=r['id'], title=clean_title(r['title']), drive=r['rhythm'] or '', due=due_phrase(r),
@@ -750,8 +782,11 @@ def main():
         if m:
             word = dict(word=m.group(1).strip(), words=sentence_with(her_words(r['details']), [m.group(1)]) or ''); break
 
-    picks, nxt, more = pareto(open_rows, chains, rhythms, today, L)
     days, gaps, clashes, away, evs, conflicts = calendar(cal, rows, open_rows, today, a.days, L)
+    # rows that are an event's own (or may be, today) are on the calendar already
+    calendared = {e['match_row']['id'] for e in evs if e.get('match_row')}
+    calendared |= {r['id'] for e in evs for r in (e.get('maybe') or [])}
+    picks, nxt, more = pareto(open_rows, chains, rhythms, today, L, calendared)
     plan = look_ahead_plan(evs, conflicts, rows, open_rows, chains, rhythms, today, a, L)
     standing = standing_steps(load_practices(a.practices, L), rows, today, a.days)
     for d in days:  # a standing step sits first among the day's due lines
@@ -788,12 +823,13 @@ def main():
         if not r['target']:
             continue
         t = local(r['target']).date(); n = (t - today).days
-        item = dict(title=clean_title(r['title']), drive=r['rhythm'] or '', date=t.isoformat(), label=fmt_day(t), st=r['status'][:2])
+        item = dict(id=r['id'], title=clean_title(r['title']), drive=r['rhythm'] or '', date=t.isoformat(), label=fmt_day(t), st=r['status'][:2])
         if 0 <= n <= 3:
             soon.append(item)
         elif n < 0:
             overdue.append(dict(item, late=-n, id=r['id'], key=r['key']))
     soon.sort(key=lambda x: x['date']); overdue.sort(key=lambda x: x['date'])
+    picked = {p['row']['id'] for p in picks}
 
     # the list after the calendar — the picks, then the rest of the pull, then dated work in
     # the next three days, never more than max_tasks in all (the user's word, 2 Oct 2026: max ten,
@@ -806,11 +842,11 @@ def main():
                   date=today.isoformat(), emoji=(rhythms.get(s['drive']) or {}).get('emoji') or '')
              for s in standing.get(today, [])]
     taken |= {t['title'] for t in tasks}
-    for t in more + [dict(kind='dated', title=x['title'], drive=x['drive'], due='due ' + x['label'], st=x['st'], date=x['date']) for x in soon]:
+    for t in more + [dict(kind='dated', id=x['id'], title=x['title'], drive=x['drive'], due='due ' + x['label'], st=x['st'], date=x['date']) for x in soon]:
         if len(picks) + len(tasks) >= cap:
             break
-        # a row that is one of today's calendar events is already in the calendar section
-        if t['title'] in taken or any(ev and ev.lower() in t['title'].lower() for ev in today_events):
+        # a row that is a calendar event's own is already on the calendar
+        if t['title'] in taken or t.get('id') in calendared or any(ev and ev.lower() in t['title'].lower() for ev in today_events):
             continue
         taken.add(t['title']); tasks.append(dict(kind=t['kind'], title=t['title'], drive=t['drive'], due=t['due'], st=t['st'], date=t['date'],
                                                  emoji=(rhythms.get(t['drive']) or {}).get('emoji') or ''))
@@ -848,7 +884,7 @@ def main():
         next=nxt, tasks=tasks, max_tasks=cap,
         intentions=(a.intention + [None, None, None])[:3], draft=a.draft,
         map=dict(start=today.isoformat(), end=L['map_end'], lanes=lanes, dests=list(dests.values()), away=away),
-        soon=soon, overdue=overdue,
+        soon=soon, overdue=[o for o in overdue if o['id'] not in picked],  # a pick shows once, in the three
         days=days, gaps=gaps, clashes=clashes,
         sunday=today.weekday() == 6, inside=inside,
         prov=dict(reads=[f'{p.split("/")[-1].replace(".json", "")} {n}/{n}' for p, n in reads],

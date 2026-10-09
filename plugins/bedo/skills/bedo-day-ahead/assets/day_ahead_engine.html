@@ -169,6 +169,32 @@ page.append($(`<header>
   ${D.secure&&D.secure.state!=='secure'?`<p class="sbx">⏏️ ${esc(D.secure.state)}${D.secure.words?' — '+esc(D.secure.words):''}</p>`:''}
   <p class="lead">${esc(D.lead)}</p></header>`));
 
+/* the order (8 Oct 2026, her words): my intention above the week's word, then the calendar */
+/* your intentions — empty until you name them */
+const named = D.intentions.filter(Boolean).length;
+page.append($(`<section><h2>your intentions</h2><p class="sub">${named?'named by you this morning — the three below stay be•do\'s recommendation':'yours to name — these stay empty until you do'}</p>
+  <div class="slots" style="grid-template-columns:repeat(${named||3},1fr)">${(named?D.intentions.filter(Boolean):D.intentions).map((v,i)=>v?`<div class="slot" style="color:var(--ink);border-style:solid"><b style="color:var(--accent)">${i+1}</b>${esc(v)}</div>`:`<div class="slot"><b>${i+1}</b>open</div>`).join('')}</div></section>`));
+
+const glyph = st => {
+  const k = {'⬜':'int','▫️':'pot','▶️':'mot','✅':'don'}[String(st||'⬜').trim()] || 'int';
+  const nm = {int:'intention',pot:'potential',mot:'in motion',don:'done'}[k];
+  return `<span class="gl" title="${nm} · action"><span class="st ${k}"></span><svg class="bolt" viewBox="0 0 11 14" aria-hidden="true"><path d="M6.6 0 0 8h4.2L3.4 14 11 5.6H6.6z"/></svg></span>`;
+};
+const card = (t, why) => {
+  const late = t.date && t.date < D.date, on = t.date === D.date;
+  const at = t.date ? (on ? 'today' : (()=>{const d=new Date(t.date+'T12:00:00');return d.toLocaleDateString('en-US',{weekday:'short'})+'<br>'+d.getDate();})()) : '—';
+  const drv = t.drive ? `<div class="edrv">${esc(t.emoji||'')} ${esc(t.drive)}</div>` : '<div class="edrv none">no drive</div>';
+  return $(`<div class="ecard act${late?' gone':''}"><div class="at">${at}</div><div class="ttl">${glyph(t.st)}${esc(t.title)}</div>${drv}${why?`<div class="why">${esc(why)}</div>`:''}</div>`);
+};
+/* be•do's three — the Pareto three (J9), their own section right under the intentions,
+   in view while the user names their own (9 Oct 2026: "I'm not seeing the Pareto 3") */
+if (D.pareto && D.pareto.length){
+  const sec = $(`<section><h2>be•do's three</h2><p class="sub">what would move the ball forward most today · be•do's pick, not your intentions</p><div class="ecards"></div>${(D.next||[]).length?`<p class="nextup"><b>next in line</b> · ${D.next.map(n=>esc(n.title)).join(' · ')}</p>`:''}</section>`);
+  const box = sec.querySelector('.ecards');
+  D.pareto.forEach(p=>box.append(card(p, p.why ? p.kind+' · '+p.why : p.kind)));
+  page.append(sec);
+}
+
 /* word + secure base */
 if (D.word) page.append($(`<section class="frame">
   ${D.word?`<div class="word"><div class="k">this week's word</div><div class="w">${esc(D.word.word)}</div>${D.word.words&&D.word.words.replace(/[.\s]+$/,'').toLowerCase()!==D.word.word.toLowerCase()?`<q>${esc(D.word.words)}</q>`:''}</div>`:''}
@@ -189,13 +215,6 @@ if (D.word) page.append($(`<section class="frame">
   page.append(sec);
 })();
 
-/* your intentions — empty until you name them */
-const named = D.intentions.filter(Boolean).length;
-page.append($(`<section><h2>your intentions</h2><p class="sub">${named?'named by you this morning — the three below stay be•do\'s recommendation':'yours to name — these stay empty until you do'}</p>
-  <div class="slots" style="grid-template-columns:repeat(${named||3},1fr)">${(named?D.intentions.filter(Boolean):D.intentions).map((v,i)=>v?`<div class="slot" style="color:var(--ink);border-style:solid"><b style="color:var(--accent)">${i+1}</b>${esc(v)}</div>`:`<div class="slot"><b>${i+1}</b>open</div>`).join('')}</div></section>`));
-
-
-
 /* past its date — after the intentions, never folded away: each one needs the user's word
    (5 Oct 2026: up from below the task list, then placed after the intentions) */
 if (D.overdue && D.overdue.length){
@@ -207,21 +226,9 @@ if (D.overdue && D.overdue.length){
 }
 
 /* after the calendar — the day behind's action cards: status ⚡ title, the drive underneath,
-   the date on the left (red once it has passed); be•do's picks first, never more than max_tasks */
-const three = $(`<section><h2>after the calendar</h2><p class="sub">the few that move the most · at most ${D.max_tasks||10}</p><div class="ecards"></div></section>`);
+   the date on the left (red once it has passed); the three have their own section above; never more than max_tasks in all */
+const three = $(`<section><h2>after the calendar</h2><p class="sub">what else is due this week · at most ${D.max_tasks||10} with the three</p><div class="ecards"></div></section>`);
 const tbox = three.querySelector('.ecards');
-const glyph = st => {
-  const k = {'⬜':'int','▫️':'pot','▶️':'mot','✅':'don'}[String(st||'⬜').trim()] || 'int';
-  const nm = {int:'intention',pot:'potential',mot:'in motion',don:'done'}[k];
-  return `<span class="gl" title="${nm} · action"><span class="st ${k}"></span><svg class="bolt" viewBox="0 0 11 14" aria-hidden="true"><path d="M6.6 0 0 8h4.2L3.4 14 11 5.6H6.6z"/></svg></span>`;
-};
-const card = (t, why) => {
-  const late = t.date && t.date < D.date, on = t.date === D.date;
-  const at = t.date ? (on ? 'today' : (()=>{const d=new Date(t.date+'T12:00:00');return d.toLocaleDateString('en-US',{weekday:'short'})+'<br>'+d.getDate();})()) : '—';
-  const drv = t.drive ? `<div class="edrv">${esc(t.emoji||'')} ${esc(t.drive)}</div>` : '<div class="edrv none">no drive</div>';
-  return $(`<div class="ecard act${late?' gone':''}"><div class="at">${at}</div><div class="ttl">${glyph(t.st)}${esc(t.title)}</div>${drv}${why?`<div class="why">${esc(why)}</div>`:''}</div>`);
-};
-D.pareto.forEach(p=>tbox.append(card(p, p.kind)));
 (D.tasks||[]).forEach(t=>tbox.append(card(t, t.kind==='dated'?'':t.kind)));
 page.append(three);
 

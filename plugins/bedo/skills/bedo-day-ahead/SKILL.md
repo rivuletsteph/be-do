@@ -1,6 +1,6 @@
 ---
 name: "bedo-day-ahead"
-description: "Build The Day Ahead page from the stable release. Use at the 👁️ look ahead step of the dawn flow, unasked — one build, the final, after the intention check — or when the user asks for the day ahead or the look ahead."
+description: "Build The Day Ahead page from the stable release. Use at the 👁️ look ahead step of the dawn flow, unasked — a draft before the intention check so the three are in view, the final after it — or when the user asks for the day ahead or the look ahead."
 ---
 
 # The day ahead
@@ -37,28 +37,42 @@ earlier chat. The key to read is named below wherever one is wanted.
 `assets/day_ahead_local.example.json` is the blank shape, and the README
 explains the four keys that aren't self-evident.
 
-## One pass, the final
+## Two passes: the three before the intention check, the final after
 
-**The day ahead is one build, the final. No draft page** (decided 29 Sep
-2026; until then the dawn ran two passes, a draft before the intention check
-and the official version after it). The dawn flow's order is now:
+**The three come first** (9 Oct 2026, the user's words: *for the look ahead
+I'm not seeing the Pareto 3 … it needs to happen in the draft of the look
+ahead where you recommend what three things I could do today that would move
+the ball forward the most*). From 29 Sep to 9 Oct the dawn ran one build after
+the intention check, so the three never reached her while she named her own.
+A pass costs little: the rows never pass through the chat, and the second pass
+is only `fetch` and `build`. The dawn flow's order is:
 
 1. **⏏️ secure base** — the user's to set, never deduced. **Check the stream
    for one already written today first**, from any chat: one row per practice.
    Since 29 Sep 2026 the ⏏️ row is no longer written every day: `secure` is
    the assumed default, and the other state is written only when the user
    names a knock-back. No row means `secure`.
-2. **⚡ intention check** — the user names their own intentions, in their own
+2. **👁️ look ahead, the draft** — `prep`, the calendars, `cal`, then `build …
+   --draft` with no intentions, published to the page. **Say the three in the
+   chat, one line each with why it rose** (the build prints them), so they are
+   in front of her at the next step.
+3. **⚡ intention check** — the user names their own intentions, in their own
    words. They may fold the three into their own framing, or ignore them.
-3. **👁️ look ahead, the final** — one build, with each intention passed as
-   `--intention "…"`, exactly as the user said it, and without `--draft`. The
-   three stay be•do's recommendation; don't rewrite them to match the user's
-   intentions. The plan file is written on every build, so nothing the draft
-   pass used to produce is lost — today's rows, the asks and the prep drafts
-   come out of this one build.
+4. **👁️ look ahead, the final** — `fetch` (the intention check wrote rows),
+   then one build with each intention passed as `--intention "…"`, exactly as
+   the user said it, and without `--draft`. The three stay be•do's
+   recommendation; don't rewrite them to match the user's intentions. The plan
+   file is written on every build; work from the final one's.
 
-`--draft` still exists on the builder and the runner for a hand run that wants
-the "before your intentions" mark; the flow never uses it.
+**How the three are chosen** (J9): from uncalendared work, in the order of pull
+— someone waiting (another person on the row, due within three days) · target
+passed (the most recently passed first) · in motion (▶️, target nearest today)
+· named as weighing on her (`weighing_phrases` in her words). One of each kind
+first, then the empty slots refilled in the same order. Never a row that is a
+calendar event's own (a calendar event never needs recommending), never two
+on the same subject, never two from the same person waiting, never more than
+two from one drive. A pick that is past its date shows once, in the three, not
+again under past its date; the plan's `overdue` still holds it for the asks.
 
 **Build from the stable release. Don't redesign it.** Changes to the layout are
 a separate be•do work chat that ends with a push and a new tag in
@@ -82,6 +96,7 @@ zip; the installed loader fetches the change by itself.
   times it writes. Run it after any change to the builder, and first of all on
   a machine the builder hasn't run on before.
 - `tests/test_cal.py` — drives the calendar reader and checks what it refuses.
+- `tests/test_three.py` — how be•do's three are chosen (J9).
 
 The runner copies them into the working folder fresh from the version store on
 every `prep`; nothing here is used from a project copy. Three things differ by
@@ -163,10 +178,11 @@ contents never pass through the chat.
    title (I7).
 3. **Secure base.** Today's ⏏️ row, in the user's words, if there is one;
    otherwise `secure`, the assumed default, with no words.
-4. **The intention check**, then **one build.** The intention check nearly
-   always writes rows (retargets on the three, the ⚡ intention check row), so
-   re-read the live stream first — `bash run_day_ahead.sh fetch YYYY-MM-DD` —
-   then:
+4. **The draft, the intention check, then the final.** Before the intention
+   check, `bash run_day_ahead.sh build YYYY-MM-DD <state> --now HH:MM --draft`,
+   publish, and say the three. After it — the intention check nearly always
+   writes rows (retargets on the three, the ⚡ intention check row) — re-read
+   the live stream first, `bash run_day_ahead.sh fetch YYYY-MM-DD`, then:
    ```
    bash run_day_ahead.sh build YYYY-MM-DD <state> [--secure-words "<their words>"] --now HH:MM \
      --intention "…" --intention "…" --intention "…"
@@ -274,19 +290,22 @@ the user. A project with no named next step is the defect.
 1. **The date**, with ⏏️ beside it when the base is secure — a small emoji,
    no callout. Anything other than secure gets one line under it, in the
    user's words.
-2. **This week's word.**
-3. **Today on the calendar** — every event as the calendar shows it
+2. **Your intentions** — only the slots the user named, in their words; three
+   empty slots before they name any. Above the week's word (8 Oct 2026, their
+   words: *my daily intention above the week's intention, then the calendar*).
+3. **be•do's three** — their own section, each card saying why it rose, and
+   the next in line beneath. Before the intentions are named this is what the
+   draft is for.
+4. **This week's word.**
+5. **Today on the calendar** — every event as the calendar shows it
    (its own title and glyphs, start and end, a 🗓️ link), in the day behind's
    event cards, with its drive underneath. A child's calendar gets the ochre
    edge.
-4. **Your intentions** — only the slots the user named, in their words; three
-   empty slots before they name any.
-5. **Past its date** — every open row past its target, oldest first, never
-   folded away (see `overdue` above), right after the intentions. Empty when
-   the morning's answers are in.
-6. **After the calendar** — at most `max_tasks` (10) action cards: be•do's
-   picks first, then what is due within `task_horizon_days` (7), never a row
-   already on today's calendar. Each card: the date on the left (`today`, or
+   **Past its date** — every open row past its target, oldest first, never
+   folded away (see `overdue` above). Empty when the morning's answers are in.
+6. **After the calendar** — what else is due within `task_horizon_days` (7),
+   at most `max_tasks` (10) with the three, never a row that is a calendar
+   event's own and never a row past its date (it has its own section). Each card: the date on the left (`today`, or
    the weekday and day; plum once passed), the status and ⚡ **drawn, not
    typed** — a brick-outlined square for an intention, filled with a play mark
    in motion, teal with a check when done, dashed for a potential, and a gold

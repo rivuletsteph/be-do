@@ -7,7 +7,8 @@
 #   bash run_day_ahead.sh fetch YYYY-MM-DD            # Airtable only — re-read the live stream after the intention check
 #   bash run_day_ahead.sh build YYYY-MM-DD <secure> [builder args…]
 #        e.g. build 2026-09-28 secure --secure-words "…" --now 07:10 --intention "…" --intention "…" --intention "…"
-#        (one build, the final; --draft still marks a hand-run page as "before your intentions")
+#        (twice at dawn: --draft with no intentions before the intention check, so the three are
+#         in view; then the final, with them)
 #
 # Needs, in the working folder: day_ahead_local.json (or LB_LOCAL pointing at it) and
 # the Airtable token: bedo_secrets.json (there, in the folder above it, or at
