@@ -279,6 +279,14 @@ contents never pass through the chat.
      - **Dates that disagree** — the calendar is corrected to her answer.
      Never decide for her, never delete a series, never touch a read-only
      calendar.
+     - **Work events are purple** (9 Oct 2026, her words: *I work for Tarleton
+       State University and that's our school color*): any work event be•do
+       creates or edits gets `colorId` 3; a recurring series is coloured on the
+       series. Work is a drive under `work_parents`, or a Tarleton or project
+       meeting.
+     - **A duplicate** is merged into the one she keeps (her ⬜, her colour,
+       the other's details), and the copy is dropped as above, its row ✖️ as a
+       dedupe onto the kept one.
    - **`today_asks` — asked, in the one list at the end.** An event whose glyph
      names no single active drive, or where a row about the same subject is
      already on today and may be its own. For the second, the answer is usually
