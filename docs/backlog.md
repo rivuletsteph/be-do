@@ -40,6 +40,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 261003_1433 | ▶️ | The daily measure checked against how the day felt; meals logged with how they were made and whether she ate with intention; the wellness wheel's role; the unmerged `claude/look-behind-dark-palette` branch — merge or let go |
 | 261004_1045 | ▶️ | Base flow card shipped; next the look behind and look ahead for day, week and month — an earthy palette, the look ahead light and the look behind dark; later nutrition folded into body |
 | 261004_1536 | ▶️ | Page cards from her review of every past page — card 2 (perhaps the dark mirror of card 1), whether the forward map gets its own card, card 1 into the day ahead itself |
+| 261009e | ⬜ | The day chat's Airtable read came back 401 on 9 Oct, so the day ahead couldn't build there; the cloud session's credential worked the same morning. Find which token the claude.ai chat holds and replace it, or settle that the day ahead builds only in Claude Code |
 
 ## Calendar
 
