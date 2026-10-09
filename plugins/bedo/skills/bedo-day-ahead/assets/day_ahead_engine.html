@@ -255,14 +255,18 @@ const tbox = three.querySelector('.ecards');
 page.append(three);
 
 
-/* the next fourteen days */
+/* the next fourteen days — from tomorrow: today has its own section above
+   (9 Oct 2026, her words: I don't need to see today on the day ahead [twice]) */
 (function(){
-  const sec = $(`<section><h2>the next fourteen days</h2><p class="sub">both calendars, matched against the stream</p>
-    <div class="keyline"><span><span class="gap" style="font-size:10.5px;color:var(--accent);border:1px dashed var(--accent);border-radius:999px;padding:1px 7px">no row yet</span> ${D.gaps} events</span><span><span style="font-size:10.5px;color:var(--past);background:var(--past-soft);border-radius:999px;padding:1px 7px">clash</span> ${D.clashes} events</span></div>
+  const ds = D.days.filter(d=>!d.today);
+  const nGap = ds.reduce((n,d)=>n+d.events.filter(e=>e.gap).length,0);
+  const nClash = ds.reduce((n,d)=>n+d.events.filter(e=>(e.clash||[]).length).length,0);
+  const sec = $(`<section><h2>the next two weeks</h2><p class="sub">from tomorrow · both calendars, matched against the stream</p>
+    <div class="keyline"><span><span class="gap" style="font-size:10.5px;color:var(--accent);border:1px dashed var(--accent);border-radius:999px;padding:1px 7px">no row yet</span> ${nGap} events</span><span><span style="font-size:10.5px;color:var(--past);background:var(--past-soft);border-radius:999px;padding:1px 7px">clash</span> ${nClash} events</span></div>
     <div class="days"></div></section>`);
   const box = sec.querySelector('.days');
   // fold runs of band-only days into one line
-  let i=0; const ds=D.days;
+  let i=0;
   while (i<ds.length){
     const d=ds[i];
     if (d.bands.length && !d.events.length && !d.due.length){

@@ -245,6 +245,11 @@ contents never pass through the chat.
      `event` field. **Add phase, wellness and device** the usual way (deduced,
      never asked), then write them in one call and show them as a short list.
      A row closes ✅ when the event happens.
+   - **Every event today gets its own row** (9 Oct 2026, the user's words: *why
+     don't they have a row? They should have a row*). A same-subject intention
+     (*show up at the two celebrations*) is hers and stays; the event's row is
+     separate. An ask left unanswered leaves `no row yet` on the page, so ask
+     it in the first reply after the build, never let it sit.
    - **`today_asks` — asked, in the one list at the end.** An event whose glyph
      names no single active drive, or where a row about the same subject is
      already on today and may be its own. For the second, the answer is usually
@@ -341,7 +346,8 @@ the user. A project with no named next step is the defect.
    in motion, teal with a check when done, dashed for a potential, and a gold
    bolt — then the title in semibold, the drive's emoji and name beneath, and
    why it rose (`someone waiting`, `in motion`…) in small type.
-7. **The next fourteen days** — both calendars matched against the stream,
+7. **The next two weeks, from tomorrow** — today is not repeated here; it has its
+   own section above (9 Oct 2026). Both calendars matched against the stream,
    with `no row yet` and `clash` tags. Each due line starts with the same
    drawn status and bolt, then its drive's emoji (the drive's name on hover).
 8. **The map** of the three along their drives.
