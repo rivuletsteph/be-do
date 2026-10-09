@@ -46,7 +46,7 @@ def main():
     assert 'c' not in [m['id'] for m in more], more
     # with only one kind on offer, its slots still fill to three (one per person waiting,
     # at most two from one drive)
-    only = [row('p', 'Call Ann back', '2026-03-11', person='Ann'),
+    only = [row('p', 'Call Quill back', '2026-03-11', person='Quill'),
             row('q', 'Send Bo the photos', '2026-03-12', person='Bo', drive='Garden'),
             row('r', 'Return Cy the drill', '2026-03-13', person='Cy', drive='Paperwork')]
     ch = defaultdict(list, {r['key']: [] for r in only})
