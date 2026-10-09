@@ -351,10 +351,12 @@ def split_do(rows, rhythms, L):
 
 # ── the gate ──────────────────────────────────────────────────────────────
 def gate(day_rows, L, day):
-    """Why this day can't be published yet, or []. The 9 Oct amendment, rule 5,
-    and the dayqa step: more than 10% of the day's rows that happened lack
-    device or wellness; any row spans more than 12 h; or no row of the day
-    carries the dayqa marker the dusk close writes once she has seen the list."""
+    """What the day is still missing, for the QA block — never a stopped build.
+    Her words, 9 Oct: don't stop the process because it's missing some little
+    detail that doesn't really matter in the scheme of things. So the page
+    builds, and this names: more than 10% of the day's rows lacking device or
+    wellness; a row spanning more than 12 h (its minutes are left out of the
+    day, see main); dayqa not yet shown at the dusk close."""
     out = []
     lived = [r for r in day_rows if r.get('status') not in NOT_LIVED]
     lack = [r for r in lived if not (r.get('device') or '').strip() or not (r.get('wellness') or '').strip()]
@@ -395,7 +397,7 @@ def main():
     ap.add_argument('--allow-unwritten', action='store_true',
                     help='build with the lead and the story empty — for a shape check only')
     ap.add_argument('--shape-check', action='store_true',
-                    help='skip the publish gate — a test of the page shape, never a page to publish')
+                    help='kept for older callers: the build no longer stops on what the day is missing')
     a = ap.parse_args()
 
     L = json.load(open(a.local, encoding='utf-8'))
@@ -438,10 +440,17 @@ def main():
 
     # ── the day's rows, and what each one is worth ────────────────────────
     day_rows = []
+    over = dt.timedelta(hours=bedo_reader.FACTS['entry_rules']['max_span_hours'])
     for r in latest.values():
         s, e = spans(r, day)
         if s is None:
             continue
+        # a row over 12 h is an old row closed with today's end, not a day's
+        # work: its minutes are left out, and the QA names it (9 Oct 2026: on
+        # 8 Oct two such rows drew 680 minutes on a device)
+        a_, b_ = local(r.get('when')), local(r.get('end'))
+        if a_ and b_ and b_ - a_ > over:
+            e = None
         pr = norm(r.get('practice'))
         cat = practices.get(pr) or {}
         people = [p.strip() for p in (r.get('person') or '').split(',') if p.strip()]
@@ -619,30 +628,17 @@ def main():
     for a_, b_ in zip(work, work[1:]):
         if b_['_s'] < a_['_e']:
             qa['overlapping_work'].append(f"{a_['_title'][:50]} / {b_['_title'][:50]}")
-    stop = gate(day_rows, L, day)
-    if stop and not a.shape_check:
-        die('not publishable yet — fix first (the 9 Oct amendment, rule 5):\n  · ' + '\n  · '.join(stop))
-    if stop:
-        qa['gate'] = stop
+    missing = gate(day_rows, L, day)
+    if missing:
+        qa['not_yet_whole'] = missing
     ages = sorted((day - key_day(r)).days for r in books)
     booked = {'n': len(books), 'oldest': ages[-1] if ages else 0}
 
     # ── balance ──────────────────────────────────────────────────────────
-    # Overlapping time counts once, and the lived thing wins (the user's word,
-    # 3 Oct 2026): a work session running in the background while she was at the
-    # vet does not also fill the vet's hour. Minutes are claimed lived rows first,
-    # then sessions (⚡ actions), shortest first in each, and a span row is
-    # weighed by the minutes it kept. Rows with no span keep their effort band.
-    act_set = {norm(x) for x in (L.get('action_practices') or ['action'])}
-    taken = [False] * (24 * 60)
-    spanned = [r for r in scoring if r['_mins']]
-    for r in sorted(spanned, key=lambda r: (r['_pr'] in act_set, r['_mins'])):
-        kept = 0
-        for m in range(max(0, r['_s']), min(24 * 60, r['_e'])):
-            if not taken[m]:
-                taken[m] = True
-                kept += 1
-        r['_wmins'] = kept
+    # Two things at once both count (her words, 9 Oct 2026: if I'm walking and
+    # journaling they both count). Every row weighs its own full minutes,
+    # overlap or not; nothing is beaten out. This replaces 3 Oct's 'the lived
+    # thing wins the minute'. Rows with no span keep their effort band.
     domains = effort(scoring, L)
     # what sits under each domain, heaviest first, so the wheel can be opened
     # and read (25 Sep 2026). Same weight as effort(): minutes over the divisor

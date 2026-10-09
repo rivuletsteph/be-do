@@ -13,21 +13,34 @@ the marker line this prints in its own [be•do] block; the look behind won't
 build a day whose rows don't carry it.
 
   meals     each meal's prep and eating (bedo_meals, the 7 Oct rules)
-  gaps      15+ minutes between the first and last waking row no span covers
+  gaps      15+ minutes between the first and last waking row no span covers,
+            filled from the clues (2 Oct 2026: fill it from the clues, don't ask):
+            where Timeline has her, or what she logged inside it. The rows
+            either side name the stretch but never fill it on their own — a
+            row that says only 'between two things' is padding, not the day.
+            A stretch with no clue at all is left open, quietly: one line
+            counts it, never a question (9 Oct: the system works even when
+            she isn't logging every minute)
   movement  walking, cycling or exercise she mentions with no movement row
             near it; a movement row with no minutes (rule 7)
   people    person set on a plan (rule 6); a name no connection matches
   device    device and wellness, deduced (rule 1, bedo_fill)
   spans     a row over 12 h, or one whose end is on another day (rules 2, 5)
+  overlaps  two things at once are both recorded, in full, and each carries
+            🌓 partial attention (9 Oct 2026: nothing is beaten out)
+  synergy   and are they synergizing or competing? (24 Aug and 9 Oct 2026).
+            What her words already say is noticed back — synergy, do more of
+            that; competing, try them apart. A pair she answered in past weeks
+            is proposed with that answer. Anything new is one optional question
 
     python3 bedo_dayqa.py --live --date 2026-10-09 [--json]
     python3 bedo_dayqa.py --day day.json [--catalog practices.json] [--rhythms rhythms.json]
                           [--connections connections.json] [--history w40.json …] --date 2026-10-09
 """
-import datetime as dt, json, re, sys
+import collections, datetime as dt, json, re, sys
 
 from bedo_reader import FACTS, as_rows, cells, complete, load_local, offset_hours, on_day, sv
-from bedo_entry import OVERNIGHT, RULES, span_problems, utc
+from bedo_entry import OVERNIGHT, PARTIAL, RULES, overlaps, span_problems, utc
 import bedo_fill as FL
 import bedo_meals as ML
 import bedo_people as PP
@@ -39,9 +52,10 @@ PLANS = set(FACTS['status']['plans'])
 NOT_LIVED = PLANS | {FACTS['status']['actions'][4], FACTS['status']['logs'][2]}   # ✖️ dropped, ⨂ skipped
 DIVIDER = FACTS['divider']
 MOVE = {FL.word(p) for p in Q['movement_practices']}
+NOTES = {FL.word(p) for p in Q['note_practices']}
 LOCATION = FL.word(FACTS['practice']['location'])
 NAMES = ('datetime', 'end', 'time_spent', 'status', 'title', 'details', 'practice', 'person',
-         'mentioned', 'wellness', 'device', 'rhythm', 'photo', 'key')
+         'mentioned', 'wellness', 'device', 'rhythm', 'photo', 'key', 'attention')
 
 
 def _z(t):
@@ -102,8 +116,41 @@ def meals(rows, off, people):
     return out
 
 
-def gaps(rows, off, proposed=()):
-    """Asked last, so the spans the other checks propose already cover their minutes."""
+LOG_PRACTICE = '📝 log'
+
+
+def _gap_fill(g, t, mins, off, at, inside, before, after, ctx):
+    """One row for the stretch, from the best clue there is, or None."""
+    clues, src = [], None
+    if at:
+        clues.append(f'{SRC["timeline"]} has you at {_t(at)}')
+        src = SRC['timeline']
+    for r in inside:
+        clues.append(f'“{_t(r)}” at {_clock(utc(r["datetime"]), off)}')
+        src = src or anchor(r)
+    if before:
+        clues.append(f'after “{_t(before)}”')
+    if after:
+        clues.append(f'before “{_t(after)}”')
+    if not (at or inside):
+        return None
+    src = src or SRC['rule'] + ' (fill a stretch from what you logged in it)'
+    what = f'at {_t(at)}' if at else f'{_t(inside[0])}'
+    new = {'datetime': _z(g), 'end': _z(t), 'status': FACTS['status']['logs'][0], 'practice': LOG_PRACTICE,
+           'title': f'{LOG_PRACTICE.split(" ")[0]} {what} (estimated)',
+           'details': f'{DIVIDER}\n[be•do] {EST}: not logged by her. Clues: ' + '; '.join(clues) + '.'}
+    # wellness from what she logged in it, or the place's own; device by the rules
+    well = collections.Counter(r['wellness'] for r in inside + [at] if r and r.get('wellness'))
+    if well:
+        new['wellness'] = well.most_common(1)[0][0]
+    got, _ = FL.deduce(new, ctx) if ctx else ({}, [])
+    new.update({f: v for f, (v, _) in got.items()})
+    return fill('gaps', f'{_clock(g, off)}–{_clock(t, off)} ({mins} min) {new["title"]}; clues: '
+                        + '; '.join(clues), src, new=new)
+
+
+def gaps(rows, off, proposed=(), ctx=None):
+    """Last, so the spans the other checks propose already cover their minutes."""
     lived = [r for r in rows if r.get('status') not in NOT_LIVED and r.get('datetime')]
     ends = {i['patch']['id']: i['patch']['fields']['end'] for i in proposed
             if i.get('patch') and 'end' in i['patch']['fields']}
@@ -116,6 +163,8 @@ def gaps(rows, off, proposed=()):
     if not awake:
         return []
     lo = min(utc(r['datetime']) for r in awake)
+    woke = [utc(r['datetime']) for r in awake if FL.word(r.get('practice')) == FL.word(FACTS['flows']['wake'])]
+    lo = max([lo] + woke[:1])          # the day opens when she wakes; the night is not a gap
     hi = max(utc(r.get('end') or r['datetime']) for r in awake)
     step = dt.timedelta(minutes=1)
     out, t = [], lo
@@ -126,12 +175,29 @@ def gaps(rows, off, proposed=()):
         g = t
         while t < hi and not any(a <= t < b for a, b in covers):
             t += step
-        mins = int((t - g).total_seconds() // 60)
-        if mins >= Q['gap_minutes']:
-            at = next((p for p in places if utc(p['datetime']) <= g < utc(p['end'])), None)
-            clue = f' — {SRC["timeline"]} has you at {_t(at)}' if at else ''
-            out.append(ask('gaps', f'{_clock(g, off)}–{_clock(t, off)} ({mins} min) nothing logged{clue}; what were you doing?'))
+        # a place covers only its own hours: split the stretch at its edges
+        cuts = sorted({g, t} | {x for p in places for x in (utc(p['datetime']), utc(p['end'])) if g < x < t})
+        for a_, b_ in zip(cuts, cuts[1:]):
+            out += _one_gap(a_, b_, off, lived, places, ctx)
     return out
+
+
+def _one_gap(g, t, off, lived, places, ctx):
+    """A stretch filled from a clue, or counted open. A clue inside it is a row
+    with her words, a photo, a message or Oura — a bare routine tick (a coffee
+    logged as a moment) says nothing about the stretch around it."""
+    mins = int((t - g).total_seconds() // 60)
+    if mins < Q['gap_minutes']:
+        return []
+    not_place = lambda r: FL.word(r.get('practice')) != LOCATION
+    at = next((p for p in places if utc(p['datetime']) <= g < utc(p['end'])), None)
+    inside = [r for r in lived if g <= utc(r['datetime']) < t and not r.get('end') and not_place(r)
+              and (anchor(r) or FL.word(r.get('practice')) in NOTES)]
+    before = max((r for r in lived if utc(r['datetime']) < g and not_place(r)), key=lambda r: r['datetime'], default=None)
+    after = min((r for r in lived if utc(r['datetime']) >= t and not_place(r)), key=lambda r: r['datetime'], default=None)
+    it = _gap_fill(g, t, mins, off, at, inside, before, after, ctx)
+    return [it or {'check': 'gaps', 'kind': 'open', 'mins': mins,
+                   'line': f'{_clock(g, off)}–{_clock(t, off)} ({mins} min)'}]
 
 
 _OURA = re.compile(r'(?i)\b([a-z][a-z ]{2,20}?)\s+(\d{1,2}):(\d{2})\s*([ap])m?\s*[–-]\s*(\d{1,2}):(\d{2})\s*([ap])m?')
@@ -202,23 +268,27 @@ def movement(rows, off, day, local, catalog_names, typical):
         else:
             out.append(ask('movement', f'“{_t(r)}” at {_clock(s, off)} mentions “{m.group(1)}” — '
                                        'its own movement row: when, and how long?'))
-    for r in moves:
-        if r.get('id') and not r.get('end') and not r.get('time_spent'):
-            out.append(ask('movement', f'{_t(r)} at {_clock(utc(r["datetime"]), off)} has no minutes — how long?'))
+    # a movement row with no minutes isn't asked about: the look behind gives it
+    # her typical length, marked estimated (9 Oct: don't ding her for every minute)
     return out
 
 
-def people(rows, index):
+def people(rows, index, self_name=None):
+    """Her own name on her own row stays: only other people move to mentioned."""
     out = []
     for r in rows:
         who = [p.strip() for p in (r.get('person') or '').split(',') if p.strip()]
-        if not who:
+        others = [p for p in who if p != self_name]
+        if not others:
             continue
         if r.get('status') in PLANS:
+            keep = [p for p in who if p == self_name]
+            who = others
             had = [p.strip() for p in (r.get('mentioned') or '').split(',') if p.strip()]
             ment = ', '.join(dict.fromkeys(had + who))
-            out.append(fill('people', f'{_t(r)}: {", ".join(who)} from person to mentioned — a plan, not yet met',
-                            SRC['rule'] + ' (rule 6)', patch={'id': r['id'], 'fields': {'person': '', 'mentioned': ment}}))
+            out.append(fill('plans', f'{_t(r)}: {", ".join(who)} from person to mentioned — a plan, not yet met',
+                            SRC['rule'] + ' (rule 6)',
+                            patch={'id': r['id'], 'fields': {'person': ', '.join(keep), 'mentioned': ment}}))
         elif index is not None:
             for p in who:
                 if index.find(p) is None:
@@ -235,7 +305,9 @@ def device(rows, ctx):
         if got:
             fields = {f: v for f, (v, _) in got.items()}
             why = '; '.join(f'{f} {v}: {w}' for f, (v, w) in got.items())
-            out.append(fill('device', f'{_t(r)} → {" · ".join(fields.values())}', f'{SRC["rule"]} (rule 1: {why})',
+            usual = all(w == 'what this practice usually carries' for _, w in got.values())
+            src = SRC['usual'] if usual else f'{SRC["rule"]} (rule 1: {why})'
+            out.append(fill('device', f'{_t(r)} → {" · ".join(fields.values())}', src,
                             patch={'id': r['id'], 'fields': fields}))
         for f in asks:
             out.append(ask('device', FL.ask_line(r, f, ctx)))
@@ -252,6 +324,83 @@ def spans(rows, off):
     return out
 
 
+def overlapping(rows, off):
+    out = []
+    for r in sorted(rows, key=lambda r: r.get('datetime') or ''):
+        both = overlaps(r, rows)
+        if not both or r.get('attention') == PARTIAL or not r.get('id'):
+            continue
+        with_ = ', '.join(f'{_t(o)[:40]} ({_clock(utc(o["datetime"]), off)}–{_clock(utc(o["end"]), off)})' for o in both[:3])
+        was = f', not {r["attention"]}' if r.get('attention') else ''
+        out.append(fill('overlaps', f'{_t(r)} {_clock(utc(r["datetime"]), off)}–{_clock(utc(r["end"]), off)} '
+                                    f'→ {PARTIAL}{was}: it shared minutes with {with_}',
+                        SRC['rule'] + ' (nothing is beaten out: both recorded, partial attention)',
+                        patch={'id': r['id'], 'fields': {'attention': PARTIAL}}))
+    return out
+
+
+SY = FACTS['synergy']
+_NOTE = re.compile(r'(?i)overlap\s*[—–-]+\s*(' + '|'.join(SY['answers']) + r')\b,?\s*with\s+(.+)')
+
+
+def _pair_key(a, b):
+    return tuple(sorted((FL.word(a.get('practice')), FL.word(b.get('practice')))))
+
+
+def _said(r):
+    """(answer, partner text) from her overlap note, else (answer, None) from her
+    own words ('there was a lot of synergy there'), else (None, None)."""
+    words = her_words(r)
+    m = _NOTE.search(words)
+    if m:
+        return m.group(1).lower(), m.group(2).strip()
+    low = words.lower()
+    for ans, cues in SY['her_words'].items():
+        if any(c in low for c in cues):
+            return ans, None
+    return None, None
+
+
+def _partner(o):
+    return f'{o["key"]} ({_t(o)[:40]})' if o.get('key') else _t(o)[:50]
+
+
+def synergy(rows, off, history=()):
+    """Noticed lines, fills from her past weeks, and at most one question."""
+    past = {}
+    by_key = {r.get('key'): r for r in history if r.get('key')}
+    for r in history:
+        ans, partner = _said(r)
+        if not ans or not partner:
+            continue
+        o = by_key.get(partner.split()[0])
+        if o:
+            past.setdefault(_pair_key(r, o), ans)
+    out, seen, unknown = [], set(), []
+    for r in sorted(rows, key=lambda r: r.get('datetime') or ''):
+        for o in overlaps(r, rows):
+            pk = tuple(sorted((r.get('id') or '', o.get('id') or '')))
+            if pk in seen:
+                continue
+            seen.add(pk)
+            ans = _said(r)[0] or _said(o)[0]
+            pair = f'{_t(r)[:40]} + {_t(o)[:40]}'
+            if ans:
+                out.append({'check': 'synergy', 'kind': 'notice', 'answer': ans,
+                            'line': f'{pair}: {SY["say"][ans]}'})
+            elif past.get(_pair_key(r, o)):
+                a = past[_pair_key(r, o)]
+                note = SY['note'].format(answer=a, partner=_partner(o))
+                out.append(fill('synergy', f'{pair}: {a}, as you said of these two before — {SY["say"][a]}',
+                                SRC['usual'], patch={'id': r.get('id'), 'append_her_words': note}, note=note))
+            else:
+                unknown.append(pair)
+    if unknown:
+        out.append(ask('synergy', f'synergizing, competing, both or neutral? {len(unknown)} overlap(s): '
+                                  + '; '.join(unknown[:4]) + (' …' if len(unknown) > 4 else '')))
+    return out
+
+
 def gate(rows, off):
     """(share lacking device or wellness, rows over 12 h) — the look behind's gate."""
     lived = [r for r in rows if r.get('status') not in NOT_LIVED]
@@ -261,28 +410,69 @@ def gate(rows, off):
     return (len(lack), len(lived)), long_
 
 
-def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=None):
+def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=None, history=()):
     ctx = ctx or FL.Context(day_rows=rows, local=local)
     items = (meals(rows, off, (local.get('people') or {}).values())
              + movement(rows, off, day, local, catalog_names, typical)
-             + people(rows, index)
+             + people(rows, index, (local.get('people') or {}).get('self'))
              + device(rows, ctx)
-             + spans(rows, off))
-    items += gaps(rows, off, items)
-    for i, it in enumerate(items, 1):
-        it['n'] = i
+             + spans(rows, off)
+             + overlapping(rows, off)
+             + synergy(rows, off, history))
+    items += gaps(rows, off, items, ctx)
+    # Logging the important things well is what matters (9 Oct 2026): what she did,
+    # ate, moved and who she was with, one item each; the bookkeeping — device,
+    # wellness, partial attention — one item per kind, accepted at once. Then the
+    # few questions, wrong data first; a stretch with no clue is counted, never asked.
+    order = ['meals', 'movement', 'people', 'gaps', 'synergy', 'overlaps', 'plans', 'device', 'spans']
+    rank = lambda i: order.index(i['check']) if i['check'] in order else len(order)
+    fills = [i for i in items if i['kind'] == 'fill']
+    batched = []
+    for check, what in (('overlaps', 'partial attention where two things happened at once'),
+                        ('plans', 'people on plans moved to mentioned'),
+                        ('device', 'device and wellness')):
+        mine = [i for i in fills if i['check'] == check]
+        if len(mine) > 1:
+            srcs = collections.Counter(i['source'].split(' (')[0] for i in mine)
+            batched.append({'check': check, 'kind': 'fill', 'line': f'{what}: {len(mine)} rows — accept all, or name any to leave',
+                            'source': ' · '.join(f'{s} ({n})' for s, n in srcs.most_common()),
+                            'patches': [i['patch'] for i in mine], 'rows': [i['line'] for i in mine],
+                            'note': f'[be•do] {EST}: {what}'})
+            fills = [i for i in fills if i['check'] != check]
+    asks = [i for i in items if i['kind'] == 'ask']
+    nodev = [i for i in asks if i['check'] == 'device']
+    if len(nodev) > 1:      # one line, not a question per row
+        asks = [i for i in asks if i['check'] != 'device'] + [{
+            'check': 'device', 'kind': 'ask', 'rows': [i['line'] for i in nodev],
+            'line': f'{len(nodev)} rows nothing deduces (no rule, no usual) — name a device or wellness, '
+                    'or leave them: ' + '; '.join(i['line'].split('“', 1)[-1].split('”')[0][:40] for i in nodev[:4])
+                    + (' …' if len(nodev) > 4 else '')}]
+    asks.sort(key=lambda i: -('spans' == i['check']))
+    items = (sorted(fills + batched, key=rank) + asks + [i for i in items if i['kind'] == 'open']
+             + [i for i in items if i['kind'] == 'notice'])
+    for i, it in enumerate(i for i in items if i['kind'] in ('fill', 'ask')):
+        it['n'] = i + 1
     return items
 
 
 def render(items, day, rows, off, now_local=None):
     (lack, n), long_ = gate(rows, off)
     fills = [i for i in items if i['kind'] == 'fill']
-    lines = [f'dayqa · {day:%a %d %b} — {len(fills)} to accept, {len(items) - len(fills)} to ask']
-    for i in items:
-        if i['kind'] == 'fill':
-            lines.append(f'  {i["n"]}. {i["check"]} · {i["line"]} · {EST} · source: {i["source"]}')
-        else:
-            lines.append(f'  {i["n"]}. {i["check"]} · ASK · {i["line"]}')
+    asks = [i for i in items if i['kind'] == 'ask']
+    open_ = [i for i in items if i['kind'] == 'open']
+    seen = [i for i in items if i['kind'] == 'notice']
+    lines = [f'dayqa · {day:%a %d %b} — {len(fills)} to accept' + (f', {len(asks)} if you want' if asks else '')]
+    for i in fills:
+        lines.append(f'  {i["n"]}. {i["check"]} · {i["line"]} · {EST} · source: {i["source"]}')
+    if asks:
+        lines.append('  if you want — skip any of these and the day stands as it is:')
+        lines += [f'  {i["n"]}. {i["check"]} · {i["line"]}' for i in asks]
+    if seen:
+        lines.append('  noticed — two things at once:')
+        lines += [f'    {"🔗" if i["answer"] == "synergizing" else "⚔" if i["answer"] == "competing" else "·"} {i["line"]}'
+                  for i in seen]
+    if open_:
+        lines.append(f'  left open, no clue: {sum(i["mins"] for i in open_)} min (' + ', '.join(i['line'] for i in open_) + ')')
     if not items:
         lines.append('  nothing to fill: every row is whole')
     share = lack / n if n else 0
@@ -350,6 +540,12 @@ def main(argv=None):
             rh = complete(air.dump(*b['rhythms'], by_id=bool(L.get('rhythms_fields'))), 'rhythms')
         if b.get('connections'):
             con = complete(air.dump(*b['connections'], by_id=bool(L.get('connections_fields'))), 'connections')
+        # last week, for her usuals and the pairs she has answered before
+        from bedo_entry import week_number
+        prev = L.get('weekly_name', 'w{n} be•do').format(n=week_number(day) - 1)
+        names_ = air.bases()
+        if prev in names_ and not a.history:
+            hist += as_rows(complete(air.dump(names_[prev], L['stream_table'], by_id=True), prev), fields)
     elif a.day:
         src = a.day
         cat = complete(a.catalog, 'catalog') if a.catalog else None
@@ -366,7 +562,7 @@ def main(argv=None):
                      day_rows=rows, history=hist, local=L)
     names = list(FL.catalog_wellness(cat, L)) if cat else []
     items = run(rows, day, off, L, ctx, connections_index(con, L) if con else None, names,
-                catalog_typical(cat, L) if cat else None)
+                catalog_typical(cat, L) if cat else None, hist)
     now_local = now + dt.timedelta(hours=offset_hours(L, now))
     if a.json:
         print(json.dumps({'day': day.isoformat(), 'items': items,

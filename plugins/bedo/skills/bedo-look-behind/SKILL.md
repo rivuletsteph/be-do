@@ -293,17 +293,18 @@ chat except the digest the words are written from.
    **happened**, the stream wins. This step is what keeps the two agreeing.
    `tests/test_calendar_sync.py` checks the plan; run it after any change.
 
-**The gate** (the 9 Oct amendment, rule 5). The builder refuses to write the
-page, and says why, when:
-- more than 10% of the day's rows that happened lack device or wellness;
-- any row spans more than 12 hours (an old row closed with today's end); or
-- no row of the day carries the `dayqa shown …` line — `run_checks.sh dayqa
-  DATE` hasn't been shown to her at the dusk close (bedo-checks). Run it, show
-  her the list, write what she accepts, put its last line in the dusk close
-  row, and build again.
+**What the day is still missing** (9 Oct 2026: don't stop the process because
+it's missing some little detail). The page always builds. The QA block's
+`not_yet_whole` names:
+- more than 10% of the day's rows that happened lacking device or wellness;
+- any row spanning more than 12 hours (an old row closed with today's end) —
+  its minutes are left out of the day, so it can't draw 680 minutes again;
+- no `dayqa shown …` line in the day's rows, if dayqa wasn't run at dusk.
 
-There is no way round it for a page that goes out. `--shape-check` exists for
-the tests and builds a page that is never published.
+Fix what's quick from the clues; don't hold the page for the rest.
+
+**Two things at once both count** on the wheel: walking and journaling each
+weigh their full minutes (9 Oct, replacing 3 Oct's 'the lived thing wins').
 
 **The pie** (9 Oct 2026): walking, cycling, morning movement and any exercise
 are Moving whatever the settings' map says, and Moving wins a minute shared

@@ -131,7 +131,7 @@ class Entry(unittest.TestCase):
         self.assertTrue(E.problems(good_row(status='⬜')))
         self.assertTrue(E.problems(good_row(wellness='💨 Air')))
         self.assertTrue(E.problems(good_row(emotion=['🟡'])))
-        self.assertTrue(E.problems(good_row(attention='🌕 full', practice='📝 log', status=LOG, key='')))
+        self.assertTrue(E.problems(good_row(attention='🌕')))
 
     def test_one_divider_of_em_dashes(self):
         self.assertTrue(any('three em dashes' in m for m in

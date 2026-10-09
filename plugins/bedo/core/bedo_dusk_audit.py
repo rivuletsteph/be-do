@@ -35,7 +35,7 @@ and then only the derived attention.
 import datetime as dt, json, sys
 
 from bedo_reader import FACTS, as_rows, complete, load_local, offset_hours, on_day
-from bedo_entry import is_action, utc
+from bedo_entry import is_action, overlaps, utc
 import bedo_remaining as RL
 import bedo_stretches as ST
 import bedo_meals as ML
@@ -74,9 +74,13 @@ def chat_of(row, chats):
     return None
 
 
-def derive_attention(r):
-    """🌕 for a discrete session, 🌓 for one that spanned gaps; None when the
-    row has no real span to read it from."""
+def derive_attention(r, rows=()):
+    """🌓 for a row that shared its minutes with another (9 Oct 2026: nothing
+    is beaten out, so two things at once are each partial attention); else 🌕
+    for a discrete session, 🌓 for one that spanned gaps; None when the row has
+    no real span to read it from."""
+    if overlaps(r, rows):
+        return PARTIAL
     if r.get('end'):
         return FULL
     if r.get('time_spent'):
@@ -88,6 +92,7 @@ def audit(rows, now, off, steps=None, chats=(), day=None, people=()):
     """The one pass. `rows` are the day's rows under logical names; `steps` the
     dusk flow's catalog steps; `chats` [{title, url|id, times}]. Returns a dict
     of findings, the attention writes, and the flag line."""
+    every = rows                 # a show that happened overlaps like anything else
     rows = in_play(rows)
     acts = [r for r in rows if is_action(r)]
     window_rows = {r['id'] for r in acts if ST.is_window(_name(r))}
@@ -109,7 +114,7 @@ def audit(rows, now, off, steps=None, chats=(), day=None, people=()):
     writes = []
     for r in acts:                                                    # 3
         if r.get('status') in WORKED and not r.get('attention') and r['id'] not in window_rows:
-            a = derive_attention(r)
+            a = derive_attention(r, every)
             if a:
                 writes.append({'id': r['id'], 'attention': a})
                 f['attention'].append(f'{_name(r)} → {a}')

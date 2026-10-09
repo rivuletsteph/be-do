@@ -8,15 +8,17 @@ don't have to do this … it seems like this should be codified.*
 Every row is written with both filled. In order:
 
   wellness  an ⚡ action on a drive takes the drive's element; else the
-            practice's catalog wellness; else ASK
+            practice's catalog wellness; else its usual; else ASK
   device    a plan (▫️ ⬜) isn't done yet and carries none; a body or
             self-care practice is 🚫 none; a phone practice 📱 phone; a
             title that names the laptop 💻 laptop; a done row inside a
-            walking, driving, cycling or 📍 location span 🚫 none; else ASK
+            walking, driving, cycling or 📍 location span 🚫 none; else its
+            usual; else ASK
 
-The history of a practice (what it carried most often in other weeks) is not
-one of her rules, so it never fills a value. It rides an ASK as a hint, so
-the question is one tap.
+Last, a practice's history: what it carried most often in her other weeks.
+Her words, 9 Oct: *use all of the clues at your disposal … but not dinging me
+every time something isn't complete.* So her own past rows answer before she
+is asked, labelled as her usual. A catch-all (⚡ action, 📝 log) has no usual.
 
     deduce(row, ctx) -> ({field: (value, source)}, [field asked])
 
@@ -90,6 +92,8 @@ def deduce(row, ctx):
             src = "the drive's element"
         if not w and ctx.catalog.get(p):
             w, src = ctx.catalog[p], "the practice's catalog wellness"
+        if not w and ctx.hint('wellness', p):
+            w, src = ctx.hint('wellness', p), 'what this practice usually carries'
         if w:
             got['wellness'] = (w, src)
         else:
@@ -106,6 +110,8 @@ def deduce(row, ctx):
             d, src = '💻 laptop', 'the title names the laptop'
         elif s and any(a <= s <= b for a, b in ctx.spans):
             d, src = '🚫 none', 'inside a walking, driving, cycling or location span'
+        elif ctx.hint('device', p):
+            d, src = ctx.hint('device', p), 'what this practice usually carries'
         if d:
             got['device'] = (d, src)
         else:
