@@ -32,6 +32,12 @@ From the 9 Oct amendment (the 8 Oct look behind read 680 minutes on a device):
   person  people she was with or in direct contact with. A plan names them in
          mentioned until it happens
 
+Overlap (her words, 9 Oct 2026): *I don't think anything should be beaten out
+… everything like that should be recorded and then you've got partial
+attention.* Two things at once are two rows, each with all its minutes; each
+row that shares minutes with another carries 🌓 partial attention. Attention
+belongs on any row, not only an ⚡ action. overlaps() names what a row shares.
+
 `row` uses the logical names in facts_local.example.json's stream_fields:
 datetime, end, time_spent, status, practice, key, details, phase, wellness,
 emotion (a list), attention, device, rhythm.
@@ -117,6 +123,37 @@ def chat_day_problem(row, chat_day, utc_offset_hours):
     return None
 
 
+PARTIAL = FACTS['attention'][1]
+NOT_LIVED = set(FACTS['status']['plans']) | {FACTS['status']['actions'][4], FACTS['status']['logs'][2]}
+NOT_ACTIVITY = {bedo_fill.word(p) for p in RULES['not_activities']}
+
+
+def _span(r):
+    if not (r.get('datetime') and r.get('end')):
+        return None
+    a, b = utc(r['datetime']), utc(r['end'])
+    return (a, b) if b > a else None
+
+
+def overlaps(row, rows):
+    """The other rows that happened and share minutes with this one. A plan,
+    a dropped or skipped row, and a 📍 place (it says where, never what) share
+    nothing."""
+    def counts(r):
+        return r.get('status') not in NOT_LIVED and bedo_fill.word(r.get('practice')) not in NOT_ACTIVITY
+    me = _span(row)
+    if not me or not counts(row):
+        return []
+    out = []
+    for o in rows:
+        sp = _span(o)
+        if o is row or (o.get('id') and o.get('id') == row.get('id')) or not sp or not counts(o):
+            continue
+        if sp[0] < me[1] and me[0] < sp[1]:
+            out.append(o)
+    return out
+
+
 def whole_problems(row, fill=None):
     """Device and wellness, or the value to write, or the question to ask."""
     ctx = fill or bedo_fill.Context()
@@ -146,9 +183,11 @@ def span_problems(row, utc_offset_hours=None):
     return out
 
 
-def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•do', chat_day=None, fill=None):
+def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•do', chat_day=None, fill=None,
+             self_name=None):
     """`fill` is a bedo_fill.Context; without one the device rules still run and
-    wellness, which needs the catalog, is asked."""
+    wellness, which needs the catalog, is asked. `self_name` is hers: her own
+    name on her own plan is not someone she hasn't met yet."""
     out = []
     nd = chat_day_problem(row, chat_day, utc_offset_hours)
     if nd:
@@ -163,8 +202,6 @@ def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•
     for v in row.get('emotion') or []:
         if v not in FACTS['emotion']:
             out.append(f'emotion: {v!r} is not one of the five colours (I4)')
-    if row.get('attention') and not is_action(row):
-        out.append('attention: set on ⚡ action rows only')
 
     if key:
         if not is_action(row):
@@ -195,7 +232,8 @@ def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•
     if not prac:
         out.append('practice: every row carries one — name it, or ask her which')
     out += whole_problems(row, fill)
-    if row.get('status') in PLANS and (row.get('person') or '').strip():
+    if row.get('status') in PLANS and [p for p in (row.get('person') or '').split(',')
+                                         if p.strip() and p.strip() != self_name]:
         out.append(f'person: {row.get("status")} is a plan — the people go in mentioned until it happens')
     if prac == FACTS['practice']['gratitude']:
         mine = (row.get('details') or '').split(DIVIDER)[0].split(BLOCK)[0]

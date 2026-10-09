@@ -57,12 +57,13 @@ class Deduce(unittest.TestCase):
         self.assertEqual(d(practice='📝 log', datetime=z(17, 20)), '🚫 none')    # inside the walk
         self.assertIsNone(d(practice='📝 log', datetime=z(19)))
 
-    def test_a_plan_carries_no_device_and_history_only_hints(self):
+    def test_a_plan_carries_no_device_and_her_usual_answers_before_she_is_asked(self):
         self.assertEqual(FL.deduce(row(status=INT, device=None), self.ctx), ({}, []))
         ctx = FL.Context(history=[row(practice='🧶 knitting', device='📺 tv')] * 3)
         got, ask = FL.deduce(row(practice='🧶 knitting', device=None), ctx)
-        self.assertEqual((got, ask), ({}, ['device']))                     # history never fills
-        self.assertIn('usually 📺 tv', FL.ask_line(row(practice='🧶 knitting'), 'device', ctx))
+        self.assertEqual((got['device'][0], ask), ('📺 tv', []))           # 9 Oct: use every clue
+        self.assertEqual(FL.deduce(row(practice='📝 log', device=None), FL.Context(
+            history=[row(practice='📝 log', device='📱 phone')] * 3))[1], ['device'])  # a catch-all has no usual
 
     def test_personal_practices_extend_the_lists(self):
         ctx = FL.Context(local={'fill': {'device_none': ['🧩 example quest']}})
@@ -145,7 +146,7 @@ class DayQA(unittest.TestCase):
         items = Q.run(rows, DAY, -5, {}, typical={'cycling': 40},
                       catalog_names=['🚴‍♀️ cycling', '🚶‍♀️ walking'])
         checks = {i['check'] for i in items}
-        self.assertTrue({'meals', 'gaps', 'movement', 'people', 'device', 'spans'} <= checks)
+        self.assertTrue({'meals', 'gaps', 'movement', 'plans', 'device', 'spans'} <= checks)
         fills = [i for i in items if i['kind'] == 'fill']
         self.assertTrue(all(i['source'] for i in fills))
         allowed = set(F['dayqa']['sources'].values())
@@ -153,8 +154,9 @@ class DayQA(unittest.TestCase):
             self.assertTrue(any(s in i['source'] for s in allowed), i)
             self.assertIn('ESTIMATED FROM CONTEXT', i['note'] if not i.get('new') else i['new']['details'] + i['note'])
         text = Q.render(items, DAY, rows, -5)
-        self.assertTrue(all('ESTIMATED FROM CONTEXT · source:' in l for l in text.splitlines()
-                            if l.strip()[:1].isdigit() and ' ASK ' not in l))
+        filled = text.split('— skip any')[0].splitlines()[1:]
+        self.assertTrue(filled and all('ESTIMATED FROM CONTEXT · source:' in l for l in filled
+                                       if l.strip()[:1].isdigit()))
         self.assertIn('dayqa shown 2026-10-08', text)
 
     def test_what_each_check_proposes(self):
@@ -167,7 +169,7 @@ class DayQA(unittest.TestCase):
         mv = [i for i in by('movement') if i['kind'] == 'fill']
         self.assertEqual({i['new']['practice'] for i in mv}, {'🚴‍♀️ cycling', '🚶‍♀️ walking'})
         self.assertEqual({i['source'].split(' + ')[0] for i in mv}, {'message time', 'Oura'})
-        ppl = by('people')[0]
+        ppl = by('plans')[0]
         self.assertEqual(ppl['patch']['fields'], {'person': '', 'mentioned': 'Robin'})
         dev = [i for i in by('device') if i['kind'] == 'fill'][0]
         self.assertEqual(dev['patch']['fields'], {'device': '🚫 none'})
@@ -211,6 +213,114 @@ class Paper(unittest.TestCase):
         for name, what in RU.CHECKS.items():
             for mod in what.split(' — ')[0].split(' + '):
                 self.assertIn(mod.strip(), files, name)
+
+class Overlap(unittest.TestCase):
+    """9 Oct 2026, her words: nothing is beaten out — both are recorded, and
+    you've got partial attention."""
+
+    def pair(self):
+        lunch = dict(row(practice='🍽️ lunch', title='lunch', datetime=z(12), end=z(12, 40),
+                         device='🚫 none', wellness='🤸‍♀️ body'), id='r1')
+        show = dict(row(practice='📺 show', title='an episode', datetime=z(12, 10), end=z(12, 50),
+                        device='📺 tv', wellness='🔥 fire', attention='🌕 full'), id='r2')
+        place = dict(row(practice='📍 location', title='home', datetime=z(8), end=z(20)), id='r3')
+        later = dict(row(practice='📝 log', datetime=z(13), end=z(13, 30)), id='r4')
+        plan = dict(row(practice='⚡ action', status=INT, key='261008_1215', datetime=z(12, 15), end=z(12, 30)), id='r5')
+        return [lunch, show, place, later, plan]
+
+    def test_overlaps_names_only_what_happened_at_once(self):
+        rows = self.pair()
+        self.assertEqual([o['id'] for o in E.overlaps(rows[0], rows)], ['r2'])   # not the place, not the plan
+        self.assertEqual(E.overlaps(rows[3], rows), [])
+
+    def test_attention_is_any_rows_field(self):
+        self.assertFalse(has(E.problems(row(attention='🌓 partial')), 'attention'))
+
+    def test_dayqa_marks_both_partial_and_keeps_both(self):
+        rows = self.pair()
+        items = [i for i in Q.overlapping(rows, -5)]
+        self.assertEqual({i['patch']['id'] for i in items}, {'r1', 'r2'})
+        self.assertTrue(all(i['patch']['fields'] == {'attention': '🌓 partial'} for i in items))
+        self.assertIn('not 🌕 full', [i for i in items if i['patch']['id'] == 'r2'][0]['line'])
+        self.assertFalse(any('end' in i['patch']['fields'] or 'datetime' in i['patch']['fields'] for i in items))
+
+    def test_the_dusk_audit_writes_partial_for_an_overlapping_session(self):
+        import bedo_dusk_audit as DA
+        work = dict(row(practice='⚡ action', status='✅ done', key='261008_1200', title='work',
+                        datetime=z(12), end=z(13)), id='a1')
+        walk = dict(row(practice='🚶‍♀️ walking', datetime=z(12, 20), end=z(12, 40)), id='w1')
+        self.assertEqual(DA.derive_attention(work, [work, walk]), '🌓 partial')
+        self.assertEqual(DA.derive_attention(work, [work]), '🌕 full')
+
+
+class Balance(unittest.TestCase):
+    """9 Oct 2026: use every clue, log the important things well, and don't
+    ding her for every minute she didn't log."""
+
+    def rows(self):
+        n = iter(range(100))
+        mk = lambda **kw: dict(row(**kw), id=f'b{next(n)}')
+        return [mk(practice='😶 wake', datetime=z(7), end=z(7, 5), device='🚫 none', wellness='🤸‍♀️ body'),
+                mk(practice='📍 location', title='the park', datetime=z(9), end=z(11), wellness='💖 spirit'),
+                mk(practice='📝 log', title='the morning', datetime=z(8), end=z(9)),
+                mk(practice='📝 log', title='after lunch', datetime=z(13), end=z(13, 30)),
+                mk(practice='📝 log', title='evening', datetime=z(16), end=z(16, 30))] + [
+               mk(practice='☕ coffee', datetime=z(7, 10 + i), device=None) for i in range(3)]
+
+    def test_a_gap_is_filled_from_timeline_and_one_with_no_clue_is_left_quietly(self):
+        items = Q.run(self.rows(), DAY, -5, {})
+        gaps = [i for i in items if i['check'] == 'gaps']
+        place = [i for i in gaps if i['kind'] == 'fill']
+        self.assertEqual(len(place), 1)
+        self.assertEqual(place[0]['source'], 'Timeline')
+        self.assertEqual(place[0]['new']['wellness'], '💖 spirit')
+        self.assertIn('at the park', place[0]['new']['title'])
+        self.assertFalse([i for i in gaps if i['kind'] == 'ask'])         # never a question
+        self.assertEqual({i['line'] for i in gaps if i['kind'] == 'open'},
+                         {'7:05a–8:00a (55 min)',            # three bare coffees are not a clue
+                          '11:00a–1:00p (120 min)',          # the park ended at 11
+                          '1:30p–4:00p (150 min)'})
+
+    def test_bookkeeping_is_one_item_and_comes_after_the_day(self):
+        items = Q.run(self.rows(), DAY, -5, {})
+        dev = [i for i in items if i['check'] == 'device' and i['kind'] == 'fill']
+        self.assertEqual(len(dev), 1)
+        self.assertEqual(len(dev[0]['patches']), 3)
+        order = [i['check'] for i in items if i['kind'] == 'fill']
+        self.assertLess(order.index('gaps'), order.index('device'))
+
+
+class RealDay(unittest.TestCase):
+    """What a run over her 6 and 8 Oct got wrong, each fixed."""
+
+    def test_her_own_name_on_her_own_plan_stays(self):
+        plan = dict(row(status=INT, practice='⚡ action', key='261006_0900', person='♋ Me', device=None), id='p1')
+        self.assertEqual(Q.people([plan], None, '♋ Me'), [])
+        self.assertFalse(has(E.problems(plan, self_name='♋ Me'), 'person'))
+        both = dict(plan, person='♋ Me, Robin')
+        it = Q.people([both], None, '♋ Me')[0]
+        self.assertEqual(it['patch']['fields'], {'person': '♋ Me', 'mentioned': 'Robin'})
+
+    def test_run_the_checks_is_not_running(self):
+        r = dict(row(practice='📝 log', title='QA check — run the checks again', datetime=z(22)), id='q1')
+        self.assertEqual(Q.movement([r], -5, DAY, {}, [], {}), [])
+
+    def test_a_meal_family_made_has_no_prep_of_hers(self):
+        import bedo_meals as ML
+        r = dict(row(practice='🍴 dinner', title="Mom's cornbread and soup", datetime=z(17)), id='m1')
+        p = ML.propose([r], -5)[0]
+        self.assertIsNone(p['prep'])
+        self.assertIsNotNone(p['eat'])
+        self.assertIn('made by them', p['line'])
+
+    def test_the_night_before_waking_is_not_a_gap(self):
+        n = iter(range(10))
+        mk = lambda **kw: dict(row(**kw), id=f'n{next(n)}')
+        rows = [mk(practice='🪫 phone charging', datetime=z(3)), mk(practice='😶 wake', datetime=z(7, 17)),
+                mk(practice='📝 log', datetime=z(7, 20), end=z(8))]
+        self.assertEqual([i for i in Q.gaps(rows, -5) if i['kind'] != 'open'], [])
+        self.assertEqual(Q.gaps(rows, -5), [])
+
 
 if __name__ == '__main__':
     unittest.main()

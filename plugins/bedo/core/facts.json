@@ -102,7 +102,7 @@
  "window_chats": ["my day", "my week", "my month", "my season", "my year"],
  "dusk_audit": {
   "daily_flag_cap": 5,
-  "attention_rule": "a discrete session (an end datetime) is 🌕 full; a session written as time spent because it spanned gaps is 🌓 partial (A262)",
+  "attention_rule": "a row sharing minutes with another row is 🌓 partial: both are recorded in full, nothing is beaten out (9 Oct 2026). Otherwise a discrete session (an end datetime) is 🌕 full; a session written as time spent because it spanned gaps is 🌓 partial (A262)",
   "for_my_day": "for my day:"
  },
 
@@ -135,7 +135,9 @@
   "out_words": ["restaurant", "takeout", "take-out", "to go", "ordered", "picked up", "pick up", "drive-thru", "drive thru", "delivery", "doordash", "deli", "café", "cafe", "grill", "diner"],
   "simple_words": ["sandwich", "toast", "salad", "wrap", "quesadilla", "cereal", "oatmeal", "yogurt", "leftover", "smoothie", "bagel", "pb&j", "eggs"],
   "straightforward_words": ["quick", "easy", "simple", "frozen", "boxed", "sheet pan", "pasta", "spaghetti", "grilled cheese", "breakfast for dinner"],
-  "prep_window_minutes": 180
+  "prep_window_minutes": 180,
+  "family_words": ["mom", "mum", "dad", "mama", "papa", "grandma", "grandpa", "nana", "granny", "aunt", "uncle"],
+  "about_family_words": "A meal in a family possessive (Mom's cornbread) was made by them, not ordered and not hers to prep: the eating is placed, no prep row is proposed (8 Oct)."
  },
 
  "fill": {
@@ -149,13 +151,17 @@
  "entry_rules": {
   "_about": "The 9 Oct amendment, rules 2 and 6, and the 8 Oct one that every row carries a practice. A row's datetime and end fall on one local day and span at most max_span_hours; closing an old chain row sets its datetime to the act, never a multi-day span from its first date. A night's sleep is the one row that crosses midnight. person is for people she was with or in direct contact with; a plan (▫️ ⬜) names them in mentioned until it happens.",
   "max_span_hours": 12,
-  "overnight_practices": ["sleep"]
+  "overnight_practices": ["sleep"],
+  "not_activities": ["location"]
  },
  "dayqa": {
   "_about": "run_checks.sh dayqa DATE: meals, gaps, movement, people and device in one list. Every fill is ESTIMATED FROM CONTEXT and names its source; the dusk close shows it, writes only what she accepts, and carries the marker line in its [be•do] block. The look behind will not build a day whose rows don't carry the marker.",
-  "sources": {"photo": "photo time", "oura": "Oura", "timeline": "Timeline", "message": "message time", "rule": "your stated rule"},
+  "sources": {"photo": "photo time", "oura": "Oura", "timeline": "Timeline", "message": "message time", "rule": "your stated rule", "usual": "your usual, from your past weeks"},
   "marker": "dayqa shown",
-  "movement_words": ["walk", "walked", "walking", "bike", "biked", "biking", "bicycle", "cycled", "cycling", "rode my bike", "ran", "run", "running", "jog", "yoga", "stretch", "stretched", "hike", "hiked", "swim", "swam", "barre", "workout", "exercise"],
+  "movement_words": ["walk", "walked", "walking", "bike", "biked", "biking", "bicycle", "cycled", "cycling", "rode my bike", "yoga", "hike", "hiked", "swim", "swam", "barre"],
+  "about_movement_words": "Only words that mean movement whatever the sentence: 'run' and 'running' read as running the checks on 6 Oct.",
+  "note_practices": ["log", "journal", "highlight", "glimmer", "capture", "dream record", "text", "email"],
+  "about_note_practices": "A clue inside an unlogged stretch is a note of hers, a photo, a message or Oura. A routine tick logged as a moment (a coffee, phone charging) says nothing about the stretch around it: on 8 Oct a 3 a.m. phone-charging row would have filled four hours.",
   "movement_practices": ["walking", "cycling", "morning movement", "other movement", "strength training", "stretching", "yoga", "swimming", "hike", "hip exercises", "rowing", "neck release", "neck stretch", "barre", "running"],
   "oura_practices": ["morning oura", "evening oura"],
   "message_practices": ["text", "email"],
