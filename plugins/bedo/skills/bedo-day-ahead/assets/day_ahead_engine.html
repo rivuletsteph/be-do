@@ -82,6 +82,7 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .due .gl .bolt{width:8px;height:11px}
 .due .de{margin-right:4px}
 .ecard .why{grid-column:2;font:500 10.5px var(--mono);color:var(--accent);text-transform:lowercase;letter-spacing:.04em}
+.tsec .ecard .why{font:400 13px/1.45 var(--sans);color:var(--muted);text-transform:none;letter-spacing:0}
 .tasks{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:8px;counter-reset:t var(--from)}
 .tasks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:2px 8px;counter-increment:t;font-size:14px}
 .tasks li::before{content:counter(t);font:500 12px var(--mono);color:var(--faint);padding-top:2px;grid-row:span 2}
@@ -189,9 +190,9 @@ const card = (t, why) => {
 /* be•do's three — the Pareto three (J9), their own section right under the intentions,
    in view while the user names their own (9 Oct 2026: "I'm not seeing the Pareto 3") */
 if (D.pareto && D.pareto.length){
-  const sec = $(`<section><h2>be•do's three</h2><p class="sub">what would move the ball forward most today · be•do's pick, not your intentions</p><div class="ecards"></div>${(D.next||[]).length?`<p class="nextup"><b>next in line</b> · ${D.next.map(n=>esc(n.title)).join(' · ')}</p>`:''}</section>`);
+  const sec = $(`<section class="tsec"><h2>be•do's three</h2><p class="sub">what would move the ball forward most today · be•do's pick, not your intentions</p><div class="ecards"></div>${(D.next||[]).length?`<p class="nextup"><b>next in line</b> · ${D.next.map(n=>esc(n.title)).join(' · ')}</p>`:''}</section>`);
   const box = sec.querySelector('.ecards');
-  D.pareto.forEach(p=>box.append(card(p, p.why ? p.kind+' · '+p.why : p.kind)));
+  D.pareto.forEach(p=>box.append(card(p, [p.kind, p.why].filter(Boolean).join(' · '))));
   page.append(sec);
 }
 

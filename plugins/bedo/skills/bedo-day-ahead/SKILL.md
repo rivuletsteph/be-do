@@ -64,7 +64,16 @@ is only `fetch` and `build`. The dawn flow's order is:
    recommendation; don't rewrite them to match the user's intentions. The plan
    file is written on every build; work from the final one's.
 
-**How the three are chosen** (J9): from uncalendared work, in the order of pull
+**The chat's three win.** The three are judgment — what moves the ball most,
+weighed against the day as the chat knows it — and the chat weighs better than
+rules (9 Oct 2026: the day chat's three were the right ones; the builder's
+were not). When the chat has named the three, pass each as
+`--pick "<row key or record id>::<why, one or two sentences>"`; the page shows
+them with their status, so a rebuild later in the day draws one closed as done,
+and the builder's own picks step down to next in line. Without `--pick` the
+builder chooses.
+
+**How the builder chooses** (J9): from uncalendared work, in the order of pull
 — someone waiting (another person on the row, due within three days) · target
 passed (the most recently passed first) · in motion (▶️, target nearest today)
 · named as weighing on her (`weighing_phrases` in her words). One of each kind
@@ -185,7 +194,8 @@ contents never pass through the chat.
    the live stream first, `bash run_day_ahead.sh fetch YYYY-MM-DD`, then:
    ```
    bash run_day_ahead.sh build YYYY-MM-DD <state> [--secure-words "<their words>"] --now HH:MM \
-     --intention "…" --intention "…" --intention "…"
+     --intention "…" --intention "…" --intention "…" \
+     [--pick "<key>::<why>" --pick "…" --pick "…"]
    ```
    Everything after `<state>` goes to `scripts/day_ahead.py` unchanged. The
    direct call, for a surface without the runner:

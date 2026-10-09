@@ -756,6 +756,9 @@ def main():
     ap.add_argument('--days', type=int, default=14)
     ap.add_argument('--draft', action='store_true')
     ap.add_argument('--intention', action='append', default=[])
+    ap.add_argument('--pick', action='append', default=[],
+                    help='"<row key or record id>::<why>" — the three as weighed in the chat; '
+                         'the builder\'s own picks are the fallback')
     ap.add_argument('--now', help='the local clock at the write, HH:MM — keys the today rows (I12)')
     ap.add_argument('--plan-out', help='where the look-ahead plan goes; default beside --out')
     a = ap.parse_args()
@@ -787,6 +790,26 @@ def main():
     calendared = {e['match_row']['id'] for e in evs if e.get('match_row')}
     calendared |= {r['id'] for e in evs for r in (e.get('maybe') or [])}
     picks, nxt, more = pareto(open_rows, chains, rhythms, today, L, calendared)
+    if a.pick:
+        # the three as weighed in the chat (9 Oct 2026: the day chat's three were the right
+        # ones). Each names a live row; any status, so a pick closed during the day draws as
+        # done when the page is rebuilt. The builder's own picks step down to next in line.
+        by = {}
+        for r in latest.values():
+            by.setdefault(r['id'], r)
+            if r['key']:
+                by.setdefault(r['key'], r)
+        chosen = []
+        for spec in a.pick[:3]:
+            ref, _, why = spec.partition('::')
+            r = by.get(ref.strip())
+            if not r:
+                die(f'--pick {ref.strip()!r}: no row with that key or record id in the stream read')
+            chosen.append(dict(kind='', row=r, why=why.strip()))
+        ids = {c['row']['id'] for c in chosen}
+        nxt = [dict(kind=p['kind'], title=clean_title(p['row']['title'])) for p in picks if p['row']['id'] not in ids][:2]
+        more = [m for m in more if m['id'] not in ids]
+        picks = chosen
     plan = look_ahead_plan(evs, conflicts, rows, open_rows, chains, rhythms, today, a, L)
     standing = standing_steps(load_practices(a.practices, L), rows, today, a.days)
     for d in days:  # a standing step sits first among the day's due lines
