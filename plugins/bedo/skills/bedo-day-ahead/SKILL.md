@@ -73,6 +73,26 @@ them with their status, so a rebuild later in the day draws one closed as done,
 and the builder's own picks step down to next in line. Without `--pick` the
 builder chooses.
 
+**Every open card names its next move** (the 7 Oct amendment on the next step
+2026, in the builder 9 Oct; the user's words: *what is the website? What is the
+thing exactly that I need to do?* and *so I just don't think of the whole big
+thing*). Under the title of each of the three, each card after the calendar and
+each row past its date: **→ the one step** in bold, *with* the person on the
+row, the links (the step's own, then the `deliverable` field, the calendar
+event, then any url in the row's words, labelled email thread · doc · calendar
+event · the site), and **⏸ waiting on** when that field is set. The step is
+read, never invented, in this order:
+1. **a `--step "<row key or record id>::<step>"`** from the chat, for a row
+   whose words name none. A url inside the step becomes its first link.
+2. **a `Next: …` line in the row's details** (also `Next step:` or `Step:`,
+   in her words or the `[be•do]` block, newest link in the chain first). This
+   is the durable place: **when a chat learns a row's next step, it writes a
+   `Next:` line on the row**, and every later build shows it without being told.
+3. otherwise the card says **no next step named yet**, so it gets one.
+When the stream shows a row may already be done (a later log or close on the
+same subject), the step says so — *may already be done — <the evidence>. Close
+it* — and the chat asks about it in the one list. Never a guess at the step.
+
 **How the builder chooses** (J9): from uncalendared work, in the order of pull
 — someone waiting (another person on the row, due within three days) · target
 passed (the most recently passed first) · in motion (▶️, target nearest today)
@@ -195,7 +215,7 @@ contents never pass through the chat.
    ```
    bash run_day_ahead.sh build YYYY-MM-DD <state> [--secure-words "<their words>"] --now HH:MM \
      --intention "…" --intention "…" --intention "…" \
-     [--pick "<key>::<why>" --pick "…" --pick "…"]
+     [--pick "<key>::<why>" --pick "…" --pick "…"] [--step "<key or record id>::<step>" …]
    ```
    Everything after `<state>` goes to `scripts/day_ahead.py` unchanged. The
    direct call, for a surface without the runner:

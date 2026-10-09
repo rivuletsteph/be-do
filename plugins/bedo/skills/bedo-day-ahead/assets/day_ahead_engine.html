@@ -82,6 +82,17 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .due .gl .bolt{width:8px;height:11px}
 .due .de{margin-right:4px}
 .ecard .why{grid-column:2;font:500 10.5px var(--mono);color:var(--accent);text-transform:lowercase;letter-spacing:.04em}
+.mv{grid-column:2;margin:4px 0 0;padding:0;list-style:none;display:grid;gap:3px;font-size:13.5px;line-height:1.4}
+.mv li{display:flex;gap:6px;align-items:baseline;overflow-wrap:anywhere}
+.mv li::before{content:"→";color:var(--accent);flex:none}
+.mv li.none{color:var(--past);font-size:12.5px}
+.mv li.none::before{content:"?";color:var(--past)}
+.mv .lk{display:flex;flex-wrap:wrap;gap:5px}
+.mv .lk::before{content:none}
+.mv .lk a{font:500 11px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:2px 9px;text-decoration:none}
+.mv .wt{color:var(--kid);font-size:12.5px}
+.mv .wt::before{content:"⏸";color:var(--kid)}
+.pastdue .mv{margin-top:4px}
 .tsec .ecard .why{font:400 13px/1.45 var(--sans);color:var(--muted);text-transform:none;letter-spacing:0}
 .tasks{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:8px;counter-reset:t var(--from)}
 .tasks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:2px 8px;counter-increment:t;font-size:14px}
@@ -181,11 +192,21 @@ const glyph = st => {
   const nm = {int:'intention',pot:'potential',mot:'in motion',don:'done'}[k];
   return `<span class="gl" title="${nm} · action"><span class="st ${k}"></span><svg class="bolt" viewBox="0 0 11 14" aria-hidden="true"><path d="M6.6 0 0 8h4.2L3.4 14 11 5.6H6.6z"/></svg></span>`;
 };
+/* the next move (the 7 Oct amendment): the one step, who, the links, what it waits on */
+const moveHtml = m => {
+  if (!m) return '';
+  const who = (m.who||[]).length ? ` · with ${m.who.map(esc).join(', ')}` : '';
+  const li = [m.step ? `<li><span><b style="font-weight:600">${esc(m.step)}</b>${who}</span></li>`
+                     : `<li class="none"><span>no next step named yet${who}</span></li>`];
+  if ((m.links||[]).length) li.push(`<li class="lk">${m.links.map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join('')}</li>`);
+  if (m.waiting) li.push(`<li class="wt"><span>waiting on ${esc(m.waiting)}</span></li>`);
+  return `<ul class="mv">${li.join('')}</ul>`;
+};
 const card = (t, why) => {
   const late = t.date && t.date < D.date, on = t.date === D.date;
   const at = t.date ? (on ? 'today' : (()=>{const d=new Date(t.date+'T12:00:00');return d.toLocaleDateString('en-US',{weekday:'short'})+'<br>'+d.getDate();})()) : '—';
   const drv = t.drive ? `<div class="edrv">${esc(t.emoji||'')} ${esc(t.drive)}</div>` : '<div class="edrv none">no drive</div>';
-  return $(`<div class="ecard act${late?' gone':''}"><div class="at">${at}</div><div class="ttl">${glyph(t.st)}${esc(t.title)}</div>${drv}${why?`<div class="why">${esc(why)}</div>`:''}</div>`);
+  return $(`<div class="ecard act${late?' gone':''}"><div class="at">${at}</div><div class="ttl">${glyph(t.st)}${esc(t.title)}</div>${drv}${moveHtml(t.move)}${why?`<div class="why">${esc(why)}</div>`:''}</div>`);
 };
 /* be•do's three — the Pareto three (J9), their own section right under the intentions,
    in view while the user names their own (9 Oct 2026: "I'm not seeing the Pareto 3") */
@@ -222,7 +243,7 @@ if (D.overdue && D.overdue.length){
   const n = D.overdue.length;
   const sec = $(`<section class="pastdue"><h2>past its date</h2><p class="sub">${n} ${n===1?'thing needs':'things need'} your word — done, a new date, or drop · oldest first</p><ul class="list"></ul></section>`);
   const ul = sec.querySelector('ul');
-  D.overdue.forEach(s=>ul.append($(`<li><span class="d past">${esc(short(s.date))}<span class="late">${s.late} ${s.late===1?'day':'days'}</span></span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}<span class="resolve"><span>done</span><span>new date</span><span>drop</span></span></span></li>`)));
+  D.overdue.forEach(s=>ul.append($(`<li><span class="d past">${esc(short(s.date))}<span class="late">${s.late} ${s.late===1?'day':'days'}</span></span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}${moveHtml(s.move)}<span class="resolve"><span>done</span><span>new date</span><span>drop</span></span></span></li>`)));
   page.append(sec);
 }
 

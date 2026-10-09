@@ -45,6 +45,9 @@ HAS_LINK = False
 # The quickie checkbox. Quickies are offered when the user says they have a few
 # minutes, never on this page (5 Oct 2026). Optional: without it, nothing is hidden.
 QUICKIE_KEY = 'quickie'
+# The deliverable url (the doc, the site, the thread). Optional: without it, the links on
+# a card come from the calendar-event link and the urls in the row's words.
+DELIV_KEY = 'deliverable'
 HIDE = dict(drives=(), keep=())  # filled from the local settings file
 RHYTHM_KEYS = ('name', 'code', 'type', 'status', 'target', 'parent',
                'emoji', 'dest', 'goal')
@@ -200,6 +203,54 @@ def sentence_with(text, pats):
         if any(re.search(p, s, re.I) for p in pats):
             return s.strip()
     return None
+
+
+# ---------------------------------------------------------------- the next move
+# The 7 Oct 2026 amendment (the next step), the user's words: "In the look ahead I need to
+# see what is the next right step — like what is the website? What is the thing exactly
+# that I need to do?" and, 9 Oct: "so I just don't think of the whole big thing".
+# Every open card carries the one step, the person, the links and what it waits on —
+# read off the row, never invented. A row with no step named says so, so it gets one.
+NEXT_RE = re.compile(r'^[ \t]*(?:[-•*·][ \t]*)?(?:next(?:[ \t]+(?:right[ \t]+)?step)?|step)[ \t]*[:—–][ \t]*(.+)$',
+                     re.I | re.M)
+URL_RE = re.compile(r'https?://[^\s<>()"\'\]]+')
+
+
+def link_label(u):
+    host = re.sub(r'^https?://(www\.)?', '', u).split('/')[0].lower()
+    if 'mail.google' in host:
+        return 'email thread'
+    if 'calendar' in host or 'calendar/event' in u:
+        return 'calendar event'
+    if host.startswith('docs.google') or host.startswith('drive.google'):
+        return 'doc'
+    if host.startswith('claude.ai'):
+        return 'chat' if '/chat/' in u else 'page'
+    return host
+
+
+def next_move(r, chain, step=None, self_name=''):
+    """The one move on a row: the step, the person, the links, what it waits on."""
+    chain = chain or [r]
+    text = (step or '').strip() or None
+    if not text:
+        for link in reversed(chain):
+            m = NEXT_RE.search(link.get('details') or '')
+            if m:
+                text = m.group(1).strip().rstrip('.'); break
+    urls = []
+    if text:  # a link named with the step is the step's own: it goes first, out of the words
+        urls += [u.rstrip('.,;:') for u in URL_RE.findall(text)]
+        text = re.sub(r'\s*[(\[]?' + URL_RE.pattern + r'[)\]]?', '', text).strip(' —-·') or None
+    urls += [r.get(DELIV_KEY), r.get(LINK_KEY)]
+    for link in reversed(chain):
+        urls += [u.rstrip('.,;:') for u in URL_RE.findall(link.get('details') or '')]
+    links, seen = [], set()
+    for u in urls:
+        if u and u not in seen:
+            seen.add(u); links.append(dict(url=u, label=link_label(u)))
+    who = [p.strip() for p in (r.get('person') or '').split(',') if p.strip() and p.strip() != self_name]
+    return dict(step=text, who=who, links=links[:3], waiting=(r.get('waiting') or '').strip() or None)
 
 
 # ---------------------------------------------------------------- pareto three
@@ -713,7 +764,12 @@ def install_local(L):
               file=sys.stderr)
     if (fields.get('stream') or {}).get(QUICKIE_KEY):
         F[QUICKIE_KEY] = fields['stream'][QUICKIE_KEY]
+    if (fields.get('stream') or {}).get(DELIV_KEY):
+        F[DELIV_KEY] = fields['stream'][DELIV_KEY]
     HIDE.update(drives=tuple(L.get('hide_drives') or ()), keep=tuple(L.get('hide_keep') or ()))
+    if 'hide_drives' not in L:  # 7 and 9 Oct: an unmerged settings file put build work on the page
+        print('WARNING: local settings has no hide_drives — build work will show on the page. '
+              'Run the loader\'s merge step, or point LB_LOCAL at the merged file.', file=sys.stderr)
     if 'utc_offset_hours' not in L:
         die('local settings: utc_offset_hours is missing')
     UTC_OFFSET = dt.timedelta(hours=L['utc_offset_hours'])
@@ -756,6 +812,8 @@ def main():
     ap.add_argument('--days', type=int, default=14)
     ap.add_argument('--draft', action='store_true')
     ap.add_argument('--intention', action='append', default=[])
+    ap.add_argument('--step', action='append', default=[],
+                    help='"<row key or record id>::<the one next step>" — for a row whose words name none')
     ap.add_argument('--pick', action='append', default=[],
                     help='"<row key or record id>::<why>" — the three as weighed in the chat; '
                          'the builder\'s own picks are the fallback')
@@ -786,6 +844,22 @@ def main():
             word = dict(word=m.group(1).strip(), words=sentence_with(her_words(r['details']), [m.group(1)]) or ''); break
 
     days, gaps, clashes, away, evs, conflicts = calendar(cal, rows, open_rows, today, a.days, L)
+    by_ref = {}
+    for r in latest.values():
+        by_ref.setdefault(r['id'], r)
+        if r['key']:
+            by_ref.setdefault(r['key'], r)
+    steps = {}
+    for spec in a.step:
+        ref, _, txt = spec.partition('::')
+        r = by_ref.get(ref.strip())
+        if not r:
+            die(f'--step {ref.strip()!r}: no row with that key or record id in the stream read')
+        steps[r['id']] = txt.strip()
+
+    def move(r):
+        ch = chains.get(bedo_reader.chain_key(r['key'], r['status'], r['id']))
+        return next_move(r, ch, steps.get(r['id']), L['self_person'])
     # rows that are an event's own (or may be, today) are on the calendar already
     calendared = {e['match_row']['id'] for e in evs if e.get('match_row')}
     calendared |= {r['id'] for e in evs for r in (e.get('maybe') or [])}
@@ -794,11 +868,7 @@ def main():
         # the three as weighed in the chat (9 Oct 2026: the day chat's three were the right
         # ones). Each names a live row; any status, so a pick closed during the day draws as
         # done when the page is rebuilt. The builder's own picks step down to next in line.
-        by = {}
-        for r in latest.values():
-            by.setdefault(r['id'], r)
-            if r['key']:
-                by.setdefault(r['key'], r)
+        by = by_ref
         chosen = []
         for spec in a.pick[:3]:
             ref, _, why = spec.partition('::')
@@ -850,7 +920,7 @@ def main():
         if 0 <= n <= 3:
             soon.append(item)
         elif n < 0:
-            overdue.append(dict(item, late=-n, id=r['id'], key=r['key']))
+            overdue.append(dict(item, late=-n, key=r['key'], move=move(r)))
     soon.sort(key=lambda x: x['date']); overdue.sort(key=lambda x: x['date'])
     picked = {p['row']['id'] for p in picks}
 
@@ -872,7 +942,8 @@ def main():
         if t['title'] in taken or t.get('id') in calendared or any(ev and ev.lower() in t['title'].lower() for ev in today_events):
             continue
         taken.add(t['title']); tasks.append(dict(kind=t['kind'], title=t['title'], drive=t['drive'], due=t['due'], st=t['st'], date=t['date'],
-                                                 emoji=(rhythms.get(t['drive']) or {}).get('emoji') or ''))
+                                                 emoji=(rhythms.get(t['drive']) or {}).get('emoji') or '',
+                                                 move=move(by_ref[t['id']]) if t.get('id') in by_ref else None))
     plan['overdue'] = [dict(id=o['id'], key=o['key'], title=o['title'], drive=o['drive'], target=o['date'], days_late=o['late'])
                        for o in overdue]
 
@@ -903,7 +974,8 @@ def main():
         secure=dict(state=a.secure, words=a.secure_words) if a.secure else None,
         pareto=[dict(kind=p['kind'], title=clean_title(p['row']['title']), drive=p['row']['rhythm'] or '',
                      emoji=(rhythms.get(p['row']['rhythm'] or '') or {}).get('emoji') or '·', why=p['why'], st=p['row']['status'][:2],
-                     date=local(p['row']['target']).date().isoformat() if p['row']['target'] else None) for p in picks],
+                     date=local(p['row']['target']).date().isoformat() if p['row']['target'] else None,
+                     move=move(p['row'])) for p in picks],
         next=nxt, tasks=tasks, max_tasks=cap,
         intentions=(a.intention + [None, None, None])[:3], draft=a.draft,
         map=dict(start=today.isoformat(), end=L['map_end'], lanes=lanes, dests=list(dests.values()), away=away),

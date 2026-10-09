@@ -52,7 +52,22 @@ def main():
     ch = defaultdict(list, {r['key']: [] for r in only})
     picks, _, _ = da.pareto(only, ch, rhythms, TODAY, L)
     assert len(picks) == 3, picks
-    print('ok — four kinds in the order of pull, calendar events left out, one slot per person waiting')
+    # the next move (the 7 Oct amendment): read off the row, never invented
+    da.F.update(deliverable='x'); da.DELIV_KEY = 'deliverable'
+    r = dict(row('m', 'Fix the fence', '2026-03-11', person='Me, Pat'), waiting='the lumber yard',
+             deliverable='https://example.com/plan', event=None,
+             details='Fence is leaning.\nNext: call the lumber yard about posts\n———\n[be•do] see https://example.org/posts.')
+    m = da.next_move(r, [r], self_name='Me')
+    assert m['step'] == 'call the lumber yard about posts', m
+    assert m['who'] == ['Pat'] and m['waiting'] == 'the lumber yard', m
+    assert [l['label'] for l in m['links']] == ['example.com', 'example.org'], m['links']
+    # a step given by the chat wins, and a link in it is lifted out of the words, first
+    m = da.next_move(r, [r], 'Send Pat the plan https://mail.google.com/mail/#all/thread-f:1', 'Me')
+    assert m['step'] == 'Send Pat the plan' and m['links'][0]['label'] == 'email thread', m
+    # nothing named: said so, not guessed
+    bare = row('n', 'Do the thing', '2026-03-11')
+    assert da.next_move(bare, [bare])['step'] is None
+    print('ok — four kinds in the order of pull, calendar events left out, one slot per person waiting, the next move')
 
 
 if __name__ == '__main__':
