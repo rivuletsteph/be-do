@@ -349,6 +349,16 @@ class Preflight(unittest.TestCase):
         self.assertFalse(stop)
         self.assertEqual(text.splitlines()[0], P.chat_name(dt.date(2026, 10, 4)))   # line one, nothing else
 
+    def test_the_morning_opens_on_yesterdays_look_behind(self):
+        # her word, 8 Oct 2026: a my day chat is complete once its look behind is seen
+        local = dict(LOCAL, look_behind_url='https://claude.ai/artifact/X')
+        text, _ = P.report(local, {'w41 be•do': 'a'}, [row('☕ coffee', '2026-10-08 07:30')], at('2026-10-08 08:00'))
+        self.assertIn("yesterday's look behind · https://claude.ai/artifact/X", text)
+        self.assertIn('becomes ✔️1007 💧 Wed ' + P.MARK + ' W41 🔆 my day', text)
+        week, _ = P.report(local, {'w41 be•do': 'a'}, [row('☕ coffee', '2026-10-08 07:30')],
+                           at('2026-10-08 08:00'), kind='week')
+        self.assertNotIn('look behind', week)
+
     def test_a_short_read_newest_first_is_enough(self):
         # 6 Oct: Cowork read 125 rows to learn one thing, the newest. The
         # connector's newest-first read of five says 396 in its total.

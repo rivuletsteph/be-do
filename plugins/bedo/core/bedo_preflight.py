@@ -18,6 +18,11 @@ returned instead, so the turn pastes it rather than composes it (A219).
              base and the run stops.
   I14        when yesterday sits in the previous week, that base is named too.
   A37        a handoff, when given, must name the same base.
+  J8         a my day chat opens on yesterday's look behind: the link, built at
+             03:00 by the routine (bedo-look-behind/MORNING.md), and the title
+             yesterday's chat takes once she says she has seen it — a my day
+             chat is ✔️ complete once its look behind has been seen (her word,
+             8 Oct 2026).
   paper      an active amendment no check in code enforces is named, one line
              each: `rule on paper only` (9 Oct 2026). The map from amendment
              to check is hers, in facts_local (bedo_rules says how).
@@ -26,7 +31,7 @@ returned instead, so the turn pastes it rather than composes it (A219).
     python3 bedo_preflight.py --live --kind week      # my week
     python3 bedo_preflight.py --bases names.json --stream w41.json [--amendments amendments.json]
 """
-import datetime as dt, json, re, sys
+import datetime as dt, glob, json, re, sys
 
 from bedo_reader import FACTS, as_rows, complete, load_local, offset_hours, read_dump
 from bedo_entry import utc, week_number
@@ -125,6 +130,28 @@ def check_base(names, rows, now, day, local, handoff=None):
     return want, out, stop
 
 
+def look_behind_url(local):
+    """The living page the 03:00 routine publishes to: facts_local's
+    `look_behind_url`, else the look behind's own settings in the synced skill."""
+    if local.get('look_behind_url'):
+        return local['look_behind_url']
+    for p in glob.glob('/root/.claude/skills/synced/*/bedo-look-behind/assets/look_behind_local.json'):
+        try:
+            return json.load(open(p, encoding='utf-8')).get('artifact_url')
+        except (OSError, ValueError):
+            pass
+    return None
+
+
+def yesterday_line(day, url):
+    """What the morning chat shows first: yesterday's look behind, and the
+    title yesterday's chat takes once she has seen it."""
+    y = day - dt.timedelta(days=1)
+    seen = chat_name(y, status=FACTS['chat_status']['window_closed'])
+    return (f'first  yesterday\'s look behind · {url or "the look behind page (no link in the settings)"}\n'
+            f'       once she has seen it, yesterday\'s chat becomes {seen}')
+
+
 def report(local, names, rows, now=None, kind='day', part=None, week=None, handoff=None, amendments=None):
     now, now_local, off, probs = clock(local, now)
     day = now_local.date()
@@ -135,6 +162,8 @@ def report(local, names, rows, now=None, kind='day', part=None, week=None, hando
     t = newest(rows, now)
     if t:
         lines.append(f'newest {(now - t).total_seconds() / 3600:.1f} h ago')
+    if kind == 'day':
+        lines.append(yesterday_line(day, look_behind_url(local)))
     lines += ['⚠ ' + p for p in probs + bprobs]
     if amendments is not None:
         lines += ['⚠ ' + p for p in bedo_rules.lines(amendments, local.get('amendment_checks'))]
