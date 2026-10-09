@@ -108,7 +108,7 @@ class Reader(unittest.TestCase):
 
 def good_row(**over):
     row = {'datetime': '2026-10-05T14:00:00.000Z', 'status': INT, 'practice': ACTION,
-           'key': '261005_0900', 'details': 'my words\n' + F['divider'] + '\n[be•do] a note'}
+           'key': '261005_0900', 'wellness': '💨 air', 'device': '💻 laptop', 'details': 'my words\n' + F['divider'] + '\n[be•do] a note'}
     row.update(over)
     return row
 

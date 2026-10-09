@@ -18,6 +18,19 @@ Each check is a rule a chat used to have to remember:
   day  a my day chat holds one day: waking on a later date, or any row past
        noon the next day, means a new day has started and needs its own chat
        (8 Oct 2026: a Wednesday chat carried Thursday's morning flow)
+  practice  every row carries one (8 Oct 2026)
+
+From the 9 Oct amendment (the 8 Oct look behind read 680 minutes on a device):
+
+  whole  device and wellness are filled at write time, deduced by the rules in
+         bedo_fill; a value that can't be deduced is asked, never left empty.
+         A plan (▫️ ⬜) isn't done yet, so it carries no device
+  one day  datetime and end fall on the same local day and span at most 12 h:
+         closing an old row sets its datetime to the act, never a span from its
+         first date (a 26 Sep row closed with an 8 Oct end drew 545 minutes).
+         A night's sleep is the one row that crosses midnight
+  person  people she was with or in direct contact with. A plan names them in
+         mentioned until it happens
 
 `row` uses the logical names in facts_local.example.json's stream_fields:
 datetime, end, time_spent, status, practice, key, details, phase, wellness,
@@ -26,6 +39,7 @@ emotion (a list), attention, device, rhythm.
 import datetime as dt, re
 
 from bedo_reader import ACTION_STATUSES, FACTS
+import bedo_fill
 
 ALL_STATUSES = frozenset(FACTS['status']['logs'] + FACTS['status']['actions'])
 KEY = re.compile(FACTS['key']['pattern'])
@@ -38,6 +52,9 @@ CHOICES = {
     'attention': set(FACTS['attention']),
     'device': set(FACTS['device']),
 }
+PLANS = set(FACTS['status']['plans'])
+RULES = FACTS['entry_rules']
+OVERNIGHT = {bedo_fill.word(p) for p in RULES['overnight_practices']}
 
 
 def utc(s):
@@ -100,7 +117,38 @@ def chat_day_problem(row, chat_day, utc_offset_hours):
     return None
 
 
-def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•do', chat_day=None):
+def whole_problems(row, fill=None):
+    """Device and wellness, or the value to write, or the question to ask."""
+    ctx = fill or bedo_fill.Context()
+    got, ask = bedo_fill.deduce(row, ctx)
+    out = []
+    for f, (v, why) in got.items():
+        out.append(f'{f}: empty — deduced {v} ({why}); write it with the row')
+    for f in ask:
+        out.append(f'{f}: empty and not deducible — ASK her in this reply: ' + bedo_fill.ask_line(row, f, ctx))
+    return out
+
+
+def span_problems(row, utc_offset_hours=None):
+    start, end = row.get('datetime'), row.get('end')
+    if not (start and end and start.endswith('Z') and end.endswith('Z')):
+        return []
+    a, b = utc(start), utc(end)
+    out = []
+    if b - a > dt.timedelta(hours=RULES['max_span_hours']):
+        out.append(f'span: {(b - a).total_seconds() / 3600:.0f} h, over {RULES["max_span_hours"]} h — '
+                   'closing an old row sets its datetime to the act, never a span from its first date')
+    if utc_offset_hours is not None and bedo_fill.word(row.get('practice')) not in OVERNIGHT:
+        off = dt.timedelta(hours=utc_offset_hours)
+        if (a + off).date() != (b + off).date():
+            out.append(f'span: starts {(a + off):%a %d %b} and ends {(b + off):%a %d %b} — one row, one day; '
+                       'set the datetime to the act, or split it at midnight')
+    return out
+
+
+def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•do', chat_day=None, fill=None):
+    """`fill` is a bedo_fill.Context; without one the device rules still run and
+    wellness, which needs the catalog, is asked."""
     out = []
     nd = chat_day_problem(row, chat_day, utc_offset_hours)
     if nd:
@@ -141,8 +189,14 @@ def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•
     if start and end and end.endswith('Z') and start.endswith('Z') and utc(end) < utc(start):
         out.append('end is before the start — a status change moved one without the other')
 
+    out += span_problems(row, utc_offset_hours)
     out += details_problems(row.get('details'))
     prac = (row.get('practice') or '').strip()
+    if not prac:
+        out.append('practice: every row carries one — name it, or ask her which')
+    out += whole_problems(row, fill)
+    if row.get('status') in PLANS and (row.get('person') or '').strip():
+        out.append(f'person: {row.get("status")} is a plan — the people go in mentioned until it happens')
     if prac == FACTS['practice']['gratitude']:
         mine = (row.get('details') or '').split(DIVIDER)[0].split(BLOCK)[0]
         lines = [l.strip() for l in mine.splitlines() if l.strip()]

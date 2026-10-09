@@ -268,8 +268,12 @@ EXPECT = {
     # from a device is 'logging the day'. The fixture's other device rows are
     # spans with no drive (43 minutes), so they fall to everything else.
     # a 📲 capture span is logging the day — Being, never drive work (amendment, 3 Oct 2026)
-    'rest_logged': 554,
-    'pie_minutes': {'bed': (459, 0), 'move': (10, 130), 'food': (83, 75), 'dev': (0, 89), 'log': (40, 0)},
+    # Work on a drive or rhythm is Doing whether or not a screen was involved (9 Oct
+    # 2026, rule 7): the five spans carrying one (83 + 65 + 24 + 24 + 42) leave the
+    # rest slice for Doing. Play is its own slice and holds nothing here.
+    'rest_logged': 316,
+    'pie_minutes': {'bed': (459, 0), 'move': (10, 130), 'food': (83, 75), 'dev': (238, 89),
+                    'play': (0, 0), 'log': (40, 0)},
     'destinations': [
         {'name': 'be•do', 'glyph': MARK, 'work': [
             {'drive': f'{MARK} be•do drive',
@@ -334,7 +338,7 @@ def main():
                         '--local', p_loc, '--stream', p_stream, '--rhythms', p_rhy,
                         '--practices', p_pra, '--connections', p_con,
                         '--typical', p_typ, '--words', p_wor,
-                        '--template', ENGINE, '--out', out, '--secure', 'secure'],
+                        '--template', ENGINE, '--out', out, '--secure', 'secure', '--shape-check'],
                        capture_output=True, text=True, encoding='utf-8',
                        env=dict(os.environ, PYTHONIOENCODING='utf-8'))
     print(r.stdout or '', r.stderr or '')
@@ -368,7 +372,9 @@ def main():
     check('pie minutes',
           {p['k']: (p['logged'], p['est']) for p in D['pie'] if not p.get('rest')},
           EXPECT['pie_minutes'])
-    check('pie slices', [p['k'] for p in D['pie']], ['bed', 'move', 'food', 'dev', 'log', 'else'])
+    check('pie slices', [p['k'] for p in D['pie']], ['bed', 'move', 'food', 'dev', 'play', 'log', 'else'])
+    check('a fixture with no dayqa and no device is refused for publishing',
+          len(json.loads(r.stdout[r.stdout.index('{'):])['qa'].get('gate', [])), 2)
     rest = [p for p in D['pie'] if p.get('rest')][0]
     check('pie rest slice', rest['n'], 'Everything else')
     # the rest slice counts what a row covers but no slice names, so the engine can
@@ -416,7 +422,7 @@ def main():
                              '--local', p_loc, '--stream', p_stream, '--rhythms', p_rhy,
                              '--practices', p_pra, '--connections', p_con,
                              '--typical', p_typ, '--words', w(name + '.json', words),
-                             '--template', ENGINE, '--out', o, '--secure', 'secure'],
+                             '--template', ENGINE, '--out', o, '--secure', 'secure', '--shape-check'],
                             capture_output=True, text=True, encoding='utf-8',
                             env=dict(os.environ, PYTHONIOENCODING='utf-8'))
         data = None

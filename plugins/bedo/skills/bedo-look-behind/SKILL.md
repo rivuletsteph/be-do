@@ -293,6 +293,26 @@ chat except the digest the words are written from.
    **happened**, the stream wins. This step is what keeps the two agreeing.
    `tests/test_calendar_sync.py` checks the plan; run it after any change.
 
+**The gate** (the 9 Oct amendment, rule 5). The builder refuses to write the
+page, and says why, when:
+- more than 10% of the day's rows that happened lack device or wellness;
+- any row spans more than 12 hours (an old row closed with today's end); or
+- no row of the day carries the `dayqa shown …` line — `run_checks.sh dayqa
+  DATE` hasn't been shown to her at the dusk close (bedo-checks). Run it, show
+  her the list, write what she accepts, put its last line in the dusk close
+  row, and build again.
+
+There is no way round it for a page that goes out. `--shape-check` exists for
+the tests and builds a page that is never published.
+
+**The pie** (9 Oct 2026): walking, cycling, morning movement and any exercise
+are Moving whatever the settings' map says, and Moving wins a minute shared
+with anything else. 📺 show, 🎥 movie, 📼 video and 🎮 game are Play, never a
+drive slice. A row on a drive or rhythm with a real span is Doing — *work and
+drives* — whether or not a screen was used. **Who was in your day** reads only
+rows that happened (a plan's people are not met yet) and finds each person by
+any name they go by.
+
 **Clear the QA before publishing** (the user's word, 2 Oct 2026: a thorough QA every
 day). The build prints a `qa` block; work every item, in the stream, before the
 page goes out:

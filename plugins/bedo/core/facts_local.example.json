@@ -13,7 +13,12 @@
   "quickie": "fld…", "promote": "fld…", "device": "fld…", "chat": "fld…",
   "calendar_event": "fld…", "photo": "fld…"
  },
- "practices_fields": {"practice": "fld…", "phase": "fld…", "group": "fld…", "order": "fld…", "active": "fld…", "zero_duration": "fld…", "typical_time": "fld…"},
+ "practices_fields": {"practice": "fld…", "phase": "fld…", "group": "fld…", "order": "fld…", "active": "fld…", "zero_duration": "fld…", "typical_time": "fld…", "wellness": "fld…"},
+ "rhythms_fields": {"name": "fld…", "element": "fld…"},
+ "connections_fields": {"name": "fld…", "short": "fld…", "aliases": "fld… (optional)"},
+ "amendments_fields": {"decision": "fld…", "date": "fld…", "status": "fld…"},
+ "amendment_checks": {"rec…": ["entry.whole", "look_behind.gate"], "rec…  (a rule that needs judgment, not code)": ["judgment"]},
+ "fill": {"device_none": ["her own body or self-care practices, beyond facts.json's"], "device_phone": ["her own phone practices"]},
  "bases": {
   "amendments": ["app…", "tbl…"],
   "practices": ["app…", "tbl…"],

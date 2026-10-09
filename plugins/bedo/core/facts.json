@@ -136,5 +136,30 @@
   "simple_words": ["sandwich", "toast", "salad", "wrap", "quesadilla", "cereal", "oatmeal", "yogurt", "leftover", "smoothie", "bagel", "pb&j", "eggs"],
   "straightforward_words": ["quick", "easy", "simple", "frozen", "boxed", "sheet pan", "pasta", "spaghetti", "grilled cheese", "breakfast for dinner"],
   "prep_window_minutes": 180
+ },
+
+ "fill": {
+  "_about": "Rule 1 of the 9 Oct amendment, in code (the fill_gaps rules): every row is written with device and wellness, deduced at write time. Wellness: an ⚡ action on a drive takes the drive's element, else the practice's catalog wellness. Device: body and self-care practices 🚫 none, phone practices 📱 phone, 💻 laptop when the title says so, 🚫 none inside a walking, driving, cycling or location span. What can't be deduced is asked, in the same reply, never left empty. Personal practices extend these lists in facts_local under fill.",
+  "device_none": ["wake", "sleep", "bm", "coffee", "morning movement", "morning sun", "evening sun", "morning mantra", "morning water", "mirror check", "breakfast", "lunch", "dinner", "snack", "evening tea", "evening breaths", "morning breaths", "supplements", "bp meds", "walking", "driving", "cycling", "location", "highlight", "face-to-face", "phone charging", "strength training", "hip exercises", "gratitude", "noticing", "shower", "smoothie", "evening meditation", "neck release"],
+  "device_phone": ["morning oura", "evening oura", "weather check", "text", "email", "clear gmail inbox", "capture", "dream record", "morning book", "evening blessing", "look ahead", "look behind", "intention check", "action check", "qa check", "map check", "dawn flow close", "dusk flow close"],
+  "laptop_words": ["laptop", "💻"],
+  "span_practices": ["location", "walking", "driving", "cycling"],
+  "generic_practices": ["action", "log"]
+ },
+ "entry_rules": {
+  "_about": "The 9 Oct amendment, rules 2 and 6, and the 8 Oct one that every row carries a practice. A row's datetime and end fall on one local day and span at most max_span_hours; closing an old chain row sets its datetime to the act, never a multi-day span from its first date. A night's sleep is the one row that crosses midnight. person is for people she was with or in direct contact with; a plan (▫️ ⬜) names them in mentioned until it happens.",
+  "max_span_hours": 12,
+  "overnight_practices": ["sleep"]
+ },
+ "dayqa": {
+  "_about": "run_checks.sh dayqa DATE: meals, gaps, movement, people and device in one list. Every fill is ESTIMATED FROM CONTEXT and names its source; the dusk close shows it, writes only what she accepts, and carries the marker line in its [be•do] block. The look behind will not build a day whose rows don't carry the marker.",
+  "sources": {"photo": "photo time", "oura": "Oura", "timeline": "Timeline", "message": "message time", "rule": "your stated rule"},
+  "marker": "dayqa shown",
+  "movement_words": ["walk", "walked", "walking", "bike", "biked", "biking", "bicycle", "cycled", "cycling", "rode my bike", "ran", "run", "running", "jog", "yoga", "stretch", "stretched", "hike", "hiked", "swim", "swam", "barre", "workout", "exercise"],
+  "movement_practices": ["walking", "cycling", "morning movement", "other movement", "strength training", "stretching", "yoga", "swimming", "hike", "hip exercises", "rowing", "neck release", "neck stretch", "barre", "running"],
+  "oura_practices": ["morning oura", "evening oura"],
+  "message_practices": ["text", "email"],
+  "gap_minutes": 15,
+  "unfilled_share_max": 0.10
  }
 }
