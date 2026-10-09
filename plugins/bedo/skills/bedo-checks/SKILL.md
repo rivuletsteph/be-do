@@ -15,9 +15,10 @@ only where nothing can execute, and then copy the same shape.
 | the first reply of every be•do chat, before anything else | `judgment` | prints `docs/v53-judgment.md` fresh from the version store. It IS the project's instructions; the project holds only a short pointer to this command, so nobody pastes the long file on a phone. Read every line and follow it for the whole chat. If the download fails, say so in one line and work from the skills |
 | the first reply of every be•do chat | `preflight` | line one is the chat's title — put it alone, first, in a code box. Then the clock and the base. A `STOP` means no read or write until the base is right |
 | every reply while a flow is open | `remaining --widget` | hand the HTML to the widget tool exactly as printed — her pill strip (A237). Where a widget can't render, `remaining` prints the block and the one line; `--voice` gives one spoken line |
-| before any stream write | `entry row.json --chat MMDD` | write only rows that print `ok`; fix every `FIX` first. In a my day chat, `--chat` is the date in its title (`1007` for ▶️1007b): a `new day` line means the day has turned — waking on a later date, or a row past noon the next day. Don't write it here. Tell her the day has turned, close this chat's day, and give her one line to open the new chat with |
+| before any stream write | `entry row.json --chat MMDD` | write only rows that print `ok`; fix every `FIX` first. Every row is born whole (9 Oct 2026): an empty device or wellness prints the value it deduces — write that value with the row — or `ASK her`, which goes in the same reply, never left empty (pass `--catalog` and `--rhythms` reads so wellness can be deduced). A row's datetime and end fall on one day, at most 12 h: closing an old row sets its datetime to the act. A plan (▫️ ⬜) names people in `mentioned`, never `person`. In a my day chat, `--chat` is the date in its title (`1007` for ▶️1007b): a `new day` line means the day has turned — waking on a later date, or a row past noon the next day. Don't write it here. Tell her the day has turned, close this chat's day, and give her one line to open the new chat with |
 | before the dusk close row | `dusk` | do the fixes it names; ask her only what is hers, as one list; the flag line goes after the close |
-| the dusk close, and the look behind | `meals --json` | every meal's prep and eating placed from context (her rules, the meals amendment): write the proposed rows ESTIMATED FROM CONTEXT through `entry`, then show her the printed list as what went in the record and ask if it's accurate. Never ask her to fill the times in |
+| the dusk close, before its close row | `dayqa YYYY-MM-DD` | meals, gaps, movement, people and device in one numbered list. Show it to her as printed: every fill says ESTIMATED FROM CONTEXT and its source. Write **only the numbers she accepts**, each through `entry` (`--json` gives the rows and patches; add each fill's `note` to the row's `[be•do]` block). Answer the ASK lines with her. Then put the last line it printed (`dayqa shown …`) in the dusk close row's `[be•do]` block — **the look behind won't build a day without it** |
+| the meals alone | `meals --json` | every meal's prep and eating placed from context (her rules, the meals amendment): write the proposed rows ESTIMATED FROM CONTEXT through `entry`, then show her the printed list as what went in the record and ask if it's accurate. Never ask her to fill the times in |
 | a session entry | `stretches FILE` | the time spent is the sum it prints, and the stretches are named in the `[be•do]` block |
 | the weekly close | `order --json` | her predicted order: each flow practice's typical time from the last weeks of her rows (dawn as minutes after waking, dusk as clock time). Write the printed updates to the catalog's `typical time` field with the connector |
 
@@ -30,6 +31,7 @@ bash run_checks.sh preflight --kind week --week 40
 bash run_checks.sh remaining --widget        # the open flow as her pill strip; --flow dawn|dusk to name one
 bash run_checks.sh dusk                      # today; --date YYYY-MM-DD for another day
 bash run_checks.sh meals                     # the day's meals: prep and eating, placed from context
+bash run_checks.sh dayqa 2026-10-09          # the day's QA: one list to accept, at the dusk close
 bash run_checks.sh entry row.json --base "w41 be•do" --chat 1008
 bash run_checks.sh stretches transcript.jsonl
 ```
@@ -41,7 +43,14 @@ the repo.
 
 **A row for `entry`** uses the logical names: `datetime`, `end`, `time_spent`,
 `status`, `practice`, `title`, `key`, `details`, `phase`, `wellness`,
-`emotion` (a list), `attention`, `device`, `rhythm`. One row, or a list.
+`emotion` (a list), `attention`, `device`, `rhythm`, `person`, `mentioned`.
+One row, or a list.
+
+**`preflight` also names every active amendment no check in code enforces**:
+`⚠ rule on paper only: …`. The map from amendment to check is
+`amendment_checks` in `facts_local.json` (record id → check names from
+`core/bedo_rules.py`, or `["judgment"]`). A line there is a rule that still
+depends on a chat remembering: tell her once, and add it to the backlog.
 
 ## Where the Airtable reads come from
 
