@@ -252,14 +252,15 @@ EXPECT = {
          'url': 'https://example.invalid/one'},
     ],
     'slotsMax': 3,
-    # overlapping time counts once and the lived thing wins (3 Oct 2026): the body
-    # sessions share minutes with the lunch, the walk and two shorter air sessions,
-    # and keep only what those leave. Tending carries the 40-minute capture as
-    # logging (40/6 = 6.7), which stays off the wheel itself.
+    # two things at once both count (9 Oct 2026, replacing 3 Oct's 'the lived thing
+    # wins'): the three body sessions weigh their full 120 + 120 + 116 minutes though
+    # they share some with the lunch, the walk and the air sessions, and air is the
+    # canon's own 83 + 65. Tending carries the 40-minute capture as logging
+    # (40/6 = 6.7), which stays off the wheel itself.
     'balance': {
-        'domains': {'heart': 29.0, 'mind': 6.0, 'body': 15.3, 'spirit': 21.0,
-                    'water': 1.0, 'air': 19.7, 'earth': 7.0, 'fire': 11.0},
-        'tending': 20.7, 'growing': 24.7,
+        'domains': {'heart': 29.0, 'mind': 6.0, 'body': 59.3, 'spirit': 21.0,
+                    'water': 1.0, 'air': 24.7, 'earth': 7.0, 'fire': 11.0},
+        'tending': 20.7, 'growing': 29.7,
         'note': 'Sleep, plans and other people’s own rows count zero. '
                 'Weighted by effort; rows with a real span count their minutes.',
     },
@@ -373,8 +374,8 @@ def main():
           {p['k']: (p['logged'], p['est']) for p in D['pie'] if not p.get('rest')},
           EXPECT['pie_minutes'])
     check('pie slices', [p['k'] for p in D['pie']], ['bed', 'move', 'food', 'dev', 'play', 'log', 'else'])
-    check('a fixture with no dayqa and no device is refused for publishing',
-          len(json.loads(r.stdout[r.stdout.index('{'):])['qa'].get('gate', [])), 2)
+    check('a fixture with no dayqa and no device builds, and its QA names both',
+          len(json.loads(r.stdout[r.stdout.index('{'):])['qa'].get('not_yet_whole', [])), 2)
     rest = [p for p in D['pie'] if p.get('rest')][0]
     check('pie rest slice', rest['n'], 'Everything else')
     # the rest slice counts what a row covers but no slice names, so the engine can

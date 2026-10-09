@@ -77,8 +77,9 @@ class Entry(unittest.TestCase):
     def test_empty_device_or_wellness_is_refused(self):
         p = E.problems(row(practice='☕ coffee', device=None))
         self.assertTrue(any('deduced 🚫 none' in x for x in p))          # refused, with the value to write
-        p = E.problems(row(practice='🧶 knitting', wellness=None))
-        self.assertTrue(any('ASK her' in x for x in p))                  # not deducible: asked
+        knit = row(practice='🧶 knitting', wellness=None)
+        self.assertFalse(has(E.problems(knit), 'wellness'))              # nothing deduces it: written anyway
+        self.assertTrue(any('ask in passing' in x for x in E.notes(knit)))   # and noted
         self.assertFalse(has(E.problems(row(status=INT, device=None, practice='⚡ action',
                                             key='261008_0900')), 'device'))
 

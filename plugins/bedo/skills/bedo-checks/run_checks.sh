@@ -116,7 +116,7 @@ case "$CMD" in
     "$PY" - "$W/core" "$ROW" "$BASE" "$CHAT" "$CAT" "$RHY" <<'E'
 import datetime as dt, json, sys
 sys.path.insert(0, sys.argv[1])
-from bedo_entry import problems, utc
+from bedo_entry import notes, problems, utc
 from bedo_reader import complete, load_local
 import bedo_fill as FL
 L = load_local()
@@ -138,6 +138,8 @@ for r in rows:
     print(('ok    ' if not p else 'FIX   ') + (r.get('title') or r.get('practice') or '?'))
     for x in p:
         print('      · ' + x)
+    for x in notes(r, fill):          # never blocks the write
+        print('      note: ' + x)
     bad += bool(p)
 sys.exit(1 if bad else 0)
 E

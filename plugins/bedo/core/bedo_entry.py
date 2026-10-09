@@ -23,7 +23,8 @@ Each check is a rule a chat used to have to remember:
 From the 9 Oct amendment (the 8 Oct look behind read 680 minutes on a device):
 
   whole  device and wellness are filled at write time, deduced by the rules in
-         bedo_fill; a value that can't be deduced is asked, never left empty.
+         bedo_fill. A value nothing deduces is a note, never a refusal: the row
+         is written (later the same day: don't stop for a little detail).
          A plan (▫️ ⬜) isn't done yet, so it carries no device
   one day  datetime and end fall on the same local day and span at most 12 h:
          closing an old row sets its datetime to the act, never a span from its
@@ -155,15 +156,19 @@ def overlaps(row, rows):
 
 
 def whole_problems(row, fill=None):
-    """Device and wellness, or the value to write, or the question to ask."""
+    """An empty device or wellness that can be deduced: the value to write."""
+    got, _ = bedo_fill.deduce(row, fill or bedo_fill.Context())
+    return [f'{f}: empty — deduced {v} ({why}); write it with the row' for f, (v, why) in got.items()]
+
+
+def notes(row, fill=None):
+    """What the row is missing that nothing can deduce. Never a refusal (her
+    words, 9 Oct 2026: don't stop the process because it's missing some little
+    detail): the row is written, and the chat may ask in passing."""
     ctx = fill or bedo_fill.Context()
-    got, ask = bedo_fill.deduce(row, ctx)
-    out = []
-    for f, (v, why) in got.items():
-        out.append(f'{f}: empty — deduced {v} ({why}); write it with the row')
-    for f in ask:
-        out.append(f'{f}: empty and not deducible — ASK her in this reply: ' + bedo_fill.ask_line(row, f, ctx))
-    return out
+    _, ask = bedo_fill.deduce(row, ctx)
+    return [f'{f} left empty — nothing deduces it; ask in passing if it matters: '
+            + bedo_fill.ask_line(row, f, ctx) for f in ask]
 
 
 def span_problems(row, utc_offset_hours=None):

@@ -7,8 +7,10 @@ the 8 Oct page. Every row, name and drive is invented.
   · cycling and other exercise are Moving, and Moving wins the minute
   · show, movie, video and game are Play
   · a drive row with a span is Doing, device or not
-  · no page past the gate: >10% of rows unfilled, a row over 12 h, or dayqa
-    not yet shown
+  · nothing stops the build (9 Oct, later the same day: don't stop the process
+    for a little detail): >10% of rows unfilled, a row over 12 h, or dayqa not
+    yet shown are named in the QA, and a row over 12 h keeps none of its minutes
+  · two things at once both count on the wheel
 
     python3 tests/test_rules_9oct.py
 """
@@ -172,32 +174,49 @@ class Gate(unittest.TestCase):
         r, D = f.build()
         self.assertEqual(r.returncode, 0, r.stderr)
 
-    def test_more_than_a_tenth_unfilled_is_refused(self):
+    def qa(self, r):
+        return ' '.join(json.loads(r.stdout[r.stdout.index('{'):])['qa'].get('not_yet_whole', []))
+
+    def test_more_than_a_tenth_unfilled_builds_and_is_named(self):
         f = Fixture(); f.whole_day()
         for i in range(8):
             f.row('📝 log', 500 + i, wellness='🧠 mind', device='📱 phone')
-        f.row('📝 log', 520, device='')                            # 1 of 11: passes
+        f.row('📝 log', 520, device='')                            # 1 of 11: under the line
         r, _ = f.build()
-        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertNotIn('lack device or wellness', self.qa(r))
         f.row('📝 log', 530, wellness='')                          # 2 of 12: 17%
-        r, _ = f.build()
-        self.assertNotEqual(r.returncode, 0)
-        self.assertIn('lack device or wellness', r.stderr)
+        r, D = f.build()
+        self.assertIsNotNone(D, r.stderr)
+        self.assertIn('lack device or wellness', self.qa(r))
 
-    def test_a_row_over_twelve_hours_is_refused(self):
+    def test_a_row_over_twelve_hours_keeps_none_of_its_minutes(self):
         f = Fixture(); f.whole_day()
         f.row('⚡ action', iso(0, DAY - dt.timedelta(days=12)), 600, title='closed from its first date',
               rhythm='Work drive', wellness='💨 air', status=DONE)
-        r, _ = f.build()
-        self.assertNotEqual(r.returncode, 0)
-        self.assertIn('over 12 h', r.stderr)
+        r, D = f.build()
+        self.assertIsNotNone(D, r.stderr)
+        self.assertIn('over 12 h', self.qa(r))
+        self.assertEqual(pie(D)['dev'], 0)
+        self.assertEqual(D['balance']['domains']['air'], 1.0)      # its band, not 600 minutes
 
-    def test_no_look_behind_before_dayqa(self):
+    def test_the_page_builds_before_dayqa_and_says_so(self):
         f = Fixture()
         f.row('😴 sleep', 0, 420)
-        r, _ = f.build()
-        self.assertNotEqual(r.returncode, 0)
-        self.assertIn('dayqa has not been shown', r.stderr)
+        r, D = f.build()
+        self.assertIsNotNone(D, r.stderr)
+        self.assertIn('dayqa has not been shown', self.qa(r))
+
+
+class Wheel(unittest.TestCase):
+    def test_walking_and_journaling_both_count(self):
+        f = Fixture(); f.whole_day()
+        f.row('🚶‍♀️ walking', 600, 660, wellness='🤸‍♀️ body')
+        _, alone = f.build()
+        f.row('📒 journal', 600, 660, wellness='🧠 mind')
+        r, both = f.build()
+        self.assertIsNotNone(both, r.stderr)
+        self.assertEqual(both['balance']['domains']['body'], alone['balance']['domains']['body'])  # the walk keeps all 60
+        self.assertEqual(both['balance']['domains']['mind'], 10.0)                                  # and the journal its 60
 
 
 if __name__ == '__main__':
