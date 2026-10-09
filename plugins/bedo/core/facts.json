@@ -167,5 +167,13 @@
   "message_practices": ["text", "email"],
   "gap_minutes": 15,
   "unfilled_share_max": 0.10
+ },
+
+ "synergy": {
+  "_about": "Her rule, 24 Aug 2026, and her words 9 Oct: when two things run at once, are they synergizing or competing? Four answers — synergizing (one plus one makes four), competing (one plus one makes one), both, neutral — and declining is always fine. The answer is a note, not a field: one line at the end of her words, 'overlap — synergizing with <key or title>'. be•do helps her notice: synergy, do more of that; competing, try them apart. Asked only when the answer isn't already in her words or her past weeks, and then once, optional.",
+  "answers": ["synergizing", "competing", "both", "neutral"],
+  "note": "overlap — {answer} with {partner}",
+  "her_words": {"synergizing": ["synergy", "synergiz", "synergis", "multiply", "complement"], "competing": ["competing", "compete", "conflict", "fractured", "detract"]},
+  "say": {"synergizing": "synergy — do more of that", "competing": "competing — next time, try them apart", "both": "some of each — notice which part helped", "neutral": "they just sat side by side"}
  }
 }

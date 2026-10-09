@@ -323,5 +323,43 @@ class RealDay(unittest.TestCase):
         self.assertEqual(Q.gaps(rows, -5), [])
 
 
+class Synergy(unittest.TestCase):
+    """24 Aug and 9 Oct 2026: two things at once — synergizing or competing?
+    Notice it from her words, carry her past answers, ask anything new once."""
+
+    def rows(self, hip_words='', with_key=True):
+        video = dict(row(practice='📼 video', title='a talk on a video', datetime=z(16), end=z(16, 30),
+                         key='261008_1600' if with_key else None), id='v1')
+        hips = dict(row(practice='🧎‍♀️ hip exercises', title='hips', datetime=z(16, 1), end=z(16, 5),
+                        details=hip_words), id='h1')
+        return [video, hips]
+
+    def test_her_words_are_noticed_back(self):
+        out = Q.synergy(self.rows('There was a lot of synergy there.'), -5)
+        self.assertEqual([i['kind'] for i in out], ['notice'])
+        self.assertIn('do more of that', out[0]['line'])
+        out = Q.synergy(self.rows('I felt fractured, not doing either well'), -5)
+        self.assertIn('try them apart', out[0]['line'])
+
+    def test_her_note_line_is_read(self):
+        note = 'hips\noverlap — competing with 261008_1600 (a talk on a video)'
+        self.assertEqual(Q.synergy(self.rows(note), -5)[0]['answer'], 'competing')
+
+    def test_a_pair_answered_before_is_proposed_with_that_answer(self):
+        past = [dict(row(practice='📼 video', key='260924_1600', datetime=z(16)), id='pv'),
+                dict(row(practice='🧎‍♀️ hip exercises', datetime=z(16, 1),
+                         details='overlap — synergizing with 260924_1600 (a video)'), id='ph')]
+        out = Q.synergy(self.rows(), -5, past)
+        fills = [i for i in out if i['kind'] == 'fill']
+        self.assertEqual(len(fills), 1)
+        self.assertEqual(fills[0]['source'], 'your usual, from your past weeks')
+        self.assertIn('overlap — synergizing with', fills[0]['patch']['append_her_words'])
+
+    def test_anything_new_is_one_optional_question(self):
+        out = Q.synergy(self.rows(), -5)
+        self.assertEqual([i['kind'] for i in out], ['ask'])
+        self.assertIn('synergizing, competing, both or neutral?', out[0]['line'])
+
+
 if __name__ == '__main__':
     unittest.main()
