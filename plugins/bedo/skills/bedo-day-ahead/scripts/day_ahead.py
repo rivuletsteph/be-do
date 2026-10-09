@@ -22,7 +22,7 @@ your intentions". The three stay be•do's either way.
 Streams are listed LIVE BASE FIRST (I15). Every dump must be complete (I11):
 records returned == totalRecordCount, or the build aborts.
 """
-import argparse, json, re, datetime as dt, sys
+import argparse, html, json, re, datetime as dt, sys
 
 # The one reader (I11, I15, I5) lives in plugins/bedo/core. The runner copies it
 # beside this file; in the repo it is three folders up. Beside wins.
@@ -48,6 +48,8 @@ QUICKIE_KEY = 'quickie'
 # The deliverable url (the doc, the site, the thread). Optional: without it, the links on
 # a card come from the calendar-event link and the urls in the row's words.
 DELIV_KEY = 'deliverable'
+# The mentioned field: people on a plan (a plan names people here, never in person).
+MENTIONED_KEY = 'mentioned'
 HIDE = dict(drives=(), keep=())  # filled from the local settings file
 RHYTHM_KEYS = ('name', 'code', 'type', 'status', 'target', 'parent',
                'emoji', 'dest', 'goal')
@@ -623,7 +625,7 @@ def look_ahead_plan(evs, conflicts, rows, open_rows, chains, rhythms, today, a, 
     keys = {r['key'] for r in rows if r['key']}
     def new_key():
         base = now_local.strftime('%y%m%d_%H%M')
-        for suf in [''] + list('bcdefghijk'):
+        for suf in [''] + list('bcdefghijklmnopqrstuvwxyz'):
             if base + suf not in keys:
                 keys.add(base + suf); return base + suf
         die('ran out of key suffixes')
@@ -690,9 +692,39 @@ def look_ahead_plan(evs, conflicts, rows, open_rows, chains, rhythms, today, a, 
                          proposed=dict(title=f"⚡ Prep — {e['title']} ({fmt_day(e['a'].date())})",
                                        target=t.isoformat(), target_label=fmt_day(t),
                                        what=None)))  # what it needs is drafted by be•do in the chat
+    # every event in the window gets its row two weeks ahead (9 Oct 2026, the user's words:
+    # "I want all of these events in the system 2 weeks ahead of time … to give it future
+    # vision"), so the three and the next steps are judged against what is coming.
+    # One row per occurrence, each with its own event link. Not an occasion (an all-day
+    # free marker), not an event the calendar marks ✖️. A plan names people in
+    # `mentioned`, never `person`. A row with no drive is still written and named.
+    future_rows = []
+    for e in sorted(evs, key=lambda e: e['a']):
+        if e['a'].date() <= today or e['row'] or e['occasion'] or e['summary'].lstrip().startswith(('✖️', '✖')):
+            continue
+        if not HAS_LINK:
+            break  # without the link field a written row could never be matched again
+        drive, why = bucket_for(e, rhythms, L)
+        span = 'all day' if e['allday'] else f"{hm(e['a'])}–{hm(e['b'])}"
+        cal = (L.get('calendar_summaries') or {}).get(e['who'], e['who'])
+        title = html.unescape(e['title'])  # the calendar hands back &amp; for &
+        where = f", {html.unescape(e['location'])}" if e['location'] else ''
+        details = (f"———\n[be•do] From the calendar at the look ahead, two weeks out: {title}, "
+                   f"{fmt_day(e['a'].date())} {span}{where} · calendar: {cal}. Its own row so the look "
+                   f"ahead sees it coming; it closes ✅ when it happens.")
+        fields = {F_['title']: title, F_['key']: new_key(), F_['status']: '⬜ intention',
+                  F_['practice']: '⚡ action', F_['when']: to_utc(now_local), F_['target']: to_utc(e['a']),
+                  F_['details']: details, F_[LINK_KEY]: e['link']}
+        if drive:
+            fields[F_['rhythm']] = drive
+        if people.get(e['who']) and F_.get(MENTIONED_KEY):
+            fields[F_[MENTIONED_KEY]] = people[e['who']]
+        future_rows.append({'event': title, 'date': e['a'].date().isoformat(), 'when_label': span,
+                            'calendar': e['who'], 'drive': drive, 'drive_question': None if drive else why,
+                            'fields': fields})
     conf = [dict(kind=c['kind'], date=c['date'], label=c['label'], text=c['text']) for c in conflicts]
     return dict(today=today.isoformat(), written_at=now_local.strftime('%H:%M'), link_matching=HAS_LINK,
-                today_rows=today_rows, today_asks=asks, prep=prep, conflicts=conf)
+                today_rows=today_rows, today_asks=asks, future_rows=future_rows, prep=prep, conflicts=conf)
 
 
 # ---------------------------------------------------------------- cadence
@@ -766,6 +798,8 @@ def install_local(L):
         F[QUICKIE_KEY] = fields['stream'][QUICKIE_KEY]
     if (fields.get('stream') or {}).get(DELIV_KEY):
         F[DELIV_KEY] = fields['stream'][DELIV_KEY]
+    if (fields.get('stream') or {}).get(MENTIONED_KEY):
+        F[MENTIONED_KEY] = fields['stream'][MENTIONED_KEY]
     HIDE.update(drives=tuple(L.get('hide_drives') or ()), keep=tuple(L.get('hide_keep') or ()))
     if 'hide_drives' not in L:  # 7 and 9 Oct: an unmerged settings file put build work on the page
         print('WARNING: local settings has no hide_drives — build work will show on the page. '
@@ -996,7 +1030,7 @@ def main():
                           soon=len(soon), overdue=len(overdue), gaps=gaps, clashes=clashes,
                           hidden=dropped['hidden'], quickies=dropped['quickie'],
                           today_rows=len(plan['today_rows']), today_asks=len(plan['today_asks']),
-                          prep=len(plan['prep']), conflicts=len(plan['conflicts']), past_date=len(plan['overdue']), plan=plan_path),
+                          future_rows=len(plan['future_rows']), prep=len(plan['prep']), conflicts=len(plan['conflicts']), past_date=len(plan['overdue']), plan=plan_path),
                      ensure_ascii=False, indent=1))
 
 

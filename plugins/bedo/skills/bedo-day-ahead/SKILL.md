@@ -250,6 +250,35 @@ contents never pass through the chat.
      (*show up at the two celebrations*) is hers and stays; the event's row is
      separate. An ask left unanswered leaves `no row yet` on the page, so ask
      it in the first reply after the build, never let it sit.
+   - **`future_rows` — every event in the next two weeks, written** (9 Oct 2026,
+     the user's words: *I want all of these events in the system 2 weeks ahead of
+     time … to give it future vision*). One ⬜ row per occurrence, each with its
+     own event link, the drive read off the glyph (written without one when no
+     drive is clear, and named), people on a plan in `mentioned`. Not an
+     occasion (an all-day free marker) and not an event marked ✖️. Run them
+     through `entry` and write them in one call. **Then reconcile, before the
+     final build** (next item).
+   - **Reconcile the two weeks — the calendar is not taken verbatim** (9 Oct
+     2026, the user's words: *it's not just taking verbatim what's in the
+     calendar. It's helping me make the decisions and having them show up
+     properly on the calendar*). Read `conflicts` and each event's clashes as
+     decisions waiting on her: work inside a vacation, a child's events while
+     the child is away with her, a trip still ❔, two copies of one meeting, a
+     trip's end that disagrees with its own rows. Ask them as **one short set
+     of questions, a recommended answer first**, then carry the answers out the
+     same morning:
+     - **Dropped** — `✖️` in front of the title and **moved to the ✖️dropped
+       calendar**, so it stays visible but off her own. The connector cannot
+       move an event, so: create the ✖️ copy on the dropped calendar (free,
+       no reminders, a one-line why), then delete that one occurrence from
+       the original with no notifications; the series stays. Its row goes
+       ✖️ dropped with the new event link and her words.
+     - **Undecided** — stays ❔ and gets a decide-by: the date from her own
+       words when she gave one, on the row that holds the decision, with a
+       `Next:` line.
+     - **Dates that disagree** — the calendar is corrected to her answer.
+     Never decide for her, never delete a series, never touch a read-only
+     calendar.
    - **`today_asks` — asked, in the one list at the end.** An event whose glyph
      names no single active drive, or where a row about the same subject is
      already on today and may be its own. For the second, the answer is usually
