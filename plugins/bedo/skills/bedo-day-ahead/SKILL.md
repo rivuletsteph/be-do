@@ -1,6 +1,6 @@
 ---
 name: "bedo-day-ahead"
-description: "Build The Day Ahead page from the stable release. Use at the 👁️ look ahead step of the dawn flow, unasked — one build, the final, after the intention check — or when the user asks for the day ahead or the look ahead."
+description: "Build The Day Ahead page from the stable release. Use at the 👁️ look ahead step of the dawn flow, unasked — a draft before the intention check so the three are in view, the final after it — or when the user asks for the day ahead or the look ahead."
 ---
 
 # The day ahead
@@ -37,28 +37,71 @@ earlier chat. The key to read is named below wherever one is wanted.
 `assets/day_ahead_local.example.json` is the blank shape, and the README
 explains the four keys that aren't self-evident.
 
-## One pass, the final
+## Two passes: the three before the intention check, the final after
 
-**The day ahead is one build, the final. No draft page** (decided 29 Sep
-2026; until then the dawn ran two passes, a draft before the intention check
-and the official version after it). The dawn flow's order is now:
+**The three come first** (9 Oct 2026, the user's words: *for the look ahead
+I'm not seeing the Pareto 3 … it needs to happen in the draft of the look
+ahead where you recommend what three things I could do today that would move
+the ball forward the most*). From 29 Sep to 9 Oct the dawn ran one build after
+the intention check, so the three never reached her while she named her own.
+A pass costs little: the rows never pass through the chat, and the second pass
+is only `fetch` and `build`. The dawn flow's order is:
 
 1. **⏏️ secure base** — the user's to set, never deduced. **Check the stream
    for one already written today first**, from any chat: one row per practice.
    Since 29 Sep 2026 the ⏏️ row is no longer written every day: `secure` is
    the assumed default, and the other state is written only when the user
    names a knock-back. No row means `secure`.
-2. **⚡ intention check** — the user names their own intentions, in their own
+2. **👁️ look ahead, the draft** — `prep`, the calendars, `cal`, then `build …
+   --draft` with no intentions, published to the page. **Say the three in the
+   chat, one line each with why it rose** (the build prints them), so they are
+   in front of her at the next step.
+3. **⚡ intention check** — the user names their own intentions, in their own
    words. They may fold the three into their own framing, or ignore them.
-3. **👁️ look ahead, the final** — one build, with each intention passed as
-   `--intention "…"`, exactly as the user said it, and without `--draft`. The
-   three stay be•do's recommendation; don't rewrite them to match the user's
-   intentions. The plan file is written on every build, so nothing the draft
-   pass used to produce is lost — today's rows, the asks and the prep drafts
-   come out of this one build.
+4. **👁️ look ahead, the final** — `fetch` (the intention check wrote rows),
+   then one build with each intention passed as `--intention "…"`, exactly as
+   the user said it, and without `--draft`. The three stay be•do's
+   recommendation; don't rewrite them to match the user's intentions. The plan
+   file is written on every build; work from the final one's.
 
-`--draft` still exists on the builder and the runner for a hand run that wants
-the "before your intentions" mark; the flow never uses it.
+**The chat's three win.** The three are judgment — what moves the ball most,
+weighed against the day as the chat knows it — and the chat weighs better than
+rules (9 Oct 2026: the day chat's three were the right ones; the builder's
+were not). When the chat has named the three, pass each as
+`--pick "<row key or record id>::<why, one or two sentences>"`; the page shows
+them with their status, so a rebuild later in the day draws one closed as done,
+and the builder's own picks step down to next in line. Without `--pick` the
+builder chooses.
+
+**Every open card names its next move** (the 7 Oct amendment on the next step
+2026, in the builder 9 Oct; the user's words: *what is the website? What is the
+thing exactly that I need to do?* and *so I just don't think of the whole big
+thing*). Under the title of each of the three, each card after the calendar and
+each row past its date: **→ the one step** in bold, *with* the person on the
+row, the links (the step's own, then the `deliverable` field, the calendar
+event, then any url in the row's words, labelled email thread · doc · calendar
+event · the site), and **⏸ waiting on** when that field is set. The step is
+read, never invented, in this order:
+1. **a `--step "<row key or record id>::<step>"`** from the chat, for a row
+   whose words name none. A url inside the step becomes its first link.
+2. **a `Next: …` line in the row's details** (also `Next step:` or `Step:`,
+   in her words or the `[be•do]` block, newest link in the chain first). This
+   is the durable place: **when a chat learns a row's next step, it writes a
+   `Next:` line on the row**, and every later build shows it without being told.
+3. otherwise the card says **no next step named yet**, so it gets one.
+When the stream shows a row may already be done (a later log or close on the
+same subject), the step says so — *may already be done — <the evidence>. Close
+it* — and the chat asks about it in the one list. Never a guess at the step.
+
+**How the builder chooses** (J9): from uncalendared work, in the order of pull
+— someone waiting (another person on the row, due within three days) · target
+passed (the most recently passed first) · in motion (▶️, target nearest today)
+· named as weighing on her (`weighing_phrases` in her words). One of each kind
+first, then the empty slots refilled in the same order. Never a row that is a
+calendar event's own (a calendar event never needs recommending), never two
+on the same subject, never two from the same person waiting, never more than
+two from one drive. A pick that is past its date shows once, in the three, not
+again under past its date; the plan's `overdue` still holds it for the asks.
 
 **Build from the stable release. Don't redesign it.** Changes to the layout are
 a separate be•do work chat that ends with a push and a new tag in
@@ -82,6 +125,7 @@ zip; the installed loader fetches the change by itself.
   times it writes. Run it after any change to the builder, and first of all on
   a machine the builder hasn't run on before.
 - `tests/test_cal.py` — drives the calendar reader and checks what it refuses.
+- `tests/test_three.py` — how be•do's three are chosen (J9).
 
 The runner copies them into the working folder fresh from the version store on
 every `prep`; nothing here is used from a project copy. Three things differ by
@@ -163,13 +207,15 @@ contents never pass through the chat.
    title (I7).
 3. **Secure base.** Today's ⏏️ row, in the user's words, if there is one;
    otherwise `secure`, the assumed default, with no words.
-4. **The intention check**, then **one build.** The intention check nearly
-   always writes rows (retargets on the three, the ⚡ intention check row), so
-   re-read the live stream first — `bash run_day_ahead.sh fetch YYYY-MM-DD` —
-   then:
+4. **The draft, the intention check, then the final.** Before the intention
+   check, `bash run_day_ahead.sh build YYYY-MM-DD <state> --now HH:MM --draft`,
+   publish, and say the three. After it — the intention check nearly always
+   writes rows (retargets on the three, the ⚡ intention check row) — re-read
+   the live stream first, `bash run_day_ahead.sh fetch YYYY-MM-DD`, then:
    ```
    bash run_day_ahead.sh build YYYY-MM-DD <state> [--secure-words "<their words>"] --now HH:MM \
-     --intention "…" --intention "…" --intention "…"
+     --intention "…" --intention "…" --intention "…" \
+     [--pick "<key>::<why>" --pick "…" --pick "…"] [--step "<key or record id>::<step>" …]
    ```
    Everything after `<state>` goes to `scripts/day_ahead.py` unchanged. The
    direct call, for a surface without the runner:
@@ -199,6 +245,47 @@ contents never pass through the chat.
      `event` field. **Add phase, wellness and device** the usual way (deduced,
      never asked), then write them in one call and show them as a short list.
      A row closes ✅ when the event happens.
+   - **Every event today gets its own row** (9 Oct 2026, the user's words: *why
+     don't they have a row? They should have a row*). A same-subject intention
+     (*show up at the two celebrations*) is hers and stays; the event's row is
+     separate. An ask left unanswered leaves `no row yet` on the page, so ask
+     it in the first reply after the build, never let it sit.
+   - **`future_rows` — every event in the next two weeks, written** (9 Oct 2026,
+     the user's words: *I want all of these events in the system 2 weeks ahead of
+     time … to give it future vision*). One ⬜ row per occurrence, each with its
+     own event link, the drive read off the glyph (written without one when no
+     drive is clear, and named), people on a plan in `mentioned`. Not an
+     occasion (an all-day free marker) and not an event marked ✖️. Run them
+     through `entry` and write them in one call. **Then reconcile, before the
+     final build** (next item).
+   - **Reconcile the two weeks — the calendar is not taken verbatim** (9 Oct
+     2026, the user's words: *it's not just taking verbatim what's in the
+     calendar. It's helping me make the decisions and having them show up
+     properly on the calendar*). Read `conflicts` and each event's clashes as
+     decisions waiting on her: work inside a vacation, a child's events while
+     the child is away with her, a trip still ❔, two copies of one meeting, a
+     trip's end that disagrees with its own rows. Ask them as **one short set
+     of questions, a recommended answer first**, then carry the answers out the
+     same morning:
+     - **Dropped** — `✖️` in front of the title and **moved to the ✖️dropped
+       calendar**, so it stays visible but off her own. The connector cannot
+       move an event, so: create the ✖️ copy on the dropped calendar (free,
+       no reminders, a one-line why), then delete that one occurrence from
+       the original with no notifications; the series stays. Its row goes
+       ✖️ dropped with the new event link and her words.
+     - **Undecided** — stays ❔ and gets a decide-by: the date from her own
+       words when she gave one, on the row that holds the decision, with a
+       `Next:` line.
+     - **Dates that disagree** — the calendar is corrected to her answer.
+     Never decide for her, never delete a series, never touch a read-only
+     calendar.
+     - **Work events are purple** (9 Oct 2026: her university's colour): any
+       work event be•do creates or edits gets `colorId` 3; a recurring series is coloured on the
+       series. Work is a drive under `work_parents`, or a university or
+       project meeting.
+     - **A duplicate** is merged into the one she keeps (her ⬜, her colour,
+       the other's details), and the copy is dropped as above, its row ✖️ as a
+       dedupe onto the kept one.
    - **`today_asks` — asked, in the one list at the end.** An event whose glyph
      names no single active drive, or where a row about the same subject is
      already on today and may be its own. For the second, the answer is usually
@@ -283,25 +370,29 @@ the user. A project with no named next step is the defect.
 1. **The date**, with ⏏️ beside it when the base is secure — a small emoji,
    no callout. Anything other than secure gets one line under it, in the
    user's words.
-2. **This week's word.**
-3. **Today on the calendar** — every event as the calendar shows it
+2. **Your intentions** — only the slots the user named, in their words; three
+   empty slots before they name any. Above the week's word (8 Oct 2026, their
+   words: *my daily intention above the week's intention, then the calendar*).
+3. **be•do's three** — their own section, each card saying why it rose, and
+   the next in line beneath. Before the intentions are named this is what the
+   draft is for.
+4. **This week's word.**
+5. **Today on the calendar** — every event as the calendar shows it
    (its own title and glyphs, start and end, a 🗓️ link), in the day behind's
    event cards, with its drive underneath. A child's calendar gets the ochre
    edge.
-4. **Your intentions** — only the slots the user named, in their words; three
-   empty slots before they name any.
-5. **Past its date** — every open row past its target, oldest first, never
-   folded away (see `overdue` above), right after the intentions. Empty when
-   the morning's answers are in.
-6. **After the calendar** — at most `max_tasks` (10) action cards: be•do's
-   picks first, then what is due within `task_horizon_days` (7), never a row
-   already on today's calendar. Each card: the date on the left (`today`, or
+   **Past its date** — every open row past its target, oldest first, never
+   folded away (see `overdue` above). Empty when the morning's answers are in.
+6. **After the calendar** — what else is due within `task_horizon_days` (7),
+   at most `max_tasks` (10) with the three, never a row that is a calendar
+   event's own and never a row past its date (it has its own section). Each card: the date on the left (`today`, or
    the weekday and day; plum once passed), the status and ⚡ **drawn, not
    typed** — a brick-outlined square for an intention, filled with a play mark
    in motion, teal with a check when done, dashed for a potential, and a gold
    bolt — then the title in semibold, the drive's emoji and name beneath, and
    why it rose (`someone waiting`, `in motion`…) in small type.
-7. **The next fourteen days** — both calendars matched against the stream,
+7. **The next two weeks, from tomorrow** — today is not repeated here; it has its
+   own section above (9 Oct 2026). Both calendars matched against the stream,
    with `no row yet` and `clash` tags. Each due line starts with the same
    drawn status and bolt, then its drive's emoji (the drive's name on hover).
 8. **The map** of the three along their drives.

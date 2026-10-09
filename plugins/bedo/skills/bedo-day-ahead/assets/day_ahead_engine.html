@@ -82,6 +82,18 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .due .gl .bolt{width:8px;height:11px}
 .due .de{margin-right:4px}
 .ecard .why{grid-column:2;font:500 10.5px var(--mono);color:var(--accent);text-transform:lowercase;letter-spacing:.04em}
+.mv{grid-column:2;margin:4px 0 0;padding:0;list-style:none;display:grid;gap:3px;font-size:13.5px;line-height:1.4}
+.mv li{display:flex;gap:6px;align-items:baseline;overflow-wrap:anywhere}
+.mv li::before{content:"→";color:var(--accent);flex:none}
+.mv li.none{color:var(--past);font-size:12.5px}
+.mv li.none::before{content:"?";color:var(--past)}
+.mv .lk{display:flex;flex-wrap:wrap;gap:5px}
+.mv .lk::before{content:none}
+.mv .lk a{font:500 11px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:2px 9px;text-decoration:none}
+.mv .wt{color:var(--kid);font-size:12.5px}
+.mv .wt::before{content:"⏸";color:var(--kid)}
+.pastdue .mv{margin-top:4px}
+.tsec .ecard .why{font:400 13px/1.45 var(--sans);color:var(--muted);text-transform:none;letter-spacing:0}
 .tasks{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:8px;counter-reset:t var(--from)}
 .tasks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:2px 8px;counter-increment:t;font-size:14px}
 .tasks li::before{content:counter(t);font:500 12px var(--mono);color:var(--faint);padding-top:2px;grid-row:span 2}
@@ -175,6 +187,42 @@ page.append($(`<header>
   ${D.secure&&D.secure.state!=='secure'?`<p class="sbx">⏏️ ${esc(D.secure.state)}${D.secure.words?' — '+esc(D.secure.words):''}</p>`:''}
   <p class="lead">${esc(D.lead)}</p></header>`));
 
+/* the order (8 Oct 2026, her words): my intention above the week's word, then the calendar */
+/* your intentions — empty until you name them */
+const named = D.intentions.filter(Boolean).length;
+page.append($(`<section><h2>your intentions</h2><p class="sub">${named?'named by you this morning — the three below stay be•do\'s recommendation':'yours to name — these stay empty until you do'}</p>
+  <div class="slots" style="grid-template-columns:repeat(${named||3},1fr)">${(named?D.intentions.filter(Boolean):D.intentions).map((v,i)=>v?`<div class="slot" style="color:var(--ink);border-style:solid"><b style="color:var(--accent)">${i+1}</b>${esc(v)}</div>`:`<div class="slot"><b>${i+1}</b>open</div>`).join('')}</div></section>`));
+
+const glyph = st => {
+  const k = {'⬜':'int','▫️':'pot','▶️':'mot','✅':'don'}[String(st||'⬜').trim()] || 'int';
+  const nm = {int:'intention',pot:'potential',mot:'in motion',don:'done'}[k];
+  return `<span class="gl" title="${nm} · action"><span class="st ${k}"></span><svg class="bolt" viewBox="0 0 11 14" aria-hidden="true"><path d="M6.6 0 0 8h4.2L3.4 14 11 5.6H6.6z"/></svg></span>`;
+};
+/* the next move (the 7 Oct amendment): the one step, who, the links, what it waits on */
+const moveHtml = m => {
+  if (!m) return '';
+  const who = (m.who||[]).length ? ` · with ${m.who.map(esc).join(', ')}` : '';
+  const li = [m.step ? `<li><span><b style="font-weight:600">${esc(m.step)}</b>${who}</span></li>`
+                     : `<li class="none"><span>no next step named yet${who}</span></li>`];
+  if ((m.links||[]).length) li.push(`<li class="lk">${m.links.map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join('')}</li>`);
+  if (m.waiting) li.push(`<li class="wt"><span>waiting on ${esc(m.waiting)}</span></li>`);
+  return `<ul class="mv">${li.join('')}</ul>`;
+};
+const card = (t, why) => {
+  const late = t.date && t.date < D.date, on = t.date === D.date;
+  const at = t.date ? (on ? 'today' : (()=>{const d=new Date(t.date+'T12:00:00');return d.toLocaleDateString('en-US',{weekday:'short'})+'<br>'+d.getDate();})()) : '—';
+  const drv = t.drive ? `<div class="edrv">${esc(t.emoji||'')} ${esc(t.drive)}</div>` : '<div class="edrv none">no drive</div>';
+  return $(`<div class="ecard act${late?' gone':''}"><div class="at">${at}</div><div class="ttl">${glyph(t.st)}${esc(t.title)}</div>${drv}${moveHtml(t.move)}${why?`<div class="why">${esc(why)}</div>`:''}</div>`);
+};
+/* be•do's three — the Pareto three (J9), their own section right under the intentions,
+   in view while the user names their own (9 Oct 2026: "I'm not seeing the Pareto 3") */
+if (D.pareto && D.pareto.length){
+  const sec = $(`<section class="tsec"><h2>be•do's three</h2><p class="sub">what would move the ball forward most today · be•do's pick, not your intentions</p><div class="ecards"></div>${(D.next||[]).length?`<p class="nextup"><b>next in line</b> · ${D.next.map(n=>esc(n.title)).join(' · ')}</p>`:''}</section>`);
+  const box = sec.querySelector('.ecards');
+  D.pareto.forEach(p=>box.append(card(p, [p.kind, p.why].filter(Boolean).join(' · '))));
+  page.append(sec);
+}
+
 /* word + secure base */
 if (D.word) page.append($(`<section class="frame">
   ${D.word?`<div class="word"><div class="k">this week's word</div><div class="w">${esc(D.word.word)}</div>${D.word.words&&D.word.words.replace(/[.\s]+$/,'').toLowerCase()!==D.word.word.toLowerCase()?`<q>${esc(D.word.words)}</q>`:''}</div>`:''}
@@ -195,51 +243,36 @@ if (D.word) page.append($(`<section class="frame">
   page.append(sec);
 })();
 
-/* your intentions — empty until you name them */
-const named = D.intentions.filter(Boolean).length;
-page.append($(`<section><h2>your intentions</h2><p class="sub">${named?'named by you this morning — the three below stay be•do\'s recommendation':'yours to name — these stay empty until you do'}</p>
-  <div class="slots" style="grid-template-columns:repeat(${named||3},1fr)">${(named?D.intentions.filter(Boolean):D.intentions).map((v,i)=>v?`<div class="slot" style="color:var(--ink);border-style:solid"><b style="color:var(--accent)">${i+1}</b>${esc(v)}</div>`:`<div class="slot"><b>${i+1}</b>open</div>`).join('')}</div></section>`));
-
-
-
 /* past its date — after the intentions, never folded away: each one needs the user's word
    (5 Oct 2026: up from below the task list, then placed after the intentions) */
 if (D.overdue && D.overdue.length){
   const n = D.overdue.length;
   const sec = $(`<section class="pastdue"><h2>past its date</h2><p class="sub">${n} ${n===1?'thing needs':'things need'} your word — done, a new date, or drop · oldest first</p><ul class="list"></ul></section>`);
   const ul = sec.querySelector('ul');
-  D.overdue.forEach(s=>ul.append($(`<li><span class="d past">${esc(short(s.date))}<span class="late">${s.late} ${s.late===1?'day':'days'}</span></span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}<span class="resolve"><span>done</span><span>new date</span><span>drop</span></span></span></li>`)));
+  D.overdue.forEach(s=>ul.append($(`<li><span class="d past">${esc(short(s.date))}<span class="late">${s.late} ${s.late===1?'day':'days'}</span></span><span>${esc(s.title)}${s.drive?`<span class="dv">${esc(s.drive)}</span>`:''}${moveHtml(s.move)}<span class="resolve"><span>done</span><span>new date</span><span>drop</span></span></span></li>`)));
   page.append(sec);
 }
 
 /* after the calendar — the day behind's action cards: status ⚡ title, the drive underneath,
-   the date on the left (red once it has passed); be•do's picks first, never more than max_tasks */
-const three = $(`<section><h2>after the calendar</h2><p class="sub">the few that move the most · at most ${D.max_tasks||10}</p><div class="ecards"></div></section>`);
+   the date on the left (red once it has passed); the three have their own section above; never more than max_tasks in all */
+const three = $(`<section><h2>after the calendar</h2><p class="sub">what else is due this week · at most ${D.max_tasks||10} with the three</p><div class="ecards"></div></section>`);
 const tbox = three.querySelector('.ecards');
-const glyph = st => {
-  const k = {'⬜':'int','▫️':'pot','▶️':'mot','✅':'don'}[String(st||'⬜').trim()] || 'int';
-  const nm = {int:'intention',pot:'potential',mot:'in motion',don:'done'}[k];
-  return `<span class="gl" title="${nm} · action"><span class="st ${k}"></span><svg class="bolt" viewBox="0 0 11 14" aria-hidden="true"><path d="M6.6 0 0 8h4.2L3.4 14 11 5.6H6.6z"/></svg></span>`;
-};
-const card = (t, why) => {
-  const late = t.date && t.date < D.date, on = t.date === D.date;
-  const at = t.date ? (on ? 'today' : (()=>{const d=new Date(t.date+'T12:00:00');return d.toLocaleDateString('en-US',{weekday:'short'})+'<br>'+d.getDate();})()) : '—';
-  const drv = t.drive ? `<div class="edrv">${esc(t.emoji||'')} ${esc(t.drive)}</div>` : '<div class="edrv none">no drive</div>';
-  return $(`<div class="ecard act${late?' gone':''}"><div class="at">${at}</div><div class="ttl">${glyph(t.st)}${esc(t.title)}</div>${drv}${why?`<div class="why">${esc(why)}</div>`:''}</div>`);
-};
-D.pareto.forEach(p=>tbox.append(card(p, p.kind)));
 (D.tasks||[]).forEach(t=>tbox.append(card(t, t.kind==='dated'?'':t.kind)));
 page.append(three);
 
 
-/* the next fourteen days */
+/* the next fourteen days — from tomorrow: today has its own section above
+   (9 Oct 2026, her words: I don't need to see today on the day ahead [twice]) */
 (function(){
-  const sec = $(`<section><h2>the next fourteen days</h2><p class="sub">both calendars, matched against the stream</p>
-    <div class="keyline"><span><span class="gap" style="font-size:10.5px;color:var(--accent);border:1px dashed var(--accent);border-radius:999px;padding:1px 7px">no row yet</span> ${D.gaps} events</span><span><span style="font-size:10.5px;color:var(--past);background:var(--past-soft);border-radius:999px;padding:1px 7px">clash</span> ${D.clashes} events</span></div>
+  const ds = D.days.filter(d=>!d.today);
+  const nGap = ds.reduce((n,d)=>n+d.events.filter(e=>e.gap).length,0);
+  const nClash = ds.reduce((n,d)=>n+d.events.filter(e=>(e.clash||[]).length).length,0);
+  const sec = $(`<section><h2>the next two weeks</h2><p class="sub">from tomorrow · both calendars, matched against the stream</p>
+    <div class="keyline"><span><span class="gap" style="font-size:10.5px;color:var(--accent);border:1px dashed var(--accent);border-radius:999px;padding:1px 7px">no row yet</span> ${nGap} events</span><span><span style="font-size:10.5px;color:var(--past);background:var(--past-soft);border-radius:999px;padding:1px 7px">clash</span> ${nClash} events</span></div>
     <div class="days"></div></section>`);
   const box = sec.querySelector('.days');
   // fold runs of band-only days into one line
-  let i=0; const ds=D.days;
+  let i=0;
   while (i<ds.length){
     const d=ds[i];
     if (d.bands.length && !d.events.length && !d.due.length){
