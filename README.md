@@ -8,6 +8,7 @@ together, so a skill runs in any project or none.
 |---|---|---|
 | the day ahead | `bedo-day-ahead` | `day_ahead_local.json` |
 | the day behind | `bedo-look-behind` | `look_behind_local.json` |
+| the week behind, by drive | `bedo-week-look-behind` | `look_behind_local.json` (the day behind's) |
 | the monthly ahead-review | `bedo-ahead-review` | `ahead_review_local.json` |
 
 ## V53 — the rules in code

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Week Behind</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* the week behind — engine. Nothing personal here: every word comes from DATA.
+   be•do's now palette (plugins/bedo/assets/now-palette.css); day by default, night follows the phone. */
+:root{ --ground:#F8F2EF; --ink:#3F3331; --soft:#5E504C; --muted:#8D7E79; --faint:#A89894; --rule:#ECDDD8; --tint:#FCFAF8; --link:#3E6E6F; --grow-ink:#A04A40; --tend:#D4A055; color-scheme:light;
+  --sans:"Manrope","Segoe UI",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --ground:#1B1A1F; --ink:#EDE4E0; --soft:#D3C8C3; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --tint:#262228; --link:#8CC3C3; --grow-ink:#F0A79E; --tend:#E3BB77; color-scheme:dark; } }
+:root[data-theme="dark"]{ --ground:#1B1A1F; --ink:#EDE4E0; --soft:#D3C8C3; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --tint:#262228; --link:#8CC3C3; --grow-ink:#F0A79E; --tend:#E3BB77; color-scheme:dark; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:620px;margin:0 auto;padding:32px 16px 48px}
+.chip{font:400 .72rem var(--mono);color:var(--faint)}
+.eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:14px 0 0}
+h1{font-size:clamp(2rem,8vw,2.6rem);font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:6px 0 0}
+.range{color:var(--soft);font-weight:600;margin:6px 0 0}
+section{padding-block:22px;border-top:1px solid var(--rule);margin-top:22px}
+.label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 0 4px}
+.note{font-size:.8rem;color:var(--muted);margin:0 0 14px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.stat{background:var(--tint);border-radius:14px;padding:12px 14px}
+.stat b{display:block;font-size:1.5rem;font-weight:800;letter-spacing:-.02em}
+.stat span{font-size:.75rem;color:var(--muted)}
+.drive{margin:0 0 14px}
+.drive .sub{margin:10px 0 0 6px;padding-left:12px;border-left:2px solid var(--rule)}
+.dh{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.dh .n{font-weight:800}
+.dh .m{margin-left:auto;font:400 .74rem var(--mono);color:var(--muted);white-space:nowrap}
+.own{font:400 .7rem var(--mono);color:var(--faint);margin:2px 0 0}
+details{margin:6px 0 0}
+summary{cursor:pointer;font-size:.8rem;color:var(--link)}
+ul{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px}
+li{font-size:.9rem;line-height:1.35}
+li .set,li .due{font-size:.74rem;color:var(--muted)}
+a{color:var(--link)}
+.foot{font:400 .7rem var(--mono);color:var(--faint);line-height:1.6}
+.warn{color:var(--grow-ink)}
+</style>
+<body><div class="wrap" id="page"></div>
+<script>
+const DATA = /*__DATA__*/null;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hm = m => { m = Math.round(m || 0); const h = Math.floor(m / 60), r = m % 60; return h ? (r ? `${h} h ${String(r).padStart(2, "0")}` : `${h} h`) : `${r} min`; };
+const T = DATA.totals, P = document.getElementById("page");
+const extra = (n, w) => n ? ` · ${n} ${w}` : "";
+P.innerHTML = `<div class="chip">${esc(DATA.chip)}</div>
+<p class="eyebrow">the look behind · the week</p>
+<h1>${esc(DATA.week)}</h1><p class="range">${esc(DATA.range)}</p>
+<section><p class="label">the week on its drives</p>
+<p class="note">each counted once${extra(hm(T.min_no_drive) !== "0 min" ? hm(T.min_no_drive) : "", "logged on no drive")}${extra(T.closed_no_drive, "closed on no drive")}${extra(T.open_no_drive, "open on no drive")}</p>
+<div class="stats"><div class="stat"><b>${hm(T.min)}</b><span>on drives</span></div>
+<div class="stat"><b>${T.closed}</b><span>✅ closed</span></div>
+<div class="stat"><b>${T.open}</b><span>still open</span></div></div></section>
+<section><p class="label">by drive</p>
+<p class="note">a drive that feeds another sits under it, and its time and counts are in the parent's numbers</p>
+<div id="drives"></div></section>
+<section class="foot" id="foot"></section>`;
+// one drive: its numbers including what feeds it, then its own lists, then the drives that feed it
+const node = n => {
+  const nums = [n.min ? hm(n.min) : "", n.closed ? `${n.closed} ✅` : "", n.open ? `${n.open} open` : ""].filter(Boolean).join(" · ");
+  const own = n.children.length && (n.own_min !== n.min || n.closed_own !== n.closed || n.open_own !== n.open)
+    ? `<p class="own">its own: ${[hm(n.own_min), n.closed_own + " ✅", n.open_own + " open"].join(" · ")}</p>` : "";
+  const done = n.done.length ? `<details><summary>${n.done.length} closed</summary><ul>${n.done.map(d =>
+    `<li>✅ ${d.url ? `<a href="${esc(d.url)}">${esc(d.t)}</a>` : esc(d.t)}${d.set ? ` <span class="set">set as: ${esc(d.set)}</span>` : ""}</li>`).join("")}</ul></details>` : "";
+  const still = n.still.length ? `<details><summary>${n.still.length} still open</summary><ul>${n.still.map(s =>
+    `<li>${esc(s.st)} ${esc(s.t)}${s.due ? ` <span class="due">· ${esc(s.due)}</span>` : ""}</li>`).join("")}</ul></details>` : "";
+  return `<div class="drive"><div class="dh"><span>${esc(n.emoji)}</span><span class="n">${esc(n.drive)}</span><span class="m">${nums}</span></div>${own}${done}${still}` +
+    (n.children.length ? `<div class="sub">${n.children.map(node).join("")}</div>` : "") + `</div>`;
+};
+document.getElementById("drives").innerHTML = DATA.drives.length ? DATA.drives.map(node).join("") : `<p class="note">nothing on a drive this week</p>`;
+document.getElementById("foot").innerHTML = `read ${esc(DATA.read)}` +
+  (DATA.loops.length ? `<br><span class="warn">feeds loops — fix in the base: ${DATA.loops.map(esc).join(" · ")}</span>` : "") +
+  `<br>first cut: drives only — the reading, balance, the body and who was there are not built yet`;
+</script>
+</body></html>
