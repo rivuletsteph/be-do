@@ -261,6 +261,15 @@ skips it and says so in one line.
   chat title, not on the row. When a row turns up with a glyph in front, clear
   it: an obvious fix, one line. (`drive_name_example` in the local settings file
   holds one of the user's own, if the real shape helps.)
+- **Drives within drives.** A drive can feed another (the rhythms field
+  `feeds`, `fields.rhythms.feeds` in the settings; optional). *Open by drive*
+  counts each open row under its own drive and every drive it feeds, the child
+  nested under its parent; its headline counts each row once. A pick's lane runs
+  through the drives above it to what they serve, two picks from one drive's
+  tree share one lane, and a drive feeding a hidden drive is hidden with it. The
+  plan carries the same tree as `drives` — read it before advising on what is
+  coming up: a step on the child is progress on the parent. A loop in `feeds` is
+  listed under `drives.loops`; ask her which way it runs.
 
 ## What the page shows, in order
 

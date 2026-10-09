@@ -31,6 +31,7 @@ _HERE = _os.path.dirname(_os.path.abspath(__file__))
 for _p in (_os.path.join(_HERE, '..', '..', '..', 'core'), _HERE):
     sys.path.insert(0, _os.path.normpath(_p))
 import bedo_reader  # noqa: E402
+import bedo_drives  # noqa: E402
 
 # The field maps are the base's, not the builder's. main() fills them from the
 # local settings file before any read; the KEYS below are the builder's own
@@ -48,6 +49,8 @@ QUICKIE_KEY = 'quickie'
 HIDE = dict(drives=(), keep=())  # filled from the local settings file
 RHYTHM_KEYS = ('name', 'code', 'type', 'status', 'target', 'parent',
                'emoji', 'dest', 'goal')
+OPTIONAL_RHYTHM_KEYS = ('feeds',)   # drives within drives (9 Oct 2026)
+DRIVES = {}   # every rhythm by name, active or not, for walking `feeds` upward
 F = {}
 RF = {}
 OPEN = ('▫️potential', '⬜ intention', '▶️ in motion')
@@ -135,7 +138,9 @@ def hidden_drive(r):
     names one of their own reviews (hide_keep), which stay. 5 Oct 2026: build work
     on the system itself is not the next right thing to do; their own weekly and
     monthly reviews and look aheads are."""
-    if (r['rhythm'] or '') not in HIDE['drives']:
+    # a drive that feeds a hidden drive is hidden with it (drives within drives, 9 Oct 2026)
+    up = bedo_drives.chain(r['rhythm'] or '', DRIVES) or [r['rhythm'] or '']
+    if not any(d in HIDE['drives'] for d in up):
         return False
     t = (r['title'] or '').lower()
     return not any(k.lower() in t for k in HIDE['keep'])
@@ -166,10 +171,13 @@ def load_rhythms(path):
     by_name, by_id = {}, {}
     for r in recs:
         c = r['cellValuesByFieldId']
-        row = {k: sv(c.get(v)) if k != 'dest' else c.get(v) for k, v in RF.items()}
+        row = {k: sv(c.get(v)) if k not in ('dest', 'feeds') else c.get(v) for k, v in RF.items()}
         row['dest'] = [sv(x) for x in (row['dest'] or [])]
+        row['feeds'] = bedo_drives.feeds_of(row)
         row['id'] = r['id']
         by_id[r['id']] = row
+        if row['name']:
+            DRIVES[row['name']] = row
         if row['status'] == 'active':
             by_name[row['name']] = row
     return by_name, n
@@ -210,8 +218,11 @@ def pareto(open_rows, chains, rhythms, today, L):
         return rhythms.get(r['rhythm'] or '')
 
     def lane(r):
-        d = drive_of(r)
-        return (d or {}).get('parent') or r['rhythm'] or '—'
+        # a drive that feeds another shares its lane: two picks from D26's tree
+        # are two from D26, wherever they sit in it (9 Oct 2026)
+        top = (bedo_drives.chain(r['rhythm'] or '', DRIVES) or [r['rhythm'] or ''])[-1]
+        d = DRIVES.get(top) or drive_of(r)
+        return (d or {}).get('parent') or top or '—'
 
     def tgt(r):
         return local(r['target']).date() if r['target'] else None
@@ -672,6 +683,8 @@ def install_local(L):
         if missing:
             die(f"local settings: fields.{name} is missing {', '.join(missing)}")
         target.update({k: got[k] for k in keys})
+        if name == 'rhythms':
+            target.update({k: got[k] for k in OPTIONAL_RHYTHM_KEYS if got.get(k)})
     global HAS_LINK
     HAS_LINK = bool((fields.get('stream') or {}).get(LINK_KEY))
     if HAS_LINK:
@@ -766,17 +779,45 @@ def main():
         e = by_link.get(it['link'])
         it['drive'] = bucket_for(e, rhythms, L)[0] if e else None
 
+    def dests_through(name):
+        return list(dict.fromkeys(dn for k in bedo_drives.chain(name, DRIVES)
+                                  for dn in (DRIVES[k].get('dest') or [])))
+
+    # open work by drive — what is coming up, each row under its own drive and every
+    # drive it feeds, the child nested under its parent; the total counts each row once
+    def tgt_of(r):
+        return local(r['target']).date() if r['target'] else None
+    rolled = bedo_drives.roll_up(open_rows, DRIVES, drive=lambda r: r['rhythm'])
+
+    def open_node(n):
+        rec = DRIVES.get(n['name']) or {}
+        mine = [r for r in open_rows if n['name'] in bedo_drives.chain(r['rhythm'] or '', DRIVES)]
+        dated = sorted(t for t in (tgt_of(r) for r in mine) if t)
+        nxt_ = next((t for t in dated if t >= today), None)
+        return dict(drive=n['name'], emoji=rec.get('emoji') or '', n_own=n['n_own'], n=n['n'],
+                    late=sum(1 for t in dated if t < today),
+                    soon=sum(1 for t in dated if 0 <= (t - today).days <= 7),
+                    next=nxt_.isoformat() if nxt_ else None,
+                    children=[open_node(c) for c in n['children']])
+    by_drive = [open_node(n) for n in bedo_drives.tree(rolled, DRIVES, key=lambda k: (-rolled[k]['n'], k))]
+    plan['drives'] = dict(open=sum(1 for r in open_rows if r['rhythm']), no_drive=sum(1 for r in open_rows if not r['rhythm']),
+                          tree=by_drive, loops=[' → '.join(c + c[:1]) for c in bedo_drives.loops(DRIVES)])
+
     # map forward — each pick's drive running to what it serves
     lanes, dests = [], {}
     for p in picks:
         r = p['row']; d = rhythms.get(r['rhythm'] or '') or {}
         t = local(r['target']).date().isoformat() if r['target'] else None
+        # the lane runs through every drive this one feeds, to what each of them serves
+        up = bedo_drives.chain(r['rhythm'] or '', DRIVES)
+        lane_dests = dests_through(r['rhythm'] or '')
         lanes.append(dict(kind=p['kind'], drive=r['rhythm'], emoji=d.get('emoji') or '·',
-                          step=t, drive_target=d.get('target'), dest=d.get('dest') or []))
-        for dn in d.get('dest') or []:
+                          via=list(reversed(up[1:])),
+                          step=t, drive_target=d.get('target'), dest=lane_dests))
+        for dn in lane_dests:
             if dn not in dests:
                 dr = next((x for x in rhythms.values() if x['name'].endswith(dn) or x['name'] == dn), {})
-                feeders = [x['name'] for x in rhythms.values() if x['type'] == '♐ drive' and dn in (x['dest'] or [])]
+                feeders = [x['name'] for x in rhythms.values() if x['type'] == '♐ drive' and dn in dests_through(x['name'])]
                 dests[dn] = dict(name=dn, emoji=dr.get('emoji') or '♎', target=dr.get('target'), feeders=len(feeders))
 
     # today and soon — dated work in the next three days.
@@ -847,6 +888,7 @@ def main():
                      date=local(p['row']['target']).date().isoformat() if p['row']['target'] else None) for p in picks],
         next=nxt, tasks=tasks, max_tasks=cap,
         intentions=(a.intention + [None, None, None])[:3], draft=a.draft,
+        drives=plan['drives'],
         map=dict(start=today.isoformat(), end=L['map_end'], lanes=lanes, dests=list(dests.values()), away=away),
         soon=soon, overdue=overdue,
         days=days, gaps=gaps, clashes=clashes,

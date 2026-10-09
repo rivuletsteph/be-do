@@ -75,6 +75,8 @@ li{display:grid;grid-template-columns:1.9rem 1fr;align-items:baseline}
 .bydrive ul{gap:6px}.bydrive li{grid-template-columns:1fr auto;font-size:.9rem;font-weight:500}
 .bydrive .mo{font-size:.72rem;color:var(--muted)}
 .bydrive .min{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.bydrive .sub{margin:12px 0 0 14px;padding-left:12px;border-left:2px solid var(--line, rgba(127,127,127,.25));display:flex;flex-direction:column;gap:12px}
+.bydrive .dh .own{font-family:var(--mono);font-size:.7rem;font-weight:500;color:var(--muted)}
 .ecard .ttl{font-weight:600;font-size:.98rem;line-height:1.35;flex:1 1 100%;min-width:0}
 .gl{display:inline-flex;align-items:center;gap:3px;vertical-align:-2px;margin-right:7px}
 .gl .st{width:13px;height:13px;border-radius:4px;box-sizing:border-box;display:inline-grid;place-items:center;flex:none}
@@ -421,14 +423,21 @@ if (E.secure === "secure") {
   document.getElementById("effnote").textContent = "The foundation needed the energy today.";
 }
 document.getElementById("usual").textContent = E.usualMin ? `${Math.round(mins/E.usualMin*100)}% of your effectiveness baseline (${hm(E.usualMin)})` : `effectiveness baseline still forming \u00B7 ${E.baselineDays} of ${E.baselineNeeded} clean days`;
-// what moved, by drive first — the drive's own time and steps, then the destinations it feeds (the user's word, 2 Oct 2026)
-{ const byDrive = new Map();
+// what moved, by drive first — the drive's own time and steps, then the destinations it feeds (the user's word, 2 Oct 2026).
+// A drive that feeds another sits nested under it, and the parent's time includes the child's (9 Oct 2026);
+// the headline above counts each step once.
+{ const li = w => `<li><span>${w.url ? `<a href="${esc(w.url)}">${esc(w.text)}</a>` : esc(w.text)}${w.motion ? `<span class="mo"> · in motion</span>` : ""}${w.done ? `<span class="subs">${w.done.map(x=>`<span>✓ ${esc(x)}</span>`).join("")}</span>` : ""}</span><span class="min">${w.min ? w.min + " min" : ""}</span></li>`;
+  const node = g => `<div><p class="dh"><span>${esc(g.drive)}</span>${g.children.length && g.own_min !== g.min ? `<span class="own">${g.own_min ? hm(g.own_min) + " its own" : ""}</span>` : ""}<span class="t">${g.min ? hm(g.min) : ""}</span></p>` +
+    (g.dests.length ? `<p class="feeds">feeds → ${g.dests.map(x => `<b>${esc(x)}</b>`).join(" · ")}</p>` : "") +
+    (g.items.length ? `<ul>${g.items.map(li).join("")}</ul>` : "") +
+    (g.children.length ? `<div class="sub">${g.children.map(node).join("")}</div>` : "") + `</div>`;
+  if (E.drives) document.getElementById("moved").innerHTML = `<div class="bydrive">${E.drives.map(node).join("")}</div>`;
+  else { const byDrive = new Map();
   allw.forEach(w => { if (!byDrive.has(w.drive)) byDrive.set(w.drive, {name: w.drive, items: [], dests: new Set(), min: 0}); const g = byDrive.get(w.drive); g.items.push(w); g.min += w.min || 0; w.dests.forEach(x => g.dests.add(x)); });
   const groups = [...byDrive.values()].sort((a,b) => b.min - a.min);
   document.getElementById("moved").innerHTML = `<div class="bydrive">` + groups.map(g => `<div><p class="dh"><span>${esc(g.name)}</span><span class="t">${g.min ? hm(g.min) : ""}</span></p>` +
-    `<p class="feeds">feeds \u2192 ${[...g.dests].map(x => `<b>${esc(x)}</b>`).join(" \u00B7 ")}</p><ul>` +
-    g.items.map(w => `<li><span>${w.url ? `<a href="${esc(w.url)}">${esc(w.text)}</a>` : esc(w.text)}${w.motion ? `<span class="mo"> \u00B7 in motion</span>` : ""}${w.done ? `<span class="subs">${w.done.map(x=>`<span>\u2713 ${esc(x)}</span>`).join("")}</span>` : ""}</span><span class="min">${w.min ? w.min + " min" : ""}</span></li>`).join("") +
-    `</ul></div>`).join("") + `</div>`; }
+    `<p class="feeds">feeds → ${[...g.dests].map(x => `<b>${esc(x)}</b>`).join(" · ")}</p><ul>` + g.items.map(li).join("") +
+    `</ul></div>`).join("") + `</div>`; } }
 const set = DATA.intentions.length, met = DATA.intentions.filter(i=>i.glyph==="\u2705").length, car = DATA.intentions.filter(i=>i.glyph==="\u25B6\uFE0F").length;
 document.getElementById("ftn").textContent = `${met} of ${set} met` + (car ? ` \u00B7 ${car} carried` : "");
 

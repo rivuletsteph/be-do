@@ -386,6 +386,14 @@ closes a day.
 
 Read these before second-guessing a number on the page.
 
+- **Drives within drives.** A drive can feed another (the rhythms field
+  `feeds`, `fields.rhythms.feeds` in the settings; optional). In what moved, a
+  step counts under its own drive and every drive it feeds, upward, and the
+  child sits nested under its parent; a parent's minutes include its
+  children's. The headline minutes count each step once. A drive reaches the
+  destinations of every drive above it. A loop in `feeds` ends where it closes
+  and is named in the QA block as `feeds_loops` — fix it in the base.
+  (`plugins/bedo/core/bedo_drives.py` holds the rule for every builder.)
 - **A row scores nothing** when it is a plan or a skipped row, when it is
   somebody else's own row kept in the user's stream, or when it holds other
   rows — four hours or more with at least three moments inside it is an

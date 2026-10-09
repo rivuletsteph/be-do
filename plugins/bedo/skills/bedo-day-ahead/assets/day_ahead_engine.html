@@ -105,6 +105,12 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .dests li{display:flex;gap:8px;align-items:baseline;font-size:13px;color:var(--muted)}
 .dests .n{color:var(--dest);font-weight:500}
 .dests .t{margin-left:auto;font:400 11px var(--mono);color:var(--faint);white-space:nowrap}
+/* open by drive — a drive that feeds another sits nested under it */
+.bydrive{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.bydrive ul{list-style:none;margin:6px 0 0 14px;padding-left:10px;border-left:2px solid var(--faint);display:grid;gap:6px}
+.bydrive .r{display:flex;gap:8px;align-items:baseline;font-size:13px;color:var(--muted)}
+.bydrive .n{color:var(--ink, inherit);font-weight:500}
+.bydrive .t{margin-left:auto;font:400 11px var(--mono);color:var(--faint);white-space:nowrap}
 
 /* today and soon */
 .list{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
@@ -268,7 +274,7 @@ page.append(three);
   s+=`<line x1="${L}" y1="16" x2="${L}" y2="${H-18}" stroke="#EFA038" stroke-width="1.5"/><text x="${L+3}" y="12" class="ax" style="fill:var(--accent)">today</text>`;
   lanes.forEach((l,i)=>{
     const y = top+18+i*gap, end = l.drive_target ? X(l.drive_target) : R, solid = !!l.drive_target;
-    s+=`<text x="${L+4}" y="${y-9}" class="lab">${esc(l.emoji)} ${esc(l.drive)}</text>`;
+    s+=`<text x="${L+4}" y="${y-9}" class="lab">${esc(l.emoji)} ${(l.via||[]).map(v=>esc(v)+' › ').join('')}${esc(l.drive)}</text>`;
     s+=`<line x1="${L}" y1="${y}" x2="${end}" y2="${y}" stroke="#EFA038" stroke-width="2.5" stroke-linecap="round" ${solid?'':'stroke-dasharray="5 5" opacity=".75"'}/>`;
     if (solid) s+=`<circle cx="${end}" cy="${y}" r="3.5" fill="#EFA038"/>`;
     l.dest.forEach(dn=>{ const dy=destY[dn]; if (dy==null) return; const x0 = solid? end : R; s+=`<path d="M${x0} ${y} C ${x0+18} ${y}, ${NX-24} ${dy}, ${NX-12} ${dy}" fill="none" stroke="#9BC4F5" stroke-width="1.4" opacity=".8"/>`; });
@@ -283,6 +289,14 @@ page.append(three);
   M.dests.forEach(d=>{ const mine = lanes.filter(l=>l.dest.includes(d.name)).length;
     ul.append($(`<li><span>${esc(d.emoji)}</span><span><span class="n">${esc(d.name)}</span> — ${mine} of today's three, ${d.feeders} drives in all</span><span class="t">${d.target?'by '+esc(day(d.target)):'no end date'}</span></li>`)); });
   page.append(sec);
+})();
+
+/* open by drive — each open row under its own drive and every drive it feeds; the
+   headline counts each row once (drives within drives, 9 Oct 2026) */
+if (D.drives && D.drives.tree && D.drives.tree.length) (()=>{
+  const X = D.drives, short = d => d ? day(d) : '';
+  const node = n => `<li><div class="r"><span>${esc(n.emoji)}</span><span><span class="n">${esc(n.drive)}</span> — ${n.n} open${n.children.length && n.n_own !== n.n ? ` · ${n.n_own} its own` : ''}${n.late ? ` · ${n.late} past date` : ''}${n.soon ? ` · ${n.soon} this week` : ''}</span><span class="t">${n.next ? 'next '+esc(short(n.next)) : ''}</span></div>${n.children.length ? `<ul>${n.children.map(node).join('')}</ul>` : ''}</li>`;
+  page.append($(`<section><h2>open by drive</h2><p class="sub">${X.open} open on a drive${X.no_drive ? ` · ${X.no_drive} on none` : ''} · a drive that feeds another sits under it and counts in its number</p><ul class="bydrive">${X.tree.map(node).join('')}</ul></section>`));
 })();
 
 /* provenance */

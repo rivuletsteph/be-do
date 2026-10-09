@@ -37,6 +37,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from bedo_common import bedo_reader, complete, die, norm, offset_check, read_dump, sv, weekno  # noqa: E402
 import day_pie  # noqa: E402
 import bedo_people  # noqa: E402  (the core, beside or three folders up)
+import bedo_drives  # noqa: E402
 from bedo_fill import word as practice_word  # noqa: E402
 
 # The field maps are the base's, not the builder's. install_local() fills them
@@ -46,6 +47,7 @@ STREAM_KEYS = ('title', 'key', 'details', 'when', 'end', 'status', 'practice',
                'person', 'rhythm', 'wellness', 'deliv')
 OPTIONAL_STREAM_KEYS = ('device', 'mentioned', 'emotion', 'emoword', 'spent', 'event')
 RHYTHM_KEYS = ('name', 'type', 'status', 'emoji', 'dest')
+OPTIONAL_RHYTHM_KEYS = ('feeds', 'code')     # drives within drives (9 Oct 2026)
 PRACTICE_KEYS = ('name', 'band', 'zero', 'group', 'typical')
 CONNECTION_KEYS = ('name', 'short', 'circles')
 OPTIONAL_CONNECTION_KEYS = ('aliases',)
@@ -97,6 +99,8 @@ def install_local(L):
         target.update({k: got[k] for k in keys if got.get(k)})
         if name == 'connections':
             target.update({k: got[k] for k in OPTIONAL_CONNECTION_KEYS if got.get(k)})
+        if name == 'rhythms':
+            target.update({k: got[k] for k in OPTIONAL_RHYTHM_KEYS if got.get(k)})
         if name == 'stream':
             # the device field arrived later than the rest; a stream without it
             # simply leaves the screen hours to the practice map
@@ -144,8 +148,9 @@ def load_rhythms(path):
     by_name = {}
     for r in recs:
         c = r.get('cellValuesByFieldId') or {}
-        row = {k: (c.get(v) if k == 'dest' else sv(c.get(v))) for k, v in RF.items()}
+        row = {k: (c.get(v) if k in ('dest', 'feeds') else sv(c.get(v))) for k, v in RF.items()}
         row['dest'] = [sv(x) for x in (row.get('dest') or [])]
+        row['feeds'] = bedo_drives.feeds_of(row)
         row['id'] = r['id']
         if row.get('name'):
             by_name[row['name']] = row
@@ -878,7 +883,7 @@ def main():
             intentions.append(it)
 
     # ── what moved a destination forward ─────────────────────────────────
-    dests = {}
+    dests, moved = {}, []
     for r in lived:
         # ✅ done and ▶️ in motion both moved something (V51, what moved); an
         # in-motion step is marked so the page can say it isn't finished.
@@ -890,7 +895,13 @@ def main():
         dr = rhythms.get(r.get('rhythm') or '')
         if not dr:
             continue
-        for dn in (dr.get('dest') or []):
+        # a drive feeds what the drives above it feed (drives within drives,
+        # 9 Oct 2026): D52's step moves D26's destinations too
+        up = bedo_drives.chain(dr['name'], rhythms)
+        dns = list(dict.fromkeys(dn for k in up for dn in (rhythms[k].get('dest') or [])))
+        if dns:
+            moved.append(r)
+        for dn in dns:
             d = dests.setdefault(dn, {'name': dn, 'glyph': '', 'work': []})
             drec = rhythms.get(dn) or next(
                 (x for x in rhythms.values() if (x.get('name') or '').endswith(dn)), {})
@@ -905,6 +916,24 @@ def main():
             if steps:
                 item['done'] = steps
             d['work'].append(item)
+    # the same steps by drive: each under its own drive and every drive it feeds,
+    # the child nested under its parent. The headline minutes count each step once.
+    rolled = bedo_drives.roll_up(moved, rhythms, drive=lambda r: r.get('rhythm'),
+                                 weight=lambda r: r['_mins'] or 0)
+
+    def drive_node(n):
+        rec = rhythms.get(n['name']) or {}
+        return {'drive': f"{rec.get('emoji') or ''} {n['name']}".strip(),
+                'own_min': n['own'], 'min': n['total'], 'n_own': n['n_own'], 'n': n['n'],
+                'dests': rec.get('dest') or [],
+                'items': [{'text': re.sub(r'^[^\w]+', '', r['_title']), 'min': r['_mins'] or None,
+                           'url': r.get('deliv') or None,
+                           **({'motion': True} if r.get('status') in motion else {}),
+                           **({'done': sub_steps(r.get('details'))} if sub_steps(r.get('details')) else {})}
+                          for r in n['items']],
+                'children': [drive_node(c) for c in n['children']]}
+    by_drive = [drive_node(n) for n in bedo_drives.tree(rolled, rhythms)]
+    qa['feeds_loops'] = [' → '.join(c + c[:1]) for c in bedo_drives.loops(rhythms)]
 
     # ── the page's own labels ────────────────────────────────────────────
     wk = weekno(day, L['week_zero_sunday'], L['week_zero_number'])
@@ -934,6 +963,8 @@ def main():
             'baselineNeeded': L.get('baseline_needed', 14),
             'usualMin': a.usual_min,
             'destinations': list(dests.values()),
+            'drives': by_drive,
+            'min': bedo_drives.grand_total(moved, lambda r: r['_mins'] or 0),
         },
         'pie': pie,
         'pieDevice': {'min': sum(p.get('dev', 0) for p in pie), 'rows': devrows[:L.get('pie_max_titles', 4)]},
@@ -957,6 +988,7 @@ def main():
         'who': len(who), 'circles_read': len(circles),
         'highlights': len(highlights), 'intentions': len(intentions),
         'destinations': [d['name'] for d in dests.values()],
+        'drives': [('  ' * dep) + n['drive'] for dep, n in bedo_drives.flatten(by_drive)],
         'photos': 'none — no attachment field is read',
         'qa': qa,
         'lead_and_story': 'UNWRITTEN' if not (lead and story)
