@@ -49,7 +49,6 @@ need_local() {
 }
 
 if [ "$MODE" = prep ]; then
-  need_local
   rm -rf be-do-main
   git clone -q --depth 1 https://github.com/rivuletsteph/be-do be-do-main
   S=be-do-main/plugins/bedo/skills/bedo-look-behind
@@ -59,6 +58,9 @@ if [ "$MODE" = prep ]; then
   # an escape hatch: anything in overlay/ wins over the version store for this run
   if [ -d overlay ]; then cp overlay/*.py scripts/ 2>/dev/null || true
     cp overlay/look_behind_engine.html . 2>/dev/null || true; fi
+  # the live settings are a row in Airtable (be•do system › settings); without it, the copy below
+  [ -n "${LB_LOCAL:-}" ] || "$PY" scripts/bedo_settings.py look_behind_local --out look_behind_local.json || true
+  need_local
   rm -rf data
   SECARGS=()
   for c in "${BEDO_SECRETS:-}" bedo_secrets.json ../bedo_secrets.json; do

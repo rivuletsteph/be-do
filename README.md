@@ -54,6 +54,17 @@ fails loudly instead of putting every time on the page an hour out. A routine's
 cron is written in the zone (`CRON_TZ=America/Chicago 0 3 * * *`) so the clock
 change does not move it.
 
+## Settings live in Airtable
+
+The live copy of each settings file is a row in the `settings` table of the
+`be•do system` base: `look_behind_local`, `day_ahead_local`, `facts_local`, the
+whole file as JSON in the `json` field. Every prep reads it first
+(`core/bedo_settings.py`, the base and table found by name), so changing a
+setting is editing that row from any chat, with no skill upload. When Airtable
+can't be read (Cowork, a plain chat) or the row is missing or broken, the runner
+says so and uses the copy inside the skill, as before. `LB_LOCAL` or
+`BEDO_FACTS_LOCAL` still overrides both.
+
 ## Local settings — `day_ahead_local.json`
 
 Nothing personal lives in the builder or the engine. Names, calendar labels,
