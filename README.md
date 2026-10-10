@@ -39,11 +39,15 @@ the repo), or — in a Claude Code cloud session, `CLAUDE_CODE_REMOTE=true` —
 none at all. There the environment carries the token as an **API credential**
 for `api.airtable.com`: the fetch sends its requests with no `Authorization`
 header and the agent proxy attaches one after the request has left the VM, so
-the token never reaches the session, a log, a page or a commit. A 401 or 403
-aborts with *token revoked or rotated?* — every place that holds the token
-changes together, or a forgotten one fails loudly. With none of the three the
-fetch aborts before it reads. A plain claude.ai chat has none, and the day
-ahead's runner says so and exits 3.
+the token never reaches the session, a log, a page or a commit. What a 401 or
+403 means depends on what was sent. **With a token sent**, it aborts with
+*token revoked or rotated?* — every place that holds the token changes
+together, or a forgotten one fails loudly. **With no token sent** (a session
+that expected a proxy that isn't there — Cowork, as on 9 Oct), it says *no
+Airtable access here* and exits 3, the runners' no-token path: nothing is wrong
+with the token, the surface has none. With none of the three the fetch aborts
+before it reads. A plain claude.ai chat has none, and the day ahead's runner
+says so and exits 3.
 
 ## The clock offset changes twice a year
 
