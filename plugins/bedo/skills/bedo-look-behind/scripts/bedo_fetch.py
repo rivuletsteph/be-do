@@ -76,12 +76,22 @@ class Air:
                 if e.code == 429 and attempt < 3:
                     time.sleep(30)
                     continue
+                if e.code in (401, 403) and not self.pat:
+                    # 9 Oct 2026: a Cowork day chat sent no token, nothing attached one, and the
+                    # old message said "revoked or rotated?" — a hunt for a bad token that did
+                    # not exist. No token sent means this surface has no Airtable access at all.
+                    print(f'NO AIRTABLE ACCESS HERE: {path} came back HTTP {e.code} to a request '
+                          'sent with no token, and nothing on this surface attached one (Cowork '
+                          'and a plain claude.ai chat have none; a Claude Code cloud session whose '
+                          'environment carries the credential does). Nothing is wrong with the '
+                          'token: build here through the Airtable connector, or in Claude Code.',
+                          file=sys.stderr)
+                    sys.exit(3)
                 if e.code in (401, 403):
                     die(f'{path}: HTTP {e.code} — token revoked or rotated? Every place that '
                         'holds it has to change together: the environment API credential, '
                         'bedo_secrets.json on each laptop, AIRTABLE_PAT where it is set. '
-                        + ('(this run sent no token and expected the proxy to add one)'
-                           if not self.pat else '(this run sent the token it was given)'))
+                        + '(this run sent the token it was given)')
                 die(f'{path}: HTTP {e.code} {e.read()[:200]!r}')
             except urllib.error.URLError as e:
                 die(f'{path}: cannot reach Airtable ({e.reason}) — is api.airtable.com '

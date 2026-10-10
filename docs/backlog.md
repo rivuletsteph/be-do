@@ -40,7 +40,6 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 261003_1433 | ▶️ | The daily measure checked against how the day felt; meals logged with how they were made and whether she ate with intention; the wellness wheel's role; the unmerged `claude/look-behind-dark-palette` branch — merge or let go |
 | 261004_1045 | ▶️ | Base flow card shipped; next the look behind and look ahead for day, week and month — an earthy palette, the look ahead light and the look behind dark; later nutrition folded into body |
 | 261004_1536 | ▶️ | Page cards from her review of every past page — card 2 (perhaps the dark mirror of card 1), whether the forward map gets its own card, card 1 into the day ahead itself |
-| 261009e | ⬜ | The day chat's Airtable read came back 401 on 9 Oct, so the day ahead couldn't build there; the cloud session's credential worked the same morning. Find which token the claude.ai chat holds and replace it, or settle that the day ahead builds only in Claude Code |
 
 ## Calendar
 
@@ -108,6 +107,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 
 | key | item | shipped |
 |---|---|---|
+| 261009e | The day chat's 401 on 9 Oct: not a bad token — the chat (Cowork) has no Airtable access, sent none, and nothing attached one. The fetch now says *no Airtable access here* and takes the no-token path (exit 3) instead of *revoked or rotated?*; the day ahead's draft builds at 6:45 every morning in the cloud environment that has the credential. | day ahead, 10 Oct 2026 |
 | 261009c | Day ahead: every open card names its next move — the step, the person, the links, what it waits on — read off the row (`Next:` line or the chat's `--step`), and says so when none is named. The 7 Oct amendment on the next step. Her words: so I just don't think of the whole big thing. | day ahead, 9 Oct 2026 |
 | 261009d | Day ahead: the chat's three go on the page (`--pick`), with live status, so a rebuild shows progress. | day ahead, 9 Oct 2026 |
 | 261009a | Day ahead: be•do's three get their own section under the intentions, with why each rose and the next in line; chosen per J9 (someone waiting · target passed · in motion · weighing), never a calendar event's own row, one slot per person waiting; the dawn builds a draft before the intention check so the three are in view. Her words: I'm not seeing the Pareto 3 … recommend what three things I could do today that would move the ball forward the most. | day ahead, 9 Oct 2026 |
