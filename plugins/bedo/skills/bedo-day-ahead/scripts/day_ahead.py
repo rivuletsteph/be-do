@@ -786,6 +786,31 @@ def standing_steps(practices, rows, today, days):
 
 
 # ---------------------------------------------------------------- main
+def kid_intentions(latest, today, L):
+    """The child's own intention for the day (10 Oct 2026, her words: make this a
+    <child>'s intention section). A row dated today on the child (`child_calendar`,
+    its person from `calendar_people`) and titled "<child>'s goal — …", any status
+    but dropped, so a goal met draws as done. Its own section under the user's
+    intentions, never one of the three or a task."""
+    name = L.get('child_calendar') or ''
+    person = (L.get('calendar_people') or {}).get(name) or name
+    if not name:
+        return name, []
+    pat = re.compile(r"^\W*" + re.escape(name) + r"['’]s goal\s*[—–-]\s*(.+)$", re.I)
+    out = []
+    for r in latest.values():
+        m = pat.match(r['title'] or '')
+        if not m or r['status'] == '✖️ dropped' or not r['target']:
+            continue
+        if local(r['target']).date() != today:
+            continue
+        if person and person not in [x.strip() for x in (r['person'] or '').split(',')]:
+            continue
+        out.append(dict(id=r['id'], text=m.group(1).strip(), st=r['status'][:2], created=r['created']))
+    out.sort(key=lambda x: x['created'])
+    return name, out
+
+
 def install_local(L):
     """Put the person's own values where the module can see them. Missing a
     field id is a build error, not a blank column: a silent '' would read every
@@ -910,6 +935,9 @@ def main():
     # rows that are an event's own (or may be, today) are on the calendar already
     calendared = {e['match_row']['id'] for e in evs if e.get('match_row')}
     calendared |= {r['id'] for e in evs for r in (e.get('maybe') or [])}
+    kid_name, kid = kid_intentions(latest, today, L)
+    kid_ids = {k['id'] for k in kid}
+    open_rows = [r for r in open_rows if r['id'] not in kid_ids]  # its own section, not the pull
     picks, nxt, more = pareto(open_rows, chains, rhythms, today, L, calendared)
     if a.pick:
         # the three as weighed in the chat (9 Oct 2026: the day chat's three were the right
@@ -1053,6 +1081,7 @@ def main():
                      move=move(p['row'])) for p in picks],
         next=nxt, tasks=tasks, max_tasks=cap,
         intentions=(a.intention + [None, None, None])[:3], draft=a.draft,
+        kid=dict(name=kid_name, items=[dict(text=k['text'], st=k['st']) for k in kid]),
         drives=plan['drives'],
         map=dict(start=today.isoformat(), end=L['map_end'], lanes=lanes, dests=list(dests.values()), away=away),
         soon=soon, overdue=[o for o in overdue if o['id'] not in picked],  # a pick shows once, in the three

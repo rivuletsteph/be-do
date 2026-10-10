@@ -373,6 +373,11 @@ the user. A project with no named next step is the defect.
 2. **Your intentions** — only the slots the user named, in their words; three
    empty slots before they name any. Above the week's word (8 Oct 2026, their
    words: *my daily intention above the week's intention, then the calendar*).
+   **The child's intention** (10 Oct 2026) — under the user's own, only when
+   named: a row dated today on the child (`child_calendar`, its person from
+   `calendar_people`) titled `<child>'s goal — …`, drawn with its status, so a
+   goal met shows done. Never one of the three or a task. When the user says the
+   child's goal at the intention check, write it that way.
 3. **be•do's three** — their own section, each card saying why it rose, and
    the next in line beneath. Before the intentions are named this is what the
    draft is for.

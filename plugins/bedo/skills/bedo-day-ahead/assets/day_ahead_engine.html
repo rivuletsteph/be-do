@@ -193,6 +193,9 @@ const named = D.intentions.filter(Boolean).length;
 page.append($(`<section><h2>your intentions</h2><p class="sub">${named?'named by you this morning — the three below stay be•do\'s recommendation':'yours to name — these stay empty until you do'}</p>
   <div class="slots" style="grid-template-columns:repeat(${named||3},1fr)">${(named?D.intentions.filter(Boolean):D.intentions).map((v,i)=>v?`<div class="slot" style="color:var(--ink);border-style:solid"><b style="color:var(--accent)">${i+1}</b>${esc(v)}</div>`:`<div class="slot"><b>${i+1}</b>open</div>`).join('')}</div></section>`));
 
+/* the child's intention (10 Oct 2026): their own words, under the user's, only when named */
+const kidSec = D.kid && (D.kid.items||[]).length ? true : false;
+
 const glyph = st => {
   const k = {'⬜':'int','▫️':'pot','▶️':'mot','✅':'don'}[String(st||'⬜').trim()] || 'int';
   const nm = {int:'intention',pot:'potential',mot:'in motion',don:'done'}[k];
@@ -214,6 +217,9 @@ const card = (t, why) => {
   const drv = t.drive ? `<div class="edrv">${esc(t.emoji||'')} ${esc(t.drive)}</div>` : '<div class="edrv none">no drive</div>';
   return $(`<div class="ecard act${late?' gone':''}"><div class="at">${at}</div><div class="ttl">${glyph(t.st)}${esc(t.title)}</div>${drv}${moveHtml(t.move)}${why?`<div class="why">${esc(why)}</div>`:''}</div>`);
 };
+if (kidSec) page.append($(`<section><h2>${esc(D.kid.name)}'s intention</h2><p class="sub">${esc(D.kid.name)}'s own, for today</p>
+  <div class="slots" style="grid-template-columns:1fr">${D.kid.items.map(k=>`<div class="slot" style="color:var(--ink);border-style:solid;border-color:color-mix(in srgb,var(--kid) 45%,transparent);text-align:left">${glyph(k.st)}${esc(k.text)}</div>`).join('')}</div></section>`));
+
 /* be•do's three — the Pareto three (J9), their own section right under the intentions,
    in view while the user names their own (9 Oct 2026: "I'm not seeing the Pareto 3") */
 if (D.pareto && D.pareto.length){
