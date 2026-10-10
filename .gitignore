@@ -9,6 +9,8 @@
 # …and so are the core's facts: choice strings, glyphs and thresholds, nothing
 # personal. Its personal half is facts_local.json, which stays ignored.
 !plugins/bedo/core/facts.json
+# …and the repo's Claude settings: a session-start hook that turns on the privacy pre-push hook
+!.claude/settings.json
 
 # local
 bedo_local.py

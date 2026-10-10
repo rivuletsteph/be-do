@@ -18,7 +18,7 @@ Two kinds of hit:
   · patterns anyone's data has — Airtable ids, real email addresses, artifact,
     Drive and Docs links, calendar ids.
 
-    python3 tools/privacy_check.py              # every tracked file, as it is now
+    python3 tools/privacy_check.py              # every file git would commit, new ones too
     python3 tools/privacy_check.py --diff BASE  # lines added and commit messages since BASE
     python3 tools/privacy_check.py --history    # every version of every file, every message
 
@@ -183,7 +183,9 @@ def main():
         for sha in git('rev-list', '--all').split():
             check(git('log', '-1', '--format=%B', sha), f'commit {sha[:7]}', T, hits)
     else:
-        for path in git('ls-files').splitlines():
+        # new files too, not only tracked ones (10 Oct 2026: a test file written and checked
+        # before its first commit was skipped, and a name went out in it)
+        for path in git('ls-files', '--cached', '--others', '--exclude-standard').splitlines():
             if path in SKIP:
                 continue
             try:
