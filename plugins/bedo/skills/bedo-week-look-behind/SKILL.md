@@ -20,22 +20,18 @@ balance and the wheel, the river, the body, highlights, the quest grid, the
 queues, who was there, what had a date and didn't happen, what you got stuck on.
 Add them one at a time, only when she misses one.
 
-## Settings
+## Run it
 
-The day behind's `look_behind_local.json` — same field ids, offset and week
-anchor. It needs `fields.rhythms.feeds` for the nesting; without it every drive
-is a root.
+```
+bash plugins/bedo/skills/bedo-week-look-behind/run_week_look_behind.sh [any day of the week]
+```
 
-## Steps
-
-1. Read the week's bases, live first (I15), with the day behind's fetcher —
-   once with `--day` set to a day of the week (that base and the one before)
-   and, when the week is past, once more for the live base:
-   `python3 plugins/bedo/skills/bedo-look-behind/scripts/bedo_fetch.py --day <Saturday> --local look_behind_local.json --out reads`
-2. Build:
-   `python3 plugins/bedo/skills/bedo-week-look-behind/scripts/week_look_behind.py --week <Sunday> --local look_behind_local.json --stream <live>.json --stream w##.json --stream w##-1.json --rhythms rhythms.json --template plugins/bedo/skills/bedo-week-look-behind/assets/week_look_behind_engine.html --out week.html`
-3. The builder prints the drive outline, the totals and its QA (`over_span`:
-   rows over 12 h, left out of the minutes; `feeds_loops`). Name anything in QA
-   in one line.
+With no day, it builds the week just closed. It fetches the builder fresh, the
+settings from Airtable (`be•do system › settings`, the day behind's
+`look_behind_local` row; the installed day behind's copy when Airtable can't be
+read), the live week and the asked week's bases, and writes
+`<Saturday>-week-behind.html`. It prints the drive outline, the totals and its
+QA (`over_span`: rows over 12 h, left out of the minutes; `feeds_loops`). Name
+anything in QA in one line, then publish the page the way the day behind does.
 
 Test: `python3 plugins/bedo/skills/bedo-week-look-behind/tests/test_week.py`.
