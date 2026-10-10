@@ -1,4 +1,12 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(bash plugins/bedo/skills/bedo-look-behind/run_look_behind.sh:*)",
+      "Bash(bash plugins/bedo/skills/bedo-week-look-behind/run_week_look_behind.sh:*)",
+      "Bash(bash plugins/bedo/skills/bedo-day-ahead/run_day_ahead.sh:*)",
+      "Bash(bash plugins/bedo/skills/bedo-checks/run_checks.sh:*)"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {
