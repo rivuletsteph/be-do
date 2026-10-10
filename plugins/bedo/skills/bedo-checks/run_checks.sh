@@ -55,6 +55,9 @@ fetch_core() {
 
 find_local() {
   [ -n "${BEDO_FACTS_LOCAL:-}" ] && [ -f "$BEDO_FACTS_LOCAL" ] && return 0
+  # the live settings are a row in Airtable (be•do system › settings); without it, the copies below
+  if (cd "$W/core" && "$PY" bedo_settings.py facts_local --out "$W/facts_local.json"); then
+    export BEDO_FACTS_LOCAL="$W/facts_local.json"; return 0; fi
   for c in ./facts_local.json "$W/facts_local.json" /root/.claude/skills/synced/*/bedo-checks/assets/facts_local.json \
            "$HOME/.bedo/facts_local.json"; do
     [ -f "$c" ] && { export BEDO_FACTS_LOCAL=$(cd "$(dirname "$c")" && pwd)/$(basename "$c"); return 0; }

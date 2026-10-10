@@ -74,7 +74,6 @@ fetch_airtable() {
 [ -n "$DAY" ] || { echo "usage: run_day_ahead.sh prep|cal|fetch|build YYYY-MM-DD [secure] [builder args…]"; exit 2; }
 
 if [ "$MODE" = prep ]; then
-  need_local
   rm -rf be-do-main
   git clone -q --depth 1 https://github.com/rivuletsteph/be-do be-do-main
   S=be-do-main/plugins/bedo/skills
@@ -84,6 +83,9 @@ if [ "$MODE" = prep ]; then
   # an escape hatch: anything in overlay/ wins over the version store for this run
   if [ -d overlay ]; then cp overlay/*.py scripts/ 2>/dev/null || true
     cp overlay/day_ahead_engine.html . 2>/dev/null || true; fi
+  # the live settings are a row in Airtable (be•do system › settings); without it, the copy below
+  [ -n "${LB_LOCAL:-}" ] || "$PY" scripts/bedo_settings.py day_ahead_local --out day_ahead_local.json || true
+  need_local
   RC=0; fetch_airtable || RC=$?
   [ "$RC" -eq 0 ] || [ "$RC" -eq 3 ] || exit "$RC"      # a short or failed read stops here (I11)
   rm -rf cal && mkdir cal
