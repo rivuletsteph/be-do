@@ -235,6 +235,10 @@ def load_connections(path):
     return Circles(people, circle)
 
 
+def split_people(v):
+    return [p.strip() for p in re.split(r',|\s·\s', v or '') if p.strip()]
+
+
 # ── small shapes ──────────────────────────────────────────────────────────
 def her_words(details):
     """The user's words sit above the divider; the [be•do] block below is not."""
@@ -458,10 +462,12 @@ def main():
             e = None
         pr = norm(r.get('practice'))
         cat = practices.get(pr) or {}
-        people = [p.strip() for p in (r.get('person') or '').split(',') if p.strip()]
+        # a person field lists people with commas or with " · " (10 Oct 2026: a row
+        # written "<her> · <a colleague>" drew as one person)
+        people = split_people(r.get('person'))
         # person = with her or in direct contact; mentioned = came up in that
         # contact (an amendment). Older rows carry no mentioned.
-        ment = [p.strip() for p in (r.get('mentioned') or '').split(',') if p.strip()]
+        ment = split_people(r.get('mentioned'))
         r = dict(r, _s=s, _e=e, _mins=(e - s) if e else 0, _pr=pr,
                  _people=people, _mentioned=ment, _title=clean_title(r.get('title')))
         r['_band'] = cat.get('band') or L.get('default_effort_band', 1)
@@ -770,11 +776,31 @@ def main():
     # only rows that happened (9 Oct 2026: a plan for Friday put two people on
     # Thursday's page she never saw — "I didn't directly interact with" them)
     met_rows = [r for r in day_rows if r.get('status') not in noscore | NOT_LIVED]
+    # one person, however the rows write them (10 Oct 2026: a name with its glyph and
+    # without it drew as two people, and she drew as one of hers): the connections record when one is
+    # found, else the name without its glyph. The chip shows the form written most.
+    def pkey(p):
+        k = circles.index.find(p) if hasattr(circles, 'index') else None
+        return ('rec', k) if k else ('name', bedo_people.norm(p))
+    me = pkey(self_name)
+    forms = {}
+    for r in met_rows:
+        canon = []
+        for p in r['_people']:
+            k = pkey(p)
+            if k == me or bedo_people.norm(p) == bedo_people.norm(self_name):
+                continue
+            forms.setdefault(k, {}).setdefault(p, 0)
+            forms[k][p] += 1
+            if k not in canon:
+                canon.append(k)
+        r['_pk'] = canon
+    shown = {k: max(f, key=lambda x: (f[x], len(x))) for k, f in forms.items()}
+    for r in met_rows:
+        r['_pn'] = [shown[k] for k in r['_pk']]
     covered, first = {}, {}
     for r in met_rows:          # already in time order, so the chips are too
-        for p in r['_people']:
-            if p == self_name:
-                continue
+        for p in r['_pn']:
             first.setdefault(p, r['_s'])
             first[p] = min(first[p], r['_s'])
             covered.setdefault(p, [])
@@ -802,19 +828,21 @@ def main():
         return order.index(c) if c in order else len(order)
     # the outer ring: people who came up, hung off whoever they came up with.
     # A mentioned name with no one but her in person on its row is not drawn.
-    via = {}
+    # Hung once, off the first person it came up with (10 Oct 2026: at a celebration of
+    # life the person remembered hung off all six people at the table).
+    via, hung = {}, set()
+    in_day = {pkey(p) for p in first}
     for r in met_rows:
-        direct = [p for p in r['_people'] if p != self_name]
+        direct = r['_pn']
         for m in r.get('_mentioned') or []:
-            if m == self_name or m in first:
+            mk = pkey(m)
+            if mk == me or mk in in_day or mk in hung or not direct:
                 continue
-            for p in direct:
-                via.setdefault(p, [])
-                if m not in via[p]:
-                    via[p].append(m)
+            hung.add(mk)
+            via.setdefault(direct[0], []).append(m)
     # grouped by first circle, sized by how many of the day's rows were shared,
     # as the person text writes them (25 Sep)
-    shared = {p: sum(1 for r in met_rows if p in r['_people']) for p in first}
+    shared = {p: sum(1 for r in met_rows if p in r['_pn']) for p in first}
     who = [dict({'name': p, 'when': when_of(p),
                  'circle': circles.get(p) or '', 'n': shared[p]},
                 **({'via': via[p]} if via.get(p) else {}))

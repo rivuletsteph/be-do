@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""The child's intention (10 Oct 2026, her words: make this a Johnny's intention
+"""The child's intention (10 Oct 2026, her words: make this a <child>'s intention
 section). A row dated today on the child, titled "<child>'s goal — …", is the
 child's own intention: its own section, never one of the three or a task.
 
