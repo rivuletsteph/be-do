@@ -24,8 +24,17 @@
 #   LB_LOCAL  where day_ahead_local.json is copied from, if not already in place
 #   LB_OUT    where the finished page is also copied (skipped if it can't be made)
 # Settings live in day_ahead_local.json; nothing is merged at run time.
+#
+# Where the code comes from: run from inside a checkout of the version store (the
+# routine's attached repo), prep copies from that checkout and clones nothing — a
+# script downloaded and run in the same session is what auto mode refuses as code
+# from outside (10 Oct 2026). Copied elsewhere and run, it clones, as before.
+# BEDO_SRC names a checkout to use instead.
 set -euo pipefail
 MODE=${1:-}; DAY=${2:-}
+HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+SRC=${BEDO_SRC:-}
+if [ -z "$SRC" ] && [ -f "$HERE/../../core/facts.json" ]; then SRC=$(cd "$HERE/../../../.." && pwd); fi
 W=${LB_DIR:-/home/claude/da}; mkdir -p "$W"; cd "$W"
 export PYTHONUTF8=1 PYTHONIOENCODING=utf-8   # Windows python prints cp1252 by default and dies on an emoji
 
@@ -74,12 +83,16 @@ fetch_airtable() {
 [ -n "$DAY" ] || { echo "usage: run_day_ahead.sh prep|cal|fetch|build YYYY-MM-DD [secure] [builder args…]"; exit 2; }
 
 if [ "$MODE" = prep ]; then
-  rm -rf be-do-main
-  git clone -q --depth 1 https://github.com/rivuletsteph/be-do be-do-main
-  S=be-do-main/plugins/bedo/skills
-  rm -rf scripts && cp -r $S/bedo-day-ahead/scripts . && cp $S/bedo-day-ahead/assets/day_ahead_engine.html .
-  cp $S/bedo-look-behind/scripts/bedo_fetch.py scripts/     # the Airtable reader lives with the look behind
-  cp be-do-main/plugins/bedo/core/*.py be-do-main/plugins/bedo/core/facts.json scripts/   # the one reader (I11 I15 I5)
+  if [ -n "$SRC" ]; then R=$SRC; echo "code: the checkout at $R"
+  else
+    rm -rf be-do-main
+    git clone -q --depth 1 https://github.com/rivuletsteph/be-do be-do-main
+    R=be-do-main
+  fi
+  S=$R/plugins/bedo/skills
+  rm -rf scripts && cp -r "$S/bedo-day-ahead/scripts" . && cp "$S/bedo-day-ahead/assets/day_ahead_engine.html" .
+  cp "$S/bedo-look-behind/scripts/bedo_fetch.py" scripts/     # the Airtable reader lives with the look behind
+  cp "$R"/plugins/bedo/core/*.py "$R/plugins/bedo/core/facts.json" scripts/   # the one reader (I11 I15 I5)
   # an escape hatch: anything in overlay/ wins over the version store for this run
   if [ -d overlay ]; then cp overlay/*.py scripts/ 2>/dev/null || true
     cp overlay/day_ahead_engine.html . 2>/dev/null || true; fi

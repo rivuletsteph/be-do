@@ -55,8 +55,12 @@ one reason, which is what the notification carries.
   inside a session carries none (29 Sep 2026). Without them it builds and
   publishes, and leaves the row, the Drive copy and the calendar to the next
   chat, saying so.
-- **What the dry run found (29 Sep 2026)**: a session fired by a routine has
-  no repository checked out (it clones), Python 3.11, the Artifact tool, the
+- **The repo is attached to the routine** (10 Oct 2026), with
+  `.claude/settings.json` allowing the be•do runners: the session starts in a
+  checkout and runs its own code. Without the repo it had to clone and run
+  what it downloaded, which auto mode refuses.
+- **What the dry run found (29 Sep 2026)**: a session fired by a routine had
+  no repository checked out (it cloned), Python 3.11, the Artifact tool, the
   synced skills and the settings file, and the credential on
   `api.airtable.com`; it has none of the claude-code-remote tools (no
   `get_session`, no `send_later`), its `SendMessage` reaches no other session,
@@ -82,24 +86,24 @@ it is the only place the routine looks.
 
 0. **The date.** `TZ=<time_zone> date +%F` is today; yesterday is today minus
    one. Say *building YYYY-MM-DD* before anything else.
-1. **A working folder and the settings.** Any folder (`LB_DIR`), the runner
-   fetched fresh from the version store, the settings found by the runner
-   itself in the synced skill (`LB_LOCAL` if not):
-   ```
-   git clone -q --depth 1 https://github.com/rivuletsteph/be-do be-do-main
-   cp be-do-main/plugins/bedo/skills/bedo-look-behind/run_look_behind.sh .
-   export LB_DIR=$PWD LB_OUT=$PWD/out
-   ```
+1. **The code: the attached repo, not a download.** The routine has
+   `rivuletsteph/be-do` attached, so the session starts inside a fresh checkout
+   of `main`. Run every step from the repo's root as
+   `bash plugins/bedo/skills/bedo-look-behind/run_look_behind.sh …` (below,
+   `run_look_behind.sh` is short for that path); the runner copies its scripts
+   from the checkout and clones nothing. The working folder is the runner's
+   default (`/home/claude/lb`) and the settings are read from Airtable by the
+   runner itself. **Never clone and run**: on 10 Oct 2026 auto mode refused a
+   script the session had just downloaded as code from outside, and the page
+   went unbuilt. No checkout in the session means the repo is not attached to
+   the routine: say so as the `FAILED` reason and stop.
 2. **Prep yesterday.** `bash run_look_behind.sh prep <yesterday>` — Airtable
    read directly, the credential attached by the proxy, no token in the
    session. **If it aborts with *no base named "w## be•do"*, the week has
    turned and the new base is not cloned yet** (the Sunday close does that):
    say so and stop. Never fall back to the old week's base.
-3. **Is yesterday already final?**
-   ```
-   python3 scripts/look_behind_log.py --today <today> --local look_behind_local.json \
-     --stream data/w##.json [--stream data/w##-prev.json] --cap 3
-   ```
+3. **Is yesterday already final?** `bash run_look_behind.sh log <today>`
+   (`scripts/look_behind_log.py` over the fetched weeks, three days back).
    If yesterday is not in `to_build`, a final already exists: say so, stop.
    Any older day in `to_build` is named in the account, not built.
 4. **Yesterday:**
