@@ -102,6 +102,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 261001_1322b | ▫️ | Move be•do into an app — tap the practices instead of saying them |
 | 260706_2115p | ▫️ | A wellness wheel for each person in the household, off the person tags |
 | 260925_1045 | ▫️ | A life map for each person in the household |
+| 261010a | ⬜ | **No more skill uploads.** The pages and the checks are loaders now (they download the repo each run) and their settings are rows in Airtable `be•do system › settings`. Seven be•do skills still carry their whole text: bedo-airtable, bedo-weekly-close, chat-title, clear-inbox, provisions, session-entry, shopping-watch. The rule: the next change to any of them also turns it into a loader (its procedure moves to `plugins/bedo/skills/<name>/`, the installed copy becomes `loader/SKILL.md`), so each needs one more upload at most, and none is converted until it has to change. Also: add the checks' `facts_local` row to the settings table. Her words: I never want to do that again. |
 
 ## Done
 
