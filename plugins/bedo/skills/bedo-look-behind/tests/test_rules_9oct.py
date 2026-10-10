@@ -130,6 +130,24 @@ class People(unittest.TestCase):
         self.assertEqual({p['name']: p['circle'] for p in D['who']},
                          {'Marigold': 'Family', 'Pat Example': 'Family', 'Coz': 'Work'})
 
+    def test_one_person_however_written_and_a_mention_hung_once(self):
+        # 10 Oct 2026: "<her> · <a colleague>" drew as one person, a name with its glyph
+        # and without drew as two, and the person remembered at a gathering hung off everyone
+        f = Fixture(); f.whole_day()
+        f.row('🗣️ face-to-face', 600, 660, person=f'{SELF} · Robin Example', wellness='🩷 heart')
+        f.row('⚡ action', 700, 720, title='a game with Kit', person='🐢Kit', status=DONE,
+              wellness='🩷 heart')
+        f.row('⚡ action', 730, 750, title='more of the game', person='Kit', status=DONE,
+              wellness='🩷 heart')
+        f.row('🗣️ face-to-face', 1100, 1200, person='🐢Kit, Ash, Bo', mentioned='Remembered One',
+              wellness='🩷 heart')
+        r, D = f.build()
+        self.assertIsNotNone(D, r.stderr)
+        who = {p['name']: p for p in D['who']}
+        self.assertEqual(sorted(who), ['Ash', 'Bo', 'Robin Example', '🐢Kit'])
+        self.assertEqual(who['🐢Kit']['n'], 3)
+        self.assertEqual([p.get('via') for p in D['who'] if p.get('via')], [['Remembered One']])
+
 
 class Pie(unittest.TestCase):
     def test_cycling_is_moving_and_moving_wins_the_minute(self):
