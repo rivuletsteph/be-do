@@ -5,6 +5,7 @@
 #   bash run_look_behind.sh prep  YYYY-MM-DD           # fetch + print the day's digest
 #   bash run_look_behind.sh build YYYY-MM-DD <secure>  # after the words are written
 #   bash run_look_behind.sh words YYYY-MM-DD [edits…]  # read the lead and story back, or change them
+#   bash run_look_behind.sh log   YYYY-MM-DD           # today's date: which days still need their final
 #
 # The words live in words-YYYY-MM-DD.json, written with scripts/words.py (a scheduled
 # run adds --draft). `words` with no edits prints them numbered; with --set-lead,
@@ -23,8 +24,17 @@
 #   LB_LOCAL  where look_behind_local.json is copied from, if not already in place
 #   LB_OUT    where the finished page is also copied (skipped if it can't be made)
 # python3 is used when present, otherwise python.
+#
+# Where the code comes from: run from inside a checkout of the version store (the
+# routine's attached repo), prep copies from that checkout and clones nothing — a
+# script downloaded and run in the same session is what auto mode refuses as code
+# from outside (10 Oct 2026). Copied elsewhere and run, it clones, as before.
+# BEDO_SRC names a checkout to use instead.
 set -euo pipefail
 MODE=${1:-}; DAY=${2:-}; SECURE=${3:-}
+HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+SRC=${BEDO_SRC:-}
+if [ -z "$SRC" ] && [ -f "$HERE/../../core/facts.json" ]; then SRC=$(cd "$HERE/../../../.." && pwd); fi
 W=${LB_DIR:-/home/claude/lb}; mkdir -p "$W"; cd "$W"
 export PYTHONUTF8=1 PYTHONIOENCODING=utf-8   # Windows python prints cp1252 by default and dies on an emoji
 
@@ -49,12 +59,16 @@ need_local() {
 }
 
 if [ "$MODE" = prep ]; then
-  rm -rf be-do-main
-  git clone -q --depth 1 https://github.com/rivuletsteph/be-do be-do-main
-  S=be-do-main/plugins/bedo/skills/bedo-look-behind
-  rm -rf scripts && cp -r $S/scripts . && cp $S/assets/look_behind_engine.html .
-  cp be-do-main/plugins/bedo/skills/bedo-day-ahead/scripts/day_digest.py scripts/   # the digest lives with the day ahead
-  cp be-do-main/plugins/bedo/core/*.py be-do-main/plugins/bedo/core/facts.json scripts/   # the one reader (I11 I15 I5)
+  if [ -n "$SRC" ]; then R=$SRC; echo "code: the checkout at $R"
+  else
+    rm -rf be-do-main
+    git clone -q --depth 1 https://github.com/rivuletsteph/be-do be-do-main
+    R=be-do-main
+  fi
+  S=$R/plugins/bedo/skills/bedo-look-behind
+  rm -rf scripts && cp -r "$S/scripts" . && cp "$S/assets/look_behind_engine.html" .
+  cp "$R/plugins/bedo/skills/bedo-day-ahead/scripts/day_digest.py" scripts/   # the digest lives with the day ahead
+  cp "$R"/plugins/bedo/core/*.py "$R/plugins/bedo/core/facts.json" scripts/   # the one reader (I11 I15 I5)
   # an escape hatch: anything in overlay/ wins over the version store for this run
   if [ -d overlay ]; then cp overlay/*.py scripts/ 2>/dev/null || true
     cp overlay/look_behind_engine.html . 2>/dev/null || true; fi
@@ -97,6 +111,12 @@ elif [ "$MODE" = words ]; then
     OUT=${LB_OUT:-/mnt/user-data/outputs}
     if mkdir -p "$OUT" 2>/dev/null; then cp "$DAY-day-behind.html" "$OUT/"
       echo "also copied to $OUT/"; fi;; esac
+elif [ "$MODE" = log ]; then
+  # DAY here is today; the days still waiting for their final (MORNING.md step 3)
+  [ -f scripts/look_behind_log.py ] || { echo "scripts/look_behind_log.py missing — run prep first"; exit 1; }
+  need_local
+  STREAMS=$(ls -r data/w*.json | sed 's/^/--stream /' | tr '\n' ' ')
+  "$PY" scripts/look_behind_log.py --today "$DAY" --local look_behind_local.json $STREAMS --cap 3
 else
-  echo "usage: run_look_behind.sh prep|build|words YYYY-MM-DD [secure | edits…]"; exit 2
+  echo "usage: run_look_behind.sh prep|build|words|log YYYY-MM-DD [secure | edits…]"; exit 2
 fi
