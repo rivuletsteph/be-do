@@ -41,6 +41,25 @@ li .set,li .due{font-size:.74rem;color:var(--muted)}
 a{color:var(--link)}
 .foot{font:400 .7rem var(--mono);color:var(--faint);line-height:1.6}
 .warn{color:var(--grow-ink)}
+.bars{display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:7.5rem 1fr 4.2rem;gap:8px;align-items:center;font-size:.85rem}
+.bar .t{height:10px;border-radius:5px;background:var(--rule);overflow:hidden}
+.bar .t i{display:block;height:100%;border-radius:5px;background:var(--tend)}
+.bar .t i.grow{background:var(--grow-ink)}
+.bar .t i.rest{background:var(--link)}
+.bar .v{font:400 .74rem var(--mono);color:var(--muted);text-align:right}
+.days{width:100%;border-collapse:collapse;font-size:.82rem}
+.days th{font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);text-align:right;padding:4px 4px}
+.days th:first-child,.days td:first-child{text-align:left}
+.days td{padding:5px 4px;border-top:1px solid var(--rule);text-align:right;font-family:var(--mono);font-size:.74rem;color:var(--soft)}
+.days td.s{font-family:var(--sans);font-size:.8rem}
+.split{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--rule);min-width:60px}
+.split i{display:block;height:100%}
+.split .d{background:var(--tend)} .split .g{background:var(--grow-ink)}
+.side{margin:0 0 14px}
+.side h3{font-size:.95rem;font-weight:800;margin:0 0 2px}
+.side .says{font-size:.78rem;color:var(--muted);margin:0 0 6px}
+.lead{font-size:.95rem;line-height:1.45;color:var(--soft);margin:0 0 12px}
 </style>
 <body><div class="wrap" id="page"></div>
 <script>
@@ -52,6 +71,21 @@ const extra = (n, w) => n ? ` · ${n} ${w}` : "";
 P.innerHTML = `<div class="chip">${esc(DATA.chip)}</div>
 <p class="eyebrow">the look behind · the week</p>
 <h1>${esc(DATA.week)}</h1><p class="range">${esc(DATA.range)}</p>
+<section><p class="label">where the time went</p>
+<p class="note">minutes from rows with a real span; two things at once both count, as on the wheel; sleep is time in bed, not an area</p>
+<div class="stats"><div class="stat"><b>${hm(DATA.time.be)}</b><span>being</span></div>
+<div class="stat"><b>${hm(DATA.time.tend + DATA.time.grow)}</b><span>doing · ${hm(DATA.time.grow)} growing</span></div>
+<div class="stat"><b>${hm(DATA.time.bed)}</b><span>in bed</span></div></div>
+<div class="bars" id="areas" style="margin-top:14px"></div></section>
+<section><p class="label">what moved forward</p>
+<p class="note">every action closed in the week, and what is in motion and was touched in it</p>
+<div id="moved"></div></section>
+<section><p class="label">rest as a reset</p>
+<p class="lead" id="restlead"></p>
+<div id="restdays"></div></section>
+<section><p class="label">needs · on the secure base</p>
+<p class="lead" id="needlead"></p>
+<div id="needs"></div><div id="needdays"></div></section>
 <section><p class="label">the week on its drives</p>
 <p class="note">each counted once${extra(hm(T.min_no_drive) !== "0 min" ? hm(T.min_no_drive) : "", "logged on no drive")}${extra(T.closed_no_drive, "closed on no drive")}${extra(T.open_no_drive, "open on no drive")}</p>
 <div class="stats"><div class="stat"><b>${hm(T.min)}</b><span>on drives</span></div>
@@ -76,6 +110,42 @@ const node = n => {
 document.getElementById("drives").innerHTML = DATA.drives.length ? DATA.drives.map(node).join("") : `<p class="note">nothing on a drive this week</p>`;
 document.getElementById("foot").innerHTML = `read ${esc(DATA.read)}` +
   (DATA.loops.length ? `<br><span class="warn">feeds loops — fix in the base: ${DATA.loops.map(esc).join(" · ")}</span>` : "") +
-  `<br>first cut: drives only — the reading, balance, the body and who was there are not built yet`;
+  `<br>not built yet: the reading, the wheel, who was there`;
+// where the time went — the eight areas, being first
+const amax = Math.max(1, ...DATA.time.areas.map(a => a.min));
+const BE = new Set(DATA.time.areas.slice(0, 4).map(a => a.a));
+document.getElementById("areas").innerHTML = DATA.time.areas.map(a =>
+  `<div class="bar"><span>${esc(a.a)}</span><span class="t"><i class="${BE.has(a.a) ? "rest" : ""}" style="width:${100 * a.min / amax}%"></i></span><span class="v">${a.min ? hm(a.min) : "—"}</span></div>`).join("");
+// what moved forward
+const M = DATA.moved;
+document.getElementById("moved").innerHTML =
+  `<div class="stats"><div class="stat"><b>${M.closed.length}</b><span>✅ closed</span></div><div class="stat"><b>${M.motion.length}</b><span>▶️ in motion, touched</span></div><div class="stat"><b>${hm(T.min)}</b><span>on drives</span></div></div>` +
+  (M.closed.length ? `<ul style="margin-top:12px">${M.closed.map(c => `<li>✅ ${c.url ? `<a href="${esc(c.url)}">${esc(c.t)}</a>` : esc(c.t)}${c.drive ? ` <span class="set">· ${esc(c.drive)}</span>` : ""}</li>`).join("")}</ul>` : "") +
+  (M.motion.length ? `<details><summary>${M.motion.length} in motion</summary><ul>${M.motion.map(c => `<li>▶️ ${esc(c.t)}${c.drive ? ` <span class="set">· ${esc(c.drive)}</span>` : ""}</li>`).join("")}</ul></details>` : "");
+// rest as a reset — nights, play, the morning readiness
+const R = DATA.rest, Dd = DATA.days;
+const rd = R.readiness;
+document.getElementById("restlead").textContent =
+  `${hm(R.bed)} in bed across ${R.nights} logged night${R.nights === 1 ? "" : "s"}, ${hm(R.play)} of play` +
+  (rd.length ? `; morning readiness ${rd.join(" · ")}` : "") + ". Rest is counted here as part of the week's work, not time away from it.";
+document.getElementById("restdays").innerHTML = `<table class="days"><tr><th>day</th><th>in bed</th><th>readiness</th><th>sleep</th><th>play</th><th>doing</th></tr>` +
+  Dd.map(d => `<tr><td class="s">${esc(d.day)}</td><td>${d.bed ? hm(d.bed) : "—"}</td><td>${d.readiness ?? "—"}</td><td>${d.sleep_score ?? "—"}</td><td>${d.play ? hm(d.play) : "—"}</td><td>${(d.tend + d.grow) ? hm(d.tend + d.grow) : "—"}</td></tr>`).join("") + `</table>`;
+// needs — deficiency against growth, on the secure base
+const NE = DATA.needs, dsum = NE.deficiency.reduce((s, g) => s + g.min, 0), gsum = NE.growth.reduce((s, g) => s + g.min, 0);
+const pct = (a, b) => (a + b) ? Math.round(100 * a / (a + b)) : 0;
+document.getElementById("needlead").textContent =
+  `${DATA.secure_days} of 7 days on a secure base${DATA.secure_assumed ? ` (${DATA.secure_assumed} assumed — no ⏏️ row)` : ""}. ` +
+  `${hm(dsum)} went to deficiency needs and ${hm(gsum)} to growth needs — ${pct(gsum, dsum)}% growth. ` +
+  `From a secure base the deficiency needs get met, and that is what lets the growth side open.`;
+const side = (k, cls) => NE[k].map(g => {
+  const mx = Math.max(1, ...NE[k].map(x => x.min));
+  return `<div class="side"><h3>${esc(g.label)} · ${hm(g.min)}</h3><p class="says">${esc(g.says)} — ${g.areas.map(a => `${esc(a.a)} ${a.min ? hm(a.min) : "—"}`).join(", ")}</p>` +
+    `<div class="bar"><span>${k}</span><span class="t"><i class="${cls}" style="width:${100 * g.min / Math.max(1, dsum, gsum)}%"></i></span><span class="v">${pct(g.min, (dsum + gsum) - g.min)}%</span></div></div>`;
+}).join("");
+document.getElementById("needs").innerHTML = side("deficiency", "") + side("growth", "grow");
+document.getElementById("needdays").innerHTML = `<table class="days"><tr><th>day</th><th>base</th><th>deficiency</th><th>growth</th><th style="width:30%"></th></tr>` +
+  Dd.map(d => `<tr><td class="s">${esc(d.day)}</td><td class="s">${d.secure === "secure" ? (d.assumed ? "secure*" : "secure") : esc(d.secure)}</td><td>${d.deficiency ? hm(d.deficiency) : "—"}</td><td>${d.growth ? hm(d.growth) : "—"}</td>` +
+    `<td><span class="split"><i class="d" style="width:${pct(d.deficiency, d.growth)}%"></i><i class="g" style="width:${(d.deficiency + d.growth) ? 100 - pct(d.deficiency, d.growth) : 0}%"></i></span></td></tr>`).join("") +
+  `</table><p class="note" style="margin-top:6px">* no ⏏️ row that day; secure is the default. Deficiency: ${NE.deficiency.map(g => esc(g.label)).join(", ")} · growth: ${NE.growth.map(g => esc(g.label)).join(", ")}</p>`;
 </script>
 </body></html>

@@ -94,6 +94,60 @@ def main():
     assert len(loop) == 1 and loop[0]['min'] == 20 and loop[0]['children'][0]['min'] == 20, loop
     assert len(D['loops']) == 1 and LA in D['loops'][0], D['loops']
     print('ok — the week rolls up two levels, nests, counts once, keeps to its window, and a loop ends')
+    readings(w, out)
+
+
+def readings(w, out):
+    """Her Sun 18 Oct build notes: time by area, what moved, rest as a reset, and
+    the needs on the secure base. Sleep is in bed and never an area; a night
+    belongs to its morning; somebody else's night is theirs; readiness comes from
+    the Oura row's own words; a day with no ⏏️ row is secure, and says so."""
+    sf = dict(SF, practice='fP', wellness='fL', person='fN', details='fX')
+    loc = dict(LOCAL, fields={'stream': sf, 'rhythms': RF}, self_person='♋ Me', growing_types=['♐ drive'],
+               pie=[{'k': 'play', 'practices': ['show']}])
+
+    def r(title, pr, well, when, end=None, person=None, details=None, status=LOG, drive=''):
+        x = row(title, drive, status, when, end)
+        c = x['cellValuesByFieldId']
+        c.update({sf['practice']: pr, sf['wellness']: well})
+        if person:
+            c[sf['person']] = person
+        if details:
+            c[sf['details']] = details
+        return x
+    D = '2026-09-{}T{}:00.000Z'
+    rows = [
+        r('sleep', '😴 sleep', '🤸\u200d♀️ body', D.format(28, '22:00'), D.format(29, '06:00')),     # 480, Tue's night
+        r('kid sleep', '😴 sleep', '🤸\u200d♀️ body', D.format(28, '20:00'), D.format(29, '07:00'), person='♑ Kid'),
+        r('walk', '🚶\u200d♀️ walking', '🤸\u200d♀️ body', D.format(29, '07:00'), D.format(29, '08:00')),   # 60 deficiency
+        r('a phone call', '☎️ phone', '🩷 heart', D.format(29, '09:00'), D.format(29, '09:30')),      # 30 deficiency
+        r('read', '📗 book', '🧠 mind', D.format(29, '10:00'), D.format(29, '10:45')),                # 45 growth
+        r('a show', '📺 show', '🔥 fire', D.format(29, '20:00'), D.format(29, '21:00')),              # 60 growth, play
+        r('checked Oura — readiness 84, sleep 77', '🪐 morning oura', '🤸\u200d♀️ body', D.format(29, '06:10'),
+          details='7 h 35 asleep of 8 h'),
+        r('not secure — a hard call', '⏏️ secure base', '💖 spirit', D.format(30, '08:00')),
+        r('a plan', '⚡ action', '🌎 earth', D.format(30, '09:00'), D.format(30, '10:00'), status=INT),  # never lived
+    ]
+    o = out.replace('week.html', 'week2.html')
+    rr = subprocess.run([sys.executable, BUILDER, '--week', '2026-09-30', '--local', w('local2.json', loc),
+                         '--stream', w('w40b.json', dump(rows)), '--rhythms', w('rhythms2.json', dump(RHYTHMS)),
+                         '--template', ENGINE, '--out', o],
+                        capture_output=True, text=True, encoding='utf-8', timeout=60,
+                        env=dict(os.environ, PYTHONIOENCODING='utf-8'))
+    if rr.returncode:
+        sys.exit(rr.stdout + rr.stderr)
+    html = open(o, encoding='utf-8').read()
+    X = json.loads(html.split('const DATA = ', 1)[1].split(';\nconst esc', 1)[0])
+    tue, wed = X['days'][2], X['days'][3]
+    assert (tue['bed'], tue['readiness'], tue['sleep_score'], tue['play']) == (480, 84, 77, 60), tue
+    assert (tue['deficiency'], tue['growth'], tue['be']) == (90, 105, 135), tue
+    assert X['time']['bed'] == 480 and X['time']['be'] == 135 and X['time']['tend'] == 60, X['time']
+    assert X['rest'] == {'bed': 480, 'play': 60, 'nights': 1, 'readiness': [84]}, X['rest']
+    assert [g['min'] for g in X['needs']['deficiency']] == [60, 30], X['needs']
+    assert [g['min'] for g in X['needs']['growth']] == [45, 60], X['needs']
+    assert wed['secure'] == 'not secure — a hard call' and not wed['assumed'], wed
+    assert tue['secure'] == 'secure' and tue['assumed'] and X['secure_days'] == 6 and X['secure_assumed'] == 6, X
+    print('ok — time by area, rest and readiness, and the needs on the secure base')
 
 
 if __name__ == '__main__':

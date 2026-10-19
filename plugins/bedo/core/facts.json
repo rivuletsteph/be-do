@@ -175,5 +175,18 @@
   "note": "overlap — {answer} with {partner}",
   "her_words": {"synergizing": ["synergy", "synergiz", "synergis", "multiply", "complement"], "competing": ["competing", "compete", "conflict", "fractured", "detract"]},
   "say": {"synergizing": "synergy — do more of that", "competing": "competing — next time, try them apart", "both": "some of each — notice which part helped", "neutral": "they just sat side by side"}
+ },
+ "needs": {
+  "_about": "Her build note, Sun 18 Oct 2026: the week look behind shows Maslow's deficiency vs. growth needs, tied to the secure base. The eight wellness areas pair (heart and water, mind and air, body and earth, spirit and fire); two pairs are the deficiency needs Maslow names first, two are the growth needs, and from a secure base the deficiency side is met so the growth side can open. A settings key 'needs' with the same shape overrides this.",
+  "deficiency": [
+   {"label": "body and home", "says": "physiological and safety", "areas": ["🤸\u200d♀️ body", "🌎 earth"]},
+   {"label": "belonging and esteem", "says": "love, belonging, the work that earns respect", "areas": ["🩷 heart", "🌊 water"]}
+  ],
+  "growth": [
+   {"label": "knowing", "says": "understanding, learning, making sense", "areas": ["🧠 mind", "💨 air"]},
+   {"label": "meaning and making", "says": "self-actualisation, creating, what reaches past the self", "areas": ["💖 spirit", "🔥 fire"]}
+  ],
+  "secure_practice": "secure base",
+  "oura_practice": "morning oura"
  }
 }

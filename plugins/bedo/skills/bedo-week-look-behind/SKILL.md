@@ -15,10 +15,33 @@ numbers at the top count each row once. A loop in `feeds` is named in the
 footer; fix it in the base. The rule is `plugins/bedo/core/bedo_drives.py`, the
 same one the day behind and the day ahead use.
 
+**Four readings of the same rows** (her build notes, Sun 18 Oct 2026), above the
+drives:
+
+- **Where the time went** — minutes from rows with a real span, by the eight
+  areas: being, doing (tending and growing, by the drive's type) and time in bed.
+  Two rows at once both count, as on the wheel. Sleep is in bed, never an area.
+- **What moved forward** — every ✅ closed in the week, on a drive or not, and
+  every ▶️ head whose chain had a row in it.
+- **Rest as a reset** — nights in bed (a night is the morning's day; somebody
+  else's sleep row is theirs), play minutes (the pie's play practices), and the
+  morning readiness and sleep scores read from the 🪐 morning oura row's words.
+  Rest is shown as part of the week's work, not time away from it.
+- **Needs, on the secure base** — Maslow's deficiency needs against his growth
+  needs, by the wellness pairs: body and earth, heart and water are deficiency;
+  mind and air, spirit and fire are growth (`needs` in `core/facts.json`; a
+  `needs` key in the settings overrides it). Day by day beside the secure base:
+  a day with no ⏏️ row is secure, the default, and is starred as assumed; any
+  other ⏏️ title is the other state, in her words.
+
 **Not built yet** (from the full page spec): the week's word and the reading,
-balance and the wheel, the river, the body, highlights, the quest grid, the
-queues, who was there, what had a date and didn't happen, what you got stuck on.
-Add them one at a time, only when she misses one.
+the wheel, the river, highlights, the quest grid, the queues, who was there,
+what had a date and didn't happen, what you got stuck on. Add them one at a
+time, only when she misses one.
+
+**Where it lands**: one living week page, republished in place each week (first
+published at the W42 close, 19 Oct 2026). Its link is personal and is kept with
+her settings and the week's handoff, not here.
 
 ## Run it
 
