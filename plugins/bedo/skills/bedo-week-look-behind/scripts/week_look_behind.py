@@ -212,6 +212,47 @@ def moving(rows, chains, start, end, local):
     return sorted(out, key=lambda r: r.get('when') or '')
 
 
+def garden(rows, start, L, local):
+    """Each moment she marked as mattering, as a flower: the areas it touched (its own,
+    heart when shared, and what her words name), a memory it echoes, a synergy glow."""
+    G = L.get('garden') or bedo_reader.FACTS['garden']
+    kinds = set(G['moment_practices'])
+    shared_rx = re.compile(G.get('shared_pattern') or r"'s highlight$")   # a child's or partner's own highlight
+    me = L.get('self_person') or ''
+    end = start + dt.timedelta(days=7)
+    out = []
+    for r in rows:
+        a = local(r.get('when'))
+        if not a or not (start <= a < end) or r.get('status') in NOT_LIVED or not (
+                norm(r.get('practice')) in kinds or shared_rx.search(norm(r.get('practice')))):
+            continue
+        mine = (r.get('details') or '').split(bedo_reader.FACTS['divider'])[0]
+        text = ' '.join([r.get('title') or '', mine]).lower()
+        areas = [norm(r.get('wellness'))] if norm(r.get('wellness')) else []
+        people = [p.strip() for p in (r.get('person') or '').split(',') if p.strip() and p.strip() != me]
+        if people:
+            areas.append('heart')
+        areas += [k for k, ws in G['words'].items() if any(w in text for w in ws)]
+        areas = list(dict.fromkeys(x for x in areas if x))
+        memory = any(w in text for w in G['memory'])
+        synergy = any(w in text for w in G['synergy'])
+        out.append(dict(day=f'{DAY3[a.weekday()]} {a.day}', at=a.isoformat(), kind=norm(r.get('practice')),
+                        t=re.sub(r'^[^\w]+', '', r.get('title') or '').strip(), areas=areas, people=people,
+                        memory=memory, synergy=synergy, layers=len(areas) + memory + synergy))
+    # the same moment picked by both of them (her highlight and theirs, same minute) is
+    # one flower, marked as theirs too
+    theirs = [m for m in out if shared_rx.search(m['kind'])]
+    mine = [m for m in out if not shared_rx.search(m['kind'])]
+    for m in theirs:
+        twin = next((x for x in mine if x['at'] == m['at']), None)
+        if twin:
+            twin['both'] = shared_rx.split(m['kind'])[0]
+            twin['layers'] += 1
+        else:
+            mine.append(m)
+    return sorted(mine, key=lambda m: m['at'])
+
+
 def needs_map(L):
     N = L.get('needs') or bedo_reader.FACTS['needs']
     side = {}
@@ -314,7 +355,7 @@ def readings(rows, timed, rhythms, start, L, local):
                        min=round(sum(areas.get(norm(a), 0) for a in g['areas'])),
                        areas=[dict(a=a, min=round(areas.get(norm(a), 0))) for a in g['areas']]) for g in N[k]]
               for k in ('deficiency', 'growth')}
-    return dict(days=out, rest=rest, needs=groups,
+    return dict(days=out, rest=rest, needs=groups, garden=garden(rows, start, L, local),
                 time=dict(be=sum(v['be'] for v in out), tend=sum(v['tend'] for v in out),
                           grow=sum(v['grow'] for v in out), bed=rest['bed'],
                           people=sum(v['people'] for v in out),

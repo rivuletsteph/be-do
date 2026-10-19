@@ -188,5 +188,20 @@
   ],
   "secure_practice": "secure base",
   "oura_practice": "morning oura"
+ },
+ "garden": {
+  "_about": "Her words, 19 Oct 2026: show and reflect meaning, the layers of a day like Garner. The week look behind draws each moment she marked as mattering as one flower: its petals are the areas the moment touched, a ring is a memory it echoes, a glow is a moment made more by sharing it (synergy). Areas come from the row's own wellness, the people on it (heart), and her words, read with the word lists below. Nothing is inferred beyond her words.",
+  "moment_practices": ["highlight", "glimmer", "gratitude", "insight"],
+  "shared_pattern": "'s highlight$",
+  "words": {
+   "heart": ["with them", "together", "my guys", "family", "having so much fun with", "snuggl", "hug"],
+   "body": ["swim", "hike", "hiking", "walk", "climb", "rope swing", "kayak", "pool", "beach walk"],
+   "fire": ["adventure", "rope swing", "kayak", "zipline", "first time", "new campsite", "explor", "arcade", "play", "fun"],
+   "spirit": ["meaningful", "grateful", "eternal", "beautiful", "sky", "sunrise", "sunset", "cypress", "view", "present", "awe", "perfect"],
+   "mind": ["noticing plants", "learned", "learning", "wonder"],
+   "earth": ["campsite", "home", "garden"]
+  },
+  "memory": ["years ago", "last time", "i remember", "back when", "five years", "when he was"],
+  "synergy": ["synerg", "even more wonderful", "more with them", "better with"]
  }
 }

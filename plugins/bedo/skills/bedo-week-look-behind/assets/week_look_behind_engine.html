@@ -60,6 +60,17 @@ a{color:var(--link)}
 .side h3{font-size:.95rem;font-weight:800;margin:0 0 2px}
 .side .says{font-size:.78rem;color:var(--muted);margin:0 0 6px}
 .lead{font-size:.95rem;line-height:1.45;color:var(--soft);margin:0 0 12px}
+.garden{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}
+.fl{background:var(--tint);border-radius:16px;padding:10px 10px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
+.fl.big{grid-column:span 2;grid-row:span 2}
+.fl svg{display:block;width:100%;max-width:120px;height:auto;overflow:visible}
+.fl.big svg{max-width:240px}
+.fl .d{font:400 .66rem var(--mono);color:var(--faint)}
+.fl .t{font-size:.8rem;line-height:1.3;color:var(--soft)}
+.fl.big .t{font-size:.95rem;color:var(--ink)}
+.fl .k{font:400 .64rem var(--mono);color:var(--muted)}
+.gkey{display:flex;flex-wrap:wrap;gap:4px 12px;margin:12px 0 0;font-size:.72rem;color:var(--muted)}
+.gkey i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:-1px}
 </style>
 <body><div class="wrap" id="page"></div>
 <script>
@@ -71,6 +82,9 @@ const extra = (n, w) => n ? ` · ${n} ${w}` : "";
 P.innerHTML = `<div class="chip">${esc(DATA.chip)}</div>
 <p class="eyebrow">the look behind · the week</p>
 <h1>${esc(DATA.week)}</h1><p class="range">${esc(DATA.range)}</p>
+<section><p class="label">what mattered</p>
+<p class="lead" id="gardenlead"></p>
+<div class="garden" id="garden"></div><div class="gkey" id="gkey"></div></section>
 <section><p class="label">where the time went</p>
 <p class="lead" id="cover"></p>
 <p class="note">minutes from rows with a real span; two things at once both count, as on the wheel, and time with somebody counts toward heart whatever else it was; sleep is time in bed, not an area</p>
@@ -119,6 +133,33 @@ if (quiet.length) {
 document.getElementById("foot").innerHTML = `read ${esc(DATA.read)}` +
   (DATA.loops.length ? `<br><span class="warn">feeds loops — fix in the base: ${DATA.loops.map(esc).join(" · ")}</span>` : "") +
   `<br>not built yet: the reading, the wheel, who was there`;
+// what mattered — the garden: one flower per moment she marked, petals in the wheel's colours
+// (the day behind's wheel, look_behind_engine.html), a ring for a memory, a glow for synergy
+const WC = {heart:["#3E7FD0",247.5], water:["#9BC4F5",67.5], mind:["#BE4A88",292.5], air:["#F49CC8",112.5],
+  body:["#4E9E62",202.5], earth:["#97D8A3",22.5], spirit:["#EFA038",337.5], fire:["#F7CE72",157.5]};
+const KIND = {highlight:"⭐ highlight", glimmer:"✨ glimmer", gratitude:"🙏 gratitude", insight:"💡 insight"};
+const flower = (m, id) => {
+  const L = 16 + 4.5 * Math.min(m.layers, 8), C = 60;   // ≤ 52, so the ring (L + 6) stays inside
+  const petals = m.areas.filter(a => WC[a]).map(a => {
+    const [c, deg] = WC[a];
+    return `<ellipse cx="${C}" cy="${C - L / 2}" rx="${4 + L / 5}" ry="${L / 2}" fill="${c}" fill-opacity=".82" stroke="${c}" stroke-width="1.5" transform="rotate(${deg} ${C} ${C})"/>`;
+  }).join("");
+  const glow = m.synergy ? `<circle cx="${C}" cy="${C}" r="${L + 8}" fill="url(#g${id})"/>` : "";
+  const ring = m.memory ? `<circle cx="${C}" cy="${C}" r="${L + 6}" fill="none" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3 4"/>` : "";
+  return `<svg viewBox="0 0 120 120" role="img" aria-label="${esc(m.t)}: ${esc(m.areas.join(", "))}">` +
+    `<defs><radialGradient id="g${id}"><stop offset="0" stop-color="#F7CE72" stop-opacity=".55"/><stop offset="1" stop-color="#F7CE72" stop-opacity="0"/></radialGradient></defs>` +
+    glow + ring + petals + `<circle cx="${C}" cy="${C}" r="${3 + m.layers / 2}" fill="var(--ground)" stroke="var(--soft)" stroke-width="1"/></svg>`;
+};
+const G = DATA.garden || [];
+const peak = G.reduce((b, m) => (!b || m.layers > b.layers ? m : b), null);
+document.getElementById("gardenlead").textContent = G.length
+  ? `${G.length} moment${G.length === 1 ? "" : "s"} you marked as mattering this week, ${G.filter(m => m.people.length || m.both).length} of them shared. Each flower's petals are the areas it touched; a dashed ring is a memory it carries, a glow is a moment made more by sharing it.`
+  : "no moments marked this week — a highlight, a glimmer or a gratitude is what grows a flower here";
+document.getElementById("garden").innerHTML = G.map((m, i) =>
+  `<div class="fl${m === peak && m.layers >= 5 ? " big" : ""}">${flower(m, i)}<span class="d">${esc(m.day)} · ${esc(KIND[m.kind] || "🌟 " + m.kind)}${m.both ? ` · ${esc(m.both[0].toUpperCase() + m.both.slice(1))}'s too` : ""}</span><span class="t">${esc(m.t)}</span>` +
+  (m.people.length ? `<span class="k">with ${esc(m.people.join(", "))}</span>` : "") + `</div>`).join("");
+const used = [...new Set(G.flatMap(m => m.areas))].filter(a => WC[a]);
+document.getElementById("gkey").innerHTML = used.map(a => `<span><i style="background:${WC[a][0]}"></i>${esc(a)}</span>`).join("");
 // where the time went — the eight areas, being first
 const amax = Math.max(1, ...DATA.time.areas.map(a => a.min));
 const BE = new Set(DATA.time.areas.slice(0, 4).map(a => a.a));

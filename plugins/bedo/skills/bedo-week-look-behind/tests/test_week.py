@@ -130,6 +130,10 @@ def readings(w, out):
         r('not secure — a hard call', '⏏️ secure base', '💖 spirit', D.format(30, '08:00')),
         r('a plan', '⚡ action', '🌎 earth', D.format(30, '09:00'), D.format(30, '10:00'), status=INT),  # never lived
     ]
+    rows += [r('the river day', '⭐ highlight', '💖 spirit', D.format(30, '18:00'), person='♑ Kid',
+               details='The rope swing, swimming, and the hike we did five years ago. Even more wonderful with them.'),
+             r('the river day', "🌟 kid's highlight", '💖 spirit', D.format(30, '18:00'), person='♑ Kid'),
+             r('a quiet glimmer', '✨ glimmer', '💖 spirit', D.format(30, '19:00'))]
     # an original left behind in the older base after a move is the same row twice
     orig = r('a walk, moved', '🚶\u200d♀️ walking', '🤸\u200d♀️ body', D.format(29, '07:00'), D.format(29, '08:00'))
     rows[2]['cellValuesByFieldId'][sf['details']] = f"[be•do] moved from w39 ({orig['id']}) on 30 Sep"
@@ -154,7 +158,15 @@ def readings(w, out):
     assert [g['min'] for g in X['needs']['growth']] == [45, 60], X['needs']
     assert wed['secure'] == 'not secure — a hard call' and not wed['assumed'], wed
     assert tue['secure'] == 'secure' and tue['assumed'] and X['secure_days'] == 6 and X['secure_assumed'] == 6, X
-    print('ok — time by area, rest and readiness, and the needs on the secure base')
+    # the garden: a marked moment is a flower; her highlight and the kid's own at the same
+    # minute are one flower, marked as theirs too; her words add areas, a memory and synergy
+    g = X['garden']
+    assert [m['t'] for m in g] == ['the river day', 'a quiet glimmer'], [m['t'] for m in g]
+    day = g[0]
+    assert day['both'] == 'kid' and day['memory'] and day['synergy'], day
+    assert {'body', 'heart', 'fire', 'spirit'} <= set(day['areas']), day['areas']
+    assert g[1]['layers'] == 1 and not g[1]['memory'], g[1]
+    print('ok — time by area, rest and readiness, and the needs on the secure base, and the garden')
 
 
 if __name__ == '__main__':

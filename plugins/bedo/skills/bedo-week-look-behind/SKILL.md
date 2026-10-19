@@ -15,6 +15,17 @@ numbers at the top count each row once. A loop in `feeds` is named in the
 footer; fix it in the base. The rule is `plugins/bedo/core/bedo_drives.py`, the
 same one the day behind and the day ahead use.
 
+**What mattered — the garden, first on the page** (her words, 19 Oct 2026: show
+and reflect meaning, the layers of a day). Each moment she marked as mattering
+(a highlight, a glimmer, a gratitude, an insight, and a child's or partner's own
+`'s highlight`) is one flower. Its petals are the areas the moment touched, in
+the day behind's wheel colours: the row's own area, heart when it was shared,
+and whatever her words name (`garden.words` in `core/facts.json`). A dashed ring
+is a memory it carries ("five years ago"), a glow is a moment made more by
+sharing it (her synergy rule), and her highlight and theirs at the same minute
+are one flower, marked as theirs too. The flower with the most layers is drawn
+large. Time and meaning are kept apart: the garden never counts minutes.
+
 **Four readings of the same rows** (her build notes, Sun 18 Oct 2026), above the
 drives:
 
