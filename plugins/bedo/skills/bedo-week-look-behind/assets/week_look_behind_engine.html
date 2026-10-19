@@ -72,10 +72,11 @@ P.innerHTML = `<div class="chip">${esc(DATA.chip)}</div>
 <p class="eyebrow">the look behind · the week</p>
 <h1>${esc(DATA.week)}</h1><p class="range">${esc(DATA.range)}</p>
 <section><p class="label">where the time went</p>
-<p class="note">minutes from rows with a real span; two things at once both count, as on the wheel; sleep is time in bed, not an area</p>
+<p class="lead" id="cover"></p>
+<p class="note">minutes from rows with a real span; two things at once both count, as on the wheel, and time with somebody counts toward heart whatever else it was; sleep is time in bed, not an area</p>
 <div class="stats"><div class="stat"><b>${hm(DATA.time.be)}</b><span>being</span></div>
 <div class="stat"><b>${hm(DATA.time.tend + DATA.time.grow)}</b><span>doing · ${hm(DATA.time.grow)} growing</span></div>
-<div class="stat"><b>${hm(DATA.time.bed)}</b><span>in bed</span></div></div>
+<div class="stat"><b>${hm(DATA.time.people)}</b><span>with people</span></div></div>
 <div class="bars" id="areas" style="margin-top:14px"></div></section>
 <section><p class="label">what moved forward</p>
 <p class="note">every action closed in the week, and what is in motion and was touched in it</p>
@@ -92,8 +93,8 @@ P.innerHTML = `<div class="chip">${esc(DATA.chip)}</div>
 <div class="stat"><b>${T.closed}</b><span>✅ closed</span></div>
 <div class="stat"><b>${T.open}</b><span>still open</span></div></div></section>
 <section><p class="label">by drive</p>
-<p class="note">a drive that feeds another sits under it, and its time and counts are in the parent's numbers</p>
-<div id="drives"></div></section>
+<p class="note">the drives that moved this week; a drive that feeds another sits under it, and its time and counts are in the parent's numbers</p>
+<div id="drives"></div><details id="quiet"><summary></summary><div id="quietdrives" style="margin-top:10px"></div></details></section>
 <section class="foot" id="foot"></section>`;
 // one drive: its numbers including what feeds it, then its own lists, then the drives that feed it
 const node = n => {
@@ -107,7 +108,14 @@ const node = n => {
   return `<div class="drive"><div class="dh"><span>${esc(n.emoji)}</span><span class="n">${esc(n.drive)}</span><span class="m">${nums}</span></div>${own}${done}${still}` +
     (n.children.length ? `<div class="sub">${n.children.map(node).join("")}</div>` : "") + `</div>`;
 };
-document.getElementById("drives").innerHTML = DATA.drives.length ? DATA.drives.map(node).join("") : `<p class="note">nothing on a drive this week</p>`;
+// only the drives that moved are shown; the ones holding open items alone fold away (19 Oct 2026: the drive list is overwhelming)
+const moved = n => n.min > 0 || n.closed > 0;
+const live = DATA.drives.filter(moved), quiet = DATA.drives.filter(n => !moved(n));
+document.getElementById("drives").innerHTML = live.length ? live.map(node).join("") : `<p class="note">no drive moved this week</p>`;
+if (quiet.length) {
+  document.querySelector("#quiet summary").textContent = `${quiet.length} more drives, open items only · ${quiet.reduce((s, n) => s + n.open, 0)} open`;
+  document.getElementById("quietdrives").innerHTML = quiet.map(node).join("");
+} else document.getElementById("quiet").remove();
 document.getElementById("foot").innerHTML = `read ${esc(DATA.read)}` +
   (DATA.loops.length ? `<br><span class="warn">feeds loops — fix in the base: ${DATA.loops.map(esc).join(" · ")}</span>` : "") +
   `<br>not built yet: the reading, the wheel, who was there`;
@@ -124,12 +132,18 @@ document.getElementById("moved").innerHTML =
   (M.motion.length ? `<details><summary>${M.motion.length} in motion</summary><ul>${M.motion.map(c => `<li>▶️ ${esc(c.t)}${c.drive ? ` <span class="set">· ${esc(c.drive)}</span>` : ""}</li>`).join("")}</ul></details>` : "");
 // rest as a reset — nights, play, the morning readiness
 const R = DATA.rest, Dd = DATA.days;
-const rd = R.readiness;
+const rd = R.readiness, ra = R.activity || [];
 document.getElementById("restlead").textContent =
   `${hm(R.bed)} in bed across ${R.nights} logged night${R.nights === 1 ? "" : "s"}, ${hm(R.play)} of play` +
-  (rd.length ? `; morning readiness ${rd.join(" · ")}` : "") + ". Rest is counted here as part of the week's work, not time away from it.";
-document.getElementById("restdays").innerHTML = `<table class="days"><tr><th>day</th><th>in bed</th><th>readiness</th><th>sleep</th><th>play</th><th>doing</th></tr>` +
-  Dd.map(d => `<tr><td class="s">${esc(d.day)}</td><td>${d.bed ? hm(d.bed) : "—"}</td><td>${d.readiness ?? "—"}</td><td>${d.sleep_score ?? "—"}</td><td>${d.play ? hm(d.play) : "—"}</td><td>${(d.tend + d.grow) ? hm(d.tend + d.grow) : "—"}</td></tr>`).join("") + `</table>`;
+  (rd.length ? `; morning readiness ${rd.join(" · ")}` : "") + (ra.length ? `; activity ${ra.join(" · ")}` : "") +
+  ". Rest is counted here as part of the week's work, not time away from it.";
+document.getElementById("restdays").innerHTML = `<table class="days"><tr><th>day</th><th>in bed</th><th>readiness</th><th>sleep</th><th>activity</th><th>play</th></tr>` +
+  Dd.map(d => `<tr><td class="s">${esc(d.day)}</td><td>${d.bed ? hm(d.bed) : "—"}</td><td>${d.readiness ?? "—"}</td><td>${d.sleep_score ?? "—"}</td><td>${d.activity ?? "—"}</td><td>${d.play ? hm(d.play) : "—"}</td></tr>`).join("") + `</table>`;
+// coverage — how much of the waking week any row covers: the size of every number on this page
+const TM = DATA.time, cp = TM.awake ? Math.round(100 * TM.logged / TM.awake) : 0;
+document.getElementById("cover").innerHTML = `the record covers <b>${hm(TM.logged)}</b> of about ${hm(TM.awake)} awake — ${cp}%. ` +
+  Dd.map(d => `${esc(d.day)} ${d.awake ? Math.round(100 * d.logged / d.awake) : 0}%`).join(" · ") +
+  (cp < 60 ? `. Read the numbers below as what was logged, not all that happened.` : ".");
 // needs — deficiency against growth, on the secure base
 const NE = DATA.needs, dsum = NE.deficiency.reduce((s, g) => s + g.min, 0), gsum = NE.growth.reduce((s, g) => s + g.min, 0);
 const pct = (a, b) => (a + b) ? Math.round(100 * a / (a + b)) : 0;

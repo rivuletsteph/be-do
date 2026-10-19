@@ -43,6 +43,7 @@ NOT_LIVED = set(ST['plans']) | {ST['actions'][4], ST['logs'][2]}   # ▫️ ⬜ 
 MAX_SPAN = dt.timedelta(hours=bedo_reader.FACTS['entry_rules']['max_span_hours'])
 DAY3 = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 MARK = chr(0x1684E)                                      # be•do's mark, by codepoint
+MOVED = re.compile(r'moved from w\d+ \((rec[A-Za-z0-9]+)\)')   # a row moved between bases names its original
 
 
 def die(msg):
@@ -80,7 +81,10 @@ def load(paths, F):
             row.update(id=r['id'], created=r.get('createdTime') or '')
             row['rhythm'] = ((row.get('rhythm') or '').split(',')[0]).strip()
             seen[r['id']] = row
-    return list(seen.values()), reads
+    # a row moved between bases names the original it replaced ('moved from w41
+    # (recXXXX)'); an original left behind is the same row twice (W42 QA, 19 Oct 2026)
+    moved = {m for row in seen.values() for m in MOVED.findall(row.get('details') or '')}
+    return [row for i, row in seen.items() if i not in moved], reads
 
 
 def load_rhythms(path, RF):
@@ -117,13 +121,15 @@ def build(rows, rhythms, start, L):
             if b - a > MAX_SPAN:
                 qa['over_span'].append(r.get('title') or r['id'])
                 continue
-            m = (min(b, end) - max(a, start)).total_seconds() / 60
+            span = (max(a, start), min(b, end))
+            m = (span[1] - span[0]).total_seconds() / 60
         elif a and r.get('spent') and start <= a < end:
             m = float(r['spent']) / 60
+            span = (a, a + dt.timedelta(minutes=m))
         else:
             continue
         if m > 0:
-            timed.append(dict(r, _min=round(m)))
+            timed.append(dict(r, _min=round(m), _span=span))
 
     # closed and open — one line per action, its state as the week ended
     chains = {}
@@ -226,8 +232,11 @@ def readings(rows, timed, rhythms, start, L, local):
     zero = {norm(p) for p in (L.get('zero_practices') or [])}
     me = L.get('self_person') or ''
     days = [start.date() + dt.timedelta(d) for d in range(7)]
-    D = {d: dict(day=f'{DAY3[d.weekday()]} {d.day}', bed=0, play=0, be=0, tend=0, grow=0,
-                 deficiency=0, growth=0, none=0, readiness=None, sleep_score=None, secure=None) for d in days}
+    D = {d: dict(day=f'{DAY3[d.weekday()]} {d.day}', bed=0, play=0, be=0, tend=0, grow=0, people=0,
+                 deficiency=0, growth=0, none=0, readiness=None, sleep_score=None, activity=None,
+                 secure=None, logged=0) for d in days}
+    spans = {d: [] for d in days}
+    heart = norm(WELL['be'][0])
     areas = {norm(a): 0 for a in WELL['be'] + WELL['do']}
     for r in timed:
         pr = norm(r.get('practice'))
@@ -245,7 +254,18 @@ def readings(rows, timed, rhythms, start, L, local):
             continue
         if pr in play:
             D[d]['play'] += r['_min']
+        if r.get('_span'):
+            spans[d].append(r['_span'])
         w = norm(r.get('wellness'))
+        # time with somebody is belonging, whatever else it was: dinner with the
+        # family is body AND heart, both counted, as two things at once are on the
+        # wheel (her word, 19 Oct 2026: I had a ton of family time last week)
+        others = [p for p in people if p != me]
+        if others:
+            D[d]['people'] += r['_min']
+            if w != heart:
+                areas[heart] += r['_min']                  # the heart bar and the needs, not the being total
+                D[d][side.get(heart, 'none')] += r['_min']
         if w in areas:
             areas[w] += r['_min']
             if w in be:
@@ -256,14 +276,14 @@ def readings(rows, timed, rhythms, start, L, local):
                 D[d]['tend'] += r['_min']
             D[d][side.get(w, 'none')] += r['_min']
     # the morning readiness, from the Oura row's own words; the secure base from ⏏️
-    rx = {k: re.compile(r'\b' + k + r'\b\D{0,3}(\d{2,3})', re.I) for k in ('readiness', 'sleep')}
+    rx = {k: re.compile(r'\b' + k + r'\b\D{0,3}(\d{2,3})', re.I) for k in ('readiness', 'sleep', 'activity')}
     for r in sorted(rows, key=lambda r: r.get('when') or ''):
         a = local(r.get('when'))
         if not a or a.date() not in D or r.get('status') in NOT_LIVED:
             continue
         pr, text = norm(r.get('practice')), ' '.join(filter(None, [r.get('title'), r.get('details')]))
         if N.get('oura_practice') and pr == N['oura_practice'] and D[a.date()]['readiness'] is None:
-            for k, key in (('readiness', 'readiness'), ('sleep', 'sleep_score')):
+            for k, key in (('readiness', 'readiness'), ('sleep', 'sleep_score'), ('activity', 'activity')):
                 m = rx[k].search(text)
                 if m and 30 <= int(m.group(1)) <= 100:
                     D[a.date()][key] = int(m.group(1))
@@ -273,10 +293,23 @@ def readings(rows, timed, rhythms, start, L, local):
             t = re.sub(r'^secure base\W*', '', norm(r.get('title')))
             D[a.date()]['secure'] = ('secure' if re.match(r'(secure|yes|above the line)\b', t)
                                      else (r.get('title') or '').strip())
+    # how much of the waking day a row covers at all: the honest size of every number above it
+    for d, v in D.items():
+        cov, last = 0, None
+        for a, b in sorted(spans[d]):
+            if last is None or a > last:
+                cov += (b - a).total_seconds() / 60
+                last = b
+            elif b > last:
+                cov += (b - last).total_seconds() / 60
+                last = b
+        v['awake'] = max(0, 24 * 60 - v['bed']) if v['bed'] else 16 * 60
+        v['logged'] = min(round(cov), v['awake'])      # a late night runs past the day's own waking hours
     out = [dict(v, secure=v['secure'] or 'secure', assumed=v['secure'] is None) for v in D.values()]
     rest = dict(bed=sum(v['bed'] for v in out), play=sum(v['play'] for v in out),
                 nights=sum(1 for v in out if v['bed']),
-                readiness=[v['readiness'] for v in out if v['readiness'] is not None])
+                readiness=[v['readiness'] for v in out if v['readiness'] is not None],
+                activity=[v['activity'] for v in out if v['activity'] is not None])
     groups = {k: [dict(label=g['label'], says=g['says'],
                        min=round(sum(areas.get(norm(a), 0) for a in g['areas'])),
                        areas=[dict(a=a, min=round(areas.get(norm(a), 0))) for a in g['areas']]) for g in N[k]]
@@ -284,6 +317,8 @@ def readings(rows, timed, rhythms, start, L, local):
     return dict(days=out, rest=rest, needs=groups,
                 time=dict(be=sum(v['be'] for v in out), tend=sum(v['tend'] for v in out),
                           grow=sum(v['grow'] for v in out), bed=rest['bed'],
+                          people=sum(v['people'] for v in out),
+                          logged=sum(v['logged'] for v in out), awake=sum(v['awake'] for v in out),
                           areas=[dict(a=a, min=round(areas[norm(a)])) for a in WELL['be'] + WELL['do']]),
                 secure_days=sum(1 for v in out if v['secure'] == 'secure'),
                 secure_assumed=sum(1 for v in out if v['assumed']))

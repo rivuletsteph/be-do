@@ -121,13 +121,19 @@ def readings(w, out):
         r('kid sleep', '😴 sleep', '🤸\u200d♀️ body', D.format(28, '20:00'), D.format(29, '07:00'), person='♑ Kid'),
         r('walk', '🚶\u200d♀️ walking', '🤸\u200d♀️ body', D.format(29, '07:00'), D.format(29, '08:00')),   # 60 deficiency
         r('a phone call', '☎️ phone', '🩷 heart', D.format(29, '09:00'), D.format(29, '09:30')),      # 30 deficiency
+        r('lunch out with the kid', '🍽️ lunch', '🤸\u200d♀️ body', D.format(29, '12:00'), D.format(29, '12:40'),
+          person='♑ Kid'),                                          # 40 body AND 40 heart: time with somebody
         r('read', '📗 book', '🧠 mind', D.format(29, '10:00'), D.format(29, '10:45')),                # 45 growth
         r('a show', '📺 show', '🔥 fire', D.format(29, '20:00'), D.format(29, '21:00')),              # 60 growth, play
-        r('checked Oura — readiness 84, sleep 77', '🪐 morning oura', '🤸\u200d♀️ body', D.format(29, '06:10'),
+        r('checked Oura — readiness 84, sleep 77, activity 91', '🪐 morning oura', '🤸\u200d♀️ body', D.format(29, '06:10'),
           details='7 h 35 asleep of 8 h'),
         r('not secure — a hard call', '⏏️ secure base', '💖 spirit', D.format(30, '08:00')),
         r('a plan', '⚡ action', '🌎 earth', D.format(30, '09:00'), D.format(30, '10:00'), status=INT),  # never lived
     ]
+    # an original left behind in the older base after a move is the same row twice
+    orig = r('a walk, moved', '🚶\u200d♀️ walking', '🤸\u200d♀️ body', D.format(29, '07:00'), D.format(29, '08:00'))
+    rows[2]['cellValuesByFieldId'][sf['details']] = f"[be•do] moved from w39 ({orig['id']}) on 30 Sep"
+    rows.append(orig)
     o = out.replace('week.html', 'week2.html')
     rr = subprocess.run([sys.executable, BUILDER, '--week', '2026-09-30', '--local', w('local2.json', loc),
                          '--stream', w('w40b.json', dump(rows)), '--rhythms', w('rhythms2.json', dump(RHYTHMS)),
@@ -140,10 +146,11 @@ def readings(w, out):
     X = json.loads(html.split('const DATA = ', 1)[1].split(';\nconst esc', 1)[0])
     tue, wed = X['days'][2], X['days'][3]
     assert (tue['bed'], tue['readiness'], tue['sleep_score'], tue['play']) == (480, 84, 77, 60), tue
-    assert (tue['deficiency'], tue['growth'], tue['be']) == (90, 105, 135), tue
-    assert X['time']['bed'] == 480 and X['time']['be'] == 135 and X['time']['tend'] == 60, X['time']
-    assert X['rest'] == {'bed': 480, 'play': 60, 'nights': 1, 'readiness': [84]}, X['rest']
-    assert [g['min'] for g in X['needs']['deficiency']] == [60, 30], X['needs']
+    assert (tue['deficiency'], tue['growth'], tue['be'], tue['people']) == (170, 105, 175, 40), tue
+    assert X['time']['bed'] == 480 and X['time']['be'] == 175 and X['time']['tend'] == 60, X['time']
+    assert X['rest'] == {'bed': 480, 'play': 60, 'nights': 1, 'readiness': [84], 'activity': [91]}, X['rest']
+    assert [g['min'] for g in X['needs']['deficiency']] == [100, 70], X['needs']
+    assert tue['logged'] == 235 and tue['awake'] == 960, (tue['logged'], tue['awake'])   # 7–8, 9–9:30, 10–10:45, 12–12:40, 20–21
     assert [g['min'] for g in X['needs']['growth']] == [45, 60], X['needs']
     assert wed['secure'] == 'not secure — a hard call' and not wed['assumed'], wed
     assert tue['secure'] == 'secure' and tue['assumed'] and X['secure_days'] == 6 and X['secure_assumed'] == 6, X

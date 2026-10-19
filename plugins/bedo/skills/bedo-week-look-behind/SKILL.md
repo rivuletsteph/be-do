@@ -18,14 +18,19 @@ same one the day behind and the day ahead use.
 **Four readings of the same rows** (her build notes, Sun 18 Oct 2026), above the
 drives:
 
-- **Where the time went** — minutes from rows with a real span, by the eight
-  areas: being, doing (tending and growing, by the drive's type) and time in bed.
-  Two rows at once both count, as on the wheel. Sleep is in bed, never an area.
+- **Where the time went** — first, how much of the waking week any row covers
+  at all, per day, so a thin record reads as thin. Then minutes from rows with a
+  real span, by the eight areas: being, doing (tending and growing, by the
+  drive's type) and time with people. Two rows at once both count, as on the
+  wheel, and **time with somebody counts toward heart whatever else it was**
+  (her amendment, 19 Oct 2026): it feeds the heart bar and
+  belonging, never the being total. Sleep is in bed, never an area.
 - **What moved forward** — every ✅ closed in the week, on a drive or not, and
   every ▶️ head whose chain had a row in it.
 - **Rest as a reset** — nights in bed (a night is the morning's day; somebody
   else's sleep row is theirs), play minutes (the pie's play practices), and the
-  morning readiness and sleep scores read from the 🪐 morning oura row's words.
+  morning readiness, sleep and activity scores read from the 🪐 morning oura
+  row's words.
   Rest is shown as part of the week's work, not time away from it.
 - **Needs, on the secure base** — Maslow's deficiency needs against his growth
   needs, by the wellness pairs: body and earth, heart and water are deficiency;
@@ -33,6 +38,14 @@ drives:
   `needs` key in the settings overrides it). Day by day beside the secure base:
   a day with no ⏏️ row is secure, the default, and is starred as assumed; any
   other ⏏️ title is the other state, in her words.
+
+**By drive** shows only the drives that moved (time or a ✅); the drives holding
+open items alone fold into one line. **A row moved between bases** names its
+original (`moved from w## (recID)`), and the original is skipped.
+
+**QA the week first.** The page reads what was logged, so every day gets its
+dayqa before the build (the same amendment): sleep from the Oura rows, meals,
+the stretches between rows, wellness on every row.
 
 **Not built yet** (from the full page spec): the week's word and the reading,
 the wheel, the river, highlights, the quest grid, the queues, who was there,
