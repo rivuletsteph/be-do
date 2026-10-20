@@ -354,7 +354,8 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset()):
         badges = list(dict.fromkeys(glyph(r.get('practice')) for r in rs if r is not main or norm(r.get('practice')) in kinds))
         theirs = [shared_rx.split(norm(r.get('practice')))[0] for r in rs if shared_rx.search(norm(r.get('practice')))]
         drive = main.get('rhythm') or next((r.get('rhythm') for r in rs if r.get('rhythm')), '')
-        env = next((e for e in envs if e['_a'] <= main['_a'] <= e['_b']), None)
+        # an envelope holds its whole days: the day she left and the day she came home are the trip's
+        env = next((e for e in envs if e['_a'].date() <= main['_a'].date() <= e['_b'].date()), None)
         chain, dests = flows(drive or (env.get('rhythm') if env else ''))
         # the being side: a flow practice belongs to its flow, dawn or dusk, not to a rhythm or drive
         flow = None
@@ -412,7 +413,8 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset()):
             if m['envelope']:
                 reach[x['n']]['via'].add(m['envelope'])
     flowed = sorted(({**v, 'via': sorted(v['via'])} for v in reach.values()), key=lambda v: -v['n_moments'])
-    return dict(days=days, flowed=flowed, n=len(out))
+    bands = [dict(t=clean(e.get('title')).split(' — ')[0], a=e['_a'].isoformat(), b=e['_b'].isoformat()) for e in envs]
+    return dict(days=days, flowed=flowed, n=len(out), bands=bands)
 
 
 def needs_map(L):
