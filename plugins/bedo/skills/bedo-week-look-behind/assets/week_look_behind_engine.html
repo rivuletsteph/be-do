@@ -165,8 +165,7 @@ const SM = DATA.stream || {days: [], flowed: [], n: 0};
 const cap = x => x ? x[0].toUpperCase() + x.slice(1) : x;
 const inTrip = SM.flowed.filter(f => f.n).reduce((n, f) => n + f.n_moments, 0);
 document.getElementById("slead").textContent = SM.n
-  ? `${SM.n} moments mattered this week` + (inTrip ? `, ${inTrip} of them on the way to somewhere you're going.` : ".") +
-    " Each is what it was, in your words, and where it flowed."
+  ? `${SM.n} moments mattered this week. Each is what it was, in your words, and where it sits: a flow on the being side, or a rhythm or a drive on the doing side, and a moment named in a flow can belong to both.`
   : "no moments marked this week — a highlight, a glimmer, a gratitude or a few lines of your words is what lands here";
 document.getElementById("flowed").innerHTML = SM.flowed.map(f => f.n
   ? `<div class="fw"><b>${esc(f.e)} ${esc(f.n)}</b><span class="v">${f.n_moments} moment${f.n_moments === 1 ? "" : "s"}${f.via.length ? " · through " + f.via.map(esc).join(", ") : ""}</span></div>`
@@ -185,11 +184,12 @@ const stone = m => {
     m.theirs.length ? `🌟 ${esc(m.theirs.map(cap).join(", "))}'s too` : "",
     m.memory ? `↺ ${esc(m.memory)}` : "", m.synergy ? "∞ more because it was shared" : "", m.photo ? "📷 a photo" : ""].filter(Boolean);
   const path = [m.envelope, ...m.drives.map(d => `${d.e} ${d.n}`), ...m.dests.map(d => `${d.e} ${d.n}`)].filter(Boolean);
+  const flowline = m.flow ? `<div class="to">${esc(m.flow.e)} ${esc(m.flow.n)}</div>` : "";
   const big = m.memory || m.synergy || (m.words || "").length > 500;
   return `<div class="stone${big ? " big" : ""}"><span class="g">${esc(m.g || "·")}</span>` +
     `<div class="tt">${esc(m.t)}${m.badges.length ? `<span class="bd">${esc(m.badges.join(" "))}</span>` : ""}</div>` +
     words(m.words) + (meta.length ? `<div class="meta">${meta.map(x => `<span>${x}</span>`).join("")}</div>` : "") +
-    (path.length ? `<div class="to">→ ${path.map(esc).join(" → ")}</div>` : "") + `</div>`;
+    flowline + (path.length ? `<div class="to">→ ${path.map(esc).join(" → ")}</div>` : "") + `</div>`;
 };
 document.getElementById("stream").innerHTML = SM.days.map(d =>
   `<div class="sd"><h2>${esc(d.label)}</h2>${d.lead ? `<div class="dl">${esc(d.lead)}</div>` : `<div style="height:6px"></div>`}` +
