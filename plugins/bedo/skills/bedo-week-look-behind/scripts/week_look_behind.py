@@ -309,6 +309,10 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset()):
         dests += [d for d in out if 'destination' in (rhythms[d].get('type') or '') and d not in dests]
         return [d for d in out if d not in dests], dests
 
+    def kind(d):
+        t = (rhythms.get(d) or {}).get('type') or ''
+        return 'rhythm' if 'rhythm' in t else 'destination' if 'destination' in t else 'drive'
+
     lived = []
     for r in rows:
         a = local(r.get('when'))
@@ -379,8 +383,8 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset()):
             synergy=any(w in low for w in G['synergy']) or any('synergiz' in hers(r).lower() for r in rs),
             photo=any(PHOTO.search(r.get('details') or '') or r.get('photo') for r in rs),
             envelope=clean(env.get('title')).split(' — ')[0] if env else None, flow=flow,
-            drives=[dict(n=d, e=(rhythms[d].get('emoji') or '')) for d in chain],
-            dests=[dict(n=d, e=((rhythms.get(d) or {}).get('emoji') or '')) for d in dests]))
+            drives=[dict(n=d, e=(rhythms[d].get('emoji') or ''), type=kind(d)) for d in chain],
+            dests=[dict(n=d, e=((rhythms.get(d) or {}).get('emoji') or ''), type='destination') for d in dests]))
     out.sort(key=lambda m: m['at'])
     days = []
     for i in range(7):
