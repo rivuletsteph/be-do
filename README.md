@@ -10,6 +10,7 @@ together, so a skill runs in any project or none.
 | the day behind | `bedo-look-behind` | `look_behind_local.json` |
 | the week behind, by drive | `bedo-week-look-behind` | `look_behind_local.json` (the day behind's) |
 | the monthly ahead-review | `bedo-ahead-review` | `ahead_review_local.json` |
+| Oura into the stream | `bedo-oura` | `look_behind_local.json` (the day behind's) |
 
 ## V53 — the rules in code
 
