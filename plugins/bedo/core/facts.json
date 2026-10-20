@@ -202,6 +202,21 @@
    "earth": ["campsite", "home", "garden"]
   },
   "memory": ["years ago", "last time", "i remember", "back when", "five years", "when he was"],
-  "synergy": ["synerg", "even more wonderful", "more with them", "better with"]
+  "synergy": ["synerg", "even more wonderful", "more with them", "better with"],
+  "long_words": 300,
+  "_kind_words": "When a moment's own practice says only that it was logged or marked (a log, a highlight, a glimmer), the first of these whose words appear in its title names what the thing was; the mark stays as a badge.",
+  "generic_practices": ["log", "highlight", "glimmer"],
+  "kind_words": [
+   ["🏊", ["swim", "rope swing", "the frio", "on the water", "pool"]],
+   ["🥾", ["hike", "hiked", "trail"]],
+   ["🏖️", ["beach", "sunrise on the beach", "the dunes"]],
+   ["🍽️", ["dinner", "lunch", "breakfast"]],
+   ["🎥", ["movie", "jaws"]],
+   ["📗", ["book", "read "]],
+   ["🐶", ["rosa", "dog"]],
+   ["🎨", ["sandcastle", "art"]],
+   ["🐟", ["catfish", "fishing"]],
+   ["🌅", ["sky", "sunset"]]
+  ]
  }
 }

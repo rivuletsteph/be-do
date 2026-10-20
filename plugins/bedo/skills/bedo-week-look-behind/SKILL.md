@@ -15,7 +15,21 @@ numbers at the top count each row once. A loop in `feeds` is named in the
 footer; fix it in the base. The rule is `plugins/bedo/core/bedo_drives.py`, the
 same one the day behind and the day ahead use.
 
-**What mattered — the garden, first on the page** (her words, 19 Oct 2026: show
+**What gave the week meaning — the stream, first on the page** (19 Oct 2026, her
+words: what the thing was, a picture, a few words, an emoji for the kind, and how
+it fits; the look and the rhythm → drive → destination thread are The Whole Map
+Ahead's). The days flow top to bottom, each under its own look-behind lead when
+one was written. A stone is a moment she marked (highlight, glimmer, gratitude,
+insight, someone's own highlight, a synergy note) or something she did and wrote
+about at length (`garden.long_words`). Each stone is its emoji (the practice's,
+or for a log or a mark what its title names, `garden.kind_words`, the mark kept
+as a badge), its title, her words, who, a memory (↺), synergy (∞), a photo when
+the row was read from one, and where it flowed: the envelope it sat in (a row
+over 12 hours on a drive, like the trip), its drive and the destinations. The
+rest of each day is one line of what it was. The numbers (time, rest, needs,
+drives) fold below. The garden's data is still built but no longer drawn.
+
+**What mattered — the garden (data only now)** (her words, 19 Oct 2026: show
 and reflect meaning, the layers of a day). Each moment she marked as mattering
 (a highlight, a glimmer, a gratitude, an insight, and a child's or partner's own
 `'s highlight`) is one flower. Its petals are the areas the moment touched, in

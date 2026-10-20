@@ -31,9 +31,9 @@ import bedo_reader  # noqa: E402
 import bedo_drives  # noqa: E402
 
 STREAM_KEYS = ('title', 'key', 'when', 'end', 'status', 'rhythm')
-OPTIONAL_STREAM_KEYS = ('spent', 'deliv', 'target', 'practice', 'wellness', 'person', 'details')
+OPTIONAL_STREAM_KEYS = ('spent', 'deliv', 'target', 'practice', 'wellness', 'person', 'details', 'photo')
 RHYTHM_KEYS = ('name',)
-OPTIONAL_RHYTHM_KEYS = ('emoji', 'type', 'status', 'code', 'feeds')
+OPTIONAL_RHYTHM_KEYS = ('emoji', 'type', 'status', 'code', 'feeds', 'dest')
 WELL = bedo_reader.FACTS['wellness']
 SLEEP = bedo_reader.FACTS['practice']['sleep']
 ST = bedo_reader.FACTS['status']
@@ -92,8 +92,9 @@ def load_rhythms(path, RF):
     out = {}
     for r in recs:
         c = bedo_reader.cells(r)
-        row = {k: (c.get(v) if k == 'feeds' else sv(c.get(v))) for k, v in RF.items()}
+        row = {k: (c.get(v) if k in ('feeds', 'dest') else sv(c.get(v))) for k, v in RF.items()}
         row['feeds'] = bedo_drives.feeds_of(row)
+        row['dest'] = [sv(x) if isinstance(x, dict) else x for x in (row.get('dest') or []) if x]
         if row.get('name'):
             out[row['name']] = row
     return out, len(recs)
@@ -253,6 +254,139 @@ def garden(rows, start, L, local):
     return sorted(mine, key=lambda m: m['at'])
 
 
+GLYPH = re.compile(r'^([^\w\s]+)\s*')
+LEAD = re.compile(r'\[be•do\] look behind (\d{4}-\d\d-\d\d) · (?:draft|final)\s*\n(?:draft )?lead: (.+)')
+PHOTO = re.compile(r'[Ff]rom (?:her|the same) photo')
+
+
+def stream(rows, rhythms, start, L, local):
+    """The week as a stream, day by day: each day under its own lead (the look behind's
+    words), the moments she marked as stones (what it was, her words, who, a photo, and
+    where it flowed: the envelope it sat in, its drive, the drive's destination), and the
+    rest of the day as a short line of what it was (19 Oct 2026: show what the thing
+    was, a picture, a few words, an emoji for the kind, and how it fits)."""
+    G = L.get('garden') or bedo_reader.FACTS['garden']
+    kinds = set(G['moment_practices'])
+    shared_rx = re.compile(G.get('shared_pattern') or r"'s highlight$")
+    me = L.get('self_person') or ''
+    end = start + dt.timedelta(days=7)
+    div = bedo_reader.FACTS['divider']
+
+    def glyph(x):
+        m = GLYPH.match(x or '')
+        return m.group(1) if m else ''
+
+    def clean(t):
+        return GLYPH.sub('', t or '').strip()
+
+    def hers(r):
+        return (r.get('details') or '').split(div)[0].strip()
+
+    def flows(drive):
+        """drive → the drives it feeds → their destinations, as names."""
+        out, seen, todo = [], set(), [drive] if drive else []
+        while todo:
+            d = todo.pop(0)
+            if d in seen or d not in rhythms:
+                continue
+            seen.add(d)
+            out.append(d)
+            todo += rhythms[d].get('feeds') or []
+        dests = list(dict.fromkeys(x for d in out for x in (rhythms[d].get('dest') or [])))
+        return out, dests
+
+    lived = []
+    for r in rows:
+        a = local(r.get('when'))
+        if a and start - dt.timedelta(days=1) <= a < end and r.get('status') not in NOT_LIVED:
+            lived.append(dict(r, _a=a, _b=local(r.get('end'))))
+    # envelopes: a row over 12 hours on a drive holds the moments inside it (the trip)
+    envs = [r for r in lived if r['_b'] and r['_b'] - r['_a'] > MAX_SPAN and r.get('rhythm') in rhythms]
+    leads = {}
+    for r in rows:
+        for d, lead in LEAD.findall(r.get('details') or ''):
+            leads[d] = lead.strip()
+
+    long_words = G.get('long_words', 300)
+    action = norm(bedo_reader.FACTS['practice']['action'])
+
+    def marked(r):
+        pr = norm(r.get('practice'))
+        return (pr in kinds or bool(shared_rx.search(pr)) or 'synergiz' in hers(r).lower()
+                or (len(hers(r)) >= long_words and pr != action and bool(r.get('end'))))   # something she did and wrote about at length
+
+    stones = {}
+    for r in sorted(lived, key=lambda r: (r['_a'], r.get('created') or '')):
+        if not (start <= r['_a'] < end) or not marked(r):
+            continue
+        k = r['_a'].strftime('%Y-%m-%d %H:%M')
+        s_ = stones.setdefault(k, dict(at=r['_a'].isoformat(), day=r['_a'].date().isoformat(), rows=[]))
+        s_['rows'].append(r)
+    out = []
+    for s_ in stones.values():
+        rs = s_['rows']
+        rank = lambda r: (0 if norm(r.get('practice')) not in kinds and not shared_rx.search(norm(r.get('practice')))  # noqa: E731
+                          else 1 if norm(r.get('practice')) == 'highlight' else 3 if shared_rx.search(norm(r.get('practice'))) else 2)
+        main = min(rs, key=rank)
+        words = max((hers(r) for r in rs), key=len)
+        words = re.sub(r'\s*\(\d{1,2} \w{3}\)\s*', ' ', words)
+        words = re.sub(r'\noverlap — .*', '', words).strip()
+        people = list(dict.fromkeys(p.strip() for r in rs for p in (r.get('person') or '').split(',')
+                                    if p.strip() and p.strip() != me))
+        badges = list(dict.fromkeys(glyph(r.get('practice')) for r in rs if r is not main or norm(r.get('practice')) in kinds))
+        theirs = [shared_rx.split(norm(r.get('practice')))[0] for r in rs if shared_rx.search(norm(r.get('practice')))]
+        drive = main.get('rhythm') or next((r.get('rhythm') for r in rs if r.get('rhythm')), '')
+        env = next((e for e in envs if e['_a'] <= main['_a'] <= e['_b']), None)
+        chain, dests = flows(drive or (env.get('rhythm') if env else ''))
+        low = words.lower()
+        g = glyph(main.get('practice')) or glyph(main.get('title'))
+        badges = [b for b in badges if b and b != g]
+        if norm(main.get('practice')) in set(G.get('generic_practices') or []):
+            tl = (main.get('title') or '').lower()
+            named = next((e for e, ws in G.get('kind_words') or []
+                          if any(re.search(r'\b' + re.escape(w.strip()) + r'\b', tl) for w in ws)), None)
+            if named:
+                if norm(main.get('practice')) != 'log' and g not in badges:
+                    badges.insert(0, g)
+                g = named
+        out.append(dict(
+            at=s_['at'], day=s_['day'], g=g,
+            kind=clean(main.get('practice')), t=clean(main.get('title')), words=words, people=people,
+            badges=badges, theirs=theirs,
+            memory=next((w for w in G['memory'] if w in low), None),
+            synergy=any(w in low for w in G['synergy']) or any('synergiz' in hers(r).lower() for r in rs),
+            photo=any(PHOTO.search(r.get('details') or '') or r.get('photo') for r in rs),
+            envelope=clean(env.get('title')).split(' — ')[0] if env else None,
+            drives=[dict(n=d, e=(rhythms[d].get('emoji') or '')) for d in chain],
+            dests=[dict(n=d, e=((rhythms.get(d) or {}).get('emoji') or '')) for d in dests]))
+    out.sort(key=lambda m: m['at'])
+    days = []
+    for i in range(7):
+        d = (start + dt.timedelta(days=i)).date()
+        texture = []
+        for r in sorted(lived, key=lambda r: r['_a']):
+            if r['_a'].date() != d or marked(r) or not r['_b'] or r in envs:
+                continue
+            mins = (r['_b'] - r['_a']).total_seconds() / 60
+            t = clean(r.get('title'))
+            if mins < 20 or norm(r.get('practice')) == norm(SLEEP) or '(estimated)' in t or not glyph(r.get('practice')):
+                continue
+            if t not in [x['t'] for x in texture]:
+                texture.append(dict(g=glyph(r.get('practice')), t=t))
+        days.append(dict(date=d.isoformat(), label=f'{DAY3[d.weekday()]} {d.day} {d:%b}', lead=leads.get(d.isoformat()),
+                         stones=[m for m in out if m['day'] == d.isoformat()], texture=texture[:10]))
+    # where the week flowed: each destination and envelope, with the moments that reached it
+    reach = {}
+    for m in out:
+        for x in (m['dests'] or ([] if m['drives'] else [dict(n='', e='')])):
+            reach.setdefault(x['n'], dict(n=x['n'], e=x['e'], n_moments=0, via=set()))
+            reach[x['n']]['n_moments'] += 1
+            if m['envelope']:
+                reach[x['n']]['via'].add(m['envelope'])
+    flowed = sorted(({**v, 'via': sorted(v['via'])} for v in reach.values()), key=lambda v: -v['n_moments'])
+    return dict(days=days, flowed=flowed, n=len(out))
+
+
 def needs_map(L):
     N = L.get('needs') or bedo_reader.FACTS['needs']
     side = {}
@@ -356,6 +490,7 @@ def readings(rows, timed, rhythms, start, L, local):
                        areas=[dict(a=a, min=round(areas.get(norm(a), 0))) for a in g['areas']]) for g in N[k]]
               for k in ('deficiency', 'growth')}
     return dict(days=out, rest=rest, needs=groups, garden=garden(rows, start, L, local),
+                stream=stream(rows, rhythms, start, L, local),
                 time=dict(be=sum(v['be'] for v in out), tend=sum(v['tend'] for v in out),
                           grow=sum(v['grow'] for v in out), bed=rest['bed'],
                           people=sum(v['people'] for v in out),

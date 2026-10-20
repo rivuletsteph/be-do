@@ -166,7 +166,13 @@ def readings(w, out):
     assert day['both'] == 'kid' and day['memory'] and day['synergy'], day
     assert {'body', 'heart', 'fire', 'spirit'} <= set(day['areas']), day['areas']
     assert g[1]['layers'] == 1 and not g[1]['memory'], g[1]
-    print('ok — time by area, rest and readiness, and the needs on the secure base, and the garden')
+    # the stream: the river day is one stone (her highlight and the kid's, one minute),
+    # named by what it was, not by the mark; the quiet glimmer is a stone too
+    st = [m for d in X['stream']['days'] for m in d['stones']]
+    river = next(m for m in st if m['t'] == 'the river day')
+    assert river['theirs'] == ['kid'] and river['memory'] and river['synergy'] and river['g'] != '', river
+    assert any(m['t'] == 'a quiet glimmer' for m in st), st
+    print('ok — time by area, rest and readiness, the needs on the secure base, the garden and the stream')
 
 
 if __name__ == '__main__':
