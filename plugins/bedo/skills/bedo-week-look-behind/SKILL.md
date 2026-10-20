@@ -20,7 +20,7 @@ words: what the thing was, a picture, a few words, an emoji for the kind, and ho
 it fits; the look and the rhythm → drive → destination thread are The Whole Map
 Ahead's). The days flow top to bottom, each under its own look-behind lead when
 one was written. A stone is a moment she marked (highlight, glimmer, gratitude,
-insight, someone's own highlight, a synergy note) or something she did and wrote
+insight, a milestone, a journal entry, someone's own highlight, a synergy note; milestone and journal added 20 Oct 2026) or something she did and wrote
 about at length (`garden.long_words`). Each stone is its emoji (the practice's,
 or for a log or a mark what its title names, `garden.kind_words`, the mark kept
 as a badge), its title, her words, who, a memory (↺), synergy (∞), a photo when
