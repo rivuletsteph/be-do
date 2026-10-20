@@ -293,7 +293,9 @@ def stream(rows, rhythms, start, L, local):
             out.append(d)
             todo += rhythms[d].get('feeds') or []
         dests = list(dict.fromkeys(x for d in out for x in (rhythms[d].get('dest') or [])))
-        return out, dests
+        # a row on a destination itself (a ♎) reaches that destination
+        dests += [d for d in out if 'destination' in (rhythms[d].get('type') or '') and d not in dests]
+        return [d for d in out if d not in dests], dests
 
     lived = []
     for r in rows:
@@ -379,8 +381,9 @@ def stream(rows, rhythms, start, L, local):
     reach = {}
     for m in out:
         for x in (m['dests'] or ([] if m['drives'] else [dict(n='', e='')])):
-            reach.setdefault(x['n'], dict(n=x['n'], e=x['e'], n_moments=0, via=set()))
+            reach.setdefault(x['n'], dict(n=x['n'], e=x['e'], n_moments=0, via=set(), moments=[]))
             reach[x['n']]['n_moments'] += 1
+            reach[x['n']]['moments'].append(dict(g=m['g'], t=m['t'], day=m['day']))
             if m['envelope']:
                 reach[x['n']]['via'].add(m['envelope'])
     flowed = sorted(({**v, 'via': sorted(v['via'])} for v in reach.values()), key=lambda v: -v['n_moments'])

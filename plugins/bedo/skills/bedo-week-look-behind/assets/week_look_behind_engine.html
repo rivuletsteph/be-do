@@ -170,7 +170,8 @@ document.getElementById("slead").textContent = SM.n
   : "no moments marked this week — a highlight, a glimmer, a gratitude or a few lines of your words is what lands here";
 document.getElementById("flowed").innerHTML = SM.flowed.map(f => f.n
   ? `<div class="fw"><b>${esc(f.e)} ${esc(f.n)}</b><span class="v">${f.n_moments} moment${f.n_moments === 1 ? "" : "s"}${f.via.length ? " · through " + f.via.map(esc).join(", ") : ""}</span></div>`
-  : `<div class="fw"><b>· life between the drives</b><span class="v">${f.n_moments} moment${f.n_moments === 1 ? "" : "s"} on no drive at all</span></div>`).join("");
+  : `<div class="fw"><b>· outside the drives</b><span class="v">${f.n_moments} moment${f.n_moments === 1 ? "" : "s"} on no drive and in no trip: ` +
+    f.moments.map(m => `${esc(m.g)} ${esc(m.t.length > 48 ? m.t.slice(0, 46).replace(/\s+\S*$/, "") + "…" : m.t)}`).join(" · ") + `</span></div>`).join("");
 // a long passage shows its opening; "more" reveals only the rest, in place (20 Oct 2026: no repeated text)
 const words = w => {
   if (!w) return "";
