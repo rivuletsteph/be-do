@@ -100,10 +100,10 @@ def load_rhythms(path, RF):
     return out, len(recs)
 
 
-def build(rows, rhythms, start, L):
+def build(rows, rhythms, start, L, ndays=7, words=None):
     """Everything the page counts, from rows already deduped."""
     off = dt.timedelta(hours=L['utc_offset_hours'])
-    end = start + dt.timedelta(days=7)
+    end = start + dt.timedelta(days=ndays)
 
     def local(ts):
         if not ts:
@@ -123,6 +123,8 @@ def build(rows, rhythms, start, L):
                 qa['over_span'].append(r.get('title') or r['id'])
                 continue
             span = (max(a, start), min(b, end))
+            if norm(r.get('practice')) == norm(SLEEP) and start <= b <= end:
+                span = (a, b)                               # a night is the morning's, whole, even when it began the evening before
             m = (span[1] - span[0]).total_seconds() / 60
         elif a and r.get('spent') and start <= a < end:
             m = float(r['spent']) / 60
@@ -193,7 +195,7 @@ def build(rows, rhythms, start, L):
                          for r in sorted(closed, key=lambda r: r.get('end') or r.get('when') or '')],
                  motion=[dict(t=clean(r.get('title')), drive=r.get('rhythm') or '')
                          for r in moving(rows, chains, start, end, local)])
-    return [node(n) for n in forest], totals, qa, dict(moved=moved, **readings(rows, timed, rhythms, start, L, local))
+    return [node(n) for n in forest], totals, qa, dict(moved=moved, **readings(rows, timed, rhythms, start, L, local, ndays, words))
 
 
 def norm(p):
@@ -213,14 +215,14 @@ def moving(rows, chains, start, end, local):
     return sorted(out, key=lambda r: r.get('when') or '')
 
 
-def garden(rows, start, L, local):
+def garden(rows, start, L, local, ndays=7):
     """Each moment she marked as mattering, as a flower: the areas it touched (its own,
     heart when shared, and what her words name), a memory it echoes, a synergy glow."""
     G = L.get('garden') or bedo_reader.FACTS['garden']
     kinds = set(G['moment_practices'])
     shared_rx = re.compile(G.get('shared_pattern') or r"'s highlight$")   # a child's or partner's own highlight
     me = L.get('self_person') or ''
-    end = start + dt.timedelta(days=7)
+    end = start + dt.timedelta(days=ndays)
     out = []
     for r in rows:
         a = local(r.get('when'))
@@ -259,7 +261,7 @@ LEAD = re.compile(r'\[be•do\] look behind (\d{4}-\d\d-\d\d) · (?:draft|final)
 PHOTO = re.compile(r'[Ff]rom (?:her|the same) photo')
 
 
-def stream(rows, rhythms, start, L, local):
+def stream(rows, rhythms, start, L, local, ndays=7, words=None):
     """The week as a stream, day by day: each day under its own lead (the look behind's
     words), the moments she marked as stones (what it was, her words, who, a photo, and
     where it flowed: the envelope it sat in, its drive, the drive's destination), and the
@@ -269,7 +271,7 @@ def stream(rows, rhythms, start, L, local):
     kinds = set(G['moment_practices'])
     shared_rx = re.compile(G.get('shared_pattern') or r"'s highlight$")
     me = L.get('self_person') or ''
-    end = start + dt.timedelta(days=7)
+    end = start + dt.timedelta(days=ndays)
     div = bedo_reader.FACTS['divider']
 
     def glyph(x):
@@ -306,6 +308,8 @@ def stream(rows, rhythms, start, L, local):
     for r in rows:
         for d, lead in LEAD.findall(r.get('details') or ''):
             leads[d] = lead.strip()
+    if words and words.get('lead'):
+        leads[start.date().isoformat()] = words['lead']     # the day's own words, from the day behind's words file
 
     long_words = G.get('long_words', 300)
     action = norm(bedo_reader.FACTS['practice']['action'])
@@ -361,7 +365,7 @@ def stream(rows, rhythms, start, L, local):
             dests=[dict(n=d, e=((rhythms.get(d) or {}).get('emoji') or '')) for d in dests]))
     out.sort(key=lambda m: m['at'])
     days = []
-    for i in range(7):
+    for i in range(ndays):
         d = (start + dt.timedelta(days=i)).date()
         texture = []
         for r in sorted(lived, key=lambda r: r['_a']):
@@ -397,7 +401,7 @@ def needs_map(L):
     return N, side
 
 
-def readings(rows, timed, rhythms, start, L, local):
+def readings(rows, timed, rhythms, start, L, local, ndays=7, words=None):
     """Time by area, rest, and the needs, per day and for the week. Minutes only:
     two rows at once both count, as on the wheel. Sleep is in bed, never an area."""
     N, side = needs_map(L)
@@ -406,7 +410,7 @@ def readings(rows, timed, rhythms, start, L, local):
     play = {norm(p) for s in (L.get('pie') or []) if s.get('k') == 'play' for p in s.get('practices', [])}
     zero = {norm(p) for p in (L.get('zero_practices') or [])}
     me = L.get('self_person') or ''
-    days = [start.date() + dt.timedelta(d) for d in range(7)]
+    days = [start.date() + dt.timedelta(d) for d in range(ndays)]
     D = {d: dict(day=f'{DAY3[d.weekday()]} {d.day}', bed=0, play=0, be=0, tend=0, grow=0, people=0,
                  deficiency=0, growth=0, none=0, readiness=None, sleep_score=None, activity=None,
                  secure=None, logged=0) for d in days}
@@ -489,8 +493,8 @@ def readings(rows, timed, rhythms, start, L, local):
                        min=round(sum(areas.get(norm(a), 0) for a in g['areas'])),
                        areas=[dict(a=a, min=round(areas.get(norm(a), 0))) for a in g['areas']]) for g in N[k]]
               for k in ('deficiency', 'growth')}
-    return dict(days=out, rest=rest, needs=groups, garden=garden(rows, start, L, local),
-                stream=stream(rows, rhythms, start, L, local),
+    return dict(days=out, rest=rest, needs=groups, garden=garden(rows, start, L, local, ndays),
+                stream=stream(rows, rhythms, start, L, local, ndays, words),
                 time=dict(be=sum(v['be'] for v in out), tend=sum(v['tend'] for v in out),
                           grow=sum(v['grow'] for v in out), bed=rest['bed'],
                           people=sum(v['people'] for v in out),
@@ -502,7 +506,9 @@ def readings(rows, timed, rhythms, start, L, local):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--week', required=True, help='the Sunday the week opens on, or any day in it')
+    ap.add_argument('--week', help='the Sunday the week opens on, or any day in it')
+    ap.add_argument('--day', help='one day instead of a week: the day behind as a stream (20 Oct 2026)')
+    ap.add_argument('--words', help="with --day: the day behind's words file (lead and story)")
     ap.add_argument('--local', required=True)
     ap.add_argument('--stream', action='append', required=True, help='live base first')
     ap.add_argument('--rhythms', required=True)
@@ -511,22 +517,34 @@ def main():
     a = ap.parse_args()
     L = json.load(open(a.local, encoding='utf-8'))
     F, RF = fields(L)
-    day = dt.date.fromisoformat(a.week)
+    if bool(a.week) == bool(a.day):
+        die('give --week or --day, one of them')
+    day = dt.date.fromisoformat(a.week or a.day)
     sun = day - dt.timedelta(days=(day.weekday() + 1) % 7)
-    start = dt.datetime.combine(sun, dt.time())
+    ndays = 1 if a.day else 7
+    start = dt.datetime.combine(day if a.day else sun, dt.time())
+    words = json.load(open(a.words, encoding='utf-8')) if a.words else None
+    if words and words.get('day') not in (None, day.isoformat()):
+        die(f"{a.words} holds the words for {words.get('day')}, not {day}")
     rows, reads = load(a.stream, F)
     rhythms, nrh = load_rhythms(a.rhythms, RF)
-    drives, totals, qa, more = build(rows, rhythms, start, L)
+    drives, totals, qa, more = build(rows, rhythms, start, L, ndays, words)
     wk = L['week_zero_number'] + (sun - dt.date.fromisoformat(L['week_zero_sunday'])).days // 7
     sat = sun + dt.timedelta(days=6)
+    last = sat if not a.day else day
     DATA = dict(
-        chip=f'✔️{sat:%m%d} ⏳ Sat {MARK} W{wk} 🔆 my day',
-        week=f'W{wk}', range=f'Sun {sun.day} {sun:%b} – Sat {sat.day} {sat:%b}',
+        chip=f'✔️{last:%m%d} ⏳ {DAY3[last.weekday()]} {MARK} W{wk} 🔆 my day',
+        span='day' if a.day else 'week', ndays=ndays,
+        story=[list(x) for x in (words or {}).get('story') or []],
+        week=f'W{wk}', range=(f'{DAY3[day.weekday()]} {day.day} {day:%b}' if a.day
+                              else f'Sun {sun.day} {sun:%b} – Sat {sat.day} {sat:%b}'),
         totals=totals, drives=drives, loops=qa['feeds_loops'], **more,
         read=' · '.join(f'{n} {k}/{k}' for n, k in reads) + f' · rhythms {nrh}/{nrh}')
     tpl = open(a.template, encoding='utf-8').read()
     if '/*__DATA__*/null' not in tpl:
         die(f'{a.template}: no /*__DATA__*/null placeholder — is this the engine?')
+    if a.day:
+        tpl = tpl.replace('<title>The Week Behind</title>', '<title>The Day Behind</title>', 1)
     open(a.out, 'w', encoding='utf-8').write(tpl.replace('/*__DATA__*/null', json.dumps(DATA, ensure_ascii=False)))
 
     def outline(ns, d=0):
@@ -539,7 +557,7 @@ def main():
                           moved=dict(closed=len(more['moved']['closed']), in_motion=len(more['moved']['motion'])),
                           rest=dict(nights=rest['nights'], bed=round(rest['bed']), play=round(rest['play']), readiness=rest['readiness']),
                           needs={k: [f"{g['label']} {g['min']}" for g in v] for k, v in more['needs'].items()},
-                          secure=f"{more['secure_days']}/7 ({more['secure_assumed']} assumed)",
+                          secure=f"{more['secure_days']}/{ndays} ({more['secure_assumed']} assumed)",
                           drives=list(outline(drives)), qa=qa, read=DATA['read']), ensure_ascii=False, indent=1))
 
 

@@ -81,6 +81,9 @@ a{color:var(--link)}
 .stone .meta{font:400 .74rem var(--mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 12px}
 .stone .to{font:400 .72rem var(--mono);color:var(--water);overflow-wrap:anywhere}
 .stone.big{border-color:var(--terra);box-shadow:inset 3px 0 0 var(--terra)}
+.dlead{font:500 italic 1.25rem/1.35 var(--display);color:var(--ink);margin:10px 0 0}
+.dstory{margin:12px 0 4px;display:grid;gap:6px}
+.dstory li{display:grid;grid-template-columns:1.8rem minmax(0,1fr);font-size:.95rem;line-height:1.4;color:var(--soft)}
 .tex{font-size:.8rem;color:var(--muted);line-height:1.5;margin:2px 0 0}
 details.numbers{margin-top:26px;border-top:1px solid var(--rule);padding-top:14px}
 details.numbers>summary{cursor:pointer;font:500 italic 1.15rem var(--display);color:var(--terra)}
@@ -102,10 +105,13 @@ const DATA = /*__DATA__*/null;
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const hm = m => { m = Math.round(m || 0); const h = Math.floor(m / 60), r = m % 60; return h ? (r ? `${h} h ${String(r).padStart(2, "0")}` : `${h} h`) : `${r} min`; };
 const T = DATA.totals, P = document.getElementById("page");
+// one engine for the week and for a single day drawn the same way (20 Oct 2026)
+const SP = DATA.span || "week", ND = DATA.ndays || 7, ONE = SP === "day";
 const extra = (n, w) => n ? ` · ${n} ${w}` : "";
 P.innerHTML = `<div class="chip">${esc(DATA.chip)}</div>
-<p class="eyebrow">the look behind · the week · ${esc(DATA.week)} · ${esc(DATA.range)}</p>
-<h1 class="hd">what gave the week meaning</h1>
+<p class="eyebrow">the look behind · the ${SP} · ${esc(DATA.week)} · ${esc(DATA.range)}</p>
+<h1 class="hd">what gave the ${SP} meaning</h1>
+<div id="daywords"></div>
 <p class="lead" id="slead" style="margin-top:8px"></p>
 <div class="flowed" id="flowed"></div>
 <div class="stream" id="stream"></div>
@@ -118,7 +124,7 @@ P.innerHTML = `<div class="chip">${esc(DATA.chip)}</div>
 <div class="stat"><b>${hm(DATA.time.people)}</b><span>with people</span></div></div>
 <div class="bars" id="areas" style="margin-top:14px"></div></section>
 <section><p class="label">what moved forward</p>
-<p class="note">every action closed in the week, and what is in motion and was touched in it</p>
+<p class="note">every action closed in the ${SP}, and what is in motion and was touched in it</p>
 <div id="moved"></div></section>
 <section><p class="label">rest as a reset</p>
 <p class="lead" id="restlead"></p>
@@ -126,13 +132,13 @@ P.innerHTML = `<div class="chip">${esc(DATA.chip)}</div>
 <section><p class="label">needs · on the secure base</p>
 <p class="lead" id="needlead"></p>
 <div id="needs"></div><div id="needdays"></div></section>
-<section><p class="label">the week on its drives</p>
+<section><p class="label">the ${SP} on its drives</p>
 <p class="note">each counted once${extra(hm(T.min_no_drive) !== "0 min" ? hm(T.min_no_drive) : "", "logged on no drive")}${extra(T.closed_no_drive, "closed on no drive")}${extra(T.open_no_drive, "open on no drive")}</p>
 <div class="stats"><div class="stat"><b>${hm(T.min)}</b><span>on drives</span></div>
 <div class="stat"><b>${T.closed}</b><span>✅ closed</span></div>
 <div class="stat"><b>${T.open}</b><span>still open</span></div></div></section>
 <section><p class="label">by drive</p>
-<p class="note">the drives that moved this week; a drive that feeds another sits under it, and its time and counts are in the parent's numbers</p>
+<p class="note">the drives that moved this ${SP}; a drive that feeds another sits under it, and its time and counts are in the parent's numbers</p>
 <div id="drives"></div><details id="quiet"><summary></summary><div id="quietdrives" style="margin-top:10px"></div></details></section>
 </details>
 <section class="foot" id="foot"></section>`;
@@ -151,7 +157,7 @@ const node = n => {
 // only the drives that moved are shown; the ones holding open items alone fold away (19 Oct 2026: the drive list is overwhelming)
 const moved = n => n.min > 0 || n.closed > 0;
 const live = DATA.drives.filter(moved), quiet = DATA.drives.filter(n => !moved(n));
-document.getElementById("drives").innerHTML = live.length ? live.map(node).join("") : `<p class="note">no drive moved this week</p>`;
+document.getElementById("drives").innerHTML = live.length ? live.map(node).join("") : `<p class="note">no drive moved this ${SP}</p>`;
 if (quiet.length) {
   document.querySelector("#quiet summary").textContent = `${quiet.length} more drives, open items only · ${quiet.reduce((s, n) => s + n.open, 0)} open`;
   document.getElementById("quietdrives").innerHTML = quiet.map(node).join("");
@@ -165,9 +171,9 @@ const SM = DATA.stream || {days: [], flowed: [], n: 0};
 const cap = x => x ? x[0].toUpperCase() + x.slice(1) : x;
 const inTrip = SM.flowed.filter(f => f.n).reduce((n, f) => n + f.n_moments, 0);
 document.getElementById("slead").textContent = SM.n
-  ? `${SM.n} moments mattered this week` + (inTrip ? `, ${inTrip} of them on the way to somewhere you're going.` : ".") +
+  ? `${SM.n} moment${SM.n === 1 ? "" : "s"} mattered this ${SP}` + (inTrip ? `, ${inTrip} of them on the way to somewhere you're going.` : ".") +
     " Each is what it was, in your words, and where it flowed."
-  : "no moments marked this week — a highlight, a glimmer, a gratitude or a few lines of your words is what lands here";
+  : `no moments marked this ${SP} — a highlight, a glimmer, a gratitude or a few lines of your words is what lands here`;
 document.getElementById("flowed").innerHTML = SM.flowed.map(f => f.n
   ? `<div class="fw"><b>${esc(f.e)} ${esc(f.n)}</b><span class="v">${f.n_moments} moment${f.n_moments === 1 ? "" : "s"}${f.via.length ? " · through " + f.via.map(esc).join(", ") : ""}</span></div>`
   : `<div class="fw"><b>· life between the drives</b><span class="v">${f.n_moments} moment${f.n_moments === 1 ? "" : "s"} on no drive at all</span></div>`).join("");
@@ -188,9 +194,13 @@ const stone = m => {
     (path.length ? `<div class="to">→ ${path.map(esc).join(" → ")}</div>` : "") + `</div>`;
 };
 document.getElementById("stream").innerHTML = SM.days.map(d =>
-  `<div class="sd"><h2>${esc(d.label)}</h2>${d.lead ? `<div class="dl">${esc(d.lead)}</div>` : `<div style="height:6px"></div>`}` +
+  `<div class="sd"><h2>${esc(d.label)}</h2>${d.lead && !ONE ? `<div class="dl">${esc(d.lead)}</div>` : `<div style="height:6px"></div>`}` +
   d.stones.map(stone).join("") +
   (d.texture.length ? `<p class="tex">also: ${d.texture.map(x => `${esc(x.g)} ${esc(x.t)}`).join(" · ")}</p>` : "") + `</div>`).join("");
+// a single day carries its own words above the moments: the lead and the story (the day behind's words file)
+const DW = ONE ? (SM.days[0] || {}) : {};
+document.getElementById("daywords").innerHTML = (DW.lead ? `<p class="dlead">${esc(DW.lead)}</p>` : "") +
+  ((DATA.story || []).length ? `<ul class="dstory">${DATA.story.map(([g, t]) => `<li><span>${esc(g)}</span><span>${esc(t)}</span></li>`).join("")}</ul>` : "");
 // where the time went — the eight areas, being first
 const amax = Math.max(1, ...DATA.time.areas.map(a => a.min));
 const BE = new Set(DATA.time.areas.slice(0, 4).map(a => a.a));
@@ -208,7 +218,7 @@ const rd = R.readiness, ra = R.activity || [];
 document.getElementById("restlead").textContent =
   `${hm(R.bed)} in bed across ${R.nights} logged night${R.nights === 1 ? "" : "s"}, ${hm(R.play)} of play` +
   (rd.length ? `; morning readiness ${rd.join(" · ")}` : "") + (ra.length ? `; activity ${ra.join(" · ")}` : "") +
-  ". Rest is counted here as part of the week's work, not time away from it.";
+  `. Rest is counted here as part of the ${SP}'s work, not time away from it.`;
 document.getElementById("restdays").innerHTML = `<table class="days"><tr><th>day</th><th>in bed</th><th>readiness</th><th>sleep</th><th>activity</th><th>play</th></tr>` +
   Dd.map(d => `<tr><td class="s">${esc(d.day)}</td><td>${d.bed ? hm(d.bed) : "—"}</td><td>${d.readiness ?? "—"}</td><td>${d.sleep_score ?? "—"}</td><td>${d.activity ?? "—"}</td><td>${d.play ? hm(d.play) : "—"}</td></tr>`).join("") + `</table>`;
 // coverage — how much of the waking week any row covers: the size of every number on this page
@@ -220,7 +230,7 @@ document.getElementById("cover").innerHTML = `the record covers <b>${hm(TM.logge
 const NE = DATA.needs, dsum = NE.deficiency.reduce((s, g) => s + g.min, 0), gsum = NE.growth.reduce((s, g) => s + g.min, 0);
 const pct = (a, b) => (a + b) ? Math.round(100 * a / (a + b)) : 0;
 document.getElementById("needlead").textContent =
-  `${DATA.secure_days} of 7 days on a secure base${DATA.secure_assumed ? ` (${DATA.secure_assumed} assumed — no ⏏️ row)` : ""}. ` +
+  `${ONE ? (DATA.secure_days ? "On a secure base" : "Not on a secure base") : `${DATA.secure_days} of ${ND} days on a secure base`}${DATA.secure_assumed ? ` (${DATA.secure_assumed} assumed — no ⏏️ row)` : ""}. ` +
   `${hm(dsum)} went to deficiency needs and ${hm(gsum)} to growth needs — ${pct(gsum, dsum)}% growth. ` +
   `From a secure base the deficiency needs get met, and that is what lets the growth side open.`;
 const side = (k, cls) => NE[k].map(g => {

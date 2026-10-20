@@ -95,4 +95,13 @@ read), the live week and the asked week's bases, and writes
 QA (`over_span`: rows over 12 h, left out of the minutes; `feeds_loops`). Name
 anything in QA in one line, then publish the page the way the day behind does.
 
+**One day, drawn the same way** (20 Oct 2026, her ask: Monday's day behind
+from the updated week page). `week_look_behind.py --day YYYY-MM-DD --words
+words-YYYY-MM-DD.json` (the day behind's words file, refused if written for
+another day) builds the page for that day alone: its lead and story on top,
+its moments as stones, the numbers folded below, titled The Day Behind. The
+night that ended that morning counts whole, in day and week alike. It is a
+trial beside the canon day behind, published to its own page, not the living
+one.
+
 Test: `python3 plugins/bedo/skills/bedo-week-look-behind/tests/test_week.py`.
