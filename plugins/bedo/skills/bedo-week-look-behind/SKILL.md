@@ -29,6 +29,15 @@ over 12 hours on a drive, like the trip), its drive and the destinations. The
 rest of each day is one line of what it was. The numbers (time, rest, needs,
 drives) fold below. The garden's data is still built but no longer drawn.
 
+Above the stream, the river runs on time, Sunday to Saturday. Its top strip is the
+being side (20 Oct 2026, her words: the flows are practices, fundamentally different
+from drives): one row per flow, one ring per day, sized by how many of its practices
+were done, full when the flow was closed, dashed when left open (`stream.be`). Below
+it the doing side: a lane per rhythm or drive, each moment an emoji at its time,
+leading on to its destinations. A moment caught in a flow lives on the rhythm or
+drive it was about, with a small flow-coloured dot; only one with no other home
+sits on the flow's row. Tapping a flow, lane or destination filters the stream.
+
 **What mattered — the garden (data only now)** (her words, 19 Oct 2026: show
 and reflect meaning, the layers of a day). Each moment she marked as mattering
 (a highlight, a glimmer, a gratitude, an insight, and a child's or partner's own
