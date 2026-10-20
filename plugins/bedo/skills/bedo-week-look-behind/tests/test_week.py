@@ -173,6 +173,31 @@ def readings(w, out):
     assert river['theirs'] == ['kid'] and river['memory'] and river['synergy'] and river['g'] != '', river
     assert any(m['t'] == 'a quiet glimmer' for m in st), st
     print('ok — time by area, rest and readiness, the needs on the secure base, the garden and the stream')
+    one_day(w, out, loc, rows)
+
+
+def one_day(w, out, loc, rows):
+    """--day: the same page for a single day (20 Oct 2026), its own words on top. The
+    night that ended that morning counts whole; words written for another day are refused."""
+    o = out.replace('week.html', 'day.html')
+
+    def run(words):
+        return subprocess.run([sys.executable, BUILDER, '--day', '2026-09-29', '--words', w('words.json', words),
+                               '--local', w('local3.json', loc), '--stream', w('w40c.json', dump(rows)),
+                               '--rhythms', w('rhythms3.json', dump(RHYTHMS)), '--template', ENGINE, '--out', o],
+                              capture_output=True, text=True, encoding='utf-8', timeout=60,
+                              env=dict(os.environ, PYTHONIOENCODING='utf-8'))
+    rr = run({'day': '2026-09-29', 'lead': 'a walk and a show', 'story': [['🚶', 'the walk'], ['📺', 'the show']]})
+    if rr.returncode:
+        sys.exit(rr.stdout + rr.stderr)
+    html = open(o, encoding='utf-8').read()
+    X = json.loads(html.split('const DATA = ', 1)[1].split(';\nconst esc', 1)[0])
+    assert '<title>The Day Behind</title>' in html and X['span'] == 'day' and X['range'] == 'Tue 29 Sep', X['range']
+    assert len(X['days']) == 1 and X['days'][0]['bed'] == 480 and X['days'][0]['play'] == 60, X['days']
+    assert X['stream']['days'][0]['lead'] == 'a walk and a show' and X['story'][1] == ['📺', 'the show'], X['story']
+    assert not [m for d in X['stream']['days'] for m in d['stones']], 'Wednesday\'s moments are not Tuesday\'s'
+    assert run({'day': '2026-09-30', 'lead': 'x', 'story': []}).returncode, 'words for another day must be refused'
+    print('ok — one day: its own window, the whole night before, its own words, and no one else\'s')
 
 
 if __name__ == '__main__':
