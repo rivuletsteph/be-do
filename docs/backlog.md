@@ -104,10 +104,21 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 260925_1045 | ▫️ | A life map for each person in the household |
 | 261010a | ⬜ | **No more skill uploads.** The pages and the checks are loaders now (they download the repo each run) and their settings are rows in Airtable `be•do system › settings`. Seven be•do skills still carry their whole text: bedo-airtable, bedo-weekly-close, chat-title, clear-inbox, provisions, session-entry, shopping-watch. The rule: the next change to any of them also turns it into a loader (its procedure moves to `plugins/bedo/skills/<name>/`, the installed copy becomes `loader/SKILL.md`), so each needs one more upload at most, and none is converted until it has to change. Also: add the checks' `facts_local` row to the settings table. Her words: I never want to do that again. |
 
+## Photos
+
+| key | status | item |
+|---|---|---|
+| 261020b | ⬜ | The album holds only actual photos; Drive holds screenshots, documents and, in time, food. be•do says which pictures can leave the album once sorted |
+| 261020c | ⬜ | Food photos in depth — a detailed nutrition workup, linked to provisions and meal planning |
+| 261020d | ⬜ | The day behind's photo strip reads the day's `photos-YYYY-MM-DD.json` (follows 260921_1444) |
+| 261020e | ⬜ | The weekly close makes a `photos` folder in each new week folder |
+| 261020f | ⬜ | Share from the phone's Images folder, not Google Photos — Photos blanks the location (tested 20 Oct 2026); keep the Timeline load current for the rest |
+
 ## Done
 
 | key | item | shipped |
 |---|---|---|
+| 261020a | The photo skill: the week folder's photos read in code (time, place, duplicates, bursts, screenshot runs, thumbnails), then sorted by eye with no decisions asked of her, planned as rows and the day behind's strip, written on her yes. Her words: I don't want to have to make a bunch of decisions. | bedo-photos, 20 Oct 2026 |
 | 261009c | Day ahead: every open card names its next move — the step, the person, the links, what it waits on — read off the row (`Next:` line or the chat's `--step`), and says so when none is named. The 7 Oct amendment on the next step. Her words: so I just don't think of the whole big thing. | day ahead, 9 Oct 2026 |
 | 261009d | Day ahead: the chat's three go on the page (`--pick`), with live status, so a rebuild shows progress. | day ahead, 9 Oct 2026 |
 | 261009a | Day ahead: be•do's three get their own section under the intentions, with why each rose and the next in line; chosen per J9 (someone waiting · target passed · in motion · weighing), never a calendar event's own row, one slot per person waiting; the dawn builds a draft before the intention check so the three are in view. Her words: I'm not seeing the Pareto 3 … recommend what three things I could do today that would move the ball forward the most. | day ahead, 9 Oct 2026 |
