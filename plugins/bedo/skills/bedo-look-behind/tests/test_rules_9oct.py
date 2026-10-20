@@ -111,8 +111,8 @@ class People(unittest.TestCase):
     def test_a_plan_puts_nobody_in_the_day(self):
         f = Fixture(); f.whole_day()
         f.row('🗣️ face-to-face', 600, 660, person=f'{SELF}, Robin', wellness='🩷 heart')
-        f.row('⚡ action', 700, title='dinner with Sam and Lee on Friday', status=INT,
-              person='Sam, Lee', wellness='🩷 heart', device='')
+        f.row('⚡ action', 700, title='dinner with Sam and Quill on Friday', status=INT,
+              person='Sam, Quill', wellness='🩷 heart', device='')
         r, D = f.build()
         self.assertIsNotNone(D, r.stderr)
         self.assertEqual([p['name'] for p in D['who']], ['Robin'])

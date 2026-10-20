@@ -259,7 +259,19 @@ LEAD = re.compile(r'\[be•do\] look behind (\d{4}-\d\d-\d\d) · (?:draft|final)
 PHOTO = re.compile(r'[Ff]rom (?:her|the same) photo')
 
 
-def stream(rows, rhythms, start, L, local):
+def flow_practices(path, L):
+    """The practices whose catalog group is a flow: the being side, dawn and dusk."""
+    if not path or not os.path.exists(path):
+        return set()
+    PF = (L.get('fields') or {}).get('practices') or {}
+    if not PF.get('name') or not PF.get('group'):
+        return set()
+    flows = set(bedo_reader.FACTS['flows']['groups']) - set(bedo_reader.FACTS['flows'].get('never_held_open') or [])
+    return {norm(sv(bedo_reader.cells(r).get(PF['name']))) for r in bedo_reader.complete(path)
+            if sv(bedo_reader.cells(r).get(PF['group'])) in flows}
+
+
+def stream(rows, rhythms, start, L, local, flowset=frozenset()):
     """The week as a stream, day by day: each day under its own lead (the look behind's
     words), the moments she marked as stones (what it was, her words, who, a photo, and
     where it flowed: the envelope it sat in, its drive, the drive's destination), and the
@@ -293,7 +305,9 @@ def stream(rows, rhythms, start, L, local):
             out.append(d)
             todo += rhythms[d].get('feeds') or []
         dests = list(dict.fromkeys(x for d in out for x in (rhythms[d].get('dest') or [])))
-        return out, dests
+        # a row on a destination itself (a ♎) reaches that destination
+        dests += [d for d in out if 'destination' in (rhythms[d].get('type') or '') and d not in dests]
+        return [d for d in out if d not in dests], dests
 
     lived = []
     for r in rows:
@@ -338,6 +352,14 @@ def stream(rows, rhythms, start, L, local):
         drive = main.get('rhythm') or next((r.get('rhythm') for r in rs if r.get('rhythm')), '')
         env = next((e for e in envs if e['_a'] <= main['_a'] <= e['_b']), None)
         chain, dests = flows(drive or (env.get('rhythm') if env else ''))
+        # the being side: a flow practice belongs to its flow, dawn or dusk, not to a rhythm or drive
+        flow = None
+        if not drive and norm(main.get('practice')) in flowset:
+            ph = bedo_reader.FACTS['flows']['phase']
+            dusk = (main.get('phase') or '') == ph['dusk'] or (not main.get('phase') and main['_a'].hour >= 15)
+            flow = dict(n='the dusk flow' if dusk else 'the dawn flow', e=ph['dusk' if dusk else 'dawn'].split()[0])
+            if not env:
+                chain, dests = [], []     # inside an envelope, what it names still flows through the trip
         low = words.lower()
         g = glyph(main.get('practice')) or glyph(main.get('title'))
         badges = [b for b in badges if b and b != g]
@@ -356,7 +378,7 @@ def stream(rows, rhythms, start, L, local):
             memory=next((w for w in G['memory'] if w in low), None),
             synergy=any(w in low for w in G['synergy']) or any('synergiz' in hers(r).lower() for r in rs),
             photo=any(PHOTO.search(r.get('details') or '') or r.get('photo') for r in rs),
-            envelope=clean(env.get('title')).split(' — ')[0] if env else None,
+            envelope=clean(env.get('title')).split(' — ')[0] if env else None, flow=flow,
             drives=[dict(n=d, e=(rhythms[d].get('emoji') or '')) for d in chain],
             dests=[dict(n=d, e=((rhythms.get(d) or {}).get('emoji') or '')) for d in dests]))
     out.sort(key=lambda m: m['at'])
@@ -378,9 +400,11 @@ def stream(rows, rhythms, start, L, local):
     # where the week flowed: each destination and envelope, with the moments that reached it
     reach = {}
     for m in out:
-        for x in (m['dests'] or ([] if m['drives'] else [dict(n='', e='')])):
-            reach.setdefault(x['n'], dict(n=x['n'], e=x['e'], n_moments=0, via=set()))
+        # where it reached: its destinations; on a rhythm (no destination, by her rule), the rhythm itself
+        for x in (([m['flow']] if m.get('flow') else []) + (m['dests'] or m['drives'][-1:])) or [dict(n='', e='')]:
+            reach.setdefault(x['n'], dict(n=x['n'], e=x['e'], n_moments=0, via=set(), moments=[]))
             reach[x['n']]['n_moments'] += 1
+            reach[x['n']]['moments'].append(dict(g=m['g'], t=m['t'], day=m['day']))
             if m['envelope']:
                 reach[x['n']]['via'].add(m['envelope'])
     flowed = sorted(({**v, 'via': sorted(v['via'])} for v in reach.values()), key=lambda v: -v['n_moments'])
@@ -490,7 +514,7 @@ def readings(rows, timed, rhythms, start, L, local):
                        areas=[dict(a=a, min=round(areas.get(norm(a), 0))) for a in g['areas']]) for g in N[k]]
               for k in ('deficiency', 'growth')}
     return dict(days=out, rest=rest, needs=groups, garden=garden(rows, start, L, local),
-                stream=stream(rows, rhythms, start, L, local),
+                stream=stream(rows, rhythms, start, L, local, L.get('_flowset') or frozenset()),
                 time=dict(be=sum(v['be'] for v in out), tend=sum(v['tend'] for v in out),
                           grow=sum(v['grow'] for v in out), bed=rest['bed'],
                           people=sum(v['people'] for v in out),
@@ -506,6 +530,7 @@ def main():
     ap.add_argument('--local', required=True)
     ap.add_argument('--stream', action='append', required=True, help='live base first')
     ap.add_argument('--rhythms', required=True)
+    ap.add_argument('--practices', help="the catalog, so a flow practice shows under its flow")
     ap.add_argument('--template', required=True)
     ap.add_argument('--out', required=True)
     a = ap.parse_args()
@@ -515,6 +540,7 @@ def main():
     sun = day - dt.timedelta(days=(day.weekday() + 1) % 7)
     start = dt.datetime.combine(sun, dt.time())
     rows, reads = load(a.stream, F)
+    L['_flowset'] = flow_practices(a.practices, L)
     rhythms, nrh = load_rhythms(a.rhythms, RF)
     drives, totals, qa, more = build(rows, rhythms, start, L)
     wk = L['week_zero_number'] + (sun - dt.date.fromisoformat(L['week_zero_sunday'])).days // 7

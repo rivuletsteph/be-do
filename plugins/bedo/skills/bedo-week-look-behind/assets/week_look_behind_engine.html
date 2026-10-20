@@ -75,9 +75,9 @@ a{color:var(--link)}
 .stone .tt{font-weight:600;line-height:1.3;overflow-wrap:anywhere}
 .stone .bd{font-size:.82rem;margin-left:4px}
 .stone .her{font-style:italic;font-size:.9rem;line-height:1.45;color:var(--soft);overflow-wrap:anywhere}
-.stone .her summary{list-style:none;cursor:pointer;color:var(--soft)}
-.stone .her summary::-webkit-details-marker{display:none}
-.stone .her summary b{font-style:normal;font-weight:500;color:var(--link);font-size:.78rem}
+.stone .her .more{font:500 .78rem var(--sans);font-style:normal;color:var(--link);background:none;border:0;padding:0;cursor:pointer}
+.stone .her .more:focus-visible{outline:2px solid var(--terra);outline-offset:2px;border-radius:3px}
+.stone .her [hidden]{display:none}
 .stone .meta{font:400 .74rem var(--mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 12px}
 .stone .to{font:400 .72rem var(--mono);color:var(--water);overflow-wrap:anywhere}
 .stone.big{border-color:var(--terra);box-shadow:inset 3px 0 0 var(--terra)}
@@ -165,27 +165,31 @@ const SM = DATA.stream || {days: [], flowed: [], n: 0};
 const cap = x => x ? x[0].toUpperCase() + x.slice(1) : x;
 const inTrip = SM.flowed.filter(f => f.n).reduce((n, f) => n + f.n_moments, 0);
 document.getElementById("slead").textContent = SM.n
-  ? `${SM.n} moments mattered this week` + (inTrip ? `, ${inTrip} of them on the way to somewhere you're going.` : ".") +
-    " Each is what it was, in your words, and where it flowed."
+  ? `${SM.n} moments mattered this week. Each is what it was, in your words, and where it sits: a flow on the being side, or a rhythm or a drive on the doing side, and a moment named in a flow can belong to both.`
   : "no moments marked this week — a highlight, a glimmer, a gratitude or a few lines of your words is what lands here";
 document.getElementById("flowed").innerHTML = SM.flowed.map(f => f.n
   ? `<div class="fw"><b>${esc(f.e)} ${esc(f.n)}</b><span class="v">${f.n_moments} moment${f.n_moments === 1 ? "" : "s"}${f.via.length ? " · through " + f.via.map(esc).join(", ") : ""}</span></div>`
-  : `<div class="fw"><b>· life between the drives</b><span class="v">${f.n_moments} moment${f.n_moments === 1 ? "" : "s"} on no drive at all</span></div>`).join("");
+  : `<div class="fw"><b>· just lived</b><span class="v">${f.n_moments} moment${f.n_moments === 1 ? "" : "s"} on no drive or rhythm, and not going anywhere: ` +
+    f.moments.map(m => `${esc(m.g)} ${esc(m.t.length > 48 ? m.t.slice(0, 46).replace(/\s+\S*$/, "") + "…" : m.t)}`).join(" · ") + `</span></div>`).join("");
+// a long passage shows its opening; "more" reveals only the rest, in place (20 Oct 2026: no repeated text)
 const words = w => {
   if (!w) return "";
-  const cut = w.length > 260 ? w.slice(0, 240).replace(/\s+\S*$/, "") + "…" : null;
-  return cut ? `<details class="her"><summary>${esc(cut)} <b>more</b></summary>${esc(w)}</details>` : `<div class="her">${esc(w)}</div>`;
+  if (w.length <= 260) return `<div class="her">${esc(w)}</div>`;
+  const head = w.slice(0, 240).replace(/\s+\S*$/, ""), rest = w.slice(head.length);
+  return `<div class="her">${esc(head)}<span class="rest" hidden>${esc(rest)}</span><span class="dots">…</span> ` +
+    `<button type="button" class="more" onclick="const h=this.parentNode,r=h.querySelector('.rest'),o=r.hidden;r.hidden=!o;h.querySelector('.dots').hidden=o;this.textContent=o?'less':'more'">more</button></div>`;
 };
 const stone = m => {
   const meta = [m.people.length ? `with ${esc(m.people.join(", "))}` : "",
     m.theirs.length ? `🌟 ${esc(m.theirs.map(cap).join(", "))}'s too` : "",
     m.memory ? `↺ ${esc(m.memory)}` : "", m.synergy ? "∞ more because it was shared" : "", m.photo ? "📷 a photo" : ""].filter(Boolean);
   const path = [m.envelope, ...m.drives.map(d => `${d.e} ${d.n}`), ...m.dests.map(d => `${d.e} ${d.n}`)].filter(Boolean);
+  const flowline = m.flow ? `<div class="to">${esc(m.flow.e)} ${esc(m.flow.n)}</div>` : "";
   const big = m.memory || m.synergy || (m.words || "").length > 500;
   return `<div class="stone${big ? " big" : ""}"><span class="g">${esc(m.g || "·")}</span>` +
     `<div class="tt">${esc(m.t)}${m.badges.length ? `<span class="bd">${esc(m.badges.join(" "))}</span>` : ""}</div>` +
     words(m.words) + (meta.length ? `<div class="meta">${meta.map(x => `<span>${x}</span>`).join("")}</div>` : "") +
-    (path.length ? `<div class="to">→ ${path.map(esc).join(" → ")}</div>` : "") + `</div>`;
+    flowline + (path.length ? `<div class="to">→ ${path.map(esc).join(" → ")}</div>` : "") + `</div>`;
 };
 document.getElementById("stream").innerHTML = SM.days.map(d =>
   `<div class="sd"><h2>${esc(d.label)}</h2>${d.lead ? `<div class="dl">${esc(d.lead)}</div>` : `<div style="height:6px"></div>`}` +

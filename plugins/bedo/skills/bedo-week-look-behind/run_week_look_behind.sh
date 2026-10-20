@@ -61,6 +61,6 @@ STREAMS=$( { ls -r data/live/w*.json; ls -r data/week/w*.json 2>/dev/null || tru
 
 OUTF="$SAT-week-behind.html"
 "$PY" scripts/week_look_behind.py --week "$DAY" --local look_behind_local.json $STREAMS \
-  --rhythms data/live/rhythms.json --template week_look_behind_engine.html --out "$OUTF"
+  --rhythms data/live/rhythms.json --practices data/live/practices.json --template week_look_behind_engine.html --out "$OUTF"
 OUT=${LB_OUT:-/mnt/user-data/outputs}
 if mkdir -p "$OUT" 2>/dev/null; then cp "$OUTF" "$OUT/"; echo "also copied to $OUT/"; fi
