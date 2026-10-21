@@ -62,6 +62,25 @@ a{color:var(--link)}
 .lead{font-size:.95rem;line-height:1.45;color:var(--soft);margin:0 0 12px}
 .hd{font:500 italic clamp(1.9rem,7vw,2.4rem)/1.1 var(--display);color:var(--terra);margin:6px 0 0;letter-spacing:0}
 .flowed{display:grid;gap:8px;margin:14px 0 0}
+.riv{background:var(--tint);border:1px solid var(--rule);border-radius:16px;padding:12px 10px 10px;margin:14px 0 0}
+#river{display:block;width:100%;min-width:640px;height:auto;overflow:visible}
+.rscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media (min-width:800px){.riv{margin-left:-64px;margin-right:-64px}}
+#river text{font-family:var(--sans);fill:var(--ink)}
+#river .sl{font:600 9px var(--mono);letter-spacing:.08em;text-transform:uppercase;fill:var(--muted);paint-order:stroke;stroke:var(--tint);stroke-width:3px;stroke-linejoin:round}
+#river .dl{font:500 10px var(--mono);fill:var(--muted)}
+#river .nl{font-size:11px;font-weight:600;paint-order:stroke;stroke:var(--tint);stroke-width:3px;stroke-linejoin:round}
+#river .nc{font:400 9.5px var(--mono);fill:var(--muted);paint-order:stroke;stroke:var(--tint);stroke-width:3px;stroke-linejoin:round}
+#river path{fill:none;stroke-linecap:butt;transition:opacity .2s}
+#river .node{cursor:pointer}
+#river .node:focus-visible rect{stroke:var(--ink);stroke-width:2}
+#river.on path:not(.lit),#river.on .pt:not(.lit){opacity:.12}
+#river .pt{transition:opacity .2s}
+.rkey{display:flex;flex-wrap:wrap;gap:4px 14px;margin:8px 4px 0;font-size:.74rem;color:var(--soft)}
+.rkey i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.hint{font:400 .72rem var(--mono);color:var(--muted);margin:6px 4px 0}
+.stone.dim{display:none}
+.sd.empty{display:none}
 .fw{background:var(--tint);border:1px solid var(--rule);border-radius:14px;padding:10px 14px;display:grid;gap:2px}
 .fw b{font-size:1rem}.fw .v{font:400 .74rem var(--mono);color:var(--muted)}
 .stream{position:relative;margin:18px 0 0;padding-left:26px}
@@ -71,7 +90,8 @@ a{color:var(--link)}
 .sd h2{font:600 .78rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0}
 .sd .dl{font:500 italic 1.1rem/1.3 var(--display);color:var(--terra);margin:2px 0 8px}
 .stone{background:var(--tint);border:1px solid var(--rule);border-radius:14px;padding:12px 14px;margin:0 0 8px;display:grid;grid-template-columns:2.2rem minmax(0,1fr);gap:2px 10px}
-.stone .g{font-size:1.6rem;line-height:1;grid-row:span 4}
+.stone .g{font-size:1.6rem;line-height:1}
+.stone .body{display:grid;gap:2px;min-width:0}
 .stone .tt{font-weight:600;line-height:1.3;overflow-wrap:anywhere}
 .stone .bd{font-size:.82rem;margin-left:4px}
 .stone .her{font-style:italic;font-size:.9rem;line-height:1.45;color:var(--soft);overflow-wrap:anywhere}
@@ -107,7 +127,8 @@ P.innerHTML = `<div class="chip">${esc(DATA.chip)}</div>
 <p class="eyebrow">the look behind · the week · ${esc(DATA.week)} · ${esc(DATA.range)}</p>
 <h1 class="hd">what gave the week meaning</h1>
 <p class="lead" id="slead" style="margin-top:8px"></p>
-<div class="flowed" id="flowed"></div>
+<div class="card riv"><div class="rscroll"><svg id="river" role="img" aria-label="Each moment that mattered, flowing from its day to the flow, rhythm or drive it belongs to, and on to the destinations they serve"></svg></div>
+<div class="rkey" id="rkey"></div><p class="hint" id="rhint">tap a flow, rhythm, drive or destination to see just its moments below</p></div>
 <div class="stream" id="stream"></div>
 <details class="numbers"><summary>the numbers · time, rest, needs, drives</summary>
 <section><p class="label">where the time went</p>
@@ -165,12 +186,8 @@ const SM = DATA.stream || {days: [], flowed: [], n: 0};
 const cap = x => x ? x[0].toUpperCase() + x.slice(1) : x;
 const inTrip = SM.flowed.filter(f => f.n).reduce((n, f) => n + f.n_moments, 0);
 document.getElementById("slead").textContent = SM.n
-  ? `${SM.n} moments mattered this week. Each is what it was, in your words, and where it sits: a flow on the being side, or a rhythm or a drive on the doing side, and a moment named in a flow can belong to both.`
+  ? `${SM.n} moments mattered this week. Up top, the two flows you return to every day — how much of each you did, and whether you closed it. Below, each moment is what it was, in your words, on the rhythm or drive it lived in; a purple dot means a flow caught it.`
   : "no moments marked this week — a highlight, a glimmer, a gratitude or a few lines of your words is what lands here";
-document.getElementById("flowed").innerHTML = SM.flowed.map(f => f.n
-  ? `<div class="fw"><b>${esc(f.e)} ${esc(f.n)}</b><span class="v">${f.n_moments} moment${f.n_moments === 1 ? "" : "s"}${f.via.length ? " · through " + f.via.map(esc).join(", ") : ""}</span></div>`
-  : `<div class="fw"><b>· just lived</b><span class="v">${f.n_moments} moment${f.n_moments === 1 ? "" : "s"} on no drive or rhythm, and not going anywhere: ` +
-    f.moments.map(m => `${esc(m.g)} ${esc(m.t.length > 48 ? m.t.slice(0, 46).replace(/\s+\S*$/, "") + "…" : m.t)}`).join(" · ") + `</span></div>`).join("");
 // a long passage shows its opening; "more" reveals only the rest, in place (20 Oct 2026: no repeated text)
 const words = w => {
   if (!w) return "";
@@ -179,22 +196,155 @@ const words = w => {
   return `<div class="her">${esc(head)}<span class="rest" hidden>${esc(rest)}</span><span class="dots">…</span> ` +
     `<button type="button" class="more" onclick="const h=this.parentNode,r=h.querySelector('.rest'),o=r.hidden;r.hidden=!o;h.querySelector('.dots').hidden=o;this.textContent=o?'less':'more'">more</button></div>`;
 };
+const sid = m => m.at;
 const stone = m => {
   const meta = [m.people.length ? `with ${esc(m.people.join(", "))}` : "",
     m.theirs.length ? `🌟 ${esc(m.theirs.map(cap).join(", "))}'s too` : "",
     m.memory ? `↺ ${esc(m.memory)}` : "", m.synergy ? "∞ more because it was shared" : "", m.photo ? "📷 a photo" : ""].filter(Boolean);
   const path = [m.envelope, ...m.drives.map(d => `${d.e} ${d.n}`), ...m.dests.map(d => `${d.e} ${d.n}`)].filter(Boolean);
-  const flowline = m.flow ? `<div class="to">${esc(m.flow.e)} ${esc(m.flow.n)}</div>` : "";
+  const flowline = m.flow ? `<div class="to">caught in ${esc(m.flow.e)} ${esc(m.flow.n)}</div>` : "";
   const big = m.memory || m.synergy || (m.words || "").length > 500;
-  return `<div class="stone${big ? " big" : ""}"><span class="g">${esc(m.g || "·")}</span>` +
+  return `<div class="stone${big ? " big" : ""}" data-at="${esc(sid(m))}"><span class="g">${esc(m.g || "·")}</span><div class="body">` +
     `<div class="tt">${esc(m.t)}${m.badges.length ? `<span class="bd">${esc(m.badges.join(" "))}</span>` : ""}</div>` +
     words(m.words) + (meta.length ? `<div class="meta">${meta.map(x => `<span>${x}</span>`).join("")}</div>` : "") +
-    flowline + (path.length ? `<div class="to">→ ${path.map(esc).join(" → ")}</div>` : "") + `</div>`;
+    flowline + (path.length ? `<div class="to">→ ${path.map(esc).join(" → ")}</div>` : "") + `</div></div>`;
 };
 document.getElementById("stream").innerHTML = SM.days.map(d =>
-  `<div class="sd"><h2>${esc(d.label)}</h2>${d.lead ? `<div class="dl">${esc(d.lead)}</div>` : `<div style="height:6px"></div>`}` +
+  `<div class="sd" data-day="${esc(d.date)}"><h2>${esc(d.label)}</h2>${d.lead ? `<div class="dl">${esc(d.lead)}</div>` : `<div style="height:6px"></div>`}` +
   d.stones.map(stone).join("") +
   (d.texture.length ? `<p class="tex">also: ${d.texture.map(x => `${esc(x.g)} ${esc(x.t)}`).join(" · ")}</p>` : "") + `</div>`).join("");
+// the river, on time (20 Oct 2026, her words: show the flow of time). The week runs left to right;
+// each place a moment belongs to is a lane (the flows on the being side first, then rhythms and
+// drives); each moment sits on its lane at its time, as its emoji; a lane thickens as moments
+// gather on it and ends in the destination it serves. An envelope (the trip) is a band behind
+// its days. Colour is the KIND of place (validated: dataviz validate_palette, light and dark).
+(function () {
+  const svg = document.getElementById("river"); if (!svg || !SM.n) { document.querySelector(".riv")?.remove(); return; }
+  const dark = (matchMedia("(prefers-color-scheme: dark)").matches && document.documentElement.dataset.theme !== "light")
+    || document.documentElement.dataset.theme === "dark";
+  const KC = dark ? {flow: "#9b6fd6", rhythm: "#199e70", drive: "#d95926", destination: "#3987e5"}
+                  : {flow: "#8a5bc0", rhythm: "#1baf7a", drive: "#eb6834", destination: "#2a78d6"};
+  const KN = {flow: "a flow · the dot marks a moment it caught", rhythm: "rhythm", drive: "drive", destination: "destination"};
+  const order = {flow: 0, rhythm: 1, drive: 2, destination: 3};
+  const moments = SM.days.flatMap(d => d.stones);
+  const lanes = new Map();
+  const lane = (key, n, e, type) => { if (!lanes.has(key)) lanes.set(key, {key, n, e, type, ms: [], dests: new Map()}); return lanes.get(key); };
+  moments.forEach(m => {
+    // a flow is a practice she returns to every day, not a place she goes: a moment caught in a flow
+    // lives on the rhythm or drive it was about, and the flow row above only holds what has no other home
+    const own = [];
+    const ds = m.drives || [];
+    if (ds.length) own.push(lane("d:" + ds[0].n, ds[0].n, ds[0].e, ds[0].type));
+    else if ((m.dests || []).length) own.push(lane("d:" + m.dests[0].n, m.dests[0].n, m.dests[0].e, "destination"));
+    own.forEach(l => { l.ms.push(m); if (ds.length && l.key === "d:" + ds[0].n) (m.dests || []).forEach(d => l.dests.set(d.n, d)); });
+    m._lanes = own;
+  });
+  const L = [...lanes.values()].sort((a, b) => order[a.type] - order[b.type] || b.ms.length - a.ms.length);
+  const t0 = new Date(SM.days[0].date + "T00:00:00"), t1 = new Date(t0.getTime() + 7 * 864e5);
+  const W = 700, LX = 140, RX = 486, DX = 496, LH = 34, BH = 30;
+  const BE = SM.be || [], FL = SM.flows || [];
+  const top = 30 + (BE.length ? FL.length * BH + 30 : 0), btop = 44;
+  const X = iso => LX + (RX - LX) * Math.max(0, Math.min(1, (new Date(iso) - t0) / (t1 - t0)));
+  // a busy lane gets more rows: each moment takes the first row where it doesn't touch the one before
+  L.forEach(l => {
+    const last = [];
+    l.ms.sort((a, b) => a.at < b.at ? -1 : 1).forEach(m => {
+      const x = X(m.at); let r = last.findIndex(v => x - v >= 18); if (r < 0) { r = last.length; last.push(x); } else last[r] = x; m._row = m._row || {}; m._row[l.key] = r;
+    });
+    l.rows = Math.max(1, last.length);
+  });
+  let yy = top; L.forEach(l => { l.h = Math.max(LH, 18 * l.rows + 12); l.y = yy + 14; yy += l.h; });
+  const H = yy + 12;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  let out = "";
+  // the days, as columns
+  SM.days.forEach((d, i) => {
+    const x = LX + (RX - LX) * i / 7;
+    out += `<line x1="${x}" y1="24" x2="${x}" y2="${H - 6}" stroke="var(--rule)" stroke-width="1"/>` +
+      `<text class="dl" x="${x + (RX - LX) / 14}" y="12" text-anchor="middle">${esc(d.label.split(" ")[0])}</text>` +
+      `<text class="dl" x="${x + (RX - LX) / 14}" y="22" text-anchor="middle">${esc(d.label.split(" ")[1])}</text>`;
+  });
+  // the being side: each flow, each day — how much of it was done, and whether it was closed
+  if (BE.length) {
+    out += `<text class="sl" x="4" y="${btop - 6}">being · the flows, every day</text>` +
+      `<text class="sl" x="4" y="${top - 12}">doing · where the moments lived</text>` +
+      `<line x1="4" y1="${top - 26}" x2="${RX}" y2="${top - 26}" stroke="var(--rule)" stroke-dasharray="2 3"/>`;
+    FL.forEach((f, j) => {
+      const y = btop + 10 + j * BH, caught = moments.filter(m => m.flow && m.flow.n === f.n);
+      const done = BE.filter(d => d[f.k].n || d[f.k].closed).length;
+      out += `<g class="node" tabindex="0" role="button" data-ids="${esc(caught.map(sid).join(" "))}" aria-label="${esc(f.n)}: ${caught.length} moment${caught.length === 1 ? "" : "s"} caught">` +
+        `<text class="nl" x="4" y="${y - 1}">${esc(f.e)} ${esc(f.n)}</text>` +
+        `<text class="nc" x="4" y="${y + 11}">${done} of 7 days · ${caught.length} caught</text>`;
+      BE.forEach((d, i) => {
+        const v = d[f.k], cx = LX + (RX - LX) * (i + .5) / 7, r = v.n ? Math.min(11, 4 + 1.6 * Math.sqrt(v.n)) : 3;
+        const say = `${d.date.slice(5)} · ${f.n}: ${v.n} practice${v.n === 1 ? "" : "s"}${v.closed ? " · closed" : v.n ? " · not closed" : ""}${v.g.length ? " · " + v.g.join(" ") : ""}`;
+        out += v.n || v.closed
+          ? `<circle cx="${cx}" cy="${y}" r="${r}" fill="${KC.flow}" fill-opacity="${v.n ? .22 : 0}" stroke="${KC.flow}" stroke-width="1.5"${v.closed ? "" : ` stroke-dasharray="2 2"`}><title>${esc(say)}</title></circle>` +
+            (v.n ? `<text class="nc" x="${cx}" y="${y + 3}" text-anchor="middle" style="stroke-width:2px">${v.n}</text>` : "")
+          : `<circle cx="${cx}" cy="${y}" r="2" fill="var(--rule)"><title>${esc(say)}</title></circle>`;
+      });
+      // moments the flow caught that have no rhythm or drive of their own sit here, at their time
+      caught.filter(m => !m._lanes.length).forEach(m => {
+        const cx = X(m.at) + 12;
+        out += `<g class="pt" data-ids="${esc(sid(m))}"><circle cx="${cx}" cy="${y - 8}" r="8" fill="var(--tint)" stroke="${KC.flow}" stroke-width="1.5"/>` +
+          `<text x="${cx}" y="${y - 4.5}" text-anchor="middle" font-size="9">${esc(m.g || "·")}</text><title>${esc(m.t)}</title></g>`;
+      });
+      out += `</g>`;
+    });
+  }
+  // the envelopes (the trip), whole days, behind everything
+  (SM.bands || []).forEach(b => {
+    const a = X(b.a.slice(0, 10) + "T00:00:00"), z = X(new Date(new Date(b.b.slice(0, 10) + "T00:00:00").getTime() + 864e5).toISOString());
+    out = `<rect x="${a}" y="${top - (BE.length ? 22 : 30)}" width="${Math.max(2, z - a)}" height="${H - top + (BE.length ? 18 : 26)}" rx="8" fill="var(--terra)" fill-opacity=".07"/>` +
+      `<text class="nc" x="${a + 4}" y="${H - 1}">${esc(b.t)}</text>` + out;
+  });
+  // each lane: its label, a stream that thickens as moments gather, its moments, and where it leads
+  L.forEach(l => {
+    const c = KC[l.type], ms = [...l.ms].sort((a, b) => a.at < b.at ? -1 : 1);
+    out += `<g class="node" tabindex="0" role="button" data-ids="${esc(ms.map(sid).join(" "))}" aria-label="${esc(l.n)}: ${ms.length} moment${ms.length === 1 ? "" : "s"}">` +
+      `<text class="nl" x="4" y="${l.y - 1}">${esc(l.e)} ${esc(l.n.length > 21 ? l.n.slice(0, 20).replace(/\s+\S*$/, "") + "…" : l.n)}</text>` +
+      `<text class="nc" x="4" y="${l.y + 11}">${ms.length} · ${KN[l.type]}</text>`;
+    let x = X(ms[0].at), w = 2;
+    ms.forEach((m, i) => { const nx = X(m.at); out += `<path class="t" data-ids="${esc(sid(m))}" d="M${x},${l.y} L${nx},${l.y}" stroke="${c}" stroke-opacity=".4" stroke-width="${w}"/>`; x = nx; w = Math.min(10, 2 + 0.6 * (i + 1)); });
+    const end = l.dests.size ? DX : RX;
+    out += `<path class="t" data-ids="${esc(ms.map(sid).join(" "))}" d="M${x},${l.y} L${end},${l.y}" stroke="${c}" stroke-opacity=".45" stroke-width="${w}"/>`;
+    ms.forEach((m, i) => {
+      const cx = X(m.at), cy = l.y + 18 * (m._row[l.key] || 0);
+      out += `<g class="pt" data-ids="${esc(sid(m))}"><circle cx="${cx}" cy="${cy}" r="8" fill="var(--tint)" stroke="${c}" stroke-width="1.5"/>` +
+        `<text x="${cx}" y="${cy + 3.5}" text-anchor="middle" font-size="9">${esc(m.g || "·")}</text>` +
+        (m.flow ? `<circle cx="${cx + 6.5}" cy="${cy - 6.5}" r="2.6" fill="${KC.flow}" stroke="var(--tint)" stroke-width="1"/>` : "") +
+        `<title>${esc(m.t)}${m.flow ? " · caught in " + esc(m.flow.n) : ""}</title></g>`;
+    });
+    out += `</g>`;
+  });
+  // destinations at the right edge, with the lanes that lead there
+  const D = new Map(); L.forEach(l => l.dests.forEach(d => { if (!D.has(d.n)) D.set(d.n, {d, from: []}); D.get(d.n).from.push(l); }));
+  [...D.values()].forEach(({d, from}) => {
+    const y = from.reduce((s, l) => s + l.y, 0) / from.length, ids = from.flatMap(l => l.ms.map(sid));
+    from.forEach(l => { out += `<path class="t" data-ids="${esc(l.ms.map(sid).join(" "))}" d="M${DX},${l.y} C${DX + 14},${l.y} ${DX + 6},${y} ${DX + 20},${y}" stroke="${KC.destination}" stroke-opacity=".5" stroke-width="3"/>`; });
+    out += `<g class="node" tabindex="0" role="button" data-ids="${esc(ids.join(" "))}" aria-label="${esc(d.n)}: ${new Set(ids).size} moments">` +
+      `<rect x="${DX + 20}" y="${y - 10}" width="6" height="20" rx="3" fill="${KC.destination}"/>` +
+      `<text class="nl" x="${DX + 30}" y="${y - 1}">${esc(d.e)} ${esc(d.n)}</text><text class="nc" x="${DX + 30}" y="${y + 10}">${new Set(ids).size} · destination</text>` +
+      `<title>${esc(d.n)} · where it leads</title></g>`;
+  });
+  svg.innerHTML = out;
+  const dests = [...D.values()].map(({d}) => `${esc(d.e)} ${esc(d.n)}`).join(" · ");
+  document.getElementById("rkey").innerHTML = Object.entries(KN).filter(([k]) => L.some(l => l.type === k) || (k === "destination" && D.size) || (k === "flow" && BE.length))
+    .map(([k, v]) => `<span><i style="background:${KC[k]}"></i>${v}</span>`).join("") + (dests ? `<span>→ ${dests}</span>` : "");
+  let on = null;
+  const show = g => {
+    const ids = g && g !== on ? new Set(g.dataset.ids.split(" ")) : null; on = ids ? g : null;
+    svg.classList.toggle("on", !!ids);
+    svg.querySelectorAll("path.t, .pt").forEach(p => p.classList.toggle("lit", !!ids && p.dataset.ids.split(" ").some(i => ids.has(i))));
+    svg.querySelectorAll(".node").forEach(n => n.classList.toggle("lit", n === g && !!ids));
+    document.querySelectorAll(".stone").forEach(s => s.classList.toggle("dim", !!ids && !ids.has(s.dataset.at)));
+    document.querySelectorAll(".sd").forEach(d => d.classList.toggle("empty", !!ids && !d.querySelector(".stone:not(.dim)")));
+    document.getElementById("rhint").textContent = ids ? `showing the ${ids.size} moment${ids.size === 1 ? "" : "s"} of ${g.getAttribute("aria-label").split(":")[0]} · tap it again for all` : "the week runs left to right · a full ring is a flow you closed, a dashed one a flow left open · tap a flow, lane or destination to see just its moments below · scroll sideways on a phone";
+  };
+  svg.addEventListener("click", e => { const g = e.target.closest(".node"); if (g) show(g); });
+  svg.addEventListener("keydown", e => { const g = e.target.closest(".node"); if (g && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); show(g); } });
+  document.getElementById("rhint").textContent = "the week runs left to right · a full ring is a flow you closed, a dashed one a flow left open · tap a flow, lane or destination to see just its moments below · scroll sideways on a phone";
+})();
 // where the time went — the eight areas, being first
 const amax = Math.max(1, ...DATA.time.areas.map(a => a.min));
 const BE = new Set(DATA.time.areas.slice(0, 4).map(a => a.a));

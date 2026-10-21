@@ -103,7 +103,8 @@ def readings(w, out):
     belongs to its morning; somebody else's night is theirs; readiness comes from
     the Oura row's own words; a day with no ⏏️ row is secure, and says so."""
     sf = dict(SF, practice='fP', wellness='fL', person='fN', details='fX')
-    loc = dict(LOCAL, fields={'stream': sf, 'rhythms': RF}, self_person='♋ Me', growing_types=['♐ drive'],
+    pf = dict(name='pN', group='pG')
+    loc = dict(LOCAL, fields={'stream': sf, 'rhythms': RF, 'practices': pf}, self_person='♋ Me', growing_types=['♐ drive'],
                pie=[{'k': 'play', 'practices': ['show']}])
 
     def r(title, pr, well, when, end=None, person=None, details=None, status=LOG, drive=''):
@@ -134,6 +135,13 @@ def readings(w, out):
                details='The rope swing, swimming, and the hike we did five years ago. Even more wonderful with them.'),
              r('the river day', "🌟 kid's highlight", '💖 spirit', D.format(30, '18:00'), person='♑ Kid'),
              r('a quiet glimmer', '✨ glimmer', '💖 spirit', D.format(30, '19:00'))]
+    # the flows: two dawn practices and its close on Tue, one dusk practice left open on Wed
+    rows += [r('coffee', '☕ coffee', '🤸\u200d♀️ body', D.format(29, '06:30')),
+             r('water', '🥤 morning water', '🤸\u200d♀️ body', D.format(29, '06:35')),
+             r('dawn close', '🌅 dawn flow close', '💖 spirit', D.format(29, '08:30')),
+             r('tea', '🫖 tea', '🤸\u200d♀️ body', D.format(30, '20:30'))]
+    cat = dump([{'id': f'recP{i}', 'createdTime': '2026-09-01T00:00:00.000Z',
+                 'cellValuesByFieldId': {'pN': p, 'pG': 'flow'}} for i, p in enumerate(['☕ coffee', '🥤 morning water', '🫖 tea'])])
     # an original left behind in the older base after a move is the same row twice
     orig = r('a walk, moved', '🚶\u200d♀️ walking', '🤸\u200d♀️ body', D.format(29, '07:00'), D.format(29, '08:00'))
     rows[2]['cellValuesByFieldId'][sf['details']] = f"[be•do] moved from w39 ({orig['id']}) on 30 Sep"
@@ -141,7 +149,7 @@ def readings(w, out):
     o = out.replace('week.html', 'week2.html')
     rr = subprocess.run([sys.executable, BUILDER, '--week', '2026-09-30', '--local', w('local2.json', loc),
                          '--stream', w('w40b.json', dump(rows)), '--rhythms', w('rhythms2.json', dump(RHYTHMS)),
-                         '--template', ENGINE, '--out', o],
+                         '--practices', w('practices2.json', cat), '--template', ENGINE, '--out', o],
                         capture_output=True, text=True, encoding='utf-8', timeout=60,
                         env=dict(os.environ, PYTHONIOENCODING='utf-8'))
     if rr.returncode:
@@ -172,6 +180,10 @@ def readings(w, out):
     river = next(m for m in st if m['t'] == 'the river day')
     assert river['theirs'] == ['kid'] and river['memory'] and river['synergy'] and river['g'] != '', river
     assert any(m['t'] == 'a quiet glimmer' for m in st), st
+    # the being side: the flows are practices, counted day by day, apart from where moments lived
+    be = X['stream']['be']
+    assert be[2]['dawn']['n'] == 2 and be[2]['dawn']['closed'] and be[2]['dusk']['n'] == 0, be[2]
+    assert be[3]['dusk'] == dict(n=1, closed=False, g=['🫖']) and be[3]['dawn']['n'] == 0, be[3]
     print('ok — time by area, rest and readiness, the needs on the secure base, the garden and the stream')
 
 

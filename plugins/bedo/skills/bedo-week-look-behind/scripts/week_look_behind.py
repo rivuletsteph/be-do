@@ -309,6 +309,10 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset()):
         dests += [d for d in out if 'destination' in (rhythms[d].get('type') or '') and d not in dests]
         return [d for d in out if d not in dests], dests
 
+    def kind(d):
+        t = (rhythms.get(d) or {}).get('type') or ''
+        return 'rhythm' if 'rhythm' in t else 'destination' if 'destination' in t else 'drive'
+
     lived = []
     for r in rows:
         a = local(r.get('when'))
@@ -350,7 +354,8 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset()):
         badges = list(dict.fromkeys(glyph(r.get('practice')) for r in rs if r is not main or norm(r.get('practice')) in kinds))
         theirs = [shared_rx.split(norm(r.get('practice')))[0] for r in rs if shared_rx.search(norm(r.get('practice')))]
         drive = main.get('rhythm') or next((r.get('rhythm') for r in rs if r.get('rhythm')), '')
-        env = next((e for e in envs if e['_a'] <= main['_a'] <= e['_b']), None)
+        # an envelope holds its whole days: the day she left and the day she came home are the trip's
+        env = next((e for e in envs if e['_a'].date() <= main['_a'].date() <= e['_b'].date()), None)
         chain, dests = flows(drive or (env.get('rhythm') if env else ''))
         # the being side: a flow practice belongs to its flow, dawn or dusk, not to a rhythm or drive
         flow = None
@@ -379,8 +384,8 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset()):
             synergy=any(w in low for w in G['synergy']) or any('synergiz' in hers(r).lower() for r in rs),
             photo=any(PHOTO.search(r.get('details') or '') or r.get('photo') for r in rs),
             envelope=clean(env.get('title')).split(' — ')[0] if env else None, flow=flow,
-            drives=[dict(n=d, e=(rhythms[d].get('emoji') or '')) for d in chain],
-            dests=[dict(n=d, e=((rhythms.get(d) or {}).get('emoji') or '')) for d in dests]))
+            drives=[dict(n=d, e=(rhythms[d].get('emoji') or ''), type=kind(d)) for d in chain],
+            dests=[dict(n=d, e=((rhythms.get(d) or {}).get('emoji') or ''), type='destination') for d in dests]))
     out.sort(key=lambda m: m['at'])
     days = []
     for i in range(7):
@@ -408,7 +413,29 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset()):
             if m['envelope']:
                 reach[x['n']]['via'].add(m['envelope'])
     flowed = sorted(({**v, 'via': sorted(v['via'])} for v in reach.values()), key=lambda v: -v['n_moments'])
-    return dict(days=days, flowed=flowed, n=len(out))
+    bands = [dict(t=clean(e.get('title')).split(' — ')[0], a=e['_a'].isoformat(), b=e['_b'].isoformat()) for e in envs]
+    # the being side, day by day: the flows are practices she returns to, not places she goes
+    # (20 Oct 2026), so each day shows how much of each flow was done and whether it was closed
+    F = bedo_reader.FACTS['flows']
+    closes = {norm(F['close'][k]): k for k in ('dawn', 'dusk')}
+    be = []
+    for i in range(7):
+        d = (start + dt.timedelta(days=i)).date()
+        day = {k: dict(n=0, closed=False, g=[]) for k in ('dawn', 'dusk')}
+        for r in lived:
+            if r['_a'].date() != d:
+                continue
+            pr = norm(r.get('practice'))
+            if pr in closes:
+                day[closes[pr]]['closed'] = True
+            elif pr in flowset:
+                k = 'dusk' if (r.get('phase') or '') == F['phase']['dusk'] or (not r.get('phase') and r['_a'].hour >= 15) else 'dawn'
+                day[k]['n'] += 1
+                if glyph(r.get('practice')) and glyph(r.get('practice')) not in day[k]['g']:
+                    day[k]['g'].append(glyph(r.get('practice')))
+        be.append(dict(date=d.isoformat(), **day))
+    flows_meta = [dict(k=k, n=f'the {k} flow', e=F['phase'][k].split()[0]) for k in ('dawn', 'dusk')]
+    return dict(days=days, flowed=flowed, n=len(out), bands=bands, be=be, flows=flows_meta)
 
 
 def needs_map(L):
