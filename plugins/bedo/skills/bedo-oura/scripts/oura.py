@@ -37,7 +37,7 @@ Every block it writes begins [be•do] From the Oura API. Run again, it replaces
 block when Oura's numbers have moved (an evening read at dusk is filled out next
 morning) and plans nothing when they have not.
 """
-import argparse, datetime as dt, json, os, sys, urllib.error, urllib.parse, urllib.request
+import argparse, datetime as dt, json, os, re, sys, urllib.error, urllib.parse, urllib.request
 
 API = 'https://api.ouraring.com/v2/usercollection/'
 CORE = ('sleep', 'daily_sleep', 'daily_readiness', 'daily_activity', 'daily_stress')
@@ -50,6 +50,7 @@ LOG, DONE = '● log', '◉ done'
 READINESS = (('recovery_index', 'recovery index'), ('hrv_balance', 'HRV balance'), ('resting_heart_rate', 'resting HR'),
              ('body_temperature', 'body temp'), ('sleep_balance', 'sleep balance'), ('previous_night', 'previous night'),
              ('previous_day_activity', 'previous day'), ('activity_balance', 'activity balance'))
+REST = re.compile(r'(?i)\b(nap|rest|sleep)\b')
 DAY_SUMMARY = {'restored': 'a restored day', 'normal': 'a normal day', 'stressful': 'a stressful day'}
 
 
@@ -139,10 +140,27 @@ def night(O, day):
 
 
 def naps(O, day, tz):
+    """Naps begun on this day. Oura can hold one nap twice (a short period and the whole
+    one, 21 Oct 2026: 4:58–5:35 and 4:58–6:20), so the longer of any overlap is kept."""
     main = night(O, day)
-    return [p for p in O.get('sleep') or [] if p is not main and p.get('type') in ('late_nap', 'sleep')
-            and p.get('bedtime_start') and iso(p['bedtime_start']).astimezone(tz).date().isoformat() == day
-            and (p.get('time_in_bed') or 0) >= 15 * 60]
+    ps = sorted((p for p in O.get('sleep') or [] if p is not main and p.get('type') in ('late_nap', 'sleep')
+                 and p.get('bedtime_start') and p.get('bedtime_end')
+                 and iso(p['bedtime_start']).astimezone(tz).date().isoformat() == day
+                 and (p.get('time_in_bed') or 0) >= 15 * 60), key=lambda p: -(p.get('time_in_bed') or 0))
+    kept = []
+    for p in ps:
+        a, b = iso(p['bedtime_start']), iso(p['bedtime_end'])
+        if not any(a < iso(k['bedtime_end']) and iso(k['bedtime_start']) < b for k in kept):
+            kept.append(p)
+    return sorted(kept, key=lambda p: p['bedtime_start'])
+
+
+def overlap(r, a, b):
+    """Minutes a row with a span shares with a to b."""
+    if not (r['when'] and r['end']):
+        return 0
+    s, e = max(iso(r['when']), a), min(iso(r['end']), b)
+    return max(0, (e - s).total_seconds() / 60)
 
 
 def morning_lines(O, day):
@@ -257,8 +275,25 @@ def plan(O, stream_rows, days, F, off, mode='both', now=None):
     for r in stream_rows:
         c = r.get('cellValuesByFieldId') or r.get('fields') or {}
         v = lambda k: (c.get(F[k]) or {}).get('name') if isinstance(c.get(F[k]), dict) else c.get(F[k])  # noqa: E731
-        rows.append(dict(id=r['id'], practice=v('practice') or '', when=v('when'), end=v('end'), details=v('details') or ''))
+        rows.append(dict(id=r['id'], practice=v('practice') or '', when=v('when'), end=v('end'), details=v('details') or '',
+                         title=v('title') or ''))
     create, patch, notes = [], [], list(O.get('_notes') or [])
+
+    def nap(p):
+        """Her rows beat Oura's guess. A rest or sleep row of hers over the nap is the nap;
+        her other rows filling most of it mean Oura read rest as sleep (21 Oct 2026: a
+        bath, the therapillow and the sun, 2:58–4:10 PM), so it is left out with a note."""
+        a, b = iso(p['bedtime_start']), iso(p['bedtime_end'])
+        span = (b - a).total_seconds() / 60
+        restful = lambda r: r['practice'] == SLEEP or REST.search(r['practice'] + ' ' + r['title'])  # noqa: E731
+        if any(restful(r) and overlap(r, a, b) >= span / 2 for r in rows):
+            return
+        busy = [r for r in rows if overlap(r, a, b) > 0]
+        if sum(overlap(r, a, b) for r in busy) >= span / 2:
+            notes.append(f"{p['day']}: Oura saw a nap {clock(a.astimezone(tz))}–{clock(b.astimezone(tz))}, but your rows "
+                         f"cover it ({', '.join(r['title'] or r['practice'] for r in busy[:3])}); left out")
+            return
+        sleep_row(p, f"😴 nap {clock(a.astimezone(tz))}", dt.timedelta(hours=1))
 
     def sleep_row(p, title, near):
         a, b = iso(p['bedtime_start']).astimezone(tz), iso(p['bedtime_end']).astimezone(tz)
@@ -269,7 +304,7 @@ def plan(O, stream_rows, days, F, off, mode='both', now=None):
             new = {F['title']: title, F['when']: zulu(a), F['end']: zulu(b), F['status']: LOG,
                    F['practice']: SLEEP, F['details']: f"{DIVIDER}\n{src}"}
             create.append(new)
-            rows.append(dict(id=None, practice=SLEEP, when=new[F['when']], end=new[F['end']], details=src))
+            rows.append(dict(id=None, practice=SLEEP, when=new[F['when']], end=new[F['end']], details=src, title=title))
         elif not have[0]['end']:
             patch.append({'id': have[0]['id'], 'fields': {F['end']: zulu(b)}})
             notes.append(f"{p['day']}: sleep row {have[0]['id']} had no end; Oura gives {clock(b)}")
@@ -304,7 +339,7 @@ def plan(O, stream_rows, days, F, off, mode='both', now=None):
                     F['status']: DONE, F['practice']: MORNING, F['details']: f"{DIVIDER}\n{b}"})
         if mode in ('evening', 'both'):
             for p in naps(O, ds, tz):
-                sleep_row(p, f"😴 nap {clock(iso(p['bedtime_start']).astimezone(tz))}", dt.timedelta(hours=1))
+                nap(p)
             el = evening_lines(O, ds, tz)
             if not el:
                 notes.append(f'{ds} evening: Oura holds nothing yet — open the Oura app so the ring syncs')

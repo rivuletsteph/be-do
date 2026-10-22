@@ -119,6 +119,30 @@ def main():
     ev4 = {p['id']: p['fields'] for p in P4['patch']}['recEvening1']['fD']
     assert '11,234 steps' in ev4 and '9,000' not in ev4 and ev4.startswith('Calm day.\n———\n'), ev4
 
+    # 21 Oct 2026: Oura held the 4:58 nap twice, and read a bath and the sun as a nap.
+    # Her rest row is the nap; her other rows win over Oura's guess.
+    d21 = {'sleep': [
+        {'day': '2026-10-21', 'type': 'sleep', 'bedtime_start': '2026-10-21T14:58:00-05:00',
+         'bedtime_end': '2026-10-21T16:10:00-05:00', 'time_in_bed': 4320, 'total_sleep_duration': 2430},
+        {'day': '2026-10-21', 'type': 'sleep', 'bedtime_start': '2026-10-21T16:58:00-05:00',
+         'bedtime_end': '2026-10-21T17:35:00-05:00', 'time_in_bed': 2220, 'total_sleep_duration': 690},
+        {'day': '2026-10-22', 'type': 'late_nap', 'bedtime_start': '2026-10-21T16:58:00-05:00',
+         'bedtime_end': '2026-10-21T18:20:00-05:00', 'time_in_bed': 4890, 'total_sleep_duration': 3120}]}
+    mine = [
+        {'id': 'recBath', 'cellValuesByFieldId': {'fP': '🛀 bath', 'fT': '🛀 Epsom salt bath',
+                                                  'fW': '2026-10-21T19:30:00.000Z', 'fE': '2026-10-21T20:00:00.000Z'}},
+        {'id': 'recNeck', 'cellValuesByFieldId': {'fP': '🦒 neck stretch', 'fT': '🦒 on the therapillow',
+                                                  'fW': '2026-10-21T20:30:00.000Z', 'fE': '2026-10-21T20:50:00.000Z'}},
+        {'id': 'recSun', 'cellValuesByFieldId': {'fP': '🔅 sunshine', 'fT': '🔅 in the sun',
+                                                 'fW': '2026-10-21T20:50:00.000Z', 'fE': '2026-10-21T21:35:00.000Z'}},
+        {'id': 'recRest', 'cellValuesByFieldId': {'fP': '🛌 power rest · 10-hour charge', 'fT': '🛌 nap — 4:58 to 6:20 PM',
+                                                  'fW': '2026-10-21T21:58:00.000Z', 'fE': '2026-10-21T23:20:00.000Z'}}]
+    P6 = oura.plan(d21, mine, [dt.date(2026, 10, 21)], F, -5, mode='evening', now=NOW)
+    assert P6['create'] == [] and P6['patch'] == [], P6
+    assert any('2:58 PM–4:10 PM' in n and 'left out' in n for n in P6['notes']), P6['notes']
+    P7 = oura.plan(d21, mine[-1:], [dt.date(2026, 10, 21)], F, -5, mode='evening', now=NOW)
+    assert [c['fT'] for c in P7['create']] == ['😴 nap 2:58 PM'], P7['create']    # with nothing of hers over it, it is a nap
+
     # before the ring has synced: a note, never a row
     P5 = oura.plan({'sleep': []}, [], [dt.date(2026, 10, 2)], F, -5, mode='morning', now=NOW)
     assert P5['create'] == [] and 'ring syncs' in P5['notes'][0], P5

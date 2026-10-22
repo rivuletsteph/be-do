@@ -22,7 +22,7 @@ import argparse, getpass, http.server, json, os, secrets, sys, time, urllib.erro
 
 AUTH = 'https://cloud.ouraring.com/oauth/authorize'
 TOKEN = 'https://api.ouraring.com/oauth/token'
-SCOPES = 'email personal daily heartrate workout tag session spo2Daily'
+SCOPES = 'email personal daily heartrate workout tag session spo2 stress heart_health'   # as the portal names them
 PORT = 8765
 REDIRECT = f'http://localhost:{PORT}/callback'
 HOME = os.path.join(os.path.expanduser('~'), '.bedo')
@@ -48,6 +48,12 @@ def _write(p, d):
     os.replace(tmp, p)
 
 
+def undouble(v):
+    """A Windows terminal can paste twice (right-click, then Ctrl+V); 22 Oct 2026 it did."""
+    h = len(v) // 2
+    return v[:h] if len(v) % 2 == 0 and h and v[:h] == v[h:] else v
+
+
 def app(ask=False):
     s = _read(SECRETS)
     cid, sec = s.get('oura_client_id'), s.get('oura_client_secret')
@@ -55,9 +61,9 @@ def app(ask=False):
         return cid, sec
     if not ask:
         die(f'no Oura app in {SECRETS} — run oura_auth.py once to sign in')
-    print('The Oura app\'s Client ID and Client Secret, from cloud.ouraring.com/oauth/applications.')
-    cid = input('Client ID: ').strip()
-    sec = getpass.getpass('Client Secret (not shown): ').strip()
+    print('The Oura app\'s Client ID and Client Secret, from developer.ouraring.com/applications.')
+    cid = undouble(input('Client ID: ').strip())
+    sec = undouble(getpass.getpass('Client Secret (not shown): ').strip())
     if not (cid and sec):
         die('both are needed')
     s.update(oura_client_id=cid, oura_client_secret=sec)

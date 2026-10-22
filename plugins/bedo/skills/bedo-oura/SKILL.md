@@ -52,7 +52,7 @@ row, a ◉ done row is made at wake-up. The week page reads `readiness NN`,
 - **stress**: time stressed and restored, Oura's word for the day, and resilience.
 - **moments**: breathing and meditation sessions.
 - **heart**: cardio age and VO2 max, when Oura has them.
-- **naps**: each nap of 15 minutes or more becomes its own 😴 sleep row.
+- **naps**: each nap of 15 minutes or more becomes its own 😴 sleep row, unless a rest or sleep row of hers already covers it, or her other rows fill that time (Oura read rest as sleep), which leaves a note instead.
 
 It goes on that day's 🪐 evening oura row. When there is no row, a **● log** row
 is made instead, never ◉ done, because the flow step stays hers to do.
@@ -89,7 +89,7 @@ the patches. Airtable's free plan allows 1,000 calls a month.
 Oura ended personal access tokens at the end of 2025. The API now takes only an
 app's sign-in, which the user approves once:
 
-1. At **cloud.ouraring.com/oauth/applications**, create an application. It's
+1. At **developer.ouraring.com/applications**, create an application. It's
    personal, and any name will do. Set the redirect URI to exactly
    `http://localhost:8765/callback`.
 2. On the laptop, run `python scripts/oura_auth.py`. It asks for the app's
