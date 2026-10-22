@@ -71,6 +71,20 @@ a{color:var(--link)}
 .fw b{font-size:1rem}.fw .v{font:400 .74rem var(--mono);color:var(--muted)}
 .fw .ds{font:400 .74rem var(--mono);color:var(--water);overflow-wrap:anywhere}
 .fw.none b{color:var(--soft)}
+/* a tile opens to the moments that reached it; each one jumps to its card in the stream (22 Oct 2026) */
+details.fw{padding:0}
+details.fw>summary{list-style:none;cursor:pointer;padding:10px 14px;display:grid;gap:3px;border-radius:14px}
+details.fw>summary::-webkit-details-marker{display:none}
+details.fw>summary:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+details.fw .v::after{content:" · show";color:var(--link)}
+details.fw[open] .v::after{content:" · hide"}
+.fm{display:grid;gap:2px;margin:0;padding:0 8px 10px;list-style:none;border-top:1px solid var(--rule)}
+.fm button{all:unset;cursor:pointer;display:grid;grid-template-columns:1.6rem 3.4rem minmax(0,1fr);align-items:baseline;gap:6px;padding:7px 6px;border-radius:10px;font-size:.88rem;line-height:1.35;color:var(--ink)}
+.fm button:hover,.fm button:focus-visible{background:var(--ground)}
+.fm button:focus-visible{outline:2px solid var(--link)}
+.fm .tm{font:400 .72rem var(--mono);color:var(--muted)}
+.stone.hit{outline:2px solid var(--link);outline-offset:2px}
+@media (prefers-reduced-motion:no-preference){.stone{transition:outline-color .6s}}
 .stream{position:relative;margin:8px 0 0;padding-left:26px}
 .stream::before{content:"";position:absolute;left:9px;top:6px;bottom:6px;width:3px;border-radius:3px;background:linear-gradient(var(--water),var(--terra))}
 .sd{position:relative;margin:0 0 22px}
@@ -185,9 +199,20 @@ document.getElementById("slead").textContent = SM.n
   : `no moments marked this ${SP} — a highlight, a glimmer, a gratitude or a few lines of your words is what lands here`;
 // one tile per drive, naming the destinations it serves; the moments on no drive come last
 const nm = n => `${n} moment${n === 1 ? "" : "s"}`;
+const clock = at => { const [h, m] = at.slice(11, 16).split(":").map(Number); return `${h % 12 || 12}:${String(m).padStart(2, "0")}${h < 12 ? "a" : "p"}`; };
+const reached = f => (f.moments || []).length ? `<ul class="fm">${f.moments.map(m =>
+  `<li><button type="button" data-at="${esc(m.at)}"><span>${esc(m.g || "·")}</span><span class="tm">${ONE ? clock(m.at) : esc(m.at.slice(5, 10))}</span><span>${esc(m.t)}</span></button></li>`).join("")}</ul>` : "";
 document.getElementById("flowed").innerHTML = SM.flowed.map(f => f.n
-  ? `<div class="fw"><b>${esc(f.e)} ${esc(f.n)}</b>${(f.dests || []).length ? `<span class="ds">→ ${f.dests.map(d => `${esc(d.e)} ${esc(d.n)}`).join(" · ")}</span>` : ""}<span class="v">${nm(f.n_moments)}${f.via.length ? " · through " + f.via.map(esc).join(", ") : ""}</span></div>`
-  : `<div class="fw none"><b>· life between the drives</b><span class="v">${nm(f.n_moments)} on no drive at all</span></div>`).join("");
+  ? `<details class="fw"><summary><b>${esc(f.e)} ${esc(f.n)}</b>${(f.dests || []).length ? `<span class="ds">→ ${f.dests.map(d => `${esc(d.e)} ${esc(d.n)}`).join(" · ")}</span>` : ""}<span class="v">${nm(f.n_moments)}${f.via.length ? " · through " + f.via.map(esc).join(", ") : ""}</span></summary>${reached(f)}</details>`
+  : `<details class="fw none"><summary><b>· life between the drives</b><span class="v">${nm(f.n_moments)} on no drive at all</span></summary>${reached(f)}</details>`).join("");
+// tapping a moment in a tile brings its card in the stream into view and marks it for a moment
+document.getElementById("flowed").addEventListener("click", e => {
+  const b = e.target.closest("button[data-at]"); if (!b) return;
+  const el = document.querySelector(`.stone[data-at="${b.dataset.at}"]`); if (!el) return;
+  const quiet = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  el.scrollIntoView({behavior: quiet ? "auto" : "smooth", block: "center"});
+  el.classList.add("hit"); setTimeout(() => el.classList.remove("hit"), 1600);
+});
 const words = w => {
   if (!w) return "";
   const cut = w.length > 260 ? w.slice(0, 240).replace(/\s+\S*$/, "") + "…" : null;
@@ -199,7 +224,7 @@ const stone = m => {
     m.memory ? `↺ ${esc(m.memory)}` : "", m.synergy ? "∞ more because it was shared" : "", m.photo ? "📷 a photo" : ""].filter(Boolean);
   const path = [m.envelope, ...m.drives.map(d => `${d.e} ${d.n}`), ...m.dests.map(d => `${d.e} ${d.n}`)].filter(Boolean);
   const big = m.memory || m.synergy || (m.words || "").length > 500;
-  return `<div class="stone${big ? " big" : ""}"><span class="g">${esc(m.g || "·")}</span>` +
+  return `<div class="stone${big ? " big" : ""}" data-at="${esc(m.at)}"><span class="g">${esc(m.g || "·")}</span>` +
     `<div class="tt">${esc(m.t)}${m.badges.length ? `<span class="bd">${esc(m.badges.join(" "))}</span>` : ""}</div>` +
     words(m.words) + (meta.length ? `<div class="meta">${meta.map(x => `<span>${x}</span>`).join("")}</div>` : "") +
     (path.length ? `<div class="to">→ ${path.map(esc).join(" → ")}</div>` : "") + `</div>`;

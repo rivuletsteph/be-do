@@ -174,6 +174,7 @@ def readings(w, out):
     assert any(m['t'] == 'a quiet glimmer' for m in st), st
     fl = X['stream']['flowed']   # one tile per drive; the moments on no drive are one tile, last
     assert fl[-1]['n'] == '' and fl[-1]['n_moments'] == len(st) and fl[-1]['dests'] == [], fl
+    assert sorted(m['at'] for m in fl[-1]['moments']) == sorted(m['at'] for m in st), fl   # each tile opens to its moments
     print('ok — time by area, rest and readiness, the needs on the secure base, the garden and the stream')
     one_day(w, out, loc, rows)
 

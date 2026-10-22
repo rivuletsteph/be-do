@@ -386,8 +386,9 @@ def stream(rows, rhythms, start, L, local, ndays=7, words=None):
     for m in out:
         d = m['drives'][0] if m['drives'] else dict(n='', e='')
         t = reach.setdefault(d['n'], dict(n=d['n'], e=d['e'], dests=m['dests'] if d['n'] else [],
-                                          n_moments=0, via=set()))
+                                          n_moments=0, via=set(), moments=[]))
         t['n_moments'] += 1
+        t['moments'].append(dict(at=m['at'], g=m['g'], t=m['t']))   # what reached it, to open on the page
         if m['envelope']:
             t['via'].add(m['envelope'])
     flowed = sorted(({**v, 'via': sorted(v['via'])} for v in reach.values()),
