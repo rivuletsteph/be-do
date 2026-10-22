@@ -21,7 +21,7 @@ anchor come from the day behind's settings file, look_behind_local.json.
       --stream w40.json --stream w39.json --rhythms rhythms.json \\
       --template week_look_behind_engine.html --out week.html
 """
-import argparse, datetime as dt, json, os, re, sys
+import argparse, base64, datetime as dt, json, os, re, sys
 
 # The core lives in plugins/bedo/core; a runner may copy it beside this file. Beside wins.
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -100,7 +100,7 @@ def load_rhythms(path, RF):
     return out, len(recs)
 
 
-def build(rows, rhythms, start, L, ndays=7, words=None):
+def build(rows, rhythms, start, L, ndays=7, words=None, photos=None):
     """Everything the page counts, from rows already deduped."""
     off = dt.timedelta(hours=L['utc_offset_hours'])
     end = start + dt.timedelta(days=ndays)
@@ -195,7 +195,7 @@ def build(rows, rhythms, start, L, ndays=7, words=None):
                          for r in sorted(closed, key=lambda r: r.get('end') or r.get('when') or '')],
                  motion=[dict(t=clean(r.get('title')), drive=r.get('rhythm') or '')
                          for r in moving(rows, chains, start, end, local)])
-    return [node(n) for n in forest], totals, qa, dict(moved=moved, **readings(rows, timed, rhythms, start, L, local, ndays, words))
+    return [node(n) for n in forest], totals, qa, dict(moved=moved, **readings(rows, timed, rhythms, start, L, local, ndays, words, photos))
 
 
 def norm(p):
@@ -261,7 +261,7 @@ LEAD = re.compile(r'\[be•do\] look behind (\d{4}-\d\d-\d\d) · (?:draft|final)
 PHOTO = re.compile(r'[Ff]rom (?:her|the same) photo')
 
 
-def stream(rows, rhythms, start, L, local, ndays=7, words=None):
+def stream(rows, rhythms, start, L, local, ndays=7, words=None, photos=None):
     """The week as a stream, day by day: each day under its own lead (the look behind's
     words), the moments she marked as stones (what it was, her words, who, a photo, and
     where it flowed: the envelope it sat in, its drive, the drive's destination), and the
@@ -326,7 +326,7 @@ def stream(rows, rhythms, start, L, local, ndays=7, words=None):
         k = r['_a'].strftime('%Y-%m-%d %H:%M')
         s_ = stones.setdefault(k, dict(at=r['_a'].isoformat(), day=r['_a'].date().isoformat(), rows=[]))
         s_['rows'].append(r)
-    out = []
+    out, by_row = [], {}
     for s_ in stones.values():
         rs = s_['rows']
         rank = lambda r: (0 if norm(r.get('practice')) not in kinds and not shared_rx.search(norm(r.get('practice')))  # noqa: E731
@@ -363,7 +363,29 @@ def stream(rows, rhythms, start, L, local, ndays=7, words=None):
             envelope=clean(env.get('title')).split(' — ')[0] if env else None,
             drives=[dict(n=d, e=(rhythms[d].get('emoji') or '')) for d in chain],
             dests=[dict(n=d, e=((rhythms.get(d) or {}).get('emoji') or '')) for d in dests]))
+        for r in rs:
+            by_row[r['id']] = out[-1]
     out.sort(key=lambda m: m['at'])
+    # the day's photos, each placed by the time it was taken (22 Oct 2026): on the row
+    # taken at that minute or spanning it, preferring a row read from a photo, then a
+    # moment; inside its moment when it has one, else in the day's pictures. A photo
+    # for a routine check (a pill, a screen of scores) is left out.
+    skip = set(G.get('photo_skip_practices') or bedo_reader.FACTS['garden'].get('photo_skip_practices') or [])
+    pics = {}
+    for t, src in photos or []:
+        near = [r for r in lived if r['_a'].date() == t.date() and (abs((r['_a'] - t).total_seconds()) <= 180
+                                                                  or (r['_b'] and r['_a'] <= t <= r['_b']
+                                                                      and r['_b'] - r['_a'] <= MAX_SPAN))]
+        best = min(near, key=lambda r: ('photo' not in (r.get('details') or '').lower(), not marked(r),
+                                        abs((r['_a'] - t).total_seconds()))) if near else None
+        if best is not None and norm(best.get('practice')) in skip:
+            continue
+        if best is not None and best['id'] in by_row:
+            by_row[best['id']].setdefault('photos', []).append(src)
+        else:
+            pics.setdefault(t.date().isoformat(), []).append(dict(
+                src=src, at=t.isoformat(), g=glyph(best.get('practice')) if best else '',
+                t=clean(best.get('title')) if best else ''))
     days = []
     for i in range(ndays):
         d = (start + dt.timedelta(days=i)).date()
@@ -378,6 +400,7 @@ def stream(rows, rhythms, start, L, local, ndays=7, words=None):
             if t not in [x['t'] for x in texture]:
                 texture.append(dict(g=glyph(r.get('practice')), t=t))
         days.append(dict(date=d.isoformat(), label=f'{DAY3[d.weekday()]} {d.day} {d:%b}', lead=leads.get(d.isoformat()),
+                         pictures=pics.get(d.isoformat(), []),
                          stones=[m for m in out if m['day'] == d.isoformat()], texture=texture[:10]))
     # where it flowed: one tile per drive the moments sat on, naming the destinations it
     # serves, so a drive serving four destinations is one tile, not four (21 Oct 2026);
@@ -406,7 +429,7 @@ def needs_map(L):
     return N, side
 
 
-def readings(rows, timed, rhythms, start, L, local, ndays=7, words=None):
+def readings(rows, timed, rhythms, start, L, local, ndays=7, words=None, photos=None):
     """Time by area, rest, and the needs, per day and for the week. Minutes only:
     two rows at once both count, as on the wheel. Sleep is in bed, never an area."""
     N, side = needs_map(L)
@@ -499,7 +522,7 @@ def readings(rows, timed, rhythms, start, L, local, ndays=7, words=None):
                        areas=[dict(a=a, min=round(areas.get(norm(a), 0))) for a in g['areas']]) for g in N[k]]
               for k in ('deficiency', 'growth')}
     return dict(days=out, rest=rest, needs=groups, garden=garden(rows, start, L, local, ndays),
-                stream=stream(rows, rhythms, start, L, local, ndays, words),
+                stream=stream(rows, rhythms, start, L, local, ndays, words, photos),
                 time=dict(be=sum(v['be'] for v in out), tend=sum(v['tend'] for v in out),
                           grow=sum(v['grow'] for v in out), bed=rest['bed'],
                           people=sum(v['people'] for v in out),
@@ -514,6 +537,7 @@ def main():
     ap.add_argument('--week', help='the Sunday the week opens on, or any day in it')
     ap.add_argument('--day', help='one day instead of a week: the day behind as a stream (20 Oct 2026)')
     ap.add_argument('--words', help="with --day: the day behind's words file (lead and story)")
+    ap.add_argument('--photos', help='a folder of small photos named by the phone (day_photos.py --out)')
     ap.add_argument('--local', required=True)
     ap.add_argument('--stream', action='append', required=True, help='live base first')
     ap.add_argument('--rhythms', required=True)
@@ -533,7 +557,15 @@ def main():
         die(f"{a.words} holds the words for {words.get('day')}, not {day}")
     rows, reads = load(a.stream, F)
     rhythms, nrh = load_rhythms(a.rhythms, RF)
-    drives, totals, qa, more = build(rows, rhythms, start, L, ndays, words)
+    photos = []
+    if a.photos and os.path.isdir(a.photos):
+        from day_photos import taken
+        for n in sorted(os.listdir(a.photos)):
+            t = taken(n, L['utc_offset_hours'])
+            if t:
+                b64 = base64.b64encode(open(os.path.join(a.photos, n), 'rb').read()).decode()
+                photos.append((t, 'data:image/jpeg;base64,' + b64))
+    drives, totals, qa, more = build(rows, rhythms, start, L, ndays, words, photos)
     wk = L['week_zero_number'] + (sun - dt.date.fromisoformat(L['week_zero_sunday'])).days // 7
     sat = sun + dt.timedelta(days=6)
     last = sat if not a.day else day
@@ -557,7 +589,10 @@ def main():
             yield '  ' * d + f"{n['drive']} · {n['min']} min · {n['closed']} closed · {n['open']} open"
             yield from outline(n['children'], d + 1)
     rest, tm = more['rest'], more['time']
+    placed = sum(len(m.get('photos') or []) for d in more['stream']['days'] for m in d['stones'])
+    strip = sum(len(d['pictures']) for d in more['stream']['days'])
     print(json.dumps(dict(out=a.out, week=DATA['week'], range=DATA['range'], totals=totals,
+                          photos=dict(read=len(photos), on_moments=placed, in_pictures=strip, left_out=len(photos) - placed - strip),
                           time=dict(be=round(tm['be']), tending=round(tm['tend']), growing=round(tm['grow']), bed=round(tm['bed'])),
                           moved=dict(closed=len(more['moved']['closed']), in_motion=len(more['moved']['motion'])),
                           rest=dict(nights=rest['nights'], bed=round(rest['bed']), play=round(rest['play']), readiness=rest['readiness']),

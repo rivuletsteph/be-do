@@ -201,6 +201,55 @@ def one_day(w, out, loc, rows):
     assert not [m for d in X['stream']['days'] for m in d['stones']], 'Wednesday\'s moments are not Tuesday\'s'
     assert run({'day': '2026-09-30', 'lead': 'x', 'story': []}).returncode, 'words for another day must be refused'
     print('ok — one day: its own window, the whole night before, its own words, and no one else\'s')
+    photos(w, out, loc, rows)
+
+
+def photos(w, out, loc, rows):
+    """day_photos.py shrinks the day's photos (named by the phone, in UTC) and the builder
+    places each by its time: in the row it falls in, left out when the row is a routine
+    check (an Oura screen), and in the day's pictures when nothing is near it."""
+    try:
+        from PIL import Image
+    except ImportError:
+        print('skipped — photos (no PIL here)')
+        return
+    tmp = os.path.dirname(out)
+    orig, small = os.path.join(tmp, 'originals'), os.path.join(tmp, 'small')
+    os.makedirs(orig, exist_ok=True)
+    for n in ('PXL_20260929_073000123.jpg',    # inside the walk, 07:00–08:00
+              'PXL_20260929_061000456.jpg',    # the Oura check at 06:10: left out
+              'PXL_20260929_230000789.jpg',    # nothing near it
+              'PXL_20260930_120000000.jpg'):   # another day
+        Image.new('RGB', (3000, 4000), (90, 140, 120)).save(os.path.join(orig, n))
+    env = dict(os.environ, PYTHONIOENCODING='utf-8')
+    dp = os.path.join(SKILL, 'scripts', 'day_photos.py')
+    r = subprocess.run([sys.executable, dp, '--day', '2026-09-29', '--local', w('local4.json', loc), '--out', small,
+                        '--from', orig], capture_output=True, text=True, encoding='utf-8', timeout=60, env=env)
+    if r.returncode:
+        sys.exit(r.stdout + r.stderr)
+    got = sorted(os.listdir(small))
+    assert len(got) == 3 and max(Image.open(os.path.join(small, n)).size[1] for n in got) <= 900, got
+    o = out.replace('week.html', 'day-photos.html')
+    r = subprocess.run([sys.executable, BUILDER, '--day', '2026-09-29', '--photos', small, '--local', w('local4.json', loc),
+                        '--stream', w('w40d.json', dump(rows)), '--rhythms', w('rhythms4.json', dump(RHYTHMS)),
+                        '--template', ENGINE, '--out', o], capture_output=True, text=True, encoding='utf-8',
+                       timeout=60, env=env)
+    if r.returncode:
+        sys.exit(r.stdout + r.stderr)
+    assert json.loads(r.stdout)['photos'] == {'read': 3, 'on_moments': 0, 'in_pictures': 2, 'left_out': 1}, r.stdout
+    X = json.loads(open(o, encoding='utf-8').read().split('const DATA = ', 1)[1].split(';\nconst esc', 1)[0])
+    pics = X['stream']['days'][0]['pictures']
+    assert [p['t'] for p in pics] == ['walk', ''] and pics[0]['src'].startswith('data:image/jpeg;base64,'), pics
+    # a photo taken at a moment's minute sits inside that moment
+    wed = os.path.join(tmp, 'small-wed')
+    os.makedirs(wed, exist_ok=True)
+    Image.new('RGB', (40, 50), (1, 2, 3)).save(os.path.join(wed, 'PXL_20260930_190100000.jpg'))
+    r = subprocess.run([sys.executable, BUILDER, '--day', '2026-09-30', '--photos', wed, '--local', w('local4.json', loc),
+                        '--stream', w('w40d.json', dump(rows)), '--rhythms', w('rhythms4.json', dump(RHYTHMS)),
+                        '--template', ENGINE, '--out', o], capture_output=True, text=True, encoding='utf-8',
+                       timeout=60, env=env)
+    assert json.loads(r.stdout)['photos']['on_moments'] == 1, r.stdout + r.stderr
+    print('ok — photos: made small, placed by the time they were taken, routine checks left out')
 
 
 if __name__ == '__main__':
