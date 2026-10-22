@@ -104,4 +104,17 @@ night that ended that morning counts whole, in day and week alike. It is a
 trial beside the canon day behind, published to its own page, not the living
 one.
 
+**Photos** (22 Oct 2026, her word: photos that piece the day together).
+`scripts/day_photos.py --day D --local … --out photos/` reads the week's
+`W## photos` Drive folder with a service account the folder is shared with (its
+JSON key in `BEDO_DRIVE_SA`, or a path in `BEDO_DRIVE_SA_FILE`), keeps the photos
+taken that day by the phone's own file name (`PXL_YYYYMMDD_HHMMSS…`, UTC), and
+writes each at 900 px. No key prints `NO DRIVE KEY HERE` and exits 3; the page
+builds without photos. `--from DIR` reads originals from a folder instead.
+`week_look_behind.py --photos photos/` places each by its time: on the row taken
+at that minute or spanning it, preferring a row read from a photo, then a moment.
+Inside its moment when it has one, else in the day's pictures under the story; a
+photo for a routine check (`photo_skip_practices` in `core/facts.json`) is left
+out. The Drive connector is not the way: every photo would pass through the chat.
+
 Test: `python3 plugins/bedo/skills/bedo-week-look-behind/tests/test_week.py`.

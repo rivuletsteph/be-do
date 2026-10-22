@@ -192,6 +192,8 @@
  "garden": {
   "_about": "Her words, 19 Oct 2026: show and reflect meaning, the layers of a day like Garner. The week look behind draws each moment she marked as mattering as one flower: its petals are the areas the moment touched, a ring is a memory it echoes, a glow is a moment made more by sharing it (synergy). Areas come from the row's own wellness, the people on it (heart), and her words, read with the word lists below. Nothing is inferred beyond her words.",
   "moment_practices": ["highlight", "glimmer", "gratitude", "insight", "milestone"],
+  "photo_skip_practices": ["supplements", "bp meds", "meds", "other meds", "johnny's meds", "morning oura", "evening oura", "weather check", "map check", "mirror check", "usage check"],
+  "_photo_skip_practices": "22 Oct 2026: a photo taken for a routine row (a pill, a screen of scores) is the record of a check, not a picture of the day; the day page leaves it out.",
   "shared_pattern": "'s highlight$",
   "words": {
    "heart": ["with them", "together", "my guys", "family", "having so much fun with", "snuggl", "hug"],

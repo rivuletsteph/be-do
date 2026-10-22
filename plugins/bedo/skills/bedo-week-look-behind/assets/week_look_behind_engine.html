@@ -116,6 +116,13 @@ details.fw[open] .v::after{content:" · hide"}
 .mo .her summary::-webkit-details-marker{display:none}
 .mo .her summary b{font-style:normal;font-weight:500;color:var(--link);font-size:.78rem}
 .mo .meta{font:400 .72rem var(--mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 12px;margin:4px 0 0}
+.mo .ph{display:grid;gap:6px;margin:8px 0 0}
+.mo .ph img,.stone .ph img{display:block;width:100%;max-width:100%;border-radius:12px}
+.stone .ph{display:grid;gap:6px;margin:6px 0 2px}
+.pics{display:flex;gap:10px;overflow-x:auto;margin:16px 0 0;padding-bottom:6px;scroll-snap-type:x mandatory}
+.pics figure{margin:0;flex:0 0 min(68%,240px);scroll-snap-align:start;min-width:0}
+.pics img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:12px;background:var(--tint)}
+.pics figcaption{font:400 .72rem var(--mono);color:var(--muted);margin-top:4px;line-height:1.35}
 .restline{font:400 .78rem var(--mono);color:var(--muted);border-top:1px solid var(--rule);padding-top:14px;margin:26px 0 0}
 .tex{font-size:.8rem;color:var(--muted);line-height:1.5;margin:2px 0 0}
 details.numbers{margin:0}
@@ -237,7 +244,8 @@ const stone = m => {
   const big = m.memory || m.synergy || (m.words || "").length > 500;
   return `<div class="stone${big ? " big" : ""}" data-at="${esc(m.at)}"><span class="g">${esc(m.g || "·")}</span>` +
     `<div class="tt">${esc(m.t)}${m.badges.length ? `<span class="bd">${esc(m.badges.join(" "))}</span>` : ""}</div>` +
-    words(m.words) + (meta.length ? `<div class="meta">${meta.map(x => `<span>${x}</span>`).join("")}</div>` : "") +
+    words(m.words) + ((m.photos || []).length ? `<div class="ph">${m.photos.map(src => `<img src="${src}" alt="" loading="lazy">`).join("")}</div>` : "") +
+    (meta.length ? `<div class="meta">${meta.map(x => `<span>${x}</span>`).join("")}</div>` : "") +
     (path.length ? `<div class="to">→ ${path.map(esc).join(" → ")}</div>` : "") + `</div>`;
 };
 document.getElementById("stream").innerHTML = SM.days.map(d =>
@@ -302,6 +310,7 @@ if (ONE) {
     const to = m.drives.length ? `→ ${esc(m.drives[0].e)} ${esc(m.drives[0].n)}` : "";
     return `<li class="mo"><span class="g">${esc(m.g || "·")}</span><div class="mt">` +
       `<p class="tt">${esc(m.t)}</p>${words(m.words)}` +
+      ((m.photos || []).length ? `<div class="ph">${m.photos.map(src => `<img src="${src}" alt="${esc(m.t)}" loading="lazy">`).join("")}</div>` : "") +
       `<p class="meta">${[at(m), who, m.memory ? `↺ ${esc(m.memory)}` : "", to].filter(Boolean).map(x => `<span>${x}</span>`).join("")}</p></div></li>`;
   };
   const rest = [d0.bed ? `${hm(d0.bed)} in bed` : "", d0.readiness != null ? `readiness ${d0.readiness}` : "",
@@ -310,6 +319,7 @@ if (ONE) {
 <p class="eyebrow">the day behind · ${esc(DATA.range)}</p>
 ${day.lead ? `<h1 class="sh">${esc(day.lead)}</h1>` : ""}
 ${(DATA.story || []).length ? `<ul class="dstory">${DATA.story.map(([g, t]) => `<li><span>${esc(g)}</span><span>${esc(t)}</span></li>`).join("")}</ul>` : ""}
+${(day.pictures || []).length ? `<div class="pics">${day.pictures.map(p => `<figure><img src="${p.src}" alt="${esc(p.t)}" loading="lazy"><figcaption>${clock(p.at)}${p.t ? ` · ${esc(p.g)} ${esc(p.t)}` : ""}</figcaption></figure>`).join("")}</div>` : ""}
 <section><p class="label">what mattered</p>
 ${day.stones.length ? `<ul class="moments">${day.stones.map(moment).join("")}</ul>` : `<p class="note">nothing marked today</p>`}</section>
 ${rest ? `<p class="restline">${rest}</p>` : ""}`;
