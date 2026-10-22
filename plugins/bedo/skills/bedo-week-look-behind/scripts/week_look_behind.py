@@ -379,15 +379,19 @@ def stream(rows, rhythms, start, L, local, ndays=7, words=None):
                 texture.append(dict(g=glyph(r.get('practice')), t=t))
         days.append(dict(date=d.isoformat(), label=f'{DAY3[d.weekday()]} {d.day} {d:%b}', lead=leads.get(d.isoformat()),
                          stones=[m for m in out if m['day'] == d.isoformat()], texture=texture[:10]))
-    # where the week flowed: each destination and envelope, with the moments that reached it
+    # where it flowed: one tile per drive the moments sat on, naming the destinations it
+    # serves, so a drive serving four destinations is one tile, not four (21 Oct 2026);
+    # the moments on no drive at all are one tile, last
     reach = {}
     for m in out:
-        for x in (m['dests'] or ([] if m['drives'] else [dict(n='', e='')])):
-            reach.setdefault(x['n'], dict(n=x['n'], e=x['e'], n_moments=0, via=set()))
-            reach[x['n']]['n_moments'] += 1
-            if m['envelope']:
-                reach[x['n']]['via'].add(m['envelope'])
-    flowed = sorted(({**v, 'via': sorted(v['via'])} for v in reach.values()), key=lambda v: -v['n_moments'])
+        d = m['drives'][0] if m['drives'] else dict(n='', e='')
+        t = reach.setdefault(d['n'], dict(n=d['n'], e=d['e'], dests=m['dests'] if d['n'] else [],
+                                          n_moments=0, via=set()))
+        t['n_moments'] += 1
+        if m['envelope']:
+            t['via'].add(m['envelope'])
+    flowed = sorted(({**v, 'via': sorted(v['via'])} for v in reach.values()),
+                    key=lambda v: (not v['n'], -v['n_moments'], v['n']))
     return dict(days=days, flowed=flowed, n=len(out))
 
 
