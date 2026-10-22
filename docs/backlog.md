@@ -113,6 +113,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 261020d | ⬜ | The day behind's photo strip reads the day's `photos-YYYY-MM-DD.json` (follows 260921_1444) |
 | 261020e | ⬜ | The weekly close makes a `photos` folder in each new week folder |
 | 261020f | ⬜ | Share from the phone's Images folder, not Google Photos — Photos blanks the location (tested 20 Oct 2026); keep the Timeline load current for the rest |
+| 261022a | ⬜ | Photos at dawn — the skill works at dusk (her word, 22 Oct 2026: working well); at dawn the pictures are needed while the flow runs (Oura screenshots, a glimmer as it happens), not as a finished day. Sort what's new since the last pass, add to the day's sort file, leave the rest for dusk |
 
 ## Done
 
