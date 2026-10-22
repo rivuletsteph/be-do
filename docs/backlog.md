@@ -108,6 +108,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 
 | key | item | shipped |
 |---|---|---|
+| 261022_0822 | Preflight's chat-name line is saved as the chat's name in the same reply, and yesterday's ✔️ rename too, wherever a tool can rename the chat (`set_session_title`) — the checks skill and V53 J0, J8. Her words: when you print the name you save it as the chat name so I don't have to do it manually. | checks skill, 22 Oct 2026 |
 | 261009c | Day ahead: every open card names its next move — the step, the person, the links, what it waits on — read off the row (`Next:` line or the chat's `--step`), and says so when none is named. The 7 Oct amendment on the next step. Her words: so I just don't think of the whole big thing. | day ahead, 9 Oct 2026 |
 | 261009d | Day ahead: the chat's three go on the page (`--pick`), with live status, so a rebuild shows progress. | day ahead, 9 Oct 2026 |
 | 261009a | Day ahead: be•do's three get their own section under the intentions, with why each rose and the next in line; chosen per J9 (someone waiting · target passed · in motion · weighing), never a calendar event's own row, one slot per person waiting; the dawn builds a draft before the intention check so the three are in view. Her words: I'm not seeing the Pareto 3 … recommend what three things I could do today that would move the ball forward the most. | day ahead, 9 Oct 2026 |
