@@ -84,7 +84,10 @@ def fetch(start, end):
                     body = json.load(r)
             except urllib.error.HTTPError as e:
                 if e.code == 401:
-                    die(f'Oura said 401 on {ep} — the sign-in has ended; run scripts/oura_auth.py')
+                    die(f'Oura said 401 on {ep} — ' + ('the cloud Oura key has ended; on the laptop run '
+                        'scripts/oura_auth.py --cloud and paste the fresh key into the environment'
+                        if os.environ.get('CLAUDE_CODE_REMOTE') == 'true' else
+                        'the sign-in has ended; run scripts/oura_auth.py'))
                 if ep in EXTRA and e.code in (400, 403, 404):
                     notes.append(f'{ep}: Oura said {e.code}, left out')
                     rows = []
