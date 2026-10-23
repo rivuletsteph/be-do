@@ -103,10 +103,13 @@ two days are left. Each renewal hands back a new single-use refresh token, saved
 before anything else happens. A 401 means the sign-in has ended: run
 `oura_auth.py` again.
 
-**Cloud and phone chats** can't keep a renewing sign-in. A token copied into a
-cloud environment's credential for `api.ouraring.com` works until it expires,
-about 30 days, and then needs copying again. So the laptop is where Oura is read
-dependably, and phone flow steps are caught up by the next laptop run.
+**Cloud and phone chats** read Oura through the cloud environment (her choice, 23 Oct
+2026). The Default environment carries a Bearer network secret for `api.ouraring.com`,
+and the proxy attaches it, so the script sends no sign-in there. That key doesn't
+renew. About monthly, on the laptop, run `python scripts/oura_auth.py --cloud`. It
+renews now, puts the key on the clipboard (never the screen), and says the date the
+next paste is due. Then paste it over the secret's Value in the environment settings.
+A cloud run that gets a 401 says to do this.
 
 An unreachable host or a refusal on a core endpoint aborts. It never plans from a
 partial read. A refusal on an extra (workouts, sessions, SpO2, resilience, cardio

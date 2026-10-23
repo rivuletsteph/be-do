@@ -10,6 +10,8 @@ saved before anything else happens. Lose the latest one and the sign-in is done 
     python oura_auth.py            # sign in: asks for the app's id and secret the first
                                    # time, opens the Oura page, catches the answer
     python oura_auth.py --check    # who is signed in and until when; renews if near the end
+    python oura_auth.py --cloud    # renews now and puts the key on the clipboard, never the
+                                   # screen, for the cloud environment's Oura credential
 
 Where things live, outside the repo, never shipped:
   bedo_secrets.json   oura_client_id, oura_client_secret (beside airtable_pat)
@@ -18,7 +20,7 @@ both in ~/.bedo, or BEDO_SECRETS and OURA_TOKENS pointing elsewhere.
 
 The app's redirect URI must be registered as exactly http://localhost:8765/callback.
 """
-import argparse, getpass, http.server, json, os, secrets, sys, time, urllib.error, urllib.parse, urllib.request, webbrowser
+import argparse, getpass, subprocess, http.server, json, os, secrets, sys, time, urllib.error, urllib.parse, urllib.request, webbrowser
 
 AUTH = 'https://cloud.ouraring.com/oauth/authorize'
 TOKEN = 'https://api.ouraring.com/oauth/token'
@@ -125,12 +127,13 @@ def sign_in():
           f'{time.strftime("%d %b %Y", time.localtime(tok["expires_at"] - RENEW_WITHIN))}.')
 
 
-def access_token():
-    """A live access token, renewed first when near its end; None when never signed in."""
+def access_token(force=False):
+    """A live access token, renewed first when near its end (or now, with force); None
+    when never signed in."""
     tok = _read(TOKENS)
     if not tok.get('access_token'):
         return None
-    if tok.get('expires_at', 0) - time.time() > RENEW_WITHIN:
+    if not force and tok.get('expires_at', 0) - time.time() > RENEW_WITHIN:
         return tok['access_token']
     if not tok.get('refresh_token'):
         die('the Oura sign-in has ended and cannot renew — run oura_auth.py to sign in again')
@@ -140,10 +143,31 @@ def access_token():
     return _save(new)['access_token']
 
 
+def cloud():
+    """The cloud can't keep a renewing sign-in, so it carries a copy of the key, pasted
+    into its environment by the user, about monthly (her choice, 23 Oct 2026). The laptop
+    renews two days before the key ends, which may retire the copy, so the paste is due
+    by then; renewing here starts both clocks again."""
+    t = access_token(force=True)
+    if not t:
+        die('not signed in — run oura_auth.py')
+    copy = {'win32': ['clip'], 'darwin': ['pbcopy']}.get(sys.platform, ['xclip', '-selection', 'clipboard'])
+    try:
+        subprocess.run(copy, input=t.encode('ascii'), check=True)
+    except (OSError, subprocess.CalledProcessError) as e:
+        die(f'could not reach the clipboard ({e})')
+    due = _read(TOKENS)['expires_at'] - RENEW_WITHIN
+    print('The Oura key is on the clipboard. Paste it as the cloud environment credential for api.ouraring.com.')
+    print(f'Paste a fresh one by {time.strftime("%a %d %b %Y", time.localtime(due))}: python oura_auth.py --cloud')
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--check', action='store_true')
+    ap.add_argument('--cloud', action='store_true')
     a = ap.parse_args()
+    if a.cloud:
+        return cloud()
     if not a.check:
         return sign_in()
     t = access_token()
