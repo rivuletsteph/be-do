@@ -357,20 +357,20 @@ reading:
 ## Dusk: nothing to build
 
 Dusk does not build the look behind (8 Oct 2026, backlog 260924_2221b): the
-03:00 routine builds yesterday from the whole day's rows and drafts the words
-itself. If the user says the lead or the story at dusk, write them with
-`words … --new` and log the row with `--row-block` (step 7); the routine uses
-them as they stand. Otherwise dusk leaves it. The calendar sync (step 8) still
-runs at the dusk close.
+user builds yesterday by hand in the morning, from the whole day's rows. If the
+user says the lead or the story at dusk, write them with `words … --new` and
+log the row with `--row-block` (step 7); the morning build uses them as they
+stand. Otherwise dusk leaves it. The calendar sync (step 8) still runs at the
+dusk close.
 
-## Morning, by itself: the routine
+## Morning, by hand: no routine
 
-A cloud routine at 03:00 in the user's time zone builds yesterday's look
-behind and publishes it to the living page, so the morning chat opens on it.
-**It builds yesterday, never today**, states the date in its first line, drafts
-the words when no dusk row carries them, and on a failure publishes nothing and
-says `FAILED` — the routine pushes that to the phone. The whole of it is in
-`MORNING.md`, which the routine reads from the version store on every run.
+Nothing builds the look behind on a schedule. The 03:00 routine was paused on
+11 Oct 2026, and on 24 Oct the user's word was to keep it that way: *I don't
+want anything to build at 3am. Let's get a version I'm happy with working and
+I'll build it manually.* The day behind is built when the user asks for it.
+`MORNING.md` still describes the unattended run, for the day a routine is
+wanted again; don't create or re-enable one unasked.
 
 ## Morning, in the chat: seen means complete
 
