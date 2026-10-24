@@ -45,9 +45,24 @@ stays in view down its side while its cards scroll past).
 3. The order of the cards.
 4. How to measure meaningfulness: what counts toward it, and on what scale.
 
-## How the day went: the categories (draft, not yet hers)
+## How the day went: the categories (recommended 24 Oct, not yet hers)
 
-One ring of 24 hours, every minute in one slice: sleep · moving · eating ·
-care · work and drives · fun · reflection, and what's left. Two lenses
-counted on top of the ring, because they overlap the slices: on a screen, in a
-vehicle (and perhaps with people).
+Prototype on Friday's rows: `https://claude.ai/artifact/UXMFYKbRKQrxMWEHb455YZ`.
+
+Seven slices that mirror be and do, so the ring and the balance bar tell the
+same story. Being: 😴 rest · 🚶‍♀️ moving · 🍽️ eating · 🎈 play · 🪞 reflecting.
+Doing: 🧺 tending (care) · 🌱 growing (work that moves a drive). Every minute
+sits in one slice; a shared minute goes to rest, moving, eating, growing, play,
+reflecting, tending, in that order.
+
+**What it was, not who it was with.** Time with Johnny goes to what it was
+(reading together is play, the school run is tending); the people band shows it
+was shared. Around the ring, as a share of the waking day: 🤝 with people,
+📱 on a screen, 🚗 in a vehicle. On the rim, the moments that mattered.
+
+Two views of the same ring: by time of day (a clock, midnight at the top) and
+by size (the How Tuesday Went donut).
+
+Open: whether reflecting is a slice at all. On Friday every reflection happened
+inside something else (the mantra and gratitude on the walk), so it drew 0 min
+and lives on the rim instead.
