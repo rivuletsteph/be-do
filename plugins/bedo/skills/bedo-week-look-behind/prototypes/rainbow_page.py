@@ -45,7 +45,7 @@ svg [data-tip].on{stroke:var(--ink);stroke-width:2}
 <div class="wrap">
 <p class="eyebrow">the day behind · how the day went · a proposal</p>
 <h1>How __NAME__ went</h1>
-<p class="sub">__DAY__, your waking hours as a rainbow: up on the left, the middle of the day at the top, the evening down on the right. The gap at the bottom is the night, eight hours, in blue for how long you were in bed. From the inside out: your dawn and dusk flows, then being (eating, moving, enjoying), then doing (work, caretaking, cooking, be•do); the thin line is time on a screen, and around the outside, the moments that mattered, where they happened. Tap anything to see what it was.</p>
+<p class="sub">__DAY__, your waking hours as a rainbow: up on the left, the middle of the day at the top, the evening down on the right. The gap at the bottom is the night, eight hours, in blue for how long you were in bed. From the inside out: a thin band for your dawn and dusk flows, then being (eating, moving, enjoying), then doing (work, caretaking, cooking, be•do); the thin line is time on a screen, and around the outside, the moments that mattered, where they happened. Tap anything to see what it was.</p>
 <div class="card">
 <svg id="dial" viewBox="-30 -20 460 410" role="img" aria-label="The waking day as concentric arcs"></svg>
 <div class="tip" id="tip" aria-live="polite">Tap a piece of the rainbow or a moment around it.</div>
@@ -75,23 +75,26 @@ const BANDS = [
   {k: "flow", n: "Flows", fam: "flow", parts: {flow: ["flow", "a flow step"]}},
   {k: "being", n: "Being", fam: "being", parts: {eat: ["eat", "eating and drinking"], move: ["move", "moving"], enjoy: ["enjoy", "enjoying"]}},
   {k: "doing", n: "Doing", fam: "doing", parts: {work: ["work", "professional work"], care: ["care", "caretaking (others and yourself)"], cook: ["cook", "cooking"], system: ["system", "be•do"]}}];
-const HOLE = 52, W = 40, GAP = 4, R0 = 58;
+const HOLE = 52, W = 46, FW = 10, GAP = 4, R0 = 62;
+// the flows are being practices: a thin band just inside being, not a full one (24 Oct 2026)
+const RAD = []; BANDS.reduce((r, B) => { const w = B.k === "flow" ? FW : W; RAD.push([r, r + w]); return r + w + (B.k === "flow" ? 2 : GAP); }, R0);
+const OUTER = RAD[RAD.length - 1][1];
 let g = "", tips = [];
 const piece = (d, fill, stroke, tip) => { tips.push(tip); return `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="1" tabindex="0" data-i="${tips.length - 1}" data-tip="1"/>`; };
 BANDS.forEach((B, i) => {
-  const r0 = R0 + i * (W + GAP), r1 = r0 + W;
+  const [r0, r1] = RAD[i];
   g += `<path d="${band(r0, r1, WAKE, END)}" fill="var(--${B.fam}-t)"/>`;
   if (B.k === "flow") Object.entries(D.win).forEach(([k, w]) => { const [, a, b] = clip([k, ...w]); if (b <= a) return;
     g += piece(band(r0, r1, a, b), `var(--${k})`, `var(--${k}-d)`, `<b>${k === "dawn" ? "🌅 The dawn flow" : "🌄 The dusk flow"}</b> · ${clock(a)}–${clock(b)}<br>${esc((R.flow.kinds[0].held || []).join(" · "))}`); });
   (R[B.k] || {runs: []}).runs.map(clip).filter(([, a, b]) => b - a >= 2).forEach(([k, a, b, t]) => {
     const [col, nm] = B.parts[k] || [B.fam, k];
-    if (B.k === "flow") { for (let m = a; m < b; m += 5) { const fk = Object.entries(D.win).find(([, [x, y]]) => m >= x && m < y), [x0, y0] = pt(r0 + 2, m + 1), [x1, y1] = pt(r1 - 2, m + 1);
+    if (B.k === "flow") { for (let m = a; m < b; m += 5) { const fk = Object.entries(D.win).find(([, [x, y]]) => m >= x && m < y), [x0, y0] = pt(r0 + 1, m + 1), [x1, y1] = pt(r1 - 1, m + 1);
       g += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--${fk ? fk[0] : "dawn"}-d)" stroke-width="1.4" stroke-linecap="round" pointer-events="none"/>`; } return; }
     g += piece(band(r0, r1, a, b), C(col), `var(--${B.fam}-d)`, `<b>${nm[0].toUpperCase() + nm.slice(1)}</b> · ${clock(a)}–${clock(b)} · ${hm(b - a)}${t.length ? "<br>" + t.map(esc).join(" · ") : ""}`);
   });
 });
 // on a screen or not: a thin line on the outside
-const SR = R0 + BANDS.length * (W + GAP) + 2, SW = 5;
+const SR = OUTER + 6, SW = 5;
 g += `<path d="${band(SR, SR + SW, WAKE, END)}" fill="var(--screen-t)"/>`;
 (R.screen ? R.screen.runs : []).map(clip).filter(([, a, b]) => b > a).forEach(([k, a, b, t]) => { g += piece(band(SR, SR + SW, a, b), "var(--screen)", "none", `<b>📱 On a screen</b> · ${clock(a)}–${clock(b)} · ${hm(b - a)}${t.length ? "<br>" + t.map(esc).join(" · ") : ""}`); });
 // bed before the 16 hours were up: the end of the rainbow is shaded
@@ -105,7 +108,7 @@ const ntheta = m => (-90 - SWEEP / 2 - m / IDEAL * GAPDEG) * Math.PI / 180;     
 const npt = (r, m) => [CX + r * Math.cos(ntheta(m)), CY + r * Math.sin(ntheta(m))];
 const nband = (r0, r1, a, b) => { const [x0, y0] = npt(r1, a), [x1, y1] = npt(r1, b), [x2, y2] = npt(r0, b), [x3, y3] = npt(r0, a), L = (b - a) / IDEAL * GAPDEG > 180 ? 1 : 0;
   return `M${x0} ${y0}A${r1} ${r1} 0 ${L} 0 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${L} 1 ${x3} ${y3}Z`; };
-const RIN = R0, ROUT = R0 + BANDS.length * (W + GAP) - GAP;
+const RIN = R0, ROUT = OUTER;
 if (inbed != null) {
   const d = inbed - IDEAL, fill = Math.min(inbed, IDEAL), sg = (d >= 0 ? "+" : "−") + hm(Math.abs(d));
   const lab = `<b>😴 In bed last night</b> · ${hm(inbed)} · ${d === 0 ? "exactly 8 h" : sg + " against 8 h"}${morning ? ` · ${clock(+morning.start.slice(11, 13) * 60 + +morning.start.slice(14, 16))}–${clock(WAKE)}` : ""}`;
