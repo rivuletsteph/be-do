@@ -20,7 +20,7 @@ words: what the thing was, a picture, a few words, an emoji for the kind, and ho
 it fits; the look and the rhythm → drive → destination thread are The Whole Map
 Ahead's). The days flow top to bottom, each under its own look-behind lead when
 one was written. A stone is a moment she marked (highlight, glimmer, gratitude,
-insight, someone's own highlight, a synergy note) or something she did and wrote
+insight, a milestone, someone's own highlight, a synergy note; milestone added 20 Oct 2026, a journal entry tried and taken back 22 Oct: a note on the work is not a moment) or something she did and wrote
 about at length (`garden.long_words`). Each stone is its emoji (the practice's,
 or for a log or a mark what its title names, `garden.kind_words`, the mark kept
 as a badge), its title, her words, who, a memory (↺), synergy (∞), a photo when
@@ -103,5 +103,27 @@ read), the live week and the asked week's bases, and writes
 `<Saturday>-week-behind.html`. It prints the drive outline, the totals and its
 QA (`over_span`: rows over 12 h, left out of the minutes; `feeds_loops`). Name
 anything in QA in one line, then publish the page the way the day behind does.
+
+**One day, drawn the same way** (20 Oct 2026, her ask: Monday's day behind
+from the updated week page). `week_look_behind.py --day YYYY-MM-DD --words
+words-YYYY-MM-DD.json` (the day behind's words file, refused if written for
+another day) builds the page for that day alone: its lead and story on top,
+its moments as stones, the numbers folded below, titled The Day Behind. The
+night that ended that morning counts whole, in day and week alike. It is a
+trial beside the canon day behind, published to its own page, not the living
+one.
+
+**Photos** (22 Oct 2026, her word: photos that piece the day together).
+`scripts/day_photos.py --day D --local … --out photos/` reads the week's
+`W## photos` Drive folder with a service account the folder is shared with (its
+JSON key in `BEDO_DRIVE_SA`, or a path in `BEDO_DRIVE_SA_FILE`), keeps the photos
+taken that day by the phone's own file name (`PXL_YYYYMMDD_HHMMSS…`, UTC), and
+writes each at 900 px. No key prints `NO DRIVE KEY HERE` and exits 3; the page
+builds without photos. `--from DIR` reads originals from a folder instead.
+`week_look_behind.py --photos photos/` places each by its time: on the row taken
+at that minute or spanning it, preferring a row read from a photo, then a moment.
+Inside its moment when it has one, else in the day's pictures under the story; a
+photo for a routine check (`photo_skip_practices` in `core/facts.json`) is left
+out. The Drive connector is not the way: every photo would pass through the chat.
 
 Test: `python3 plugins/bedo/skills/bedo-week-look-behind/tests/test_week.py`.
