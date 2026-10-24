@@ -398,6 +398,7 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset(), ndays=7, words=N
     # moment; inside its moment when it has one, else in the day's pictures. A photo
     # for a routine check (a pill, a screen of scores) is left out.
     skip = set(G.get('photo_skip_practices') or bedo_reader.FACTS['garden'].get('photo_skip_practices') or [])
+    skip_re = G.get('photo_skip_pattern') or bedo_reader.FACTS['garden'].get('photo_skip_pattern')
     pics = {}
     for t, src in photos or []:
         near = [r for r in lived if r['_a'].date() == t.date() and (abs((r['_a'] - t).total_seconds()) <= 180
@@ -405,7 +406,8 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset(), ndays=7, words=N
                                                                       and r['_b'] - r['_a'] <= MAX_SPAN))]
         best = min(near, key=lambda r: ('photo' not in (r.get('details') or '').lower(), not marked(r),
                                         abs((r['_a'] - t).total_seconds()))) if near else None
-        if best is not None and norm(best.get('practice')) in skip:
+        if best is not None and (norm(best.get('practice')) in skip
+                                 or (skip_re and re.search(skip_re, norm(best.get('practice'))))):
             continue
         if best is not None and best['id'] in by_row:
             by_row[best['id']].setdefault('photos', []).append(src)
