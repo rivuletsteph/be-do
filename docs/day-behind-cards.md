@@ -220,7 +220,7 @@ down with intention is being; reading together is being, even when it is also
 care; shaping be•do in a work session is doing. She wants the shape kept and
 being and doing as their own concentric bands:
 - inside: the dawn and dusk flows (sunrise yellow, sunset violet)
-- **being**, cool sage-teal shades: eating and drinking (deepest), moving, enjoying (lightest)
+- **being**, cool sage-teal shades: eating and drinking (deepest), moving, recreation (lightest)
 - **doing**, warm clay shades: professional work (deepest), caretaking (others and herself), cooking, be•do (lightest)
 - the screen line; the moments that mattered outside, at their times; the night in blue in the gap
 
@@ -240,6 +240,12 @@ be•do wheat.
 after all (warm grey spans, darker step lines): "the colours are kind of
 distracting". This is the How the day went card as she approved it; the
 prototype is `prototypes/rainbow_page.py` with `rings.py`.
+
+**Recreation, 24 Oct.** "It's amazing actually. I love it!" One word changed:
+"enjoying" becomes **recreation** — she wants to enjoy everything (moving,
+caretaking), and this band is more about being entertained and restored:
+reading, shows, play, time together for its own sake, glimmers. Recreation was
+also her word for the week at Friday's intention check.
 
 **Next time:** fold the rings into the builder as the How the day went card;
 icons in place of labels; then the next card (the sociogram, or what moved).

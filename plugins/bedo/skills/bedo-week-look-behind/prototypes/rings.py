@@ -34,7 +34,7 @@ RINGS=[('sleep','😴','Sleep',[('sleep','asleep, in bed')]),
        ('move','🚶‍♀️','Moving',[('move','movement and time outside')]),
        ('body','🌿','Body',[('eat','food: making it and eating it'),('move','moving: movement and time outside')]),
        ('work','💼','Working',[('work','professional work'),('system','be•do'),('care','caretaking')]),
-       ('enjoy','🎈','Enjoying',[('enjoy','reading, shows, play, time together, glimmers')]),
+       ('enjoy','🎈','Recreation',[('enjoy','reading, shows, play, time together, glimmers')]),
        ('screen','📱','On a screen',[('screen','on a screen')])]
 A={k:[None]*1440 for k,*_ in RINGS}
 A['drive']=[None]*1440
@@ -168,7 +168,7 @@ for m in range(1440):
     A['being'][m]=A['food'][m] and 'eat' or A['move'][m] or A['enjoy'][m]
     A['doing'][m]=A['work'][m] or A['cook'][m]
 RINGS=[x for x in RINGS if x[0] not in ('food','move','body','work','enjoy','other')]
-RINGS.insert(2,('being','🌿','Being',[('eat','eating'),('move','moving'),('enjoy','enjoying')]))
+RINGS.insert(2,('being','🌿','Being',[('eat','eating'),('move','moving'),('enjoy','recreation')]))
 RINGS.insert(3,('doing','🔨','Doing',[('work','professional work'),('care','caretaking'),('cook','cooking'),('system','be•do')]))
 A.pop('drive')
 OUT=dict(day=f"{day:%A} {day.day} {day:%B}",rings=[dict(k=k,e=e,n=n,kinds=[dict(k=kk,n=nn,min=sum(1 for x in A[k] if x==kk),held=(held.get(kk) or [])[:6]) for kk,nn in kinds],
