@@ -9,14 +9,14 @@ tpl = r'''<title>How __NAME__ Went</title>
 /* the waking day as a rainbow: up on the left, midday at the top, the evening down on the right; the ends
    bend back past the horizon like an open book's covers. Concentric bands, one colour family each, shades for parts. */
 :root{--ground:#F4EEE4;--card:#FBF8F2;--ink:#2C2620;--soft:#4A4036;--muted:#7A6E60;--rule:#E3D9CA;--terra:#B5603F;
---flow-t:#F1ECE4;--dawn:#F3D27F;--dawn-d:#C29630;--dusk:#C3B8EC;--dusk-d:#7B6FD6;--sleep:#D4DEF0;--sleep-deep:#6F8CC4;--sleep-d:#5A73A8;
+--flow-t:#F1ECE4;--dawn:#DDD5C9;--dawn-d:#8C8174;--dusk:#DDD5C9;--dusk-d:#8C8174;--sleep:#D4DEF0;--sleep-deep:#6F8CC4;--sleep-d:#5A73A8;
 --eat:#86C2A4;--move:#B4C987;--enjoy:#9FC4E2;--being-t:#EEF4F3;--being-d:#4F7F78;
 --work:#C9805F;--care:#E3A4A8;--cook:#EEB672;--system:#DCC89C;--doing-t:#FAF0EA;--doing-d:#94593D;--screen:#2C2620;--screen-t:#ECE5DA;
 --sans:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace;--display:"Fraunces",Georgia,serif}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--ground:#1B1A1F;--card:#232127;--ink:#EDE4E0;--soft:#D3C8C3;--muted:#A3958F;--rule:#3A3336;--terra:#E08A7F;
---flow-t:#2B2830;--dawn-d:#9A7621;--dusk-d:#6458BE;--sleep-d:#C9D6EE;--sleep:#3A4766;--sleep-deep:#8FA8DA;--being-t:#24302D;--being-d:#CDE7DF;--doing-t:#352B27;--doing-d:#F4E0D4;--screen:#EDE4E0;--screen-t:#2E2A30;color-scheme:dark}}
+--flow-t:#2B2830;--dawn:#4A4540;--dusk:#4A4540;--dawn-d:#BDB3A6;--dusk-d:#BDB3A6;--sleep-d:#C9D6EE;--sleep:#3A4766;--sleep-deep:#8FA8DA;--being-t:#24302D;--being-d:#CDE7DF;--doing-t:#352B27;--doing-d:#F4E0D4;--screen:#EDE4E0;--screen-t:#2E2A30;color-scheme:dark}}
 :root[data-theme="dark"]{--ground:#1B1A1F;--card:#232127;--ink:#EDE4E0;--soft:#D3C8C3;--muted:#A3958F;--rule:#3A3336;--terra:#E08A7F;
---flow-t:#2B2830;--dawn-d:#9A7621;--dusk-d:#6458BE;--sleep-d:#C9D6EE;--sleep:#3A4766;--sleep-deep:#8FA8DA;--being-t:#24302D;--being-d:#CDE7DF;--doing-t:#352B27;--doing-d:#F4E0D4;--screen:#EDE4E0;--screen-t:#2E2A30;color-scheme:dark}
+--flow-t:#2B2830;--dawn:#4A4540;--dusk:#4A4540;--dawn-d:#BDB3A6;--dusk-d:#BDB3A6;--sleep-d:#C9D6EE;--sleep:#3A4766;--sleep-deep:#8FA8DA;--being-t:#24302D;--being-d:#CDE7DF;--doing-t:#352B27;--doing-d:#F4E0D4;--screen:#EDE4E0;--screen-t:#2E2A30;color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--ground);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
 .wrap{max-width:640px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
