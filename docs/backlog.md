@@ -45,7 +45,6 @@ When one ships, its line moves to **Done** with the PR that closed it.
 
 ## Calendar
 
-
 | key | status | item |
 |---|---|---|
 | 260929_0732 | ⬜ | The calendar chain end to end — the look ahead writes the event link, the dusk sync follows it, the day behind draws it; plus dark theme and doctype in both engines |
