@@ -74,3 +74,10 @@ thought that fair. She likes seeing dawn and dusk, and seeing when she worked.
 Pastels: misty blue sleep, apricot and clay food, sage moving, butter dawn and
 lavender dusk (her flow colours, softened), eucalyptus work and olive be•do,
 dusty rose phone, slate laptop, orchid TV, wheat book, terracotta people.
+
+**Fourth pass, same day.** Tighter. Sleep is the core, a filled disc in the
+middle ("the most important thing"). One colour per ring, never several ("too
+confusing to my eye"); where a ring holds two things, a pattern tells them
+apart (be•do work is the striped part of working). Dawn and dusk share one
+colour; the clock says which is which. Screens are one thing: on a screen or
+not (phone, laptop, TV; a paper book is not a screen).
