@@ -177,5 +177,15 @@ concentric bands stay. The night before sits under the arch. Tapping a piece
 names what it was (the rows inside it), so other is no longer a mystery. The
 earlier full-circle page is kept as `rings_page.py`.
 
+**The night in the gap, 24 Oct.** "Keep the shape, 8 hours just missing."
+The 120° left open at the bottom of the rainbow is the 8 hours of a night. It
+fills with blue for the hours in bed the night before, from the waking end:
+under 8 leaves the rest of the gap empty with a dashed edge; over 8 fills it
+and adds a deeper blue rim for the extra. The number sits at the bottom in blue
+("8 h 34 · in bed · +34 min"), not in the middle. The flows get a neutral
+track and their own colours: the dawn flow a sunrise yellow, the dusk flow a
+sunset violet, the same amber and violet as the flow bars (`flows.widget.bar`
+in `facts.json`), softened.
+
 **Next time:** fold the rings into the builder as the How the day went card;
 icons in place of labels; then the next card (the sociogram, or what moved).
