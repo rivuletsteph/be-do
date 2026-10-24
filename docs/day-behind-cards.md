@@ -95,3 +95,9 @@ close at 11:59 PM) is left off, and each flow's span runs only through awake
 time. Trying her idea: sleep and the flows share the core, since they never
 share a minute (sleep solid blue; each flow a pale wedge from its first step
 to its last, its steps in full colour).
+
+**Seventh pass, same day.** A small hollow at the very center, left open for
+now ("the center should be something but I don't know what"). Moving and
+eating: she should be sitting to eat, so a meal's minutes come out of the
+moving ring (Friday's lunch on a bench mid-walk is a gap in moving); making
+food is food, not movement.
