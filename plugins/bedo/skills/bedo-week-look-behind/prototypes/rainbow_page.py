@@ -12,12 +12,12 @@ tpl = r'''<title>How __NAME__ Went</title>
 --flow-t:#F1ECE4;--dawn:#F3D27F;--dawn-d:#C29630;--dusk:#C3B8EC;--dusk-d:#7B6FD6;--sleep:#D4DEF0;--sleep-deep:#6F8CC4;--sleep-d:#5A73A8;
 --food:#86AF77;--move:#BCD6AF;--body-t:#ECF3E8;--body-d:#5F8D50;
 --work:#C98A6B;--care:#DFB09A;--system:#EED3C4;--work-t:#F8ECE4;--work-d:#A8664A;
---other:#CDBE9F;--other-t:#F4EFE3;--other-d:#9C8A66;--screen:#2C2620;--screen-t:#ECE5DA;
+--enjoy:#E9B7C0;--enjoy-t:#F9EEF0;--enjoy-d:#B9707E;--screen:#2C2620;--screen-t:#ECE5DA;
 --sans:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace;--display:"Fraunces",Georgia,serif}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--ground:#1B1A1F;--card:#232127;--ink:#EDE4E0;--soft:#D3C8C3;--muted:#A3958F;--rule:#3A3336;--terra:#E08A7F;
---flow-t:#2B2830;--dawn-d:#9A7621;--dusk-d:#6458BE;--sleep-d:#C9D6EE;--sleep:#3A4766;--sleep-deep:#8FA8DA;--body-t:#29302A;--body-d:#CCE2C2;--work-t:#352C29;--work-d:#F0CDBB;--other-t:#322F29;--other-d:#E6DABF;--screen:#EDE4E0;--screen-t:#2E2A30;color-scheme:dark}}
+--flow-t:#2B2830;--dawn-d:#9A7621;--dusk-d:#6458BE;--sleep-d:#C9D6EE;--sleep:#3A4766;--sleep-deep:#8FA8DA;--body-t:#29302A;--body-d:#CCE2C2;--work-t:#352C29;--work-d:#F0CDBB;--enjoy-t:#352A2D;--enjoy-d:#F2CBD2;--screen:#EDE4E0;--screen-t:#2E2A30;color-scheme:dark}}
 :root[data-theme="dark"]{--ground:#1B1A1F;--card:#232127;--ink:#EDE4E0;--soft:#D3C8C3;--muted:#A3958F;--rule:#3A3336;--terra:#E08A7F;
---flow-t:#2B2830;--dawn-d:#9A7621;--dusk-d:#6458BE;--sleep-d:#C9D6EE;--sleep:#3A4766;--sleep-deep:#8FA8DA;--body-t:#29302A;--body-d:#CCE2C2;--work-t:#352C29;--work-d:#F0CDBB;--other-t:#322F29;--other-d:#E6DABF;--screen:#EDE4E0;--screen-t:#2E2A30;color-scheme:dark}
+--flow-t:#2B2830;--dawn-d:#9A7621;--dusk-d:#6458BE;--sleep-d:#C9D6EE;--sleep:#3A4766;--sleep-deep:#8FA8DA;--body-t:#29302A;--body-d:#CCE2C2;--work-t:#352C29;--work-d:#F0CDBB;--enjoy-t:#352A2D;--enjoy-d:#F2CBD2;--screen:#EDE4E0;--screen-t:#2E2A30;color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--ground);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
 .wrap{max-width:640px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -46,10 +46,10 @@ svg [data-tip].on{stroke:var(--ink);stroke-width:2}
 <div class="wrap">
 <p class="eyebrow">the day behind · how the day went · a proposal</p>
 <h1>How __NAME__ went</h1>
-<p class="sub">__DAY__, your waking hours as a rainbow: up on the left, the middle of the day at the top, the evening down on the right. The gap at the bottom is the night, eight hours, in blue for how long you were in bed. From the inside out: your dawn and dusk flows, body, working, and everything else; the thin line on the outside is time on a screen. Under the arch, the night in blue and the moments that mattered, each with how long it lasted. Tap anything to see what it was.</p>
+<p class="sub">__DAY__, your waking hours as a rainbow: up on the left, the middle of the day at the top, the evening down on the right. The gap at the bottom is the night, eight hours, in blue for how long you were in bed. From the inside out: your dawn and dusk flows, body, working, and enjoying; the thin line is time on a screen, and around the outside, the moments that mattered, where they happened. Tap anything to see what it was.</p>
 <div class="card">
-<svg id="dial" viewBox="0 0 400 400" role="img" aria-label="The waking day as concentric arcs"></svg>
-<div class="tip" id="tip" aria-live="polite">Tap a piece of the rainbow, or one of the moments at the bottom.</div>
+<svg id="dial" viewBox="-30 -20 460 410" role="img" aria-label="The waking day as concentric arcs"></svg>
+<div class="tip" id="tip" aria-live="polite">Tap a piece of the rainbow or a moment around it.</div>
 <p class="label">from the inside out · share of the waking day</p>
 <div id="rings"></div>
 <p class="note" id="note"></p>
@@ -76,7 +76,7 @@ const BANDS = [
   {k: "flow", n: "Flows", fam: "flow", parts: {flow: ["flow", "a flow step"]}},
   {k: "body", n: "Body", fam: "body", parts: {eat: ["food", "food and drink"], move: ["move", "moving"]}},
   {k: "work", n: "Working", fam: "work", parts: {work: ["work", "professional work"], care: ["care", "caretaking (others and yourself)"], system: ["system", "be•do"]}},
-  {k: "other", n: "Other", fam: "other", parts: {other: ["other", "everything else"]}}];
+  {k: "enjoy", n: "Enjoying", fam: "enjoy", parts: {enjoy: ["enjoy", "enjoying"]}}];
 const HOLE = 52, W = 30, GAP = 3, R0 = 58;
 let g = "", tips = [];
 const piece = (d, fill, stroke, tip) => { tips.push(tip); return `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="1" tabindex="0" data-i="${tips.length - 1}" data-tip="1"/>`; };
@@ -99,7 +99,7 @@ g += `<path d="${band(SR, SR + SW, WAKE, END)}" fill="var(--screen-t)"/>`;
 // bed before the 16 hours were up: the end of the rainbow is shaded
 if (BED < END) g += piece(band(R0, SR + SW, BED, END), "var(--flow-t)", "none", `<b>🛏️ In bed at ${clock(BED)}</b>, ${hm(END - BED)} before the 16 hours were up`);
 // times along the outside: up, every four hours, and the end of the 16
-[0, 240, 480, 720, 960].forEach(o => { const [x, y] = pt(SR + SW + (o % 960 ? 15 : 24), WAKE + o);
+[0, 240, 480, 720, 960].forEach(o => { const [x, y] = pt(SR + SW + (o % 960 ? 46 : 52), WAKE + o);
   g += `<text x="${x}" y="${y + 3.5}" text-anchor="middle" font-size="10">${o === 0 ? "up " + clock(WAKE) : clock(WAKE + o)}</text>`; });
 // the night that fed the day, in the gap at the bottom: the gap is 8 hours (24 Oct 2026)
 const inbed = morning ? morning.inbed : null, IDEAL = 480, GAPDEG = 360 - SWEEP;
@@ -117,24 +117,17 @@ if (inbed != null) {
   const [tx, ty] = [CX, CY + (RIN + ROUT) / 2 - 6];
   g += `<text x="${tx}" y="${ty}" text-anchor="middle" style="font:600 15px var(--sans);fill:var(--sleep-d)">${hm(inbed)}</text><text x="${tx}" y="${ty + 13}" text-anchor="middle" font-size="9.5" style="fill:var(--sleep-d)">in bed · ${d === 0 ? "8 h" : sg}</text>`;
 }
-const MR = R0 + 3 * (W + GAP) + W / 2 + 2, MOM = D.moments || [];
-const mlab = m => `<b>${m.g} ${esc(m.p[0].toUpperCase() + m.p.slice(1))}</b> · ${clock(m.m)}${m.d ? " · " + hm(m.d) : ""}<br>${esc(m.t)}`;
-MOM.forEach((m, i) => {
-  const f = MOM.length === 1 ? 0.5 : 0.06 + 0.88 * i / (MOM.length - 1), back = f * IDEAL;   // spread across the gap, left (morning) to right
-  const [x, y] = npt(MR, back), txt = m.d ? hm(m.d).replace(" min", "m").replace(" h ", "h") : "", w = 22 + (txt ? txt.length * 5.6 + 2 : 0);
-  tips.push(mlab(m));
-  g += `<g data-tip="1" data-i="${tips.length - 1}" data-m="${m.m}" tabindex="0" style="cursor:pointer"><rect x="${x - w / 2}" y="${y - 11}" width="${w}" height="22" rx="11" fill="var(--card)" stroke="var(--rule)"/>` +
-    `<text x="${x - w / 2 + 11}" y="${y + 4.5}" text-anchor="middle" style="font:13px var(--sans)">${m.g}</text>${txt ? `<text x="${x - w / 2 + 22}" y="${y + 3.5}" font-size="9" style="fill:var(--soft)">${txt}</text>` : ""}</g>`;
-  // where it happened: a small mark just outside the rainbow
-  const [dx, dy] = pt(SR + SW + 4, m.m); g += `<circle cx="${dx}" cy="${dy}" r="2.2" fill="var(--terra)" opacity=".75" pointer-events="none"/>`;
-});
-g += `<line id="mark" x1="0" y1="0" x2="0" y2="0" stroke="var(--terra)" stroke-width="2" stroke-linecap="round" opacity="0" pointer-events="none"/>`;
+// the moments that mattered, around the outside at the time they happened (24 Oct 2026)
+const MOM = D.moments || [];
+let lastM = -999, lift = 0;
+MOM.forEach(m => { lift = m.m - lastM < 25 ? (lift + 1) % 3 : 0; lastM = m.m;
+  const [x, y] = pt(SR + SW + 13 + lift * 15, m.m);
+  tips.push(`<b>${m.g} ${esc(m.p[0].toUpperCase() + m.p.slice(1))}</b> · ${clock(m.m)}${m.d ? " · " + hm(m.d) : ""}<br>${esc(m.t)}`);
+  g += `<text x="${x}" y="${y + 5}" text-anchor="middle" style="font:14px var(--sans);cursor:pointer" data-tip="1" data-i="${tips.length - 1}" tabindex="0">${m.g}</text>`; });
 const dial = document.getElementById("dial"), tip = document.getElementById("tip");
 dial.innerHTML = g;
 const show = e => { const t = e.target.closest("[data-tip]"); if (!t) return; dial.querySelectorAll(".on").forEach(x => x.classList.remove("on")); t.classList.add("on"); tip.innerHTML = tips[+t.dataset.i];
-  const mk = document.getElementById("mark");
-  if (t.dataset.m) { const [x0, y0] = pt(R0 - 2, +t.dataset.m), [x1, y1] = pt(SR + SW + 6, +t.dataset.m); Object.entries({x1: x0, y1: y0, x2: x1, y2: y1, opacity: 1}).forEach(([k, v]) => mk.setAttribute(k, v)); }
-  else mk.setAttribute("opacity", 0); };
+};
 dial.addEventListener("click", show); dial.addEventListener("focusin", show);
 // the list
 const AW = Math.min(BED, 1440) - WAKE;
@@ -145,7 +138,7 @@ document.getElementById("rings").innerHTML = `<div class="ring"><div class="rh">
       : r.kinds.map(k => { const [col, nm] = B.parts[k.k] || [B.fam, k.n]; return `<span><i style="background:${C(col)};border:1px solid var(--${B.fam}-d)"></i>${esc(nm)} ${k.min ? hm(k.min) : "—"}</span>`; }).join("");
     return `<div class="ring"><div class="rh"><b>${B.n}</b><span class="v">${t ? hm(t) : "—"} <small>${Math.round(100 * t / AW)}%</small></span></div><div class="kinds">${kinds}</div></div>`; }).join("") +
   `<div class="ring"><div class="rh"><b>On a screen</b><span class="v">${hm(R.screen ? R.screen.total : 0)} <small>${Math.round(100 * (R.screen ? R.screen.total : 0) / AW)}%</small></span></div><div class="held">phone, laptop or TV; a paper book isn't a screen</div></div>`;
-document.getElementById("note").textContent = "The bands overlap, so they don't add up to the waking day. Working counts what you were doing: a session that ran while you drove, ate, moved or slept isn't your work. A meal is not moving. Food is all nutrition, drinks too. A moment with no length (a text, a check, a flow step) is a five-minute tick.";
+document.getElementById("note").textContent = "The bands overlap, so they don't add up to the waking day: reading with Johnny is enjoying, and a pickup can be caretaking and a glimmer at once. Logged time that is none of these isn't drawn. Working counts what you were doing: a session that ran while you drove, ate, moved or slept isn't your work. A meal is not moving. Food is all nutrition, drinks too. A moment with no length (a text, a check, a flow step) is a five-minute tick.";
 </script>'''
 out = tpl.replace('/*DATA*/', json.dumps(D, ensure_ascii=False)).replace('__NAME__', name).replace('__DAY__', D['day'])
 open('how-friday-went.html', 'w', encoding='utf-8').write(out)

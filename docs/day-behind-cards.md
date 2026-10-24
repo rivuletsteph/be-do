@@ -200,5 +200,17 @@ showing meaning and meaningfulness." So:
 - Food is all nutrition: drinks too (coffee, the smoothie, tea, water).
 - Caring for herself is caretaking: a shower, a bath, getting ready.
 
+**Enjoying, 24 Oct.** Her correction: the everything-else ring should go, and
+the moments should sit around the outside where they happened, not in a row at
+the bottom. And the fun things (reading with Johnny, a show she likes) had no
+real home; "reading with Johnny is caretaking but it's also just being with
+him". The way through, proposed: every ring says what the time was, and rings
+overlap, so one stretch can be two things. Doing: body (cooking, eating,
+moving) and working (professional work; caretaking of others and of herself).
+Being: **Enjoying**, a new outer ring in place of other — reading, a show,
+play, time together for its own sake, glimmers. Logged time that is none of
+these is not drawn. The moments that mattered are emoji just outside the
+rainbow at their own times.
+
 **Next time:** fold the rings into the builder as the How the day went card;
 icons in place of labels; then the next card (the sociogram, or what moved).

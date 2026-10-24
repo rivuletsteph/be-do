@@ -34,10 +34,12 @@ RINGS=[('sleep','😴','Sleep',[('sleep','asleep, in bed')]),
        ('move','🚶‍♀️','Moving',[('move','movement and time outside')]),
        ('body','🌿','Body',[('eat','food: making it and eating it'),('move','moving: movement and time outside')]),
        ('work','💼','Working',[('work','professional work'),('system','be•do'),('care','caretaking')]),
-       ('other','🧺','Other',[('other','everything else you did')]),
+       ('enjoy','🎈','Enjoying',[('enjoy','reading, shows, play, time together, glimmers')]),
        ('screen','📱','On a screen',[('screen','on a screen')])]
 A={k:[None]*1440 for k,*_ in RINGS}
 A['drive']=[None]*1440
+A['other']=[None]*1440
+ENJOY={'book','reading','audiobook','show','movie','video','game','glimmer','play','social','song','music','puzzle','outing','fresh air','video call'}   # being: what she enjoyed (24 Oct 2026); it may overlap caretaking
 CARE_PR={'clean','laundry','laundry move','care task','dishes','tidy','errand',
          'shower','bath','evening hygiene','getting ready','skincare'}     # caring for herself is caretaking too (24 Oct 2026)
 CARE=json.load(open(os.environ['RINGS_CARE'])) if os.environ.get('RINGS_CARE') else {}
@@ -82,6 +84,7 @@ for r in seen.values():
             if A['other'][m] is None: A['other'][m]='pending'
             TT.setdefault(('other',m),[]).append(('other',t))
         if pr not in SLEEP|PREP|EAT|MOVE|FLOW and not (r['rh'] and pr=='action') and not care: held.setdefault('other',[]).append(t) if t not in held.get('other',[]) else None
+    if pr in ENJOY and span: paint('enjoy','enjoy',a,b,t)
     d=r['dev'].lower()
     if 'laptop' in d or 'desktop' in d or 'tv' in d or pr in TV: paint('screen','screen',a,bb,t)
     if 'phone' in d: paint('screen','screen',a,bb if pr in SCREENISH else a+dt.timedelta(minutes=TICK),t)
