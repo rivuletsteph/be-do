@@ -147,5 +147,15 @@ the meal was made, and whether it was eaten sitting down with intention (backlog
 261003_1433 already asks for meals logged with how they were made and whether
 she ate with intention).
 
+**Sleep, 24 Oct (after the tenth pass).** "I would like to see sleep expanded
+out to cover all the rings because I can't do anything else when I'm sleeping",
+and whether she is meeting her sleep need, or way over or under. Sleep now runs
+across every ring, read from Oura: the real span; a line at the minute the
+night's asleep time reached the need (7 h 20 from the Oura app's Sleep Health
+page, not in the API, so a setting for now); and Oura's best bedtime window as
+a dashed outline across the rings (`sleep_time`; its latest record on 24 Oct
+was 21 Oct: 9:45–11:00 PM). The list says asleep against need, over or under,
+and when bed came against the window.
+
 **Next time:** fold the rings into the builder as the How the day went card;
 icons in place of labels; then the next card (the sociogram, or what moved).
