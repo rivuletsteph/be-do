@@ -166,5 +166,16 @@ bed). Going to bed before the 16 hours are up leaves a shaded wedge at the top;
 staying up past them would run over. The Oura need line and bedtime window are
 set aside (the code keeps the reads in `rings.py`).
 
+**The rainbow, 24 Oct.** "This is really working for me." Shades, not
+patterns: each band is one colour family and its parts are lighter and deeper
+shades of it (food deeper sage, moving lighter; professional deep clay,
+caretaking lighter, be•do lightest), each chunk outlined. The 16-hour dial
+becomes a rainbow: up on the left, midday at the top, the evening and the dusk
+flow down on the right, and the ends bend back past the horizon "like a book
+with pages opened and the covers bent back a little" (a 240° sweep). The
+concentric bands stay. The night before sits under the arch. Tapping a piece
+names what it was (the rows inside it), so other is no longer a mystery. The
+earlier full-circle page is kept as `rings_page.py`.
+
 **Next time:** fold the rings into the builder as the How the day went card;
 icons in place of labels; then the next card (the sociogram, or what moved).

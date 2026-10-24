@@ -43,11 +43,13 @@ CARE=json.load(open(os.environ['RINGS_CARE'])) if os.environ.get('RINGS_CARE') e
 CARE_RH=tuple(CARE.get('rhythms') or ())      # rhythms whose rows are caretaking
 CARE_WHO=tuple(CARE.get('people') or ())      # the people whose care is caretaking
 WIN={'dawn':[],'dusk':[]}; held={}
+TT={}
 def paint(ring,kind,a,b,title=None):
     i,j=max(0,int((a-s0).total_seconds()//60)),min(1440,int((b-s0).total_seconds()//60))
     PRI={'work':0,'care':1,'system':2}       # on the working ring: a be•do session running beside the school run is still the school run
     for m in range(i,j):
         if A[ring][m] is None or (ring=='work' and PRI.get(kind,9)<PRI.get(A[ring][m],9)): A[ring][m]=kind
+        if title: TT.setdefault((ring,m),[]).append((kind,title))
     if title and j>i: held.setdefault(kind,[]).append(title) if title not in held.get(kind,[]) else None
 moments=[]
 for r in seen.values():
@@ -76,6 +78,7 @@ for r in seen.values():
         i,j=max(0,int((a-s0).total_seconds()//60)),min(1440,int((b-s0).total_seconds()//60))
         for m in range(i,j):
             if A['other'][m] is None: A['other'][m]='pending'
+            TT.setdefault(('other',m),[]).append(('other',t))
         if pr not in SLEEP|PREP|EAT|MOVE|FLOW and not (r['rh'] and pr=='action') and not care: held.setdefault('other',[]).append(t) if t not in held.get('other',[]) else None
     d=r['dev'].lower()
     if 'laptop' in d or 'desktop' in d or 'tv' in d or pr in TV: paint('screen','screen',a,bb,t)
@@ -121,13 +124,18 @@ if OS:
     if ST:
         x=ST[-1]['optimal_bedtime']; nxt=e0     # offsets are from the midnight that ends this day
         window=[int((nxt+dt.timedelta(seconds=x['start_offset'])-s0).total_seconds()//60), int((nxt+dt.timedelta(seconds=x['end_offset'])-s0).total_seconds()//60), ST[-1]['day']]
-def runs(arr):
+def runs(arr, ring=None):
     out=[];cur=None
     for m,x in enumerate(arr+[None]):
         if x!=cur:
             if cur is not None: out[-1][2]=m
-            if x is not None: out.append([x,m,m+1])
+            if x is not None: out.append([x,m,m+1,[]])
             cur=x
+    for r in out:      # what the chunk was: the rows of its own kind inside it, in order
+        for m in range(r[1],r[2]):
+            for k,t in [x for rg in ((ring,) if ring!='body' else ('food','move')) for x in TT.get((rg,m),[])]:
+                if k==r[0] and t not in r[3]: r[3].append(t)
+        r[3]=r[3][:4]
     return out
 # sitting to eat is not moving (24 Oct 2026): a meal's minutes come out of the moving ring; making food is food, not movement
 for m in range(1440):
@@ -152,7 +160,7 @@ for k,v in WIN.items():
 RINGS=[x for x in RINGS if x[0] not in ('food','move')]
 A.pop('drive')
 OUT=dict(day=f"{day:%A} {day.day} {day:%B}",rings=[dict(k=k,e=e,n=n,kinds=[dict(k=kk,n=nn,min=sum(1 for x in A[k] if x==kk),held=(held.get(kk) or [])[:6]) for kk,nn in kinds],
-          runs=runs(A[k]),total=sum(1 for x in A[k] if x)) for k,e,n,kinds in RINGS],
+          runs=runs(A[k],k),total=sum(1 for x in A[k] if x)) for k,e,n,kinds in RINGS],
          win=win,nights=nights,window=window,moments=sorted(moments,key=lambda x:x['m']),who=sorted((held.get('who') or {}).items(),key=lambda x:-x[1]),
          awake=1440-sum(1 for x in A['sleep'] if x))
 json.dump(OUT,open(f'rings-{DAY}.json','w'),ensure_ascii=False)
