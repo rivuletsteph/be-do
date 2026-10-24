@@ -22,7 +22,7 @@ for p in sorted(glob.glob(D+'/data/w*.json'),reverse=True):
 names=lambda v: [] if not v else ([W.sv(x) if isinstance(x,dict) else x for x in v] if isinstance(v,list) else [x.strip() for x in str(v).split(',')])
 TICK=5
 SLEEP={'sleep','nap'}; PREP={'dinner prep','meal prep','cooking','lunch prep','breakfast prep'}
-EAT={'breakfast','lunch','dinner','snack','brunch','dessert'}     # food only, no drinks (24 Oct 2026)
+EAT={'breakfast','lunch','dinner','snack','brunch','dessert','coffee','smoothie','evening tea','tea','morning water','water','other consumable','drink'}     # nutrition: food and drink (24 Oct 2026)
 MOVE={'morning movement','walking','hip exercises','strength training','barre','cycling','rowing','yoga','squat','sun salutations','morning sun','evening sun','exercise','stretch'}
 BOOK={'book','morning book','reading','audiobook'}
 TV={'show','movie','video'}
@@ -38,7 +38,8 @@ RINGS=[('sleep','😴','Sleep',[('sleep','asleep, in bed')]),
        ('screen','📱','On a screen',[('screen','on a screen')])]
 A={k:[None]*1440 for k,*_ in RINGS}
 A['drive']=[None]*1440
-CARE_PR={'clean','laundry','laundry move','care task','dishes','tidy','errand'}
+CARE_PR={'clean','laundry','laundry move','care task','dishes','tidy','errand',
+         'shower','bath','evening hygiene','getting ready','skincare'}     # caring for herself is caretaking too (24 Oct 2026)
 CARE=json.load(open(os.environ['RINGS_CARE'])) if os.environ.get('RINGS_CARE') else {}
 CARE_RH=tuple(CARE.get('rhythms') or ())      # rhythms whose rows are caretaking
 CARE_WHO=tuple(CARE.get('people') or ())      # the people whose care is caretaking
@@ -62,7 +63,8 @@ for r in seen.values():
     if span and (b<=s0 or a>=e0): continue
     pr=low(r['p']); t=re.sub(r'^[^\w]+','',r['t']).split(' — ')[0].strip()
     bb=b if span else a+dt.timedelta(minutes=TICK)
-    if pr in MOM and s0<=a<e0: moments.append(dict(m=int((a-s0).total_seconds()//60),g=r['p'].split()[0] if r['p'] else '·',t=t))
+    if (pr in MOM or re.search(bedo_reader.FACTS['garden'].get('shared_pattern') or r'$^', pr)) and s0<=a<e0:
+        moments.append(dict(m=int((a-s0).total_seconds()//60),g=r['p'].split()[0] if r['p'] else '·',t=t,p=pr,d=int((b-a).total_seconds()//60) if span else 0))
     if pr in SLEEP and span: paint('sleep','sleep',a,b)
     if pr in PREP: paint('food','eat',a,bb,t)
     if pr in EAT: paint('food','eat',a,bb,t)

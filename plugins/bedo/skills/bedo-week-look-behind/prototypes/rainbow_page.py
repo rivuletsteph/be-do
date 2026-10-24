@@ -46,10 +46,10 @@ svg [data-tip].on{stroke:var(--ink);stroke-width:2}
 <div class="wrap">
 <p class="eyebrow">the day behind · how the day went · a proposal</p>
 <h1>How __NAME__ went</h1>
-<p class="sub">__DAY__, your waking hours as a rainbow: up on the left, the middle of the day at the top, the evening down on the right. The gap at the bottom is the night, eight hours, in blue for how long you were in bed. From the inside out: your dawn and dusk flows, body, working, and everything else; the thin line on the outside is time on a screen. Tap any piece to see what it was.</p>
+<p class="sub">__DAY__, your waking hours as a rainbow: up on the left, the middle of the day at the top, the evening down on the right. The gap at the bottom is the night, eight hours, in blue for how long you were in bed. From the inside out: your dawn and dusk flows, body, working, and everything else; the thin line on the outside is time on a screen. Under the arch, the night in blue and the moments that mattered, each with how long it lasted. Tap anything to see what it was.</p>
 <div class="card">
 <svg id="dial" viewBox="0 0 400 400" role="img" aria-label="The waking day as concentric arcs"></svg>
-<div class="tip" id="tip" aria-live="polite">Tap a piece of the rainbow.</div>
+<div class="tip" id="tip" aria-live="polite">Tap a piece of the rainbow, or one of the moments at the bottom.</div>
 <p class="label">from the inside out · share of the waking day</p>
 <div id="rings"></div>
 <p class="note" id="note"></p>
@@ -74,8 +74,8 @@ const R = Object.fromEntries(D.rings.map(r => [r.k, r]));
 // bands from the inside out; parts of a band are shades of its colour (24 Oct 2026: shades, not patterns)
 const BANDS = [
   {k: "flow", n: "Flows", fam: "flow", parts: {flow: ["flow", "a flow step"]}},
-  {k: "body", n: "Body", fam: "body", parts: {eat: ["food", "food"], move: ["move", "moving"]}},
-  {k: "work", n: "Working", fam: "work", parts: {work: ["work", "professional work"], care: ["care", "caretaking"], system: ["system", "be•do"]}},
+  {k: "body", n: "Body", fam: "body", parts: {eat: ["food", "food and drink"], move: ["move", "moving"]}},
+  {k: "work", n: "Working", fam: "work", parts: {work: ["work", "professional work"], care: ["care", "caretaking (others and yourself)"], system: ["system", "be•do"]}},
   {k: "other", n: "Other", fam: "other", parts: {other: ["other", "everything else"]}}];
 const HOLE = 52, W = 30, GAP = 3, R0 = 58;
 let g = "", tips = [];
@@ -107,19 +107,34 @@ const ntheta = m => (-90 - SWEEP / 2 - m / IDEAL * GAPDEG) * Math.PI / 180;     
 const npt = (r, m) => [CX + r * Math.cos(ntheta(m)), CY + r * Math.sin(ntheta(m))];
 const nband = (r0, r1, a, b) => { const [x0, y0] = npt(r1, a), [x1, y1] = npt(r1, b), [x2, y2] = npt(r0, b), [x3, y3] = npt(r0, a), L = (b - a) / IDEAL * GAPDEG > 180 ? 1 : 0;
   return `M${x0} ${y0}A${r1} ${r1} 0 ${L} 0 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${L} 1 ${x3} ${y3}Z`; };
-const RIN = R0, ROUT = R0 + BANDS.length * (W + GAP) - GAP;
+const RIN = R0, ROUT = R0 + 3 * (W + GAP) - GAP;      // flows, body, working: the night stops at working's outer edge
 if (inbed != null) {
   const d = inbed - IDEAL, fill = Math.min(inbed, IDEAL), sg = (d >= 0 ? "+" : "−") + hm(Math.abs(d));
   const lab = `<b>😴 In bed last night</b> · ${hm(inbed)} · ${d === 0 ? "exactly 8 h" : sg + " against 8 h"}${morning ? ` · ${clock(+morning.start.slice(11, 13) * 60 + +morning.start.slice(14, 16))}–${clock(WAKE)}` : ""}`;
   g += piece(nband(RIN, ROUT, 0, fill), "var(--sleep)", "var(--sleep-d)", lab);
   if (d < 0) g += `<path d="${nband(RIN, ROUT, fill, IDEAL)}" fill="none" stroke="var(--sleep-d)" stroke-width="1.2" stroke-dasharray="3 3"/>`;
   if (d > 0) g += piece(nband(ROUT + 2, ROUT + 9, 0, Math.min(d, IDEAL)), "var(--sleep-deep)", "none", lab);
-  const [tx, ty] = [CX, CY + (RIN + ROUT) / 2 + 2];
+  const [tx, ty] = [CX, CY + (RIN + ROUT) / 2 - 6];
   g += `<text x="${tx}" y="${ty}" text-anchor="middle" style="font:600 15px var(--sans);fill:var(--sleep-d)">${hm(inbed)}</text><text x="${tx}" y="${ty + 13}" text-anchor="middle" font-size="9.5" style="fill:var(--sleep-d)">in bed · ${d === 0 ? "8 h" : sg}</text>`;
 }
+const MR = R0 + 3 * (W + GAP) + W / 2 + 2, MOM = D.moments || [];
+const mlab = m => `<b>${m.g} ${esc(m.p[0].toUpperCase() + m.p.slice(1))}</b> · ${clock(m.m)}${m.d ? " · " + hm(m.d) : ""}<br>${esc(m.t)}`;
+MOM.forEach((m, i) => {
+  const f = MOM.length === 1 ? 0.5 : 0.06 + 0.88 * i / (MOM.length - 1), back = f * IDEAL;   // spread across the gap, left (morning) to right
+  const [x, y] = npt(MR, back), txt = m.d ? hm(m.d).replace(" min", "m").replace(" h ", "h") : "", w = 22 + (txt ? txt.length * 5.6 + 2 : 0);
+  tips.push(mlab(m));
+  g += `<g data-tip="1" data-i="${tips.length - 1}" data-m="${m.m}" tabindex="0" style="cursor:pointer"><rect x="${x - w / 2}" y="${y - 11}" width="${w}" height="22" rx="11" fill="var(--card)" stroke="var(--rule)"/>` +
+    `<text x="${x - w / 2 + 11}" y="${y + 4.5}" text-anchor="middle" style="font:13px var(--sans)">${m.g}</text>${txt ? `<text x="${x - w / 2 + 22}" y="${y + 3.5}" font-size="9" style="fill:var(--soft)">${txt}</text>` : ""}</g>`;
+  // where it happened: a small mark just outside the rainbow
+  const [dx, dy] = pt(SR + SW + 4, m.m); g += `<circle cx="${dx}" cy="${dy}" r="2.2" fill="var(--terra)" opacity=".75" pointer-events="none"/>`;
+});
+g += `<line id="mark" x1="0" y1="0" x2="0" y2="0" stroke="var(--terra)" stroke-width="2" stroke-linecap="round" opacity="0" pointer-events="none"/>`;
 const dial = document.getElementById("dial"), tip = document.getElementById("tip");
 dial.innerHTML = g;
-const show = e => { const t = e.target.closest("[data-tip]"); if (!t) return; dial.querySelectorAll(".on").forEach(x => x.classList.remove("on")); t.classList.add("on"); tip.innerHTML = tips[+t.dataset.i]; };
+const show = e => { const t = e.target.closest("[data-tip]"); if (!t) return; dial.querySelectorAll(".on").forEach(x => x.classList.remove("on")); t.classList.add("on"); tip.innerHTML = tips[+t.dataset.i];
+  const mk = document.getElementById("mark");
+  if (t.dataset.m) { const [x0, y0] = pt(R0 - 2, +t.dataset.m), [x1, y1] = pt(SR + SW + 6, +t.dataset.m); Object.entries({x1: x0, y1: y0, x2: x1, y2: y1, opacity: 1}).forEach(([k, v]) => mk.setAttribute(k, v)); }
+  else mk.setAttribute("opacity", 0); };
 dial.addEventListener("click", show); dial.addEventListener("focusin", show);
 // the list
 const AW = Math.min(BED, 1440) - WAKE;
@@ -130,7 +145,7 @@ document.getElementById("rings").innerHTML = `<div class="ring"><div class="rh">
       : r.kinds.map(k => { const [col, nm] = B.parts[k.k] || [B.fam, k.n]; return `<span><i style="background:${C(col)};border:1px solid var(--${B.fam}-d)"></i>${esc(nm)} ${k.min ? hm(k.min) : "—"}</span>`; }).join("");
     return `<div class="ring"><div class="rh"><b>${B.n}</b><span class="v">${t ? hm(t) : "—"} <small>${Math.round(100 * t / AW)}%</small></span></div><div class="kinds">${kinds}</div></div>`; }).join("") +
   `<div class="ring"><div class="rh"><b>On a screen</b><span class="v">${hm(R.screen ? R.screen.total : 0)} <small>${Math.round(100 * (R.screen ? R.screen.total : 0) / AW)}%</small></span></div><div class="held">phone, laptop or TV; a paper book isn't a screen</div></div>`;
-document.getElementById("note").textContent = "The bands overlap, so they don't add up to the waking day. Working counts what you were doing: a session that ran while you drove, ate, moved or slept isn't your work. A meal is not moving. Food is food only, no drinks. A moment with no length (a text, a check, a flow step) is a five-minute tick.";
+document.getElementById("note").textContent = "The bands overlap, so they don't add up to the waking day. Working counts what you were doing: a session that ran while you drove, ate, moved or slept isn't your work. A meal is not moving. Food is all nutrition, drinks too. A moment with no length (a text, a check, a flow step) is a five-minute tick.";
 </script>'''
 out = tpl.replace('/*DATA*/', json.dumps(D, ensure_ascii=False)).replace('__NAME__', name).replace('__DAY__', D['day'])
 open('how-friday-went.html', 'w', encoding='utf-8').write(out)

@@ -187,5 +187,18 @@ track and their own colours: the dawn flow a sunrise yellow, the dusk flow a
 sunset violet, the same golden yellow and violet as the flow bars (`flows.widget.bar`
 in `facts.json`), softened.
 
+**Meaning, not efficiency, 24 Oct.** Looking at the outside band and the
+everything-else column: "those are often the things that are more interesting
+or meaningful." Rosa greeting everyone at Greenhouse was a pickup (caretaking)
+and also fun, "a glittery moment". "I recognize I'm trying to create this to
+show efficiency, but maybe that's not a good goal. Maybe it's really about
+showing meaning and meaningfulness." So:
+- The night stops at working's outer edge, and the space left under the arch
+  holds the moments that mattered, in time order left to right, each with its
+  practice emoji and how long it lasted; tapping one names it and marks where
+  it happened on the rainbow (small marks sit just outside it).
+- Food is all nutrition: drinks too (coffee, the smoothie, tea, water).
+- Caring for herself is caretaking: a shower, a bath, getting ready.
+
 **Next time:** fold the rings into the builder as the How the day went card;
 icons in place of labels; then the next card (the sociogram, or what moved).
