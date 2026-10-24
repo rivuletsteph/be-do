@@ -45,7 +45,7 @@ svg [data-tip].on{stroke:var(--ink);stroke-width:2}
 <div class="wrap">
 <p class="eyebrow">the day behind · how the day went · a proposal</p>
 <h1>How __NAME__ went</h1>
-<p class="sub">__DAY__, your waking hours as a rainbow: up on the left, the middle of the day at the top, the evening down on the right. The gap at the bottom is the night, eight hours, in blue for how long you were in bed. From the inside out: a thin band for your dawn and dusk flows, then being (eating, moving, enjoying), then doing (work, caretaking, cooking, be•do); the thin line is time on a screen, and around the outside, the moments that mattered, where they happened. Tap anything to see what it was.</p>
+<p class="sub">__DAY__, your waking hours as a rainbow: up on the left, the middle of the day at the top, the evening down on the right. The gap at the bottom is the night, eight hours, in blue for how long you were in bed. From the inside out: a thin band for your dawn and dusk flows, then being (eating, moving, recreation), then doing (work, caretaking, cooking, be•do); the thin line is time on a screen, and around the outside, the moments that mattered, where they happened. Tap anything to see what it was.</p>
 <div class="card">
 <svg id="dial" viewBox="-30 -20 460 410" role="img" aria-label="The waking day as concentric arcs"></svg>
 <div class="tip" id="tip" aria-live="polite">Tap a piece of the rainbow or a moment around it.</div>
@@ -73,7 +73,7 @@ const R = Object.fromEntries(D.rings.map(r => [r.k, r]));
 // bands from the inside out; parts of a band are shades of its colour (24 Oct 2026: shades, not patterns)
 const BANDS = [
   {k: "flow", n: "Flows", fam: "flow", parts: {flow: ["flow", "a flow step"]}},
-  {k: "being", n: "Being", fam: "being", parts: {eat: ["eat", "eating and drinking"], move: ["move", "moving"], enjoy: ["enjoy", "enjoying"]}},
+  {k: "being", n: "Being", fam: "being", parts: {eat: ["eat", "eating and drinking"], move: ["move", "moving"], enjoy: ["enjoy", "recreation"]}},
   {k: "doing", n: "Doing", fam: "doing", parts: {work: ["work", "professional work"], care: ["care", "caretaking (others and yourself)"], cook: ["cook", "cooking"], system: ["system", "be•do"]}}];
 const HOLE = 24, W = 62, FW = 10, GAP = 4, R0 = 30;
 // the flows are being practices: a thin band just inside being, not a full one (24 Oct 2026)
