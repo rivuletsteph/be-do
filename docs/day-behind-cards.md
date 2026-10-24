@@ -212,5 +212,17 @@ play, time together for its own sake, glimmers. Logged time that is none of
 these is not drawn. The moments that mattered are emoji just outside the
 rainbow at their own times.
 
+**Being and doing, 24 Oct.** She kept getting confused about the split ("what
+is fixing a meal, eating a meal, reading, what I'm doing right now"). The test
+offered: does it make or move something beyond the moment (doing), or is the
+moment itself the point (being)? Fixing a meal is doing; eating it sitting
+down with intention is being; reading together is being, even when it is also
+care; shaping be•do in a work session is doing. She wants the shape kept and
+being and doing as their own concentric bands:
+- inside: the dawn and dusk flows (sunrise yellow, sunset violet)
+- **being**, cool sage-teal shades: eating and drinking (deepest), moving, enjoying (lightest)
+- **doing**, warm clay shades: professional work (deepest), caretaking (others and herself), cooking, be•do (lightest)
+- the screen line; the moments that mattered outside, at their times; the night in blue in the gap
+
 **Next time:** fold the rings into the builder as the How the day went card;
 icons in place of labels; then the next card (the sociogram, or what moved).

@@ -10,14 +10,13 @@ tpl = r'''<title>How __NAME__ Went</title>
    bend back past the horizon like an open book's covers. Concentric bands, one colour family each, shades for parts. */
 :root{--ground:#F4EEE4;--card:#FBF8F2;--ink:#2C2620;--soft:#4A4036;--muted:#7A6E60;--rule:#E3D9CA;--terra:#B5603F;
 --flow-t:#F1ECE4;--dawn:#F3D27F;--dawn-d:#C29630;--dusk:#C3B8EC;--dusk-d:#7B6FD6;--sleep:#D4DEF0;--sleep-deep:#6F8CC4;--sleep-d:#5A73A8;
---food:#86AF77;--move:#BCD6AF;--body-t:#ECF3E8;--body-d:#5F8D50;
---work:#C98A6B;--care:#DFB09A;--system:#EED3C4;--work-t:#F8ECE4;--work-d:#A8664A;
---enjoy:#E9B7C0;--enjoy-t:#F9EEF0;--enjoy-d:#B9707E;--screen:#2C2620;--screen-t:#ECE5DA;
+--eat:#6FAE9F;--move:#9DCDBF;--enjoy:#CDE7DF;--being-t:#EEF6F3;--being-d:#4A8577;
+--work:#C27E5E;--care:#D9A086;--cook:#E8C0AA;--system:#F4E0D4;--doing-t:#FAF0EA;--doing-d:#9C5C3E;--screen:#2C2620;--screen-t:#ECE5DA;
 --sans:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace;--display:"Fraunces",Georgia,serif}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--ground:#1B1A1F;--card:#232127;--ink:#EDE4E0;--soft:#D3C8C3;--muted:#A3958F;--rule:#3A3336;--terra:#E08A7F;
---flow-t:#2B2830;--dawn-d:#9A7621;--dusk-d:#6458BE;--sleep-d:#C9D6EE;--sleep:#3A4766;--sleep-deep:#8FA8DA;--body-t:#29302A;--body-d:#CCE2C2;--work-t:#352C29;--work-d:#F0CDBB;--enjoy-t:#352A2D;--enjoy-d:#F2CBD2;--screen:#EDE4E0;--screen-t:#2E2A30;color-scheme:dark}}
+--flow-t:#2B2830;--dawn-d:#9A7621;--dusk-d:#6458BE;--sleep-d:#C9D6EE;--sleep:#3A4766;--sleep-deep:#8FA8DA;--being-t:#24302D;--being-d:#CDE7DF;--doing-t:#352B27;--doing-d:#F4E0D4;--screen:#EDE4E0;--screen-t:#2E2A30;color-scheme:dark}}
 :root[data-theme="dark"]{--ground:#1B1A1F;--card:#232127;--ink:#EDE4E0;--soft:#D3C8C3;--muted:#A3958F;--rule:#3A3336;--terra:#E08A7F;
---flow-t:#2B2830;--dawn-d:#9A7621;--dusk-d:#6458BE;--sleep-d:#C9D6EE;--sleep:#3A4766;--sleep-deep:#8FA8DA;--body-t:#29302A;--body-d:#CCE2C2;--work-t:#352C29;--work-d:#F0CDBB;--enjoy-t:#352A2D;--enjoy-d:#F2CBD2;--screen:#EDE4E0;--screen-t:#2E2A30;color-scheme:dark}
+--flow-t:#2B2830;--dawn-d:#9A7621;--dusk-d:#6458BE;--sleep-d:#C9D6EE;--sleep:#3A4766;--sleep-deep:#8FA8DA;--being-t:#24302D;--being-d:#CDE7DF;--doing-t:#352B27;--doing-d:#F4E0D4;--screen:#EDE4E0;--screen-t:#2E2A30;color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--ground);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
 .wrap{max-width:640px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -46,7 +45,7 @@ svg [data-tip].on{stroke:var(--ink);stroke-width:2}
 <div class="wrap">
 <p class="eyebrow">the day behind · how the day went · a proposal</p>
 <h1>How __NAME__ went</h1>
-<p class="sub">__DAY__, your waking hours as a rainbow: up on the left, the middle of the day at the top, the evening down on the right. The gap at the bottom is the night, eight hours, in blue for how long you were in bed. From the inside out: your dawn and dusk flows, body, working, and enjoying; the thin line is time on a screen, and around the outside, the moments that mattered, where they happened. Tap anything to see what it was.</p>
+<p class="sub">__DAY__, your waking hours as a rainbow: up on the left, the middle of the day at the top, the evening down on the right. The gap at the bottom is the night, eight hours, in blue for how long you were in bed. From the inside out: your dawn and dusk flows, then being (eating, moving, enjoying), then doing (work, caretaking, cooking, be•do); the thin line is time on a screen, and around the outside, the moments that mattered, where they happened. Tap anything to see what it was.</p>
 <div class="card">
 <svg id="dial" viewBox="-30 -20 460 410" role="img" aria-label="The waking day as concentric arcs"></svg>
 <div class="tip" id="tip" aria-live="polite">Tap a piece of the rainbow or a moment around it.</div>
@@ -74,10 +73,9 @@ const R = Object.fromEntries(D.rings.map(r => [r.k, r]));
 // bands from the inside out; parts of a band are shades of its colour (24 Oct 2026: shades, not patterns)
 const BANDS = [
   {k: "flow", n: "Flows", fam: "flow", parts: {flow: ["flow", "a flow step"]}},
-  {k: "body", n: "Body", fam: "body", parts: {eat: ["food", "food and drink"], move: ["move", "moving"]}},
-  {k: "work", n: "Working", fam: "work", parts: {work: ["work", "professional work"], care: ["care", "caretaking (others and yourself)"], system: ["system", "be•do"]}},
-  {k: "enjoy", n: "Enjoying", fam: "enjoy", parts: {enjoy: ["enjoy", "enjoying"]}}];
-const HOLE = 52, W = 30, GAP = 3, R0 = 58;
+  {k: "being", n: "Being", fam: "being", parts: {eat: ["eat", "eating and drinking"], move: ["move", "moving"], enjoy: ["enjoy", "enjoying"]}},
+  {k: "doing", n: "Doing", fam: "doing", parts: {work: ["work", "professional work"], care: ["care", "caretaking (others and yourself)"], cook: ["cook", "cooking"], system: ["system", "be•do"]}}];
+const HOLE = 52, W = 40, GAP = 4, R0 = 58;
 let g = "", tips = [];
 const piece = (d, fill, stroke, tip) => { tips.push(tip); return `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="1" tabindex="0" data-i="${tips.length - 1}" data-tip="1"/>`; };
 BANDS.forEach((B, i) => {
@@ -107,7 +105,7 @@ const ntheta = m => (-90 - SWEEP / 2 - m / IDEAL * GAPDEG) * Math.PI / 180;     
 const npt = (r, m) => [CX + r * Math.cos(ntheta(m)), CY + r * Math.sin(ntheta(m))];
 const nband = (r0, r1, a, b) => { const [x0, y0] = npt(r1, a), [x1, y1] = npt(r1, b), [x2, y2] = npt(r0, b), [x3, y3] = npt(r0, a), L = (b - a) / IDEAL * GAPDEG > 180 ? 1 : 0;
   return `M${x0} ${y0}A${r1} ${r1} 0 ${L} 0 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${L} 1 ${x3} ${y3}Z`; };
-const RIN = R0, ROUT = R0 + 3 * (W + GAP) - GAP;      // flows, body, working: the night stops at working's outer edge
+const RIN = R0, ROUT = R0 + BANDS.length * (W + GAP) - GAP;
 if (inbed != null) {
   const d = inbed - IDEAL, fill = Math.min(inbed, IDEAL), sg = (d >= 0 ? "+" : "−") + hm(Math.abs(d));
   const lab = `<b>😴 In bed last night</b> · ${hm(inbed)} · ${d === 0 ? "exactly 8 h" : sg + " against 8 h"}${morning ? ` · ${clock(+morning.start.slice(11, 13) * 60 + +morning.start.slice(14, 16))}–${clock(WAKE)}` : ""}`;
@@ -138,7 +136,7 @@ document.getElementById("rings").innerHTML = `<div class="ring"><div class="rh">
       : r.kinds.map(k => { const [col, nm] = B.parts[k.k] || [B.fam, k.n]; return `<span><i style="background:${C(col)};border:1px solid var(--${B.fam}-d)"></i>${esc(nm)} ${k.min ? hm(k.min) : "—"}</span>`; }).join("");
     return `<div class="ring"><div class="rh"><b>${B.n}</b><span class="v">${t ? hm(t) : "—"} <small>${Math.round(100 * t / AW)}%</small></span></div><div class="kinds">${kinds}</div></div>`; }).join("") +
   `<div class="ring"><div class="rh"><b>On a screen</b><span class="v">${hm(R.screen ? R.screen.total : 0)} <small>${Math.round(100 * (R.screen ? R.screen.total : 0) / AW)}%</small></span></div><div class="held">phone, laptop or TV; a paper book isn't a screen</div></div>`;
-document.getElementById("note").textContent = "The bands overlap, so they don't add up to the waking day: reading together is enjoying, and a pickup can be caretaking and a glimmer at once. Logged time that is none of these isn't drawn. Working counts what you were doing: a session that ran while you drove, ate, moved or slept isn't your work. A meal is not moving. Food is all nutrition, drinks too. A moment with no length (a text, a check, a flow step) is a five-minute tick.";
+document.getElementById("note").textContent = "The bands overlap, so they don't add up to the waking day: a pickup can be caretaking and a glimmer at once. Doing makes or moves something; being is when the moment itself is the point. Logged time that is none of these isn't drawn. Working counts what you were doing: a session that ran while you drove, ate, moved or slept isn't your work. A meal is not moving. Food is all nutrition, drinks too. A moment with no length (a text, a check, a flow step) is a five-minute tick.";
 </script>'''
 out = tpl.replace('/*DATA*/', json.dumps(D, ensure_ascii=False)).replace('__NAME__', name).replace('__DAY__', D['day'])
 open('how-friday-went.html', 'w', encoding='utf-8').write(out)

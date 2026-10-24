@@ -38,6 +38,7 @@ RINGS=[('sleep','😴','Sleep',[('sleep','asleep, in bed')]),
        ('screen','📱','On a screen',[('screen','on a screen')])]
 A={k:[None]*1440 for k,*_ in RINGS}
 A['drive']=[None]*1440
+A['cook']=[None]*1440
 A['other']=[None]*1440
 ENJOY={'book','reading','audiobook','show','movie','video','game','glimmer','play','social','song','music','puzzle','outing','fresh air','video call'}   # being: what she enjoyed (24 Oct 2026); it may overlap caretaking
 CARE_PR={'clean','laundry','laundry move','care task','dishes','tidy','errand',
@@ -68,7 +69,7 @@ for r in seen.values():
     if (pr in MOM or re.search(bedo_reader.FACTS['garden'].get('shared_pattern') or r'$^', pr)) and s0<=a<e0:
         moments.append(dict(m=int((a-s0).total_seconds()//60),g=r['p'].split()[0] if r['p'] else '·',t=t,p=pr,d=int((b-a).total_seconds()//60) if span else 0))
     if pr in SLEEP and span: paint('sleep','sleep',a,b)
-    if pr in PREP: paint('food','eat',a,bb,t)
+    if pr in PREP: paint('cook','cook',a,bb,t)
     if pr in EAT: paint('food','eat',a,bb,t)
     if pr in MOVE: paint('move','move',a,bb,t)
     if pr in FLOW or pr in ('dawn flow close','dusk flow close'):
@@ -138,7 +139,7 @@ def runs(arr, ring=None):
             cur=x
     for r in out:      # what the chunk was: the rows of its own kind inside it, in order
         for m in range(r[1],r[2]):
-            for k,t in [x for rg in ((ring,) if ring!='body' else ('food','move')) for x in TT.get((rg,m),[])]:
+            for k,t in [x for rg in {'body':('food','move'),'being':('food','move','enjoy'),'doing':('work','cook')}.get(ring,(ring,)) for x in TT.get((rg,m),[])]:
                 if k==r[0] and t not in r[3]: r[3].append(t)
         r[3]=r[3][:4]
     return out
@@ -162,7 +163,13 @@ for k,v in WIN.items():
         a,b=min(ms),min(1440,max(ms)+TICK)
         while b>a and asleep(b-1): b-=1
         win[k]=[a,b]
-RINGS=[x for x in RINGS if x[0] not in ('food','move')]
+A['being']=[None]*1440; A['doing']=[None]*1440
+for m in range(1440):
+    A['being'][m]=A['food'][m] and 'eat' or A['move'][m] or A['enjoy'][m]
+    A['doing'][m]=A['work'][m] or A['cook'][m]
+RINGS=[x for x in RINGS if x[0] not in ('food','move','body','work','enjoy','other')]
+RINGS.insert(2,('being','🌿','Being',[('eat','eating'),('move','moving'),('enjoy','enjoying')]))
+RINGS.insert(3,('doing','🔨','Doing',[('work','professional work'),('care','caretaking'),('cook','cooking'),('system','be•do')]))
 A.pop('drive')
 OUT=dict(day=f"{day:%A} {day.day} {day:%B}",rings=[dict(k=k,e=e,n=n,kinds=[dict(k=kk,n=nn,min=sum(1 for x in A[k] if x==kk),held=(held.get(kk) or [])[:6]) for kk,nn in kinds],
           runs=runs(A[k],k),total=sum(1 for x in A[k] if x)) for k,e,n,kinds in RINGS],
