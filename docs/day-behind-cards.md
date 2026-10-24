@@ -258,4 +258,11 @@ fills the width, three larger time labels, heavier outlines and lines. No
 number on the night: like every other piece, a tap says it ("either put
 numbers on everything or make it the same functionality"). Done for now.
 
+**Bars and goals, 24 Oct.** "Bars at the bottom that showed the totals for
+all of them, and maybe the goal for each day. 2 hours of movement every day
+would be awesome." Under the rainbow: one bar per part on a single scale, in
+its own colour; a goal is a dark mark on its bar. Goals she has named: 8 h in
+bed, 2 h moving (`day_goals` in the settings). Each part is also outlined in
+its own colour's deeper shade, so eating and moving read apart on small pieces.
+
 **Next:** icons in place of labels; then the next card (the sociogram, or what moved).

@@ -18,7 +18,8 @@ sys.path.insert(0, os.path.join(HERE, '..', 'scripts'))
 sys.path.insert(0, os.path.join(HERE, '..', '..', '..', 'core'))
 from day_rings import day_rings  # noqa: E402
 
-L = {'utc_offset_hours': -5, 'care': {'rhythms': ['Kid Club'], 'people': ['Pip']}, 'system_rhythm': 'the system'}
+L = {'utc_offset_hours': -5, 'care': {'rhythms': ['Kid Club'], 'people': ['Pip']}, 'system_rhythm': 'the system',
+     'day_goals': {'inbed': 450, 'move': 120}}
 DAY = dt.date(2026, 3, 4)
 
 
@@ -53,6 +54,7 @@ R = day_rings(ROWS, DAY, L, flows={'morning mantra'}, not_lived={'⬜ intention'
 B = {b['k']: b for b in R['bands']}
 K = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in R['bands']}
 
+assert R['goals'] == {'inbed': 450, 'move': 120} and R['ideal_bed'] == 450, R['goals']   # the night is measured against her own goal
 assert R['wake'] == 7 * 60 + 30 and R['bed'] == 23 * 60 and R['inbed'] == 510, (R['wake'], R['bed'], R['inbed'])
 assert K['being']['eat'] == 5 + 15, K['being']                       # coffee tick + lunch
 assert K['being']['move'] == 60 - 15, K['being']                     # the walk less the meal

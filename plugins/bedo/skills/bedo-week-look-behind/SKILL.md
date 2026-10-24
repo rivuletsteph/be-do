@@ -131,10 +131,15 @@ page opens, after the lead and story, with the waking day as a rainbow:
   moving. Food is all nutrition, drinks too.
 - The moments that mattered sit outside at their own times. Tapping any piece
   names the rows inside it.
+- Under the rainbow, the totals as bars on one scale, each in its part's
+  colour: in bed the night before; being (flow steps, eating, moving,
+  recreation); doing (work, caretaking, cooking, be•do); on a screen. A goal is
+  a mark on its bar.
 - Settings (`look_behind_local`): `care` — `{"rhythms": [...], "people": [...]}`,
-  the rhythms and people whose rows are caretaking (name parts); and
-  `system_rhythm`, the drive that is be•do itself. Both were added to the live
-  row on 24 Oct 2026.
+  the rhythms and people whose rows are caretaking (name parts);
+  `system_rhythm`, the drive that is be•do itself; and `day_goals`, minutes a
+  day by part (`{"inbed": 480, "move": 120}`; the night is measured against
+  `inbed`). All three were added to the live row on 24 Oct 2026.
 Test: `tests/test_day_rings.py`.
 
 **Photos** (22 Oct 2026, her word: photos that piece the day together).

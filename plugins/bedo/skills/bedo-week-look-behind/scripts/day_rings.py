@@ -18,7 +18,9 @@ words for it are in docs/day-behind-cards.md. In short:
 
 Nothing personal lives here. What counts as caretaking beyond the practices
 below (her rhythms and the people she cares for) is `care` in the settings:
-{"rhythms": [...], "people": [...]}; the system's own drive is `system_rhythm`.
+{"rhythms": [...], "people": [...]}; the system's own drive is `system_rhythm`;
+the daily goals the bars under the rainbow mark are `day_goals`, minutes by part
+({"inbed": 480, "move": 120}).
 """
 import datetime as dt
 import re
@@ -196,6 +198,7 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset()):
         arr = arrays[k]
         bands.append(dict(k=k, n=n, total=sum(1 for x in arr if x), runs=runs(k),
                           kinds=[dict(k=kk, n=nn, min=sum(1 for x in arr if x == kk)) for kk, nn in kinds]))
+    goals = dict(L.get('day_goals') or {})        # minutes a day she aims for, by part: {"inbed": 480, "move": 120}
     return dict(wake=wake, bed=evening['a'] if evening else None, inbed=morning['inbed'] if morning else None,
-                ideal_bed=IDEAL_BED, span=SPAN, bands=bands, win=win,
+                ideal_bed=goals.get('inbed') or IDEAL_BED, span=SPAN, bands=bands, win=win, goals=goals,
                 moments=sorted(moments, key=lambda x: x['m']))
