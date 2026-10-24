@@ -10,8 +10,8 @@ tpl = r'''<title>How __NAME__ Went</title>
    bend back past the horizon like an open book's covers. Concentric bands, one colour family each, shades for parts. */
 :root{--ground:#F4EEE4;--card:#FBF8F2;--ink:#2C2620;--soft:#4A4036;--muted:#7A6E60;--rule:#E3D9CA;--terra:#B5603F;
 --flow-t:#F1ECE4;--dawn:#F3D27F;--dawn-d:#C29630;--dusk:#C3B8EC;--dusk-d:#7B6FD6;--sleep:#D4DEF0;--sleep-deep:#6F8CC4;--sleep-d:#5A73A8;
---eat:#6FAE9F;--move:#9DCDBF;--enjoy:#CDE7DF;--being-t:#EEF6F3;--being-d:#4A8577;
---work:#C27E5E;--care:#D9A086;--cook:#E8C0AA;--system:#F4E0D4;--doing-t:#FAF0EA;--doing-d:#9C5C3E;--screen:#2C2620;--screen-t:#ECE5DA;
+--eat:#86C2A4;--move:#B4C987;--enjoy:#9FC4E2;--being-t:#EEF4F3;--being-d:#4F7F78;
+--work:#C9805F;--care:#E3A4A8;--cook:#EEB672;--system:#DCC89C;--doing-t:#FAF0EA;--doing-d:#94593D;--screen:#2C2620;--screen-t:#ECE5DA;
 --sans:"IBM Plex Sans",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace;--display:"Fraunces",Georgia,serif}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--ground:#1B1A1F;--card:#232127;--ink:#EDE4E0;--soft:#D3C8C3;--muted:#A3958F;--rule:#3A3336;--terra:#E08A7F;
 --flow-t:#2B2830;--dawn-d:#9A7621;--dusk-d:#6458BE;--sleep-d:#C9D6EE;--sleep:#3A4766;--sleep-deep:#8FA8DA;--being-t:#24302D;--being-d:#CDE7DF;--doing-t:#352B27;--doing-d:#F4E0D4;--screen:#EDE4E0;--screen-t:#2E2A30;color-scheme:dark}}
@@ -75,7 +75,7 @@ const BANDS = [
   {k: "flow", n: "Flows", fam: "flow", parts: {flow: ["flow", "a flow step"]}},
   {k: "being", n: "Being", fam: "being", parts: {eat: ["eat", "eating and drinking"], move: ["move", "moving"], enjoy: ["enjoy", "enjoying"]}},
   {k: "doing", n: "Doing", fam: "doing", parts: {work: ["work", "professional work"], care: ["care", "caretaking (others and yourself)"], cook: ["cook", "cooking"], system: ["system", "be•do"]}}];
-const HOLE = 52, W = 46, FW = 10, GAP = 4, R0 = 62;
+const HOLE = 24, W = 62, FW = 10, GAP = 4, R0 = 30;
 // the flows are being practices: a thin band just inside being, not a full one (24 Oct 2026)
 const RAD = []; BANDS.reduce((r, B) => { const w = B.k === "flow" ? FW : W; RAD.push([r, r + w]); return r + w + (B.k === "flow" ? 2 : GAP); }, R0);
 const OUTER = RAD[RAD.length - 1][1];
