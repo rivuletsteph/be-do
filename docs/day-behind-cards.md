@@ -124,3 +124,12 @@ during a school run is still the school run. Time together that isn't care work
   be•do dotted; other (sand) solid. Four shades plus the screen line.
 - **No labels on the dial.** Later: small icons, like the ones made for the
   wellness wheel.
+
+**Tenth pass, where 24 Oct ended.** "About as good as we're going to get it
+today. It looks really great." Thicker rings, easier to tap. Patterns finer and
+more detailed, each chunk outlined in a darker shade of its ring. The flows'
+steps are back as lines inside the dotted span, to show how spread out a flow
+was. The prototype code is in `plugins/bedo/skills/bedo-week-look-behind/prototypes/`.
+
+**Next time:** fold the rings into the builder as the How the day went card;
+icons in place of labels; then the next card (the sociogram, or what moved).
