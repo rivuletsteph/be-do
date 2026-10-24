@@ -230,5 +230,11 @@ take up so much room." The flows are now a thin band just inside being: the
 yellow and violet spans and a line at each step, a fifth of a full band's
 width; being and doing grow to fill the room.
 
+**More hue, 24 Oct.** "Best yet." A smaller center, the bands wider. Cool and
+warm stay as the two families, but each part gets its own hue, close to the
+colours she started with: being — eating sea green, moving sage, enjoying sky
+blue; doing — professional work terracotta, caretaking rose, cooking apricot,
+be•do wheat.
+
 **Next time:** fold the rings into the builder as the How the day went card;
 icons in place of labels; then the next card (the sociogram, or what moved).
