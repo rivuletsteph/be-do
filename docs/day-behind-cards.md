@@ -101,3 +101,12 @@ now ("the center should be something but I don't know what"). Moving and
 eating: she should be sitting to eat, so a meal's minutes come out of the
 moving ring (Friday's lunch on a bench mid-walk is a gap in moving); making
 food is food, not movement.
+
+**Eighth pass, same day.** Food and moving share one ring, called body for
+now (they no longer overlap, since a meal comes out of moving). Working shows
+her kinds of work: professional work, be•do (striped), and caretaking ("caretaking
+is work"): the care of the child, the house and the dogs — school runs, pickup,
+bedtime, kitchen cleanup. On the working ring professional work wins a shared
+minute, then caretaking, then be•do: a be•do session running in the background
+during a school run is still the school run. Time together that isn't care work
+(reading together) stays in other.
