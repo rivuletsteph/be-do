@@ -81,3 +81,10 @@ confusing to my eye"); where a ring holds two things, a pattern tells them
 apart (be•do work is the striped part of working). Dawn and dusk share one
 colour; the clock says which is which. Screens are one thing: on a screen or
 not (phone, laptop, TV; a paper book is not a screen).
+
+**Fifth pass, same day.** The order from the core out: sleep (the core),
+flows (dawn and dusk practice, one ring, no need to name which), food,
+moving, working, other ("there's a lot of things I'm doing that aren't those
+things"). Other is time a row covers that none of the rings inside it claims.
+Screens are the outermost circle, a thin line: on a screen or not, black in
+light mode, white in dark.
