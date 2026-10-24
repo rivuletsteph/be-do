@@ -138,6 +138,12 @@ details.fw[open] .v::after{content:" · hide"}
 .pics figure{margin:0;flex:0 0 min(68%,240px);scroll-snap-align:start;min-width:0}
 .pics img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:12px;background:var(--tint)}
 .pics figcaption{font:400 .72rem var(--mono);color:var(--muted);margin-top:4px;line-height:1.35}
+.mv{display:grid;gap:14px;margin:10px 0 0}
+.mv .dh{display:flex;align-items:baseline;gap:8px;margin:0;font-size:.95rem}
+.mv .dh .n{font-weight:600}
+.mv .dh .m{font:400 .72rem var(--mono);color:var(--muted);margin-left:auto;white-space:nowrap}
+.mv ul{list-style:none;margin:4px 0 0;padding:0 0 0 1.9rem;display:grid;gap:3px}
+.mv li{font-size:.86rem;line-height:1.4;color:var(--soft)}
 .restline{font:400 .78rem var(--mono);color:var(--muted);border-top:1px solid var(--rule);padding-top:14px;margin:26px 0 0}
 .tex{font-size:.8rem;color:var(--muted);line-height:1.5;margin:2px 0 0}
 details.numbers{margin:0}
@@ -444,6 +450,18 @@ if (ONE) {
       ((m.photos || []).length ? `<div class="ph">${m.photos.map(src => `<img src="${src}" alt="${esc(m.t)}" loading="lazy">`).join("")}</div>` : "") +
       `<p class="meta">${[at(m), who, m.memory ? `↺ ${esc(m.memory)}` : "", to].filter(Boolean).map(x => `<span>${x}</span>`).join("")}</p></div></li>`;
   };
+  // what moved forward (24 Oct 2026, her pick): the day's closed actions under their drive,
+  // the drives with the most time first; one with no drive comes last
+  const dmap = {}, walk = n => { dmap[n.drive] = n; n.children.forEach(walk); };
+  DATA.drives.forEach(walk);
+  const groups = {};
+  DATA.moved.closed.forEach(c => (groups[c.drive] = groups[c.drive] || []).push(c));
+  const order = Object.keys(groups).sort((a, b) => (!a - !b) || ((dmap[b] || {}).own_min || 0) - ((dmap[a] || {}).own_min || 0) || groups[b].length - groups[a].length);
+  const movedHtml = order.map(k => {
+    const n = dmap[k] || {}, mins = n.own_min ? hm(n.own_min) : "";
+    return `<div><p class="dh"><span>${esc(k ? n.emoji || "·" : "·")}</span><span class="n">${esc(k || "on no drive")}</span>${mins ? `<span class="m">${mins}</span>` : ""}</p>` +
+      `<ul>${groups[k].map(c => `<li>✅ ${c.url ? `<a href="${esc(c.url)}">${esc(c.t)}</a>` : esc(c.t)}</li>`).join("")}</ul></div>`;
+  }).join("");
   const rest = [d0.bed ? `${hm(d0.bed)} in bed` : "", d0.readiness != null ? `readiness ${d0.readiness}` : "",
     d0.people ? `${hm(d0.people)} with people` : ""].filter(Boolean).join(" · ");
   P.innerHTML = `<div class="chip">${esc(DATA.chip)}</div>
@@ -453,6 +471,7 @@ ${(DATA.story || []).length ? `<ul class="dstory">${DATA.story.map(([g, t]) => `
 ${(day.pictures || []).length ? `<div class="pics">${day.pictures.map(p => `<figure><img src="${p.src}" alt="${esc(p.t)}" loading="lazy"><figcaption>${clock(p.at)}${p.t ? ` · ${esc(p.g)} ${esc(p.t)}` : ""}</figcaption></figure>`).join("")}</div>` : ""}
 <section><p class="label">what mattered</p>
 ${day.stones.length ? `<ul class="moments">${day.stones.map(moment).join("")}</ul>` : `<p class="note">nothing marked today</p>`}</section>
+${movedHtml ? `<section><p class="label">what moved forward</p><div class="mv">${movedHtml}</div></section>` : ""}
 ${rest ? `<p class="restline">${rest}</p>` : ""}`;
 }
 </script>
