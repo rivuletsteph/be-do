@@ -475,7 +475,7 @@ const rainbow = RB => {
   const RAD = {flow: [R0, R0 + FW]}; RAD.being = [RAD.flow[1] + 2, RAD.flow[1] + 2 + W]; RAD.doing = [RAD.being[1] + GAP, RAD.being[1] + GAP + W];
   const OUT = RAD.doing[1], SR = OUT + 6, SW = 9;
   let g = "", tips = [];
-  const piece = (d, fill, stroke, tip) => { tips.push(tip); return `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="1.6" tabindex="0" data-tip="${tips.length - 1}"/>`; };
+  const piece = (d, fill, stroke, tip) => { tips.push(tip); return `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round" tabindex="0" data-tip="${tips.length - 1}"/>`; };
   const say = (k, a, b, t) => `<b>${NAME[k][0].toUpperCase() + NAME[k].slice(1)}</b> · ${clock2(a)}–${clock2(b)} · ${hm(b - a)}${t.length ? "<br>" + t.map(esc).join(" · ") : ""}`;
   ["flow", "being", "doing"].forEach(k => { const [r0, r1] = RAD[k];
     g += `<path d="${band(r0, r1, WAKE, END)}" fill="var(--rb-${k === "flow" ? "flow-t" : k + "-t"})"/>`;
@@ -494,7 +494,7 @@ const rainbow = RB => {
     if (d < 0) g += `<path d="${nband(R0, OUT, fill, IDEAL)}" fill="none" stroke="var(--rb-sleep-d)" stroke-width="1.2" stroke-dasharray="3 3"/>`;
     if (d > 0) g += piece(nband(OUT + 2, OUT + 9, 0, Math.min(d, IDEAL)), "var(--rb-sleep-deep)", "none", lab);
     const ty = CY + (R0 + OUT) / 2 + 2;
-    g += `<text x="${CX}" y="${ty}" text-anchor="middle" style="font:600 24px var(--sans);fill:var(--rb-sleep-d)">${hm(RB.inbed)}</text><text x="${CX}" y="${ty + 20}" text-anchor="middle" style="font:500 15px var(--sans);fill:var(--rb-sleep-d)">in bed · ${d === 0 ? "8 h" : sg}</text>`; }
+    g += `<text x="${CX}" y="${ty + 8}" text-anchor="middle" opacity=".75" style="font:400 14px var(--sans);fill:var(--rb-sleep-d)">${hm(RB.inbed)} in bed · ${d === 0 ? "8 h" : sg}</text>`; }   // quiet: the night is context, not the headline
   let last = -999, lift = 0;
   RB.moments.forEach(m => { lift = m.m - last < 30 ? (lift + 1) % 2 : 0; last = m.m; const [x, y] = pt(SR + SW + 16 + lift * 22, m.m);
     tips.push(`<b>${esc(m.g)} ${esc(m.p[0].toUpperCase() + m.p.slice(1))}</b> · ${clock2(m.m)}${m.d ? " · " + hm(m.d) : ""}<br>${esc(m.t)}`);
