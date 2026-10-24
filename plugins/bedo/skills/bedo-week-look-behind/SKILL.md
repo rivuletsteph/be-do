@@ -113,6 +113,30 @@ night that ended that morning counts whole, in day and week alike. It is a
 trial beside the canon day behind, published to its own page, not the living
 one.
 
+**How the day went** (24 Oct 2026, settled with her on Fri 23 Oct; every
+decision and her words are in `docs/day-behind-cards.md`). On a single day the
+page opens, after the lead and story, with the waking day as a rainbow:
+`scripts/day_rings.py` reads the day's rows and the engine draws them.
+- The rainbow is the 16 hours from getting up, bent back like an open book;
+  the gap at the bottom is the 8 hours of a night, filled blue for the hours in
+  bed the night before (dashed where short, a deeper rim where over).
+- From the inside out: a thin neutral band for the dawn and dusk flows (their
+  span and a line per step); **being** in cool hues (eating and drinking,
+  moving, recreation); **doing** in warm hues (professional work, caretaking of
+  others and of herself, cooking, be•do); a thin line for time on a screen.
+  Bands overlap: one stretch can be two things.
+- Doing makes or moves something; being is when the moment itself is the
+  point. Work is what she did, not what the laptop did: a session's minutes
+  count only while she wasn't driving, eating, moving or asleep. A meal is not
+  moving. Food is all nutrition, drinks too.
+- The moments that mattered sit outside at their own times. Tapping any piece
+  names the rows inside it.
+- Settings (`look_behind_local`): `care` — `{"rhythms": [...], "people": [...]}`,
+  the rhythms and people whose rows are caretaking (name parts); and
+  `system_rhythm`, the drive that is be•do itself. Both were added to the live
+  row on 24 Oct 2026.
+Test: `tests/test_day_rings.py`.
+
 **Photos** (22 Oct 2026, her word: photos that piece the day together).
 `scripts/day_photos.py --day D --local … --out photos/` reads the week's
 `W## photos` Drive folder with a service account the folder is shared with (its

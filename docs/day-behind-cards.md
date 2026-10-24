@@ -247,5 +247,10 @@ caretaking), and this band is more about being entertained and restored:
 reading, shows, play, time together for its own sake, glimmers. Recreation was
 also her word for the week at Friday's intention check.
 
-**Next time:** fold the rings into the builder as the How the day went card;
-icons in place of labels; then the next card (the sociogram, or what moved).
+**Built in, 24 Oct.** "Build it into the day behind now." The card is part of
+the day page: `scripts/day_rings.py` (the rules) and the engine's `rainbow()`
+(the drawing), right after the lead and story; `tests/test_day_rings.py`
+checks the rules on an invented day. The live settings row gained `care` and
+`system_rhythm`. The prototypes stay in `prototypes/` as the design record.
+
+**Next:** icons in place of labels; then the next card (the sociogram, or what moved).

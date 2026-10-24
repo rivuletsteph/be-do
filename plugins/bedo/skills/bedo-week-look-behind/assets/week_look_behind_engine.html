@@ -144,6 +144,23 @@ details.fw[open] .v::after{content:" · hide"}
 .mv .dh .m{font:400 .72rem var(--mono);color:var(--muted);margin-left:auto;white-space:nowrap}
 .mv ul{list-style:none;margin:4px 0 0;padding:0 0 0 1.9rem;display:grid;gap:3px}
 .mv li{font-size:.86rem;line-height:1.4;color:var(--soft)}
+/* how the day went — the rainbow (24 Oct 2026, docs/day-behind-cards.md): neutral flows, cool hues for being,
+   warm hues for doing, the night in blue in the gap; every colour a token, light and dark */
+:root{--rb-flow:#DDD5C9;--rb-flow-d:#8C8174;--rb-flow-t:#F1ECE4;--rb-eat:#86C2A4;--rb-move:#B4C987;--rb-recreation:#9FC4E2;--rb-being-t:#EEF4F3;--rb-being-d:#4F7F78;
+--rb-work:#C9805F;--rb-care:#E3A4A8;--rb-cook:#EEB672;--rb-system:#DCC89C;--rb-doing-t:#FAF0EA;--rb-doing-d:#94593D;--rb-screen:#2C2620;--rb-screen-t:#ECE5DA;
+--rb-sleep:#D4DEF0;--rb-sleep-deep:#6F8CC4;--rb-sleep-d:#5A73A8}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--rb-flow:#4A4540;--rb-flow-d:#BDB3A6;--rb-flow-t:#2B2830;--rb-being-t:#24302D;--rb-being-d:#CDE7DF;--rb-doing-t:#352B27;--rb-doing-d:#F4E0D4;--rb-screen:#EDE4E0;--rb-screen-t:#2E2A30;--rb-sleep:#3A4766;--rb-sleep-deep:#8FA8DA;--rb-sleep-d:#C9D6EE}}
+:root[data-theme="dark"]{--rb-flow:#4A4540;--rb-flow-d:#BDB3A6;--rb-flow-t:#2B2830;--rb-being-t:#24302D;--rb-being-d:#CDE7DF;--rb-doing-t:#352B27;--rb-doing-d:#F4E0D4;--rb-screen:#EDE4E0;--rb-screen-t:#2E2A30;--rb-sleep:#3A4766;--rb-sleep-deep:#8FA8DA;--rb-sleep-d:#C9D6EE}
+.rb svg{display:block;width:100%;max-width:520px;height:auto;margin:6px auto 0;overflow:visible}
+.rb svg text{font-family:var(--mono);fill:var(--muted)}
+.rb svg [data-tip]{cursor:pointer}
+.rb svg [data-tip]:focus-visible,.rb svg [data-tip].on{outline:none;stroke:var(--ink);stroke-width:2}
+.rb .tip{min-height:3.2em;margin:4px 0 0;padding:10px 12px;border-radius:12px;background:var(--tint);font-size:.86rem;line-height:1.45;color:var(--soft)}
+.rb .tip b{color:var(--ink);font-weight:600}
+.rb .rows{display:grid;gap:8px;margin:12px 0 0}
+.rb .rw{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px;font-size:.8rem;color:var(--soft)}
+.rb .rw b{font-size:.88rem;color:var(--ink);font-weight:600;min-width:4.6rem}
+.rb .rw i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .restline{font:400 .78rem var(--mono);color:var(--muted);border-top:1px solid var(--rule);padding-top:14px;margin:26px 0 0}
 .tex{font-size:.8rem;color:var(--muted);line-height:1.5;margin:2px 0 0}
 details.numbers{margin:0}
@@ -436,6 +453,63 @@ document.getElementById("needdays").innerHTML = `<table class="days"><tr><th>day
   Dd.map(d => `<tr><td class="s">${esc(d.day)}</td><td class="s">${d.secure === "secure" ? (d.assumed ? "secure*" : "secure") : esc(d.secure)}</td><td>${d.deficiency ? hm(d.deficiency) : "—"}</td><td>${d.growth ? hm(d.growth) : "—"}</td>` +
     `<td><span class="split"><i class="d" style="width:${pct(d.deficiency, d.growth)}%"></i><i class="g" style="width:${(d.deficiency + d.growth) ? 100 - pct(d.deficiency, d.growth) : 0}%"></i></span></td></tr>`).join("") +
   `</table><p class="note" style="margin-top:6px">* no ⏏️ row that day; secure is the default. Deficiency: ${NE.deficiency.map(g => esc(g.label)).join(", ")} · growth: ${NE.growth.map(g => esc(g.label)).join(", ")}</p>`;
+// how the day went (24 Oct 2026): the waking day as a rainbow — up on the left, the evening down on the right,
+// the ends bent back like an open book's covers; the night in the gap at the bottom; bands overlap freely
+const rainbow = RB => {
+  if (!RB || !RB.bands) return "";
+  const SPAN = RB.span, WAKE = RB.wake, END = WAKE + SPAN, BED = RB.bed == null ? Math.min(1440, END) : RB.bed;
+  const SWEEP = 240, CX = 200, CY = 205, IDEAL = RB.ideal_bed, GAPDEG = 360 - SWEEP;
+  const th = m => (-90 - SWEEP / 2 + (Math.min(Math.max(m, WAKE), END) - WAKE) / SPAN * SWEEP) * Math.PI / 180;
+  const pt = (r, m) => [CX + r * Math.cos(th(m)), CY + r * Math.sin(th(m))];
+  const band = (r0, r1, a, b) => { const L = (b - a) / SPAN * SWEEP > 180 ? 1 : 0, [x0, y0] = pt(r1, a), [x1, y1] = pt(r1, b), [x2, y2] = pt(r0, b), [x3, y3] = pt(r0, a);
+    return `M${x0} ${y0}A${r1} ${r1} 0 ${L} 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${L} 0 ${x3} ${y3}Z`; };
+  const nth = m => (-90 - SWEEP / 2 - m / IDEAL * GAPDEG) * Math.PI / 180, npt = (r, m) => [CX + r * Math.cos(nth(m)), CY + r * Math.sin(nth(m))];
+  const nband = (r0, r1, a, b) => { const [x0, y0] = npt(r1, a), [x1, y1] = npt(r1, b), [x2, y2] = npt(r0, b), [x3, y3] = npt(r0, a), L = (b - a) / IDEAL * GAPDEG > 180 ? 1 : 0;
+    return `M${x0} ${y0}A${r1} ${r1} 0 ${L} 0 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${L} 1 ${x3} ${y3}Z`; };
+  const clip = ([k, a, b, t]) => [k, Math.max(a, WAKE), Math.min(b, END), t || []];
+  const B = Object.fromEntries(RB.bands.map(b => [b.k, b]));
+  const NAME = {flow: "a flow", eat: "eating and drinking", move: "moving", recreation: "recreation", work: "professional work",
+    care: "caretaking", cook: "cooking", system: "be•do", screen: "on a screen"};
+  const R0 = 30, FW = 10, W = 62, GAP = 4;
+  const RAD = {flow: [R0, R0 + FW]}; RAD.being = [RAD.flow[1] + 2, RAD.flow[1] + 2 + W]; RAD.doing = [RAD.being[1] + GAP, RAD.being[1] + GAP + W];
+  const OUT = RAD.doing[1], SR = OUT + 6, SW = 5;
+  let g = "", tips = [];
+  const piece = (d, fill, stroke, tip) => { tips.push(tip); return `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="1" tabindex="0" data-tip="${tips.length - 1}"/>`; };
+  const say = (k, a, b, t) => `<b>${NAME[k][0].toUpperCase() + NAME[k].slice(1)}</b> · ${clock2(a)}–${clock2(b)} · ${hm(b - a)}${t.length ? "<br>" + t.map(esc).join(" · ") : ""}`;
+  ["flow", "being", "doing"].forEach(k => { const [r0, r1] = RAD[k];
+    g += `<path d="${band(r0, r1, WAKE, END)}" fill="var(--rb-${k === "flow" ? "flow-t" : k + "-t"})"/>`;
+    if (k === "flow") Object.entries(RB.win).forEach(([w, x]) => { const [, a, b] = clip([w, ...x]); if (b > a)
+      g += piece(band(r0, r1, a, b), "var(--rb-flow)", "var(--rb-flow-d)", `<b>${w === "dawn" ? "🌅 The dawn flow" : "🌄 The dusk flow"}</b> · ${clock2(a)}–${clock2(b)}`); });
+    (B[k] || {runs: []}).runs.map(clip).filter(([, a, b]) => b - a >= 2).forEach(([kk, a, b, t]) => {
+      if (k === "flow") { for (let m = a; m < b; m += 5) { const [x0, y0] = pt(r0 + 1, m + 1), [x1, y1] = pt(r1 - 1, m + 1);
+        g += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--rb-flow-d)" stroke-width="1.4" stroke-linecap="round" pointer-events="none"/>`; } return; }
+      g += piece(band(r0, r1, a, b), `var(--rb-${kk})`, `var(--rb-${k}-d)`, say(kk, a, b, t)); }); });
+  g += `<path d="${band(SR, SR + SW, WAKE, END)}" fill="var(--rb-screen-t)"/>`;
+  (B.screen || {runs: []}).runs.map(clip).filter(([, a, b]) => b > a).forEach(([kk, a, b, t]) => { g += piece(band(SR, SR + SW, a, b), "var(--rb-screen)", "none", say("screen", a, b, t)); });
+  if (BED < END) g += piece(band(R0, SR + SW, BED, END), "var(--rb-flow-t)", "none", `<b>🛏️ In bed at ${clock2(BED)}</b>, ${hm(END - BED)} before the 16 hours were up`);
+  if (RB.inbed != null) { const d = RB.inbed - IDEAL, fill = Math.min(RB.inbed, IDEAL), sg = (d >= 0 ? "+" : "−") + hm(Math.abs(d));
+    const lab = `<b>😴 In bed the night before</b> · ${hm(RB.inbed)} · ${d === 0 ? "exactly 8 h" : sg + " against 8 h"}`;
+    g += piece(nband(R0, OUT, 0, fill), "var(--rb-sleep)", "var(--rb-sleep-d)", lab);
+    if (d < 0) g += `<path d="${nband(R0, OUT, fill, IDEAL)}" fill="none" stroke="var(--rb-sleep-d)" stroke-width="1.2" stroke-dasharray="3 3"/>`;
+    if (d > 0) g += piece(nband(OUT + 2, OUT + 9, 0, Math.min(d, IDEAL)), "var(--rb-sleep-deep)", "none", lab);
+    const ty = CY + (R0 + OUT) / 2 - 6;
+    g += `<text x="${CX}" y="${ty}" text-anchor="middle" style="font:600 15px var(--sans);fill:var(--rb-sleep-d)">${hm(RB.inbed)}</text><text x="${CX}" y="${ty + 13}" text-anchor="middle" font-size="9.5" style="fill:var(--rb-sleep-d)">in bed · ${d === 0 ? "8 h" : sg}</text>`; }
+  let last = -999, lift = 0;
+  RB.moments.forEach(m => { lift = m.m - last < 25 ? (lift + 1) % 3 : 0; last = m.m; const [x, y] = pt(SR + SW + 13 + lift * 15, m.m);
+    tips.push(`<b>${esc(m.g)} ${esc(m.p[0].toUpperCase() + m.p.slice(1))}</b> · ${clock2(m.m)}${m.d ? " · " + hm(m.d) : ""}<br>${esc(m.t)}`);
+    g += `<text x="${x}" y="${y + 5}" text-anchor="middle" style="font:14px var(--sans)" tabindex="0" data-tip="${tips.length - 1}">${esc(m.g)}</text>`; });
+  [0, 240, 480, 720, 960].forEach(o => { const [x, y] = pt(SR + SW + (o % 960 ? 46 : 52), WAKE + o);
+    g += `<text x="${x}" y="${y + 3.5}" text-anchor="middle" font-size="10">${o === 0 ? "up " + clock2(WAKE) : clock2(WAKE + o)}</text>`; });
+  const AW = Math.min(BED, 1440) - WAKE, sw = (k, fam) => `<i style="background:var(--rb-${k});border:1px solid var(--rb-${fam}-d)"></i>`;
+  const rows = [["Flows", Object.entries(RB.win).map(([w, [a, b]]) => `<span>${sw("flow", "flow")}${w} ${clock2(a)}–${clock2(b)}</span>`).join("")],
+    ...["being", "doing"].map(k => [`${k === "being" ? "Being" : "Doing"} ${hm(B[k].total)}`, B[k].kinds.map(x => `<span>${sw(x.k, k)}${esc(NAME[x.k])} ${x.min ? hm(x.min) : "—"}</span>`).join("")]),
+    ["Screen", `<span>${hm(B.screen.total)} of ${hm(AW)} awake</span>`]];
+  rainbow.tips = tips;
+  return `<svg id="rbdial" viewBox="-30 -20 460 410" role="img" aria-label="The waking day as concentric arcs">${g}</svg>` +
+    `<div class="tip" id="rbtip" aria-live="polite">Up at ${clock2(WAKE)}, in bed at ${clock2(BED)}. Tap a piece of the rainbow or a moment around it.</div>` +
+    `<div class="rows">${rows.map(([n, h]) => `<div class="rw"><b>${n}</b>${h}</div>`).join("")}</div>`;
+};
+const clock2 = m => { m = ((Math.round(m) % 1440) + 1440) % 1440; const h = Math.floor(m / 60), mm = m % 60; return `${h % 12 || 12}:${String(mm).padStart(2, "0")}${h < 12 ? "a" : "p"}`; };
 // a single day, simply (22 Oct 2026, her word: too complex, go back to basics): the day in her
 // words, the moments that mattered, and one quiet line of how she rested. Everything else stays
 // on the week page.
@@ -469,10 +543,15 @@ if (ONE) {
 ${day.lead ? `<h1 class="sh">${esc(day.lead)}</h1>` : ""}
 ${(DATA.story || []).length ? `<ul class="dstory">${DATA.story.map(([g, t]) => `<li><span>${esc(g)}</span><span>${esc(t)}</span></li>`).join("")}</ul>` : ""}
 ${(day.pictures || []).length ? `<div class="pics">${day.pictures.map(p => `<figure><img src="${p.src}" alt="${esc(p.t)}" loading="lazy"><figcaption>${clock(p.at)}${p.t ? ` · ${esc(p.g)} ${esc(p.t)}` : ""}</figcaption></figure>`).join("")}</div>` : ""}
+${DATA.rings ? `<section class="rb"><p class="label">how the day went</p>${rainbow(DATA.rings)}</section>` : ""}
 <section><p class="label">what mattered</p>
 ${day.stones.length ? `<ul class="moments">${day.stones.map(moment).join("")}</ul>` : `<p class="note">nothing marked today</p>`}</section>
 ${movedHtml ? `<section><p class="label">what moved forward</p><div class="mv">${movedHtml}</div></section>` : ""}
 ${rest ? `<p class="restline">${rest}</p>` : ""}`;
+  const rbd = document.getElementById("rbdial");
+  if (rbd) { const show = e => { const t = e.target.closest("[data-tip]"); if (!t) return; rbd.querySelectorAll(".on").forEach(x => x.classList.remove("on"));
+    t.classList.add("on"); document.getElementById("rbtip").innerHTML = rainbow.tips[+t.dataset.tip]; };
+    rbd.addEventListener("click", show); rbd.addEventListener("focusin", show); }
 }
 </script>
 </body></html>
