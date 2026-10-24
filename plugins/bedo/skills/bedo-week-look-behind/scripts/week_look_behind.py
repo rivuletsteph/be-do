@@ -29,9 +29,10 @@ for _p in (os.path.join(_HERE, '..', '..', '..', 'core'), _HERE):
     sys.path.insert(0, os.path.normpath(_p))
 import bedo_reader  # noqa: E402
 import bedo_drives  # noqa: E402
+from day_rings import day_rings  # noqa: E402
 
 STREAM_KEYS = ('title', 'key', 'when', 'end', 'status', 'rhythm')
-OPTIONAL_STREAM_KEYS = ('spent', 'deliv', 'target', 'practice', 'wellness', 'person', 'details', 'photo')
+OPTIONAL_STREAM_KEYS = ('spent', 'deliv', 'target', 'practice', 'wellness', 'person', 'details', 'photo', 'device')
 RHYTHM_KEYS = ('name',)
 OPTIONAL_RHYTHM_KEYS = ('emoji', 'type', 'status', 'code', 'feeds', 'dest')
 WELL = bedo_reader.FACTS['wellness']
@@ -628,6 +629,7 @@ def main():
         week=f'W{wk}', range=(f'{DAY3[day.weekday()]} {day.day} {day:%b}' if a.day
                               else f'Sun {sun.day} {sun:%b} – Sat {sat.day} {sat:%b}'),
         totals=totals, drives=drives, loops=qa['feeds_loops'], **more,
+        rings=day_rings(rows, day, L, L.get('_flowset') or frozenset(), NOT_LIVED) if a.day else None,
         read=' · '.join(f'{n} {k}/{k}' for n, k in reads) + f' · rhythms {nrh}/{nrh}')
     tpl = open(a.template, encoding='utf-8').read()
     if '/*__DATA__*/null' not in tpl:
