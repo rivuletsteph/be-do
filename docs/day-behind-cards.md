@@ -236,5 +236,10 @@ colours she started with: being — eating sea green, moving sage, enjoying sky
 blue; doing — professional work terracotta, caretaking rose, cooking apricot,
 be•do wheat.
 
+**Settled, 24 Oct: "almost perfect".** The dawn and dusk flows go neutral
+after all (warm grey spans, darker step lines): "the colours are kind of
+distracting". This is the How the day went card as she approved it; the
+prototype is `prototypes/rainbow_page.py` with `rings.py`.
+
 **Next time:** fold the rings into the builder as the How the day went card;
 icons in place of labels; then the next card (the sociogram, or what moved).
