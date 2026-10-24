@@ -253,4 +253,9 @@ the day page: `scripts/day_rings.py` (the rules) and the engine's `rainbow()`
 checks the rules on an invented day. The live settings row gained `care` and
 `system_rhythm`. The prototypes stay in `prototypes/` as the design record.
 
+**On the phone, 24 Oct.** "Really awesome." Scaled for a phone: the dial
+fills the width, three larger time labels, heavier outlines and lines. No
+number on the night: like every other piece, a tap says it ("either put
+numbers on everything or make it the same functionality"). Done for now.
+
 **Next:** icons in place of labels; then the next card (the sociogram, or what moved).

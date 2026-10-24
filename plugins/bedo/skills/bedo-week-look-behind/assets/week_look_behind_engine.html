@@ -493,8 +493,7 @@ const rainbow = RB => {
     g += piece(nband(R0, OUT, 0, fill), "var(--rb-sleep)", "var(--rb-sleep-d)", lab);
     if (d < 0) g += `<path d="${nband(R0, OUT, fill, IDEAL)}" fill="none" stroke="var(--rb-sleep-d)" stroke-width="1.2" stroke-dasharray="3 3"/>`;
     if (d > 0) g += piece(nband(OUT + 2, OUT + 9, 0, Math.min(d, IDEAL)), "var(--rb-sleep-deep)", "none", lab);
-    const ty = CY + (R0 + OUT) / 2 + 2;
-    g += `<text x="${CX}" y="${ty + 8}" text-anchor="middle" opacity=".75" style="font:400 14px var(--sans);fill:var(--rb-sleep-d)">${hm(RB.inbed)} in bed · ${d === 0 ? "8 h" : sg}</text>`; }   // quiet: the night is context, not the headline
+  }   // no number on the night: like every other piece, a tap says it (24 Oct 2026)
   let last = -999, lift = 0;
   RB.moments.forEach(m => { lift = m.m - last < 30 ? (lift + 1) % 2 : 0; last = m.m; const [x, y] = pt(SR + SW + 16 + lift * 22, m.m);
     tips.push(`<b>${esc(m.g)} ${esc(m.p[0].toUpperCase() + m.p.slice(1))}</b> · ${clock2(m.m)}${m.d ? " · " + hm(m.d) : ""}<br>${esc(m.t)}`);
