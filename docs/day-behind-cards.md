@@ -131,5 +131,21 @@ more detailed, each chunk outlined in a darker shade of its ring. The flows'
 steps are back as lines inside the dotted span, to show how spread out a flow
 was. The prototype code is in `plugins/bedo/skills/bedo-week-look-behind/prototypes/`.
 
+**What the clock is for, in her words (24 Oct 2026, thinking out loud).** "What
+I'm trying to measure or show is maybe efficiency: how well am I spending my
+time?" Her targets, which will change, perhaps with Oura: sleeping well for 8
+hours; moving well for 2 hours; fixing one really good meal a day, and sitting
+down to eat with intention; getting work done (effective at work) and effective
+at home. "When I look at this clock I'm thinking: was I efficient. And that
+does matter."
+
+Proposed, not yet hers: each ring carries its target as a mark on the ring (8 h
+of sleep, 2 h of moving), set each morning and perhaps eased by readiness; the
+hollow center answers the question, how well the day was spent against those
+targets. Meals would need two things the rows don't yet say every time: whether
+the meal was made, and whether it was eaten sitting down with intention (backlog
+261003_1433 already asks for meals logged with how they were made and whether
+she ate with intention).
+
 **Next time:** fold the rings into the builder as the How the day went card;
 icons in place of labels; then the next card (the sociogram, or what moved).
