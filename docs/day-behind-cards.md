@@ -11,6 +11,17 @@ Her words, 24 Oct: the whole thing is about meaning; "I think the
 meaningfulness metric is super important. I just don't know how to get
 there." How to measure it is an open decision (below), not a dropped one.
 
+**Where meaning shows, in her words (24 Oct 2026).** "The things that I feel
+strongly about are a way of assessing how meaningful something was. And when
+I'm able to think about it and reframe and put things in context, it's a way
+of highlighting meaning, a way of noticing it." Two signals, then:
+- **strength of feeling** — how strongly she felt about a moment (the row's
+  feeling, deduced from her words, J6; the words she reached for);
+- **reflection** — a moment she came back to, reframed or put in context (an
+  insight or journal row on it, a later row that names it, words that place it
+  in a bigger story).
+Not yet a formula; the measure is still hers to shape.
+
 **How the page reads.** Her word, 24 Oct, on The Whole Map: everything at a
 glance, and scrolling through it the way that page scrolls (a section's label
 stays in view down its side while its cards scroll past).
