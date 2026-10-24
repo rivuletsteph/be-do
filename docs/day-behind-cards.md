@@ -184,7 +184,7 @@ under 8 leaves the rest of the gap empty with a dashed edge; over 8 fills it
 and adds a deeper blue rim for the extra. The number sits at the bottom in blue
 ("8 h 34 · in bed · +34 min"), not in the middle. The flows get a neutral
 track and their own colours: the dawn flow a sunrise yellow, the dusk flow a
-sunset violet, the same amber and violet as the flow bars (`flows.widget.bar`
+sunset violet, the same golden yellow and violet as the flow bars (`flows.widget.bar`
 in `facts.json`), softened.
 
 **Next time:** fold the rings into the builder as the How the day went card;

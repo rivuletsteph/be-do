@@ -65,8 +65,8 @@ const SPAN = 960, morning = (D.nights || []).find(n => n.a === 0), evening = (D.
 const WAKE = morning ? morning.b : 420, BED = evening ? evening.a : Math.min(1440, WAKE + SPAN), END = WAKE + SPAN;
 // a rainbow bent back like an open book: 240 degrees, from lower left over the top to lower right
 const SWEEP = 240, CX = 200, CY = 205;
-const ang = m => (-90 - SWEEP / 2 + (Math.min(Math.max(m, WAKE), END) - WAKE) / SPAN * SWEEP) * Math.PI / 180;
-const pt = (r, m) => [CX + r * Math.cos(ang(m)), CY + r * Math.sin(ang(m))];
+const theta = m => (-90 - SWEEP / 2 + (Math.min(Math.max(m, WAKE), END) - WAKE) / SPAN * SWEEP) * Math.PI / 180;
+const pt = (r, m) => [CX + r * Math.cos(theta(m)), CY + r * Math.sin(theta(m))];
 const band = (r0, r1, a, b) => { const L = (b - a) / SPAN * SWEEP > 180 ? 1 : 0, [x0, y0] = pt(r1, a), [x1, y1] = pt(r1, b), [x2, y2] = pt(r0, b), [x3, y3] = pt(r0, a);
   return `M${x0} ${y0}A${r1} ${r1} 0 ${L} 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${L} 0 ${x3} ${y3}Z`; };
 const clip = ([k, a, b, t]) => [k, Math.max(a, WAKE), Math.min(b, END), t || []];
@@ -103,8 +103,8 @@ if (BED < END) g += piece(band(R0, SR + SW, BED, END), "var(--flow-t)", "none", 
   g += `<text x="${x}" y="${y + 3.5}" text-anchor="middle" font-size="10">${o === 0 ? "up " + clock(WAKE) : clock(WAKE + o)}</text>`; });
 // the night that fed the day, in the gap at the bottom: the gap is 8 hours (24 Oct 2026)
 const inbed = morning ? morning.inbed : null, IDEAL = 480, GAPDEG = 360 - SWEEP;
-const nang = m => (-90 - SWEEP / 2 - m / IDEAL * GAPDEG) * Math.PI / 180;          // minutes back from waking, along the gap
-const npt = (r, m) => [CX + r * Math.cos(nang(m)), CY + r * Math.sin(nang(m))];
+const ntheta = m => (-90 - SWEEP / 2 - m / IDEAL * GAPDEG) * Math.PI / 180;          // minutes back from waking, along the gap
+const npt = (r, m) => [CX + r * Math.cos(ntheta(m)), CY + r * Math.sin(ntheta(m))];
 const nband = (r0, r1, a, b) => { const [x0, y0] = npt(r1, a), [x1, y1] = npt(r1, b), [x2, y2] = npt(r0, b), [x3, y3] = npt(r0, a), L = (b - a) / IDEAL * GAPDEG > 180 ? 1 : 0;
   return `M${x0} ${y0}A${r1} ${r1} 0 ${L} 0 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${L} 1 ${x3} ${y3}Z`; };
 const RIN = R0, ROUT = R0 + BANDS.length * (W + GAP) - GAP;
