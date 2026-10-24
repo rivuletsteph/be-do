@@ -86,6 +86,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 260925_0726b | ▶️ | A books catalog base — the reading inventory is cued; still the store's data export for dates, the e-reader screenshots, which Drive folder holds the notes, whether read-alouds are marked as the child's |
 | 260925_1105 | ▶️ | Four catalogs, one shape — books, places, recipes, and the queued stories rows migrating into books; two decisions are hers: does location history feed places, and is "lived" a standing or its own field |
 | 261005_1440 | ▶️ | Places and visits from location history — loaded for one month; export and load the rest, turn the older pings into visits, decide where it lives (local and Drive, or a base too), check three names |
+| 261024a | ⬜ | The stories queue as a working watch list (read of all 118 rows, 24 Oct: 78 want, 22 in motion, 1 finished; 6 carry a link). Three parts: (1) every new row carries its link, its length and where it plays — a `length` and a `where` field, so a few free minutes can be answered from the queue; (2) a stream row that watches or finishes a story closes its stories row (in motion on start, finished on the end), matched by title or link; (3) news rows over 30 days old come back as one keep-or-drop list **when she opens the queue** — never on a schedule, which the base's own description rules out |
 
 ## Drives
 
