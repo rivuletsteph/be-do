@@ -38,11 +38,11 @@ svg [data-tip]:focus-visible{outline:none;stroke:var(--ink);stroke-width:1.5}
 <div class="wrap">
 <p class="eyebrow">the day behind · how the day went · a proposal</p>
 <h1>How __DAYNAME__ went</h1>
-<p class="sub">__DAY__, midnight at the top. Each ring is one thing you track, out from the center: sleep runs across every ring, your dawn and dusk flows sit in the core, then body (food and moving), working (professional, be•do, caretaking) and other. The thin line on the outside is time on a screen. They overlap freely.</p>
+<p class="sub">__DAY__, your waking hours. The dial starts at the top when you got up and runs 16 hours round; the night before sits in the middle. From the center out: your dawn and dusk flows, then body (food and moving), working (professional, be•do, caretaking) and other. The thin line on the outside is time on a screen. They overlap freely.</p>
 <div class="card">
 <svg id="dial" viewBox="-12 -12 424 424" role="img" aria-label="The day as rings, one per thing tracked"></svg>
 <p class="tip" id="tip" aria-live="polite">tap a ring to see its times</p>
-<p class="label">from the core outward · share of 24 hours</p>
+<p class="label">from the core outward · share of the waking day</p>
 <div id="rings"></div>
 <p class="note" id="note"></p>
 </div>
@@ -53,10 +53,14 @@ const C = k => `var(--${k})`, hm = m => { const h = Math.floor(m / 60), r = m % 
 const clock = m => { m = Math.min(m, 1439); const h = Math.floor(m / 60), mm = m % 60; return `${h % 12 || 12}:${String(mm).padStart(2, "0")}${h < 12 ? "a" : "p"}`; };
 const hhmm = iso => clock(+iso.slice(11, 13) * 60 + +iso.slice(14, 16));
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const CX = 200, CY = 200, pt = (r, m) => { const a = (m / 1440) * 2 * Math.PI - Math.PI / 2; return [CX + r * Math.cos(a), CY + r * Math.sin(a)]; };
-const arc = (r0, r1, a, b) => { b = Math.min(b, a + 1439.9); const L = b - a > 720 ? 1 : 0, [x0, y0] = pt(r1, a), [x1, y1] = pt(r1, b), [x2, y2] = pt(r0, b), [x3, y3] = pt(r0, a);
+const SPAN = 960, IDEAL_BED = 480;
+const morning = (D.nights || []).find(n => n.a === 0), evening = (D.nights || []).find(n => n.b === 1440 && n.a > 0);
+const WAKE = morning ? morning.b : 420, BED = evening ? evening.a : Math.min(1440, WAKE + SPAN);
+const CX = 200, CY = 200, pt = (r, m) => { const a = ((m - WAKE) / SPAN) * 2 * Math.PI - Math.PI / 2; return [CX + r * Math.cos(a), CY + r * Math.sin(a)]; };
+const clip = ([k, a, b]) => [k, Math.max(a, WAKE), Math.min(b, WAKE + SPAN)];
+const arc = (r0, r1, a, b) => { b = Math.min(b, a + SPAN - 0.1); const L = b - a > SPAN / 2 ? 1 : 0, [x0, y0] = pt(r1, a), [x1, y1] = pt(r1, b), [x2, y2] = pt(r0, b), [x3, y3] = pt(r0, a);
   return `M${x0} ${y0}A${r1} ${r1} 0 ${L} 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${L} 0 ${x3} ${y3}Z`; };
-const CORE = 74, R0 = 80, W = 25, GAP = 3;
+const CORE = 70, R0 = 76, W = 27, GAP = 3;
 const SHORT = {sleep: "sleep", flow: "flows", body: "body", work: "working", other: "other", screen: "screen"};
 D.rings.forEach(r => r.short = SHORT[r.k] || r.n);
 const KN = Object.fromEntries(D.rings.flatMap(r => r.kinds.map(k => [k.k, `${r.e} ${k.n}`])));
@@ -71,40 +75,36 @@ const fillOf = k => { const [ring, pat] = STY[k]; return pat === "solid" ? `var(
 // sleep is the core: a filled disc in the middle, not a ring (24 Oct 2026: the most important thing)
 const SL = D.rings.find(r => r.k === "sleep"), FL = D.rings.find(r => r.k === "flow"), SCR = D.rings.find(r => r.k === "screen");
 const RINGS = D.rings.filter(r => !["sleep", "flow", "screen"].includes(r.k));
-const STEPS = () => FL.runs.forEach(([k, a, b]) => { for (let m = a; m < b; m += 5) { const [x0, y0] = pt(HOLE + 2, m + 1), [x1, y1] = pt(CORE - 2, m + 1);
+const STEPS = () => FL.runs.map(clip).filter(([, a, b]) => b > a).forEach(([k, a, b]) => { for (let m = a; m < b; m += 5) { const [x0, y0] = pt(HOLE + 2, m + 1), [x1, y1] = pt(CORE - 2, m + 1);
   g += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--core-d)" stroke-width="1.3" stroke-linecap="round" pointer-events="none"/>`; } });
-const HOLE = 20;   // a small hollow at the very center, left open for now
+const HOLE = 34;   // a small hollow at the very center, left open for now
 g += `<circle cx="${CX}" cy="${CY}" r="${CORE}" fill="var(--core-t)"/>`;
 
-Object.entries(D.win).forEach(([k, [a, b]]) => { const lab = `${k === "dawn" ? "🌅 the dawn flow" : "🌄 the dusk flow"} · ${clock(a)} to ${clock(b)}`;
+Object.entries(D.win).map(([k, w]) => [k, clip([k, ...w]).slice(1)]).filter(([, [a, b]]) => b > a).forEach(([k, [a, b]]) => { const lab = `${k === "dawn" ? "🌅 the dawn flow" : "🌄 the dusk flow"} · ${clock(a)} to ${clock(b)}`;
   g += `<path d="${arc(HOLE, CORE, a, b)}" fill="url(#core-dots)" stroke="var(--core-d)" stroke-width="1" tabindex="0" data-tip="${esc(lab)}"><title>${esc(lab)}</title></path>`; });
 
 RINGS.forEach((r, i) => {
   const a0 = R0 + i * (W + GAP), a1 = a0 + W;
   g += `<circle cx="${CX}" cy="${CY}" r="${(a0 + a1) / 2}" fill="none" stroke="var(--${r.k}-t)" stroke-width="${W}"/>`;
-  r.runs.forEach(([k, a, b]) => { const lab = `${KN[k]} · ${clock(a)}–${clock(b)} · ${hm(b - a)}`;
+  r.runs.map(clip).filter(([, a, b]) => b > a).forEach(([k, a, b]) => { const lab = `${KN[k]} · ${clock(a)}–${clock(b)} · ${hm(b - a)}`;
     g += `<path d="${arc(a0, a1, a, b)}" fill="${fillOf(k)}" stroke="var(--${STY[k][0]}-d)" stroke-width="1" tabindex="0" data-tip="${esc(lab)}"><title>${esc(lab)}</title></path>`; });
 });
-// sleep across every ring (24 Oct 2026: nothing else happens while I sleep), Oura's best bedtime window
-// as a dashed outline, and a line at the minute the night's sleep need was met
-const RE = R0 + RINGS.length * (W + GAP) - GAP;
-SL.runs.forEach(([k, a, b]) => { const n = (D.nights || []).find(n => a < n.b && b > n.a);
-  const lab = n ? `😴 in bed ${clock(n.a)}–${clock(n.b)}${n.a === 0 ? " (since " + hhmm(n.start) + " the night before)" : ""}${n.b === 1440 ? " (until " + hhmm(n.end) + " the next morning)" : ""}` : `😴 asleep · ${clock(a)}–${clock(b)}`;
-  g += `<path d="${arc(HOLE, RE, a, b)}" fill="var(--core)" stroke="var(--core-d)" stroke-width="1" tabindex="0" data-tip="${esc(lab)}"><title>${esc(lab)}</title></path>`; });
-if (D.window) { const [a, b] = D.window, lab = `🛏️ Oura's best bedtime tonight · ${clock(a)}–${clock(b)}`;
-  g += `<path d="${arc(HOLE, RE, a, b)}" fill="var(--core-t)" fill-opacity=".55" stroke="var(--core-d)" stroke-width="1.2" stroke-dasharray="3 3" tabindex="0" data-tip="${esc(lab)}"><title>${esc(lab)}</title></path>`; }
-(D.nights || []).forEach(n => { if (n.met == null) return; const [x0, y0] = pt(HOLE, n.met), [x1, y1] = pt(RE + 3, n.met), lab = `✓ sleep need met at ${clock(n.met)} · ${hm(n.need)}`;
-  g += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round"/><circle cx="${x1}" cy="${y1}" r="3.2" fill="var(--ink)" tabindex="0" data-tip="${esc(lab)}"><title>${esc(lab)}</title></circle>`; });
 // on a screen or not: one thin line on the outside, black or nothing (24 Oct 2026)
 const SR = R0 + RINGS.length * (W + GAP) + 2, SW = 4;
 g += `<circle cx="${CX}" cy="${CY}" r="${SR + SW / 2}" fill="none" stroke="var(--track)" stroke-width="${SW}"/>`;
-SCR.runs.forEach(([k, a, b]) => { const lab = `📱 on a screen · ${clock(a)}–${clock(b)} · ${hm(b - a)}`;
+SCR.runs.map(clip).filter(([, a, b]) => b > a).forEach(([k, a, b]) => { const lab = `📱 on a screen · ${clock(a)}–${clock(b)} · ${hm(b - a)}`;
   g += `<path d="${arc(SR, SR + SW, a, b)}" fill="var(--screen)" tabindex="0" data-tip="${esc(lab)}"><title>${esc(lab)}</title></path>`; });
 const RO = SR + SW + 4;
+[0, 240, 480, 720].forEach(o => { const [x, y] = pt(RO + 16, WAKE + o);
+  g += `<text x="${x}" y="${y + 3.5}" text-anchor="middle" font-size="10">${o ? clock(WAKE + o) : "up " + clock(WAKE)}</text>`; });
+if (BED < WAKE + SPAN) { const [x0, y0] = pt(R0 - 4, BED), [x1, y1] = pt(SR + SW + 2, BED), lab = `🛏️ in bed at ${clock(BED)}, ${hm(WAKE + SPAN - BED)} before the 16 hours were up`;
+  g += `<path d="${arc(R0 - 3, SR + SW, BED, WAKE + SPAN)}" fill="var(--core-t)" opacity=".7" tabindex="0" data-tip="${esc(lab)}"><title>${esc(lab)}</title></path>`;
+  g += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--core-d)" stroke-width="1.6"/>`; }
+// the night that fed this day, in the middle: hours in bed against the eight
+const inbed = morning ? morning.inbed : null;
 STEPS();
 g += `<circle cx="${CX}" cy="${CY}" r="${HOLE}" fill="var(--card)"/>`;
-for (let h = 0; h < 24; h += 6) { const [x, y] = pt(RO + 14, h * 60);
-  g += `<text x="${x}" y="${y + 3.5}" text-anchor="middle" font-size="10">${["midnight", "6a", "noon", "6p"][h / 6]}</text>`; }
+if (inbed != null) g += `<text x="${CX}" y="${CY + 1}" text-anchor="middle" style="font:600 13px var(--sans);fill:var(--ink)">${hm(inbed)}</text><text x="${CX}" y="${CY + 14}" text-anchor="middle" font-size="8">in bed</text>`;
 const dial = document.getElementById("dial"), tip = document.getElementById("tip");
 dial.innerHTML = g;
 const show = e => { const t = e.target.closest("[data-tip]"); if (t) tip.textContent = t.dataset.tip; };
@@ -120,10 +120,10 @@ D.rings.forEach(r => { if (r.k === "sleep") { r.kinds = [{k: "sleep", n: "in bed
       : `Tonight: in bed at ${clock(n.a)}${D.window ? `, ${n.a > D.window[1] ? hm(n.a - D.window[1]) + " after" : n.a < D.window[0] ? hm(D.window[0] - n.a) + " before" : "inside"} Oura's best bedtime of ${clock(D.window[0])}–${clock(D.window[1])}` : ""}; asleep ${hm(n.asleep)}, ${sgn(n.asleep - n.need)} against the need.`).join(" ") }
   if (r.k === "flow") { const w = Object.entries(D.win); r.total = w.reduce((s, [, [a, b]]) => s + b - a, 0);
     r.kinds = [{k: "flow", n: w.map(([k, [a, b]]) => `${k} ${clock(a)}–${clock(b)}`).join(" · ") + " ·", min: r.total, held: r.kinds[0].held}]; } });
-document.getElementById("rings").innerHTML = D.rings.map(r => `<div class="ring"><div class="rh"><b>${esc(r.n)}</b><span class="v">${r.total ? hm(r.total) : "—"} <small>${Math.round(100 * r.total / 1440)}%</small></span></div>` +
+document.getElementById("rings").innerHTML = `<div class="ring"><div class="rh"><b>The waking day</b><span class="v">${hm(Math.min(BED, 1440) - WAKE)}</span></div><div class="held">Up at ${clock(WAKE)}, in bed at ${clock(BED)}. The dial is the 16 hours from getting up; the night before was ${inbed != null ? hm(inbed) : "not read"} in bed, against an ideal of 8.</div></div>` + D.rings.filter(r => r.k !== "sleep").map(r => `<div class="ring"><div class="rh"><b>${esc(r.n)}</b><span class="v">${r.total ? hm(r.total) : "—"} <small>${Math.round(100 * r.total / (Math.min(BED, 1440) - WAKE))}%</small></span></div>` +
   (r.k !== "screen" ? `<div class="kinds">${r.kinds.map(k => `<span><i style="${swatch(k.k)}"></i>${esc(k.n)} ${k.min ? hm(k.min) : "—"}</span>`).join("")}</div>` : "") +
   `<div class="held">${esc(r.sleepNote || [...new Set(r.kinds.flatMap(k => k.held))].slice(0, 6).join(" · "))}</div></div>`).join("");
-document.getElementById("note").textContent = `The rings overlap, so they don't add up to 24 hours. A moment with no length (a text, a check, a flow step) is a five-minute tick. Food is food only, no drinks, and a meal's minutes come out of moving: sitting to eat is not moving, and making food is food. On a screen means phone, laptop or TV; a paper book isn't a screen. Each ring keeps one shade; its parts differ by pattern. Working counts what you were doing: a session that ran while you drove, ate, moved or slept isn't your work. Other is time a row covers that none of the rings above claims. Caretaking is caring for others and the home: school runs, pickups, bedtime, the kitchen. In the core, each flow is dotted from its first step to its last, with a line at every step. Awake: ${hm(D.awake)}.`;
+document.getElementById("note").textContent = `The rings overlap, so they don't add up to 24 hours. A moment with no length (a text, a check, a flow step) is a five-minute tick. A shaded wedge at the top means you went to bed before the 16 hours were up. Food is food only, no drinks, and a meal's minutes come out of moving: sitting to eat is not moving, and making food is food. On a screen means phone, laptop or TV; a paper book isn't a screen. Each ring keeps one shade; its parts differ by pattern. Working counts what you were doing: a session that ran while you drove, ate, moved or slept isn't your work. Other is time a row covers that none of the rings above claims. Caretaking is caring for others and the home: school runs, pickups, bedtime, the kitchen. In the core, each flow is dotted from its first step to its last, with a line at every step. Awake: ${hm(D.awake)}.`;
 </script>'''
 name=D['day'].split()[0]
 out=tpl.replace('/*DATA*/',json.dumps(D,ensure_ascii=False)).replace('__DAYNAME__',name).replace('__DAY__',D['day']).replace('<title>How Friday Went</title>',f'<title>How {name} Went</title>')

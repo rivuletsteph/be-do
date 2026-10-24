@@ -157,5 +157,14 @@ a dashed outline across the rings (`sleep_time`; its latest record on 24 Oct
 was 21 Oct: 9:45–11:00 PM). The list says asleep against need, over or under,
 and when bed came against the window.
 
+**The waking day, 24 Oct (simpler).** "I think I just made it too complicated.
+Ideally I'm in bed for 8 hours", and could the dial just show the 16 waking
+hours more effectively. So the dial is the waking day: it starts at the top
+when she got up and runs 16 hours round (16 awake + 8 in bed = 24). Sleep
+leaves the dial; the hollow center holds the night that fed the day (hours in
+bed). Going to bed before the 16 hours are up leaves a shaded wedge at the top;
+staying up past them would run over. The Oura need line and bedtime window are
+set aside (the code keeps the reads in `rings.py`).
+
 **Next time:** fold the rings into the builder as the How the day went card;
 icons in place of labels; then the next card (the sociogram, or what moved).
