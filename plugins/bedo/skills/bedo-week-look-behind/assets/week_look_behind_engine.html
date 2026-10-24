@@ -474,19 +474,26 @@ const rainbow = RB => {
   const R0 = 30, FW = 10, W = 62, GAP = 4;
   const RAD = {flow: [R0, R0 + FW]}; RAD.being = [RAD.flow[1] + 2, RAD.flow[1] + 2 + W]; RAD.doing = [RAD.being[1] + GAP, RAD.being[1] + GAP + W];
   const OUT = RAD.doing[1], SR = OUT + 6, SW = 9;
-  let g = "", tips = [];
-  const piece = (d, fill, stroke, tip) => { tips.push(tip); return `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round" tabindex="0" data-tip="${tips.length - 1}"/>`; };
+  let g = "", tips = [], hits = [];
+  // small pieces get a larger invisible tap area, about a fingertip wide wherever they sit, the smallest
+  // drawn last so it wins where tap areas overlap (24 Oct 2026: easier to tap the small ones)
+  const TAP = 26, perRad = SPAN / (SWEEP * Math.PI / 180);
+  const piece = (d, fill, stroke, tip, hit) => { tips.push(tip); const i = tips.length - 1;
+    if (hit) hits.push([hit[1], `<path d="${hit[0]}" fill="transparent" tabindex="-1" data-tip="${i}"/>`]);
+    return `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round" tabindex="0" data-tip="${i}"/>`; };
+  const widen = (r0, r1, a, b) => { const need = TAP / ((r0 + r1) / 2) * perRad; if (b - a >= need) return null;
+    const c = (a + b) / 2; return [band(Math.max(r0 - 4, 1), r1 + 4, c - need / 2, c + need / 2), b - a]; };
   const say = (k, a, b, t) => `<b>${NAME[k][0].toUpperCase() + NAME[k].slice(1)}</b> · ${clock2(a)}–${clock2(b)} · ${hm(b - a)}${t.length ? "<br>" + t.map(esc).join(" · ") : ""}`;
   ["flow", "being", "doing"].forEach(k => { const [r0, r1] = RAD[k];
-    g += `<path d="${band(r0, r1, WAKE, END)}" fill="var(--rb-${k === "flow" ? "flow-t" : k + "-t"})"/>`;
+    g += `<path d="${band(r0, r1, WAKE, END)}" fill="var(--rb-${k === "flow" ? "flow-t" : k + "-t"})" pointer-events="none"/>`;
     if (k === "flow") Object.entries(RB.win).forEach(([w, x]) => { const [, a, b] = clip([w, ...x]); if (b > a)
       g += piece(band(r0, r1, a, b), "var(--rb-flow)", "var(--rb-flow-d)", `<b>${w === "dawn" ? "🌅 The dawn flow" : "🌄 The dusk flow"}</b> · ${clock2(a)}–${clock2(b)}`); });
     (B[k] || {runs: []}).runs.map(clip).filter(([, a, b]) => b - a >= 2).forEach(([kk, a, b, t]) => {
       if (k === "flow") { for (let m = a; m < b; m += 5) { const [x0, y0] = pt(r0 + 1, m + 1), [x1, y1] = pt(r1 - 1, m + 1);
         g += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--rb-flow-d)" stroke-width="2.2" stroke-linecap="round" pointer-events="none"/>`; } return; }
-      g += piece(band(r0, r1, a, b), `var(--rb-${kk})`, `var(--rb-${k}-d)`, say(kk, a, b, t)); }); });
-  g += `<path d="${band(SR, SR + SW, WAKE, END)}" fill="var(--rb-screen-t)"/>`;
-  (B.screen || {runs: []}).runs.map(clip).filter(([, a, b]) => b > a).forEach(([kk, a, b, t]) => { g += piece(band(SR, SR + SW, a, b), "var(--rb-screen)", "none", say("screen", a, b, t)); });
+      g += piece(band(r0, r1, a, b), `var(--rb-${kk})`, `var(--rb-${k}-d)`, say(kk, a, b, t), widen(r0, r1, a, b)); }); });
+  g += `<path d="${band(SR, SR + SW, WAKE, END)}" fill="var(--rb-screen-t)" pointer-events="none"/>`;
+  (B.screen || {runs: []}).runs.map(clip).filter(([, a, b]) => b > a).forEach(([kk, a, b, t]) => { g += piece(band(SR, SR + SW, a, b), "var(--rb-screen)", "none", say("screen", a, b, t), widen(SR - 8, SR + SW + 8, a, b) || [band(SR - 8, SR + SW + 8, a, b), b - a]); });
   if (BED < END) g += piece(band(R0, SR + SW, BED, END), "var(--rb-flow-t)", "none", `<b>🛏️ In bed at ${clock2(BED)}</b>, ${hm(END - BED)} before the 16 hours were up`);
   if (RB.inbed != null) { const d = RB.inbed - IDEAL, fill = Math.min(RB.inbed, IDEAL), sg = (d >= 0 ? "+" : "−") + hm(Math.abs(d));
     const lab = `<b>😴 In bed the night before</b> · ${hm(RB.inbed)} · ${d === 0 ? "exactly 8 h" : sg + " against 8 h"}`;
@@ -497,7 +504,8 @@ const rainbow = RB => {
   let last = -999, lift = 0;
   RB.moments.forEach(m => { lift = m.m - last < 30 ? (lift + 1) % 2 : 0; last = m.m; const [x, y] = pt(SR + SW + 16 + lift * 22, m.m);
     tips.push(`<b>${esc(m.g)} ${esc(m.p[0].toUpperCase() + m.p.slice(1))}</b> · ${clock2(m.m)}${m.d ? " · " + hm(m.d) : ""}<br>${esc(m.t)}`);
-    g += `<text x="${x}" y="${y + 7}" text-anchor="middle" style="font:21px var(--sans)" tabindex="0" data-tip="${tips.length - 1}">${esc(m.g)}</text>`; });
+    g += `<text x="${x}" y="${y + 7}" text-anchor="middle" style="font:21px var(--sans)" tabindex="0" data-tip="${tips.length - 1}">${esc(m.g)}</text>`;
+    hits.push([0, `<circle cx="${x}" cy="${y}" r="17" fill="transparent" tabindex="-1" data-tip="${tips.length - 1}"/>`]); });
   // three times only, large enough to read on a phone: up, the middle of the waking day, its end
   [0, 480, 960].forEach(o => { const [x, y] = o === 480 ? pt(SR + SW + 50, WAKE + o) : npt(OUT + 40, o === 0 ? 28 : IDEAL - 28);   // the ends' times sit just past the rainbow's feet
     g += `<text x="${x}" y="${y + 5}" text-anchor="middle" style="font:500 15px var(--mono);fill:var(--muted)">${o === 0 ? "up " + clock2(WAKE) : clock2(WAKE + o)}</text>`; });
@@ -505,6 +513,9 @@ const rainbow = RB => {
   const rows = [["Flows", Object.entries(RB.win).map(([w, [a, b]]) => `<span>${sw("flow", "flow")}${w} ${clock2(a)}–${clock2(b)}</span>`).join("")],
     ...["being", "doing"].map(k => [`${k === "being" ? "Being" : "Doing"} ${hm(B[k].total)}`, B[k].kinds.map(x => `<span>${sw(x.k, k)}${esc(NAME[x.k])} ${x.min ? hm(x.min) : "—"}</span>`).join("")]),
     ["Screen", `<span>${hm(B.screen.total)} of ${hm(AW)} awake</span>`]];
+  // tap areas go underneath: a real piece always wins a tap on itself, and a tap on empty space
+  // goes to the nearest small piece (the tracks let taps through)
+  g = hits.sort((x, y) => y[0] - x[0]).map(h => h[1]).join("") + g;
   rainbow.tips = tips;
   return `<svg id="rbdial" viewBox="-28 -30 456 440" role="img" aria-label="The waking day as concentric arcs">${g}</svg>` +
     `<div class="tip" id="rbtip" aria-live="polite">Up at ${clock2(WAKE)}, in bed at ${clock2(BED)}. Tap a piece of the rainbow or a moment around it.</div>` +
@@ -551,7 +562,8 @@ ${movedHtml ? `<section><p class="label">what moved forward</p><div class="mv">$
 ${rest ? `<p class="restline">${rest}</p>` : ""}`;
   const rbd = document.getElementById("rbdial");
   if (rbd) { const show = e => { const t = e.target.closest("[data-tip]"); if (!t) return; rbd.querySelectorAll(".on").forEach(x => x.classList.remove("on"));
-    t.classList.add("on"); document.getElementById("rbtip").innerHTML = rainbow.tips[+t.dataset.tip]; };
+    const real = rbd.querySelector(`[data-tip="${t.dataset.tip}"]:not([fill="transparent"])`) || t;
+    real.classList.add("on"); document.getElementById("rbtip").innerHTML = rainbow.tips[+t.dataset.tip]; };
     rbd.addEventListener("click", show); rbd.addEventListener("focusin", show); }
 }
 </script>
