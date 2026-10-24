@@ -88,3 +88,10 @@ moving, working, other ("there's a lot of things I'm doing that aren't those
 things"). Other is time a row covers that none of the rings inside it claims.
 Screens are the outermost circle, a thin line: on a screen or not, black in
 light mode, white in dark.
+
+**Sixth pass, same day.** Food is food only: meals, snacks and making them, no
+drinks. Flows never overlap sleep: a flow step logged while asleep (a backup
+close at 11:59 PM) is left off, and each flow's span runs only through awake
+time. Trying her idea: sleep and the flows share the core, since they never
+share a minute (sleep solid blue; each flow a pale wedge from its first step
+to its last, its steps in full colour).
