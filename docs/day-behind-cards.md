@@ -110,3 +110,17 @@ bedtime, kitchen cleanup. On the working ring professional work wins a shared
 minute, then caretaking, then be•do: a be•do session running in the background
 during a school run is still the school run. Time together that isn't care work
 (reading together) stays in other.
+
+**Ninth pass, same day.** Her words: "the best one yet". Rules:
+- **Her doing, not the system's.** "If the laptop is running that's not me
+  working. It's what I'm actually doing." A session row records when the
+  laptop ran; its minutes count as her work only while she wasn't driving,
+  eating, moving or asleep. (Open: session rows could record when she was
+  actually in the session; until then this rule stands in.)
+- **One shade per ring, never several colours on one line.** Each ring has its
+  own hue and a very light tint of it as its track; its parts differ by
+  pattern: core (blue) sleep solid, flows dotted; body (sage) food solid,
+  moving striped; working (clay) professional solid, caretaking striped,
+  be•do dotted; other (sand) solid. Four shades plus the screen line.
+- **No labels on the dial.** Later: small icons, like the ones made for the
+  wellness wheel.
