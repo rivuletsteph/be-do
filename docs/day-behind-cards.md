@@ -224,5 +224,11 @@ being and doing as their own concentric bands:
 - **doing**, warm clay shades: professional work (deepest), caretaking (others and herself), cooking, be•do (lightest)
 - the screen line; the moments that mattered outside, at their times; the night in blue in the gap
 
+**Thin flows, 24 Oct.** "Aren't the dawn and dusk flows pretty much about
+being? They could be thin lines that show most of that information but don't
+take up so much room." The flows are now a thin band just inside being: the
+yellow and violet spans and a line at each step, a fifth of a full band's
+width; being and doing grow to fill the room.
+
 **Next time:** fold the rings into the builder as the How the day went card;
 icons in place of labels; then the next card (the sociogram, or what moved).
