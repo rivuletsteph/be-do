@@ -38,7 +38,7 @@ svg [data-tip]:focus-visible{outline:none;stroke:var(--ink);stroke-width:1.5}
 <div class="wrap">
 <p class="eyebrow">the day behind · how the day went · a proposal</p>
 <h1>How __DAYNAME__ went</h1>
-<p class="sub">__DAY__, midnight at the top. Each ring is one thing you track, out from the center: sleep and your dawn and dusk flows share the core, then body (food and moving), working (professional, be•do, caretaking) and other. The thin line on the outside is time on a screen. They overlap freely.</p>
+<p class="sub">__DAY__, midnight at the top. Each ring is one thing you track, out from the center: sleep runs across every ring, your dawn and dusk flows sit in the core, then body (food and moving), working (professional, be•do, caretaking) and other. The thin line on the outside is time on a screen. They overlap freely.</p>
 <div class="card">
 <svg id="dial" viewBox="-12 -12 424 424" role="img" aria-label="The day as rings, one per thing tracked"></svg>
 <p class="tip" id="tip" aria-live="polite">tap a ring to see its times</p>
@@ -51,6 +51,7 @@ svg [data-tip]:focus-visible{outline:none;stroke:var(--ink);stroke-width:1.5}
 const D = /*DATA*/;
 const C = k => `var(--${k})`, hm = m => { const h = Math.floor(m / 60), r = m % 60; return h ? (r ? `${h} h ${String(r).padStart(2, "0")}` : `${h} h`) : `${r} min`; };
 const clock = m => { m = Math.min(m, 1439); const h = Math.floor(m / 60), mm = m % 60; return `${h % 12 || 12}:${String(mm).padStart(2, "0")}${h < 12 ? "a" : "p"}`; };
+const hhmm = iso => clock(+iso.slice(11, 13) * 60 + +iso.slice(14, 16));
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const CX = 200, CY = 200, pt = (r, m) => { const a = (m / 1440) * 2 * Math.PI - Math.PI / 2; return [CX + r * Math.cos(a), CY + r * Math.sin(a)]; };
 const arc = (r0, r1, a, b) => { b = Math.min(b, a + 1439.9); const L = b - a > 720 ? 1 : 0, [x0, y0] = pt(r1, a), [x1, y1] = pt(r1, b), [x2, y2] = pt(r0, b), [x3, y3] = pt(r0, a);
@@ -74,8 +75,7 @@ const STEPS = () => FL.runs.forEach(([k, a, b]) => { for (let m = a; m < b; m +=
   g += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--core-d)" stroke-width="1.3" stroke-linecap="round" pointer-events="none"/>`; } });
 const HOLE = 20;   // a small hollow at the very center, left open for now
 g += `<circle cx="${CX}" cy="${CY}" r="${CORE}" fill="var(--core-t)"/>`;
-SL.runs.forEach(([k, a, b]) => { const lab = `😴 asleep · ${clock(a)}–${clock(b)} · ${hm(b - a)}`;
-  g += `<path d="${arc(HOLE, CORE, a, b)}" fill="var(--core)" stroke="var(--core-d)" stroke-width="1" tabindex="0" data-tip="${esc(lab)}"><title>${esc(lab)}</title></path>`; });
+
 Object.entries(D.win).forEach(([k, [a, b]]) => { const lab = `${k === "dawn" ? "🌅 the dawn flow" : "🌄 the dusk flow"} · ${clock(a)} to ${clock(b)}`;
   g += `<path d="${arc(HOLE, CORE, a, b)}" fill="url(#core-dots)" stroke="var(--core-d)" stroke-width="1" tabindex="0" data-tip="${esc(lab)}"><title>${esc(lab)}</title></path>`; });
 
@@ -85,6 +85,16 @@ RINGS.forEach((r, i) => {
   r.runs.forEach(([k, a, b]) => { const lab = `${KN[k]} · ${clock(a)}–${clock(b)} · ${hm(b - a)}`;
     g += `<path d="${arc(a0, a1, a, b)}" fill="${fillOf(k)}" stroke="var(--${STY[k][0]}-d)" stroke-width="1" tabindex="0" data-tip="${esc(lab)}"><title>${esc(lab)}</title></path>`; });
 });
+// sleep across every ring (24 Oct 2026: nothing else happens while I sleep), Oura's best bedtime window
+// as a dashed outline, and a line at the minute the night's sleep need was met
+const RE = R0 + RINGS.length * (W + GAP) - GAP;
+SL.runs.forEach(([k, a, b]) => { const n = (D.nights || []).find(n => a < n.b && b > n.a);
+  const lab = n ? `😴 in bed ${clock(n.a)}–${clock(n.b)}${n.a === 0 ? " (since " + hhmm(n.start) + " the night before)" : ""}${n.b === 1440 ? " (until " + hhmm(n.end) + " the next morning)" : ""}` : `😴 asleep · ${clock(a)}–${clock(b)}`;
+  g += `<path d="${arc(HOLE, RE, a, b)}" fill="var(--core)" stroke="var(--core-d)" stroke-width="1" tabindex="0" data-tip="${esc(lab)}"><title>${esc(lab)}</title></path>`; });
+if (D.window) { const [a, b] = D.window, lab = `🛏️ Oura's best bedtime tonight · ${clock(a)}–${clock(b)}`;
+  g += `<path d="${arc(HOLE, RE, a, b)}" fill="var(--core-t)" fill-opacity=".55" stroke="var(--core-d)" stroke-width="1.2" stroke-dasharray="3 3" tabindex="0" data-tip="${esc(lab)}"><title>${esc(lab)}</title></path>`; }
+(D.nights || []).forEach(n => { if (n.met == null) return; const [x0, y0] = pt(HOLE, n.met), [x1, y1] = pt(RE + 3, n.met), lab = `✓ sleep need met at ${clock(n.met)} · ${hm(n.need)}`;
+  g += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round"/><circle cx="${x1}" cy="${y1}" r="3.2" fill="var(--ink)" tabindex="0" data-tip="${esc(lab)}"><title>${esc(lab)}</title></circle>`; });
 // on a screen or not: one thin line on the outside, black or nothing (24 Oct 2026)
 const SR = R0 + RINGS.length * (W + GAP) + 2, SW = 4;
 g += `<circle cx="${CX}" cy="${CY}" r="${SR + SW / 2}" fill="none" stroke="var(--track)" stroke-width="${SW}"/>`;
@@ -103,12 +113,16 @@ const swatch = k => { const [ring, pat] = STY[k] || ["core", "solid"];
   return `border:1px solid var(--${ring}-d);` + (pat === "solid" ? `background:var(--${ring})` : pat === "stripes"
     ? `background:repeating-linear-gradient(45deg,var(--${ring}) 0 1.4px,var(--${ring}-t) 1.4px 2.8px)`
     : `background:radial-gradient(circle,var(--${ring}) .8px,var(--${ring}-t) 1px) 0 0/3px 3px`); };
-D.rings.forEach(r => { if (r.k === "sleep") r.kinds = [{k: "sleep", n: "asleep", min: r.total, held: []}];
+const sgn = m => (m >= 0 ? "+" : "−") + hm(Math.abs(m));
+D.rings.forEach(r => { if (r.k === "sleep") { r.kinds = [{k: "sleep", n: "in bed", min: r.total, held: []}];
+    r.sleepNote = (D.nights || []).map(n => n.a === 0
+      ? `Last night: asleep ${hm(n.asleep)} of a ${hm(n.need)} need, ${sgn(n.asleep - n.need)}${n.met != null ? `, met at ${clock(n.met)}` : ""}; in bed ${hhmm(n.start)}–${hhmm(n.end)}.`
+      : `Tonight: in bed at ${clock(n.a)}${D.window ? `, ${n.a > D.window[1] ? hm(n.a - D.window[1]) + " after" : n.a < D.window[0] ? hm(D.window[0] - n.a) + " before" : "inside"} Oura's best bedtime of ${clock(D.window[0])}–${clock(D.window[1])}` : ""}; asleep ${hm(n.asleep)}, ${sgn(n.asleep - n.need)} against the need.`).join(" ") }
   if (r.k === "flow") { const w = Object.entries(D.win); r.total = w.reduce((s, [, [a, b]]) => s + b - a, 0);
     r.kinds = [{k: "flow", n: w.map(([k, [a, b]]) => `${k} ${clock(a)}–${clock(b)}`).join(" · ") + " ·", min: r.total, held: r.kinds[0].held}]; } });
 document.getElementById("rings").innerHTML = D.rings.map(r => `<div class="ring"><div class="rh"><b>${esc(r.n)}</b><span class="v">${r.total ? hm(r.total) : "—"} <small>${Math.round(100 * r.total / 1440)}%</small></span></div>` +
   (r.k !== "screen" ? `<div class="kinds">${r.kinds.map(k => `<span><i style="${swatch(k.k)}"></i>${esc(k.n)} ${k.min ? hm(k.min) : "—"}</span>`).join("")}</div>` : "") +
-  `<div class="held">${esc([...new Set(r.kinds.flatMap(k => k.held))].slice(0, 6).join(" · "))}</div></div>`).join("");
+  `<div class="held">${esc(r.sleepNote || [...new Set(r.kinds.flatMap(k => k.held))].slice(0, 6).join(" · "))}</div></div>`).join("");
 document.getElementById("note").textContent = `The rings overlap, so they don't add up to 24 hours. A moment with no length (a text, a check, a flow step) is a five-minute tick. Food is food only, no drinks, and a meal's minutes come out of moving: sitting to eat is not moving, and making food is food. On a screen means phone, laptop or TV; a paper book isn't a screen. Each ring keeps one shade; its parts differ by pattern. Working counts what you were doing: a session that ran while you drove, ate, moved or slept isn't your work. Other is time a row covers that none of the rings above claims. Caretaking is caring for others and the home: school runs, pickups, bedtime, the kitchen. In the core, each flow is dotted from its first step to its last, with a line at every step. Awake: ${hm(D.awake)}.`;
 </script>'''
 name=D['day'].split()[0]

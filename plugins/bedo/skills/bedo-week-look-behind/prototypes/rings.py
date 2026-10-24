@@ -88,6 +88,39 @@ for r in seen.values():
 for m in range(1440):
     if A['other'][m]=='pending' and any(A[k][m] for k in ('sleep','flow','food','move','work')): A['other'][m]=None
     elif A['other'][m]=='pending': A['other'][m]='other'
+# sleep from Oura when it can be read: each night's real span, the minute the need was met
+# (asleep minutes, counted through the night's five-minute phases), and Oura's best bedtime window
+# for the night that starts this evening (24 Oct 2026: am I meeting my sleep need, or way over or under)
+import urllib.request
+def oura(ep, a, b):
+    try:
+        u=f'https://api.ouraring.com/v2/usercollection/{ep}?start_date={a}&end_date={b}'
+        return json.load(urllib.request.urlopen(u, timeout=20)).get('data') or []
+    except Exception as e:
+        print('oura: no read —', e); return []
+NEED=int(os.environ['RINGS_SLEEP_NEED']) if os.environ.get('RINGS_SLEEP_NEED') else None   # minutes; Oura's app shows it, the API doesn't
+nights=[]; window=None
+OS=oura('sleep', (day-dt.timedelta(days=1)).isoformat(), (day+dt.timedelta(days=2)).isoformat())
+if OS:
+    A['sleep']=[None]*1440
+    for r in OS:
+        if r.get('type') not in ('long_sleep','sleep'): continue
+        bs=dt.datetime.fromisoformat(r['bedtime_start']).replace(tzinfo=None); be=dt.datetime.fromisoformat(r['bedtime_end']).replace(tzinfo=None)
+        if be<=s0 or bs>=e0: continue
+        for m in range(max(0,int((bs-s0).total_seconds()//60)), min(1440,int((be-s0).total_seconds()//60))): A['sleep'][m]='sleep'
+        met=None
+        if NEED and r.get('sleep_phase_5_min'):
+            got=0
+            for i,ch in enumerate(r['sleep_phase_5_min']):
+                if ch in '123': got+=5
+                if got>=NEED: met=bs+dt.timedelta(minutes=5*(i+1)); break
+        nights.append(dict(start=bs.isoformat(), end=be.isoformat(), asleep=r['total_sleep_duration']//60, inbed=r['time_in_bed']//60,
+                           need=NEED, met=int((met-s0).total_seconds()//60) if met and s0<=met<e0 else None, met_at=met.isoformat() if met else None,
+                           a=max(0,int((bs-s0).total_seconds()//60)), b=min(1440,int((be-s0).total_seconds()//60))))
+    ST=[x for x in oura('sleep_time', (day-dt.timedelta(days=14)).isoformat(), (day+dt.timedelta(days=1)).isoformat()) if x.get('optimal_bedtime')]
+    if ST:
+        x=ST[-1]['optimal_bedtime']; nxt=e0     # offsets are from the midnight that ends this day
+        window=[int((nxt+dt.timedelta(seconds=x['start_offset'])-s0).total_seconds()//60), int((nxt+dt.timedelta(seconds=x['end_offset'])-s0).total_seconds()//60), ST[-1]['day']]
 def runs(arr):
     out=[];cur=None
     for m,x in enumerate(arr+[None]):
@@ -120,7 +153,7 @@ RINGS=[x for x in RINGS if x[0] not in ('food','move')]
 A.pop('drive')
 OUT=dict(day=f"{day:%A} {day.day} {day:%B}",rings=[dict(k=k,e=e,n=n,kinds=[dict(k=kk,n=nn,min=sum(1 for x in A[k] if x==kk),held=(held.get(kk) or [])[:6]) for kk,nn in kinds],
           runs=runs(A[k]),total=sum(1 for x in A[k] if x)) for k,e,n,kinds in RINGS],
-         win=win,moments=sorted(moments,key=lambda x:x['m']),who=sorted((held.get('who') or {}).items(),key=lambda x:-x[1]),
+         win=win,nights=nights,window=window,moments=sorted(moments,key=lambda x:x['m']),who=sorted((held.get('who') or {}).items(),key=lambda x:-x[1]),
          awake=1440-sum(1 for x in A['sleep'] if x))
 json.dump(OUT,open(f'rings-{DAY}.json','w'),ensure_ascii=False)
 for r in OUT['rings']: print(r['n'],r['total'],[(x['n'],x['min']) for x in r['kinds']])
