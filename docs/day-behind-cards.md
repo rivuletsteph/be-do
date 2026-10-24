@@ -202,8 +202,8 @@ showing meaning and meaningfulness." So:
 
 **Enjoying, 24 Oct.** Her correction: the everything-else ring should go, and
 the moments should sit around the outside where they happened, not in a row at
-the bottom. And the fun things (reading with Johnny, a show she likes) had no
-real home; "reading with Johnny is caretaking but it's also just being with
+the bottom. And the fun things (reading with her son, a show she likes) had no
+real home; "reading with [her son] is caretaking but it's also just being with
 him". The way through, proposed: every ring says what the time was, and rings
 overlap, so one stretch can be two things. Doing: body (cooking, eating,
 moving) and working (professional work; caretaking of others and of herself).
