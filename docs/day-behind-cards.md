@@ -3,8 +3,8 @@
 Started 24 Oct 2026 with Friday 23 Oct as the test day. The day behind is
 built by hand (no 3 a.m. routine). It is a set of cards, each answering one
 question about the day. This file holds what she has said about each card and
-what is still hers to decide. The card deck page that compares every version is
-`https://claude.ai/artifact/NpjhjHBQ1uLNSTXTB2ktM8`.
+what is still hers to decide. The card deck page that compares every version is in her artifacts
+(Day Behind Card Deck).
 
 **The whole page is about meaning, and meaningfulness is a metric she wants.**
 Her words, 24 Oct: the whole thing is about meaning; "I think the
@@ -45,24 +45,25 @@ stays in view down its side while its cards scroll past).
 3. The order of the cards.
 4. How to measure meaningfulness: what counts toward it, and on what scale.
 
-## How the day went: the categories (recommended 24 Oct, not yet hers)
+## How the day went: concentric rings (24 Oct, second pass)
 
-Prototype on Friday's rows: `https://claude.ai/artifact/UXMFYKbRKQrxMWEHb455YZ`.
+Her words on the first pass (seven slices, one minute in one slice): forcing
+things into one category is part of the issue; moving and fun overlap and she
+doesn't know how much. And the colours: natural pastels, not a colour-blind-safe
+set ("this is for me"), building on the palette she started.
 
-Seven slices that mirror be and do, so the ring and the balance bar tell the
-same story. Being: 😴 rest · 🚶‍♀️ moving · 🍽️ eating · 🎈 play · 🪞 reflecting.
-Doing: 🧺 tending (care) · 🌱 growing (work that moves a drive). Every minute
-sits in one slice; a shared minute goes to rest, moving, eating, growing, play,
-reflecting, tending, in that order.
+So: one ring per thing she tracks, out from the center, overlapping freely, on
+a 24-hour clock with midnight at the top. Prototype on Friday: the How Friday Went page in her artifacts.
 
-**What it was, not who it was with.** Time with Johnny goes to what it was
-(reading together is play, the school run is tending); the people band shows it
-was shared. Around the ring, as a share of the waking day: 🤝 with people,
-📱 on a screen, 🚗 in a vehicle. On the rim, the moments that mattered.
+1. 😴 sleep
+2. 🍽️ food: making it, and eating and drinking
+3. 🚶‍♀️ moving (movement and time outside)
+4. 🌗 dawn and dusk: each flow's steps, on a pale band from its first step to its last (the time set aside for morning and evening practice)
+5. 💼 working: work, and be•do (working on the system)
+6. 📱 in front of me: phone, laptop, TV, a book ("am I on my phone, am I on the TV, am I reading")
+7. 🤝 with people
+On the rim: the moments that mattered. Fun lives here, as moments rather than hours.
 
-Two views of the same ring: by time of day (a clock, midnight at the top) and
-by size (the How Tuesday Went donut).
-
-Open: whether reflecting is a slice at all. On Friday every reflection happened
-inside something else (the mantra and gratitude on the walk), so it drew 0 min
-and lives on the rim instead.
+Pastels: misty blue sleep, apricot and clay food, sage moving, butter dawn and
+lavender dusk (her flow colours, softened), eucalyptus work and olive be•do,
+dusty rose phone, slate laptop, orchid TV, wheat book, terracotta people.
