@@ -36,6 +36,7 @@ stays in view down its side while its cards scroll past).
 | How it all flows | "it showed everything kind of flowing"; she is finding the page | the week river, or the whole-map flows |
 | The wellness wheel | "the wellness wheel is a card" | the original day behind's balance section |
 | How the day went | "I really want to know what percentage of my time is dedicated to sleeping, moving and eating. Also on a screen, also in a vehicle. Also doing care tasks and then having fun" — and she doesn't love the current categories | How Tuesday Went (15 Sep): a donut of 24 h, each slice with its hours and a line in her words |
+| Who was in your day | "the with-people part might just belong on its own sociogram" | the original page's circles; time with each person from the rows |
 | Body | "I do want to see my readiness, my sleep, my activity scores and what affected them each day" | Base Flow (3 Oct): the ring and the bars, the week as a line; Oura contributors and her rows |
 
 ## Decisions still open
@@ -61,8 +62,14 @@ a 24-hour clock with midnight at the top. Prototype on Friday: the How Friday We
 4. 🌗 dawn and dusk: each flow's steps, on a pale band from its first step to its last (the time set aside for morning and evening practice)
 5. 💼 working: work, and be•do (working on the system)
 6. 📱 in front of me: phone, laptop, TV, a book ("am I on my phone, am I on the TV, am I reading")
-7. 🤝 with people
-On the rim: the moments that mattered. Fun lives here, as moments rather than hours.
+~~7. with people~~ — moved out, third pass (below)
+
+**Third pass, same day.** Her words: a great step forward, it shows a lot and
+she loves that; make it even simpler. No emoji around the dial (the moments on
+the rim and the emoji ring labels are gone; each ring carries a short word
+label at the top). Food is one colour. **With people leaves this card** and
+becomes its own card, a sociogram. Kitchen cleanup is not counted as food; she
+thought that fair. She likes seeing dawn and dusk, and seeing when she worked.
 
 Pastels: misty blue sleep, apricot and clay food, sage moving, butter dawn and
 lavender dusk (her flow colours, softened), eucalyptus work and olive be•do,
