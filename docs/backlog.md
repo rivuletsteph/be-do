@@ -41,8 +41,10 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 261004_1045 | ▶️ | Base flow card shipped; next the look behind and look ahead for day, week and month — an earthy palette, the look ahead light and the look behind dark; later nutrition folded into body |
 | 261004_1536 | ▶️ | Page cards from her review of every past page — card 2 (perhaps the dark mirror of card 1), whether the forward map gets its own card, card 1 into the day ahead itself |
 | 261009e | ⬜ | The day chat's Airtable read came back 401 on 9 Oct, so the day ahead couldn't build there; the cloud session's credential worked the same morning. Find which token the claude.ai chat holds and replace it, or settle that the day ahead builds only in Claude Code |
+| 261024a | ⬜ | A session row records when the laptop ran, not when she was working. Her word, 24 Oct 2026: if the laptop is running that's not me working; it's what I'm actually doing. Record when she was actually in a session, so working time is hers; until then the day behind counts a session's minutes only while she wasn't driving, eating, moving or asleep |
 
 ## Calendar
+
 
 | key | status | item |
 |---|---|---|
