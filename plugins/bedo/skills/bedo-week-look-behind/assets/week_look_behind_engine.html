@@ -148,9 +148,9 @@ details.fw[open] .v::after{content:" · hide"}
    warm hues for doing, the night in blue in the gap; every colour a token, light and dark */
 :root{--rb-flow:#DDD5C9;--rb-flow-d:#8C8174;--rb-flow-t:#F1ECE4;--rb-eat:#86C2A4;--rb-move:#B4C987;--rb-recreation:#9FC4E2;--rb-being-t:#EEF4F3;--rb-being-d:#4F7F78;
 --rb-work:#C9805F;--rb-care:#E3A4A8;--rb-cook:#EEB672;--rb-system:#DCC89C;--rb-doing-t:#FAF0EA;--rb-doing-d:#94593D;--rb-screen:#2C2620;--rb-screen-t:#ECE5DA;
---rb-sleep:#D4DEF0;--rb-sleep-deep:#6F8CC4;--rb-sleep-d:#5A73A8}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--rb-flow:#4A4540;--rb-flow-d:#BDB3A6;--rb-flow-t:#2B2830;--rb-being-t:#24302D;--rb-being-d:#CDE7DF;--rb-doing-t:#352B27;--rb-doing-d:#F4E0D4;--rb-screen:#EDE4E0;--rb-screen-t:#2E2A30;--rb-sleep:#3A4766;--rb-sleep-deep:#8FA8DA;--rb-sleep-d:#C9D6EE}}
-:root[data-theme="dark"]{--rb-flow:#4A4540;--rb-flow-d:#BDB3A6;--rb-flow-t:#2B2830;--rb-being-t:#24302D;--rb-being-d:#CDE7DF;--rb-doing-t:#352B27;--rb-doing-d:#F4E0D4;--rb-screen:#EDE4E0;--rb-screen-t:#2E2A30;--rb-sleep:#3A4766;--rb-sleep-deep:#8FA8DA;--rb-sleep-d:#C9D6EE}
+--rb-sleep:#D4DEF0;--rb-sleep-deep:#6F8CC4;--rb-sleep-d:#5A73A8;--rb-eat-d:#3F8A68;--rb-move-d:#6E8A35;--rb-recreation-d:#4A7FAE;--rb-work-d:#8E4A2C;--rb-care-d:#B05E66;--rb-cook-d:#B07A2A;--rb-system-d:#9C8455}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--rb-flow:#4A4540;--rb-flow-d:#BDB3A6;--rb-flow-t:#2B2830;--rb-being-t:#24302D;--rb-being-d:#CDE7DF;--rb-doing-t:#352B27;--rb-doing-d:#F4E0D4;--rb-screen:#EDE4E0;--rb-screen-t:#2E2A30;--rb-sleep:#3A4766;--rb-sleep-deep:#8FA8DA;--rb-sleep-d:#C9D6EE;--rb-eat-d:#C4E6D4;--rb-move-d:#DCE8BC;--rb-recreation-d:#CFE2F2;--rb-work-d:#F0C6B2;--rb-care-d:#F5D0D2;--rb-cook-d:#F7D9AE;--rb-system-d:#EEE2C6}}
+:root[data-theme="dark"]{--rb-flow:#4A4540;--rb-flow-d:#BDB3A6;--rb-flow-t:#2B2830;--rb-being-t:#24302D;--rb-being-d:#CDE7DF;--rb-doing-t:#352B27;--rb-doing-d:#F4E0D4;--rb-screen:#EDE4E0;--rb-screen-t:#2E2A30;--rb-sleep:#3A4766;--rb-sleep-deep:#8FA8DA;--rb-sleep-d:#C9D6EE;--rb-eat-d:#C4E6D4;--rb-move-d:#DCE8BC;--rb-recreation-d:#CFE2F2;--rb-work-d:#F0C6B2;--rb-care-d:#F5D0D2;--rb-cook-d:#F7D9AE;--rb-system-d:#EEE2C6}
 .rb svg{display:block;width:calc(100% + 24px);max-width:560px;height:auto;margin:4px -12px 0;overflow:visible}
 @media (min-width:600px){.rb svg{margin:4px auto 0;width:100%}}
 .rb svg text{font-family:var(--mono);fill:var(--muted)}
@@ -491,7 +491,7 @@ const rainbow = RB => {
     (B[k] || {runs: []}).runs.map(clip).filter(([, a, b]) => b - a >= 2).forEach(([kk, a, b, t]) => {
       if (k === "flow") { for (let m = a; m < b; m += 5) { const [x0, y0] = pt(r0 + 1, m + 1), [x1, y1] = pt(r1 - 1, m + 1);
         g += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--rb-flow-d)" stroke-width="2.2" stroke-linecap="round" pointer-events="none"/>`; } return; }
-      g += piece(band(r0, r1, a, b), `var(--rb-${kk})`, `var(--rb-${k}-d)`, say(kk, a, b, t), widen(r0, r1, a, b)); }); });
+      g += piece(band(r0, r1, a, b), `var(--rb-${kk})`, `var(--rb-${kk}-d)`, say(kk, a, b, t), widen(r0, r1, a, b)); }); });   // each part outlined in its own deeper shade
   g += `<path d="${band(SR, SR + SW, WAKE, END)}" fill="var(--rb-screen-t)" pointer-events="none"/>`;
   (B.screen || {runs: []}).runs.map(clip).filter(([, a, b]) => b > a).forEach(([kk, a, b, t]) => { g += piece(band(SR, SR + SW, a, b), "var(--rb-screen)", "none", say("screen", a, b, t), widen(SR - 8, SR + SW + 8, a, b) || [band(SR - 8, SR + SW + 8, a, b), b - a]); });
   if (BED < END) g += piece(band(R0, SR + SW, BED, END), "var(--rb-flow-t)", "none", `<b>🛏️ In bed at ${clock2(BED)}</b>, ${hm(END - BED)} before the 16 hours were up`);
@@ -509,7 +509,7 @@ const rainbow = RB => {
   // three times only, large enough to read on a phone: up, the middle of the waking day, its end
   [0, 480, 960].forEach(o => { const [x, y] = o === 480 ? pt(SR + SW + 50, WAKE + o) : npt(OUT + 40, o === 0 ? 28 : IDEAL - 28);   // the ends' times sit just past the rainbow's feet
     g += `<text x="${x}" y="${y + 5}" text-anchor="middle" style="font:500 15px var(--mono);fill:var(--muted)">${o === 0 ? "up " + clock2(WAKE) : clock2(WAKE + o)}</text>`; });
-  const AW = Math.min(BED, 1440) - WAKE, sw = (k, fam) => `<i style="background:var(--rb-${k});border:1px solid var(--rb-${fam}-d)"></i>`;
+  const AW = Math.min(BED, 1440) - WAKE, sw = (k, fam) => `<i style="background:var(--rb-${k});border:1.5px solid var(--rb-${k}-d)"></i>`;
   const rows = [["Flows", Object.entries(RB.win).map(([w, [a, b]]) => `<span>${sw("flow", "flow")}${w} ${clock2(a)}–${clock2(b)}</span>`).join("")],
     ...["being", "doing"].map(k => [`${k === "being" ? "Being" : "Doing"} ${hm(B[k].total)}`, B[k].kinds.map(x => `<span>${sw(x.k, k)}${esc(NAME[x.k])} ${x.min ? hm(x.min) : "—"}</span>`).join("")]),
     ["Screen", `<span>${hm(B.screen.total)} of ${hm(AW)} awake</span>`]];
