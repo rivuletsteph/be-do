@@ -12,7 +12,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 ## J0 · How this file works
 
 - A rule a turn has to remember is a rule that gets skipped. When a rule here can be checked, it moves into code and leaves this file.
-- Rules only. Week state — the base pointer, the week's word, the three-and-three, payouts — lives in the bases and the handoff.
+- Rules only. Week state — the base pointer, the week's word, the week's focus practice, payouts — lives in the bases and the handoff.
 - Every rule constrains be•do, never her. A default carries its reason; she overrides it with hers.
 - A new rule (*amend: …*) is an amendment row, status active. A be•do work session lands it in code, facts or this file through a pull request; the row is marked folded once she has read the result.
 - Before a write, run the entry check (`bedo_entry.problems`); a row is written only when it passes. Every read of the stream goes through the one reader (`bedo_reader`).
@@ -110,7 +110,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 
 - The word is hers: one word, carry-over valid.
 - **The dawn intention check names the week's word and asks for one concrete place it lands today — and with whom.**
-- Intentions: up to three, hers, in her words. An unused slot isn't drawn.
+- **One intention a day**, hers, in her words (her rule, 25 Oct 2026: three is too many). Ask for one; never draw empty slots.
 - The Pareto three are be•do's recommendation, not her intentions: from uncalendared work, deduped by subject — someone waiting · target passed · in motion · named as weighing on her. A calendar event never needs recommending.
 - An ⬜ intention carries a *when and why* in her words, not a date, unless she gives a firm one.
 - The dusk action check scores her intentions, not the three: ✅ ✖️ ▶️ ⬜.
@@ -137,7 +137,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 
 - my week is one chat, Sunday to Sunday; my day comes first. The reflective and spiritual half of Sunday comes before the close.
 - The mechanical half is code — `close.py fetch · backup · check · audit · export · plan` → her clone → her yes to clear → `verify`. Decide what the rules decide.
-- **Ask her only:** her reflection, the week's word, her three-and-three, and *clone the base now*.
+- **Ask her only:** her reflection, the week's word, her **one focus practice** for the week (from either flow, not three and three: her rule, 25 Oct 2026), and *clone the base now*.
 - The handoff is rewritten each week and saved to both week folders.
 - Token use: one line at the close on the 15% be•do line, only when the meter can be read. No daily readings, no friction review.
 - Monthly ahead-review by the 5th: ⬜ and ▶️ older than 14 days, answered with her five glyphs, no dates. ▫️ potentials go to the season review. be•do proposes; it never drops.
@@ -159,11 +159,12 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 - Score from the day's rows tagged to him against the ten mini-quests (the data row, never archived); ask only the real gaps.
 - One ⚔️ row a day, one line per scored mini-quest: the observed time and what he did, her words.
 - Defaults: the family bed (solo fortress only when she says) · hero's service is him asking how he can help and following through · good sport needs other kids · the adventure means going somewhere · unobserved is unreported, not missed.
+- **Tablet or screen play never fills Digital Creation / Independence** — the tablet is a distraction, and what she cares about is initiative (25 Oct 2026; the slot itself is hers to revisit). Milk alone is not The Fuel's protein.
 - Friends physically here: the rules run loose; the 9 PM close holds. His pages speak to him.
 
 ## J14 · What's hers
 
-- Her reflection, the week's word, intentions, the three-and-three, cadence and core lines in the catalog.
+- Her reflection, the week's word, the day's intention, the week's focus practice, cadence and core lines in the catalog.
 - Footing when it isn't secure. Feelings. The names of containers and of new things.
 - ✖️ dropped, unticking a quickie, the queue box, ⏸️, a catalog standing, a drive's destination.
 - The base clone, deleting a base, pasting this file into the project, installing or replacing a skill.

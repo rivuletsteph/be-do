@@ -6,9 +6,9 @@
 #   bash run_day_ahead.sh cal   YYYY-MM-DD            # after the chat saved cal/*.json: check them, write cal.json
 #   bash run_day_ahead.sh fetch YYYY-MM-DD            # Airtable only — re-read the live stream after the intention check
 #   bash run_day_ahead.sh build YYYY-MM-DD <secure> [builder args…]
-#        e.g. build 2026-09-28 secure --secure-words "…" --now 07:10 --intention "…" --intention "…" --intention "…"
-#        (twice at dawn: --draft with no intentions before the intention check, so the three are
-#         in view; then the final, with them)
+#        e.g. build 2026-09-28 secure --secure-words "…" --now 07:10 --intention "…"
+#        (twice at dawn: --draft with no intention before the intention check, so the three are
+#         in view; then the final, with her one intention)
 #
 # Needs, in the working folder: day_ahead_local.json (or LB_LOCAL pointing at it) and
 # the Airtable token: bedo_secrets.json (there, in the folder above it, or at

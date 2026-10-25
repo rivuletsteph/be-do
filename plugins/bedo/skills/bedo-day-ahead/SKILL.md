@@ -56,11 +56,13 @@ is only `fetch` and `build`. The dawn flow's order is:
    --draft` with no intentions, published to the page. **Say the three in the
    chat, one line each with why it rose** (the build prints them), so they are
    in front of her at the next step.
-3. **⚡ intention check** — the user names their own intentions, in their own
-   words. They may fold the three into their own framing, or ignore them.
+3. **⚡ intention check** — ask for **one intention** (her rule, 21 and 25 Oct
+   2026: *I really just want to be asked for one intention on a daily basis*).
+   It is hers, in her words; more only if she offers more. She may fold the
+   three into her framing, or ignore them.
 4. **👁️ look ahead, the final** — `fetch` (the intention check wrote rows),
-   then one build with each intention passed as `--intention "…"`, exactly as
-   the user said it, and without `--draft`. The three stay be•do's
+   then one build with her intention passed as `--intention "…"`, exactly as
+   the user said it (a second or third only if she named them), and without `--draft`. The three stay be•do's
    recommendation; don't rewrite them to match the user's intentions. The plan
    file is written on every build; work from the final one's.
 
@@ -214,7 +216,7 @@ contents never pass through the chat.
    the live stream first, `bash run_day_ahead.sh fetch YYYY-MM-DD`, then:
    ```
    bash run_day_ahead.sh build YYYY-MM-DD <state> [--secure-words "<their words>"] --now HH:MM \
-     --intention "…" --intention "…" --intention "…" \
+     --intention "…" \
      [--pick "<key>::<why>" --pick "…" --pick "…"] [--step "<key or record id>::<step>" …]
    ```
    Everything after `<state>` goes to `scripts/day_ahead.py` unchanged. The
@@ -224,7 +226,7 @@ contents never pass through the chat.
      --stream w##.json --stream w##-prev.json --rhythms rhythms.json \
      --calendar cal.json --template day_ahead_engine.html \
      --out YYYY-MM-DD-day-ahead.html --secure <state> [--secure-words "<their words>"] \
-     --now HH:MM --intention "…" --intention "…" --intention "…"
+     --now HH:MM --intention "…"
    ```
    `--now` is the local clock read for this write (I12); it keys today's rows.
    If it aborts on a short read, don't build from a partial read. Say which read
@@ -370,8 +372,8 @@ the user. A project with no named next step is the defect.
 1. **The date**, with ⏏️ beside it when the base is secure — a small emoji,
    no callout. Anything other than secure gets one line under it, in the
    user's words.
-2. **Your intentions** — only the slots the user named, in their words; three
-   empty slots before they name any. Above the week's word (8 Oct 2026, their
+2. **Your intention** — one slot, in the user's words; one empty slot before
+   they name it. More slots only when they name more. Above the week's word (8 Oct 2026, their
    words: *my daily intention above the week's intention, then the calendar*).
 3. **be•do's three** — their own section, each card saying why it rose, and
    the next in line beneath. Before the intentions are named this is what the
