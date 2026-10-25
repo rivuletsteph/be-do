@@ -12,7 +12,7 @@ Usage:
   python3 day_ahead.py --today 2026-09-22 --local day_ahead_local.json \
       --stream w39.json --stream w38.json --rhythms rhythms.json \
       --calendar cal.json --template day_ahead_engine.html --out page.html \
-      [--secure "secure" --secure-words "..."] [--draft] [--intention "..." ×3]
+      [--secure "secure" --secure-words "..."] [--draft] [--intention "..."]
 
 One build a morning, the final, after the user's intention check, with their
 intentions passed in their own words through --intention (29 Sep 2026; before
@@ -1052,7 +1052,7 @@ def main():
                      date=local(p['row']['target']).date().isoformat() if p['row']['target'] else None,
                      move=move(p['row'])) for p in picks],
         next=nxt, tasks=tasks, max_tasks=cap,
-        intentions=(a.intention + [None, None, None])[:3], draft=a.draft,
+        intentions=(a.intention or [None])[:3], draft=a.draft,
         drives=plan['drives'],
         map=dict(start=today.isoformat(), end=L['map_end'], lanes=lanes, dests=list(dests.values()), away=away),
         soon=soon, overdue=[o for o in overdue if o['id'] not in picked],  # a pick shows once, in the three

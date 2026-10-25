@@ -32,9 +32,9 @@ Setup, once, before anything else:
    and tell me the `auth:` line it prints.
 
 Each morning when I say "look ahead": the day ahead as one final build, per its
-SKILL.md — secure base (secure unless I say otherwise), my intentions in my
+SKILL.md — secure base (secure unless I say otherwise), my one intention in my
 words, then prep → calendars through the Calendar connector → cal → build with
---intention ×3 and no --draft → publish to the living page → save the page to
+--intention once (one intention; more only if I name more) and no --draft → publish to the living page → save the page to
 Drive in the week's folder (2026-W40 Sep 27) → log the 👁️ look ahead row.
 Show me the three, the today rows written, and one numbered list of asks.
 
