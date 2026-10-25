@@ -164,6 +164,19 @@ summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-of
 .further{margin-top:12px;background:var(--past-soft);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--ink)}
 .further b{color:var(--past);font-weight:500}
 
+/* the weekend shapes (25 Oct 2026): Sunday morning, the week by day, Saturday's tending */
+.morning{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:14px 16px;display:grid;gap:6px}
+.morning .what{font:600 20px/1.2 var(--serif);color:var(--accent)}
+.morning .steps{list-style:none;margin:2px 0 0;padding:0;display:grid;gap:4px;font-size:14px}
+.morning .early{font-size:12.5px;color:var(--past)}
+.wtag{font:500 10px/1 var(--mono);letter-spacing:.04em;border-radius:999px;padding:3px 7px;white-space:nowrap}
+.wtag.peak{background:var(--accent-soft);color:var(--accent)}
+.wtag.open{background:var(--dest-soft);color:var(--dest)}
+.wtag.clash{background:var(--past-soft);color:var(--past)}
+.wtag.away{border:1px solid var(--dest);color:var(--dest)}
+.day .tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:2px}
+.day .note{font-size:12.5px;color:var(--past);overflow-wrap:anywhere}
+
 .prov{font:400 11px/1.5 var(--mono);color:var(--faint);margin:0;border-top:1px solid var(--rule);padding-top:12px}
 @media (prefers-reduced-motion:no-preference){.rec,.day{transition:background .2s}}
 </style>
@@ -214,9 +227,25 @@ const card = (t, why) => {
   const drv = t.drive ? `<div class="edrv">${esc(t.emoji||'')} ${esc(t.drive)}</div>` : '<div class="edrv none">no drive</div>';
   return $(`<div class="ecard act${late?' gone':''}"><div class="at">${at}</div><div class="ttl">${glyph(t.st)}${esc(t.title)}</div>${drv}${moveHtml(t.move)}${why?`<div class="why">${esc(why)}</div>`:''}</div>`);
 };
+/* the weekend shapes (25 Oct 2026, her words: a Sunday look ahead is fundamentally different
+   from Monday through Friday; Saturday is also different). The weekday sections — be•do's three,
+   the task list, the map, open by drive — are weekday sections. */
+const WEEKDAY = !D.shape || D.shape === 'weekday', SUNDAY = D.shape === 'sunday';
+
+/* Sunday morning is reserved for reflection (her words, 25 Oct 2026): what belongs to it,
+   and anything on the calendar that would cut into it */
+if (SUNDAY && D.morning){
+  const M = D.morning;
+  page.append($(`<section><h2>sunday morning</h2><div class="morning"><div class="what">${esc(M.what)}</div>
+    <p class="sub" style="margin:0">until ${esc(M.until)} · nothing else is asked of the morning</p>
+    ${M.steps.length?`<ul class="steps">${M.steps.map(s=>`<li>${glyph(s.st)}${esc(s.title)}</li>`).join('')}</ul>`:''}
+    ${M.early.map(e=>`<p class="early">${esc(e.when)} · ${esc(e.title)}${e.who!=='you'?` (${esc(e.who)})`:''} is on the calendar this morning</p>`).join('')}
+  </div></section>`));
+}
+
 /* be•do's three — the Pareto three (J9), their own section right under the intentions,
    in view while the user names their own (9 Oct 2026: "I'm not seeing the Pareto 3") */
-if (D.pareto && D.pareto.length){
+if (WEEKDAY && D.pareto && D.pareto.length){
   const sec = $(`<section class="tsec"><h2>be•do's three</h2><p class="sub">what would move the ball forward most today · be•do's pick, not your intentions</p><div class="ecards"></div>${(D.next||[]).length?`<p class="nextup"><b>next in line</b> · ${D.next.map(n=>esc(n.title)).join(' · ')}</p>`:''}</section>`);
   const box = sec.querySelector('.ecards');
   D.pareto.forEach(p=>box.append(card(p, [p.kind, p.why].filter(Boolean).join(' · '))));
@@ -245,7 +274,8 @@ if (D.word) page.append($(`<section class="frame">
 
 /* past its date — after the intentions, never folded away: each one needs the user's word
    (5 Oct 2026: up from below the task list, then placed after the intentions) */
-if (D.overdue && D.overdue.length){
+function pastDue(){
+  if (!(D.overdue && D.overdue.length)) return;
   const n = D.overdue.length;
   const sec = $(`<section class="pastdue"><h2>past its date</h2><p class="sub">${n} ${n===1?'thing needs':'things need'} your word — done, a new date, or drop · oldest first</p><ul class="list"></ul></section>`);
   const ul = sec.querySelector('ul');
@@ -253,47 +283,77 @@ if (D.overdue && D.overdue.length){
   page.append(sec);
 }
 
-/* after the calendar — the day behind's action cards: status ⚡ title, the drive underneath,
-   the date on the left (red once it has passed); the three have their own section above; never more than max_tasks in all */
-const three = $(`<section><h2>after the calendar</h2><p class="sub">what else is due this week · at most ${D.max_tasks||10} with the three</p><div class="ecards"></div></section>`);
-const tbox = three.querySelector('.ecards');
-(D.tasks||[]).forEach(t=>tbox.append(card(t, t.kind==='dated'?'':t.kind)));
-page.append(three);
-
-
-/* the next fourteen days — from tomorrow: today has its own section above
-   (9 Oct 2026, her words: I don't need to see today on the day ahead [twice]) */
-(function(){
-  const ds = D.days.filter(d=>!d.today);
+/* the days, as the calendar and the stream show them; `wk` carries the Sunday read of each day
+   (the peak, the open days, the clashes) when the page has one */
+function renderDays(title, sub, ds, wk){
   const nGap = ds.reduce((n,d)=>n+d.events.filter(e=>e.gap).length,0);
   const nClash = ds.reduce((n,d)=>n+d.events.filter(e=>(e.clash||[]).length).length,0);
-  const sec = $(`<section><h2>the next two weeks</h2><p class="sub">from tomorrow · both calendars, matched against the stream</p>
+  const sec = $(`<section><h2>${esc(title)}</h2><p class="sub">${esc(sub)}</p>
     <div class="keyline"><span><span class="gap" style="font-size:10.5px;color:var(--accent);border:1px dashed var(--accent);border-radius:999px;padding:1px 7px">no row yet</span> ${nGap} events</span><span><span style="font-size:10.5px;color:var(--past);background:var(--past-soft);border-radius:999px;padding:1px 7px">clash</span> ${nClash} events</span></div>
     <div class="days"></div></section>`);
   const box = sec.querySelector('.days');
+  const read = Object.fromEntries((wk||[]).map(w=>[w.date,w]));
   // fold runs of band-only days into one line
   let i=0;
   while (i<ds.length){
-    const d=ds[i];
-    if (d.bands.length && !d.events.length && !d.due.length){
-      let j=i; while (j+1<ds.length && ds[j+1].bands.join()===d.bands.join() && !ds[j+1].events.length && !ds[j+1].due.length) j++;
+    const d=ds[i], w=read[d.date];
+    if (!w && d.bands.length && !d.events.length && !d.due.length){
+      let j=i; while (j+1<ds.length && !read[ds[j+1].date] && ds[j+1].bands.join()===d.bands.join() && !ds[j+1].events.length && !ds[j+1].due.length) j++;
       box.append($(`<div class="day band"><div class="dl">${esc(short(d.date))}${j>i?'–<br>'+esc(short(ds[j].date)):''}</div><div class="items"><div class="open" style="color:var(--dest)">${esc(d.bands.join(' · '))} continues</div></div></div>`));
       i=j+1; continue;
     }
     const row = $(`<div class="day${d.today?' today':''}${d.bands.length?' band':''}"><div class="dl">${d.today?'today<br>':''}${esc(short(d.date))}</div><div class="items"></div></div>`);
     const it = row.querySelector('.items');
+    if (w && w.tags.length) it.append($(`<div class="tags">${w.tags.map(t=>`<span class="wtag ${t}">${t==='peak'?`the peak · ${w.hours} h`:t}</span>`).join('')}</div>`));
     d.events.forEach(e=>it.append($(`<div class="ev"><span class="tm">${esc(e.when)}</span><span>${esc(e.title)}</span>${e.who!=='you'?`<span class="who">${esc(e.who)}</span>`:''}${e.gap?'<span class="gap">no row yet</span>':''}${(e.clash||[]).map(c=>`<span class="clash">clashes with ${esc(c)}</span>`).join('')}</div>`)));
+    (w ? w.notes : []).forEach(n=>it.append($(`<div class="note">${esc(n)}</div>`)));
     d.due.forEach(t=>{ t = typeof t==='string' ? {title:t} : t;
       it.append($(`<div class="due"${t.drive?` title="${esc(t.drive)}"`:''}>${glyph(t.st)}${t.emoji?`<span class="de">${esc(t.emoji)}</span>`:''}${esc(t.title)}</div>`)); });
     if (!d.events.length && !d.due.length) it.append($(`<div class="open">open</div>`));
     box.append(row); i++;
   }
-  if (D.inside && D.inside.length) sec.append($(`<div class="further"><b>further out</b> · ${D.inside.map(x=>`${esc(x.title)} (${esc(x.label)}) falls inside ${esc(x.away)}`).join(' · ')}</div>`));
+  return sec;
+}
+const further = () => D.inside && D.inside.length ? $(`<div class="further"><b>further out</b> · ${D.inside.map(x=>`${esc(x.title)} (${esc(x.label)}) falls inside ${esc(x.away)}`).join(' · ')}</div>`) : null;
+
+/* a short list of action cards under one heading — Sunday's ready-for-Monday, Saturday's tending */
+function cards(title, sub, list){
+  if (!list || !list.length) return;
+  const sec = $(`<section class="tsec"><h2>${esc(title)}</h2><p class="sub">${esc(sub)}</p><div class="ecards"></div></section>`);
+  list.forEach(t=>sec.querySelector('.ecards').append(card(t, '')));
   page.append(sec);
-})();
+}
+
+const ahead = D.days.filter(d=>!d.today);
+if (SUNDAY){
+  /* the week by day, the way the 6 Sep look ahead read it: the peak, the open days, the clashes */
+  page.append(renderDays('the week ahead', 'Monday to Saturday · both calendars, matched against the stream', ahead.slice(0, 6), D.week));
+  cards('ready for Monday', 'what needs to be ready as the week opens · due in the next two days', D.ready);
+  pastDue();
+  const after = renderDays('the week after', 'both calendars, matched against the stream', ahead.slice(6));
+  const f = further(); if (f) after.append(f);
+  page.append(after);
+} else {
+  pastDue();
+  if (WEEKDAY){
+    /* after the calendar — the day behind's action cards: status ⚡ title, the drive underneath,
+       the date on the left (red once it has passed); the three have their own section above; never more than max_tasks in all */
+    const three = $(`<section><h2>after the calendar</h2><p class="sub">what else is due this week · at most ${D.max_tasks||10} with the three</p><div class="ecards"></div></section>`);
+    const tbox = three.querySelector('.ecards');
+    (D.tasks||[]).forEach(t=>tbox.append(card(t, t.kind==='dated'?'':t.kind)));
+    page.append(three);
+  } else {
+    cards('when there’s room: tending', 'fun first · then, if you want it, a little tending', D.tending);
+  }
+  /* the next fourteen days — from tomorrow: today has its own section above
+     (9 Oct 2026, her words: I don't need to see today on the day ahead [twice]) */
+  const sec = renderDays('the next two weeks', 'from tomorrow · both calendars, matched against the stream', ahead);
+  const f = further(); if (f) sec.append(f);
+  page.append(sec);
+}
 
 /* where they lead — the map forward, drawn only for the three */
-(function(){
+if (WEEKDAY) (function(){
   const M = D.map, W=360, L=10, R=300, NX=336, t0=new Date(M.start+'T12:00:00'), t1=new Date(M.end+'T12:00:00');
   const X = iso => L + (R-L)*Math.max(0,Math.min(1,(new Date(iso+'T12:00:00')-t0)/(t1-t0)));
   const lanes = M.lanes, top=34, gap=54, H = top + lanes.length*gap + 14;
@@ -326,7 +386,7 @@ page.append(three);
 
 /* open by drive — each open row under its own drive and every drive it feeds; the
    headline counts each row once (drives within drives, 9 Oct 2026) */
-if (D.drives && D.drives.tree && D.drives.tree.length) (()=>{
+if (WEEKDAY && D.drives && D.drives.tree && D.drives.tree.length) (()=>{
   const X = D.drives, short = d => d ? day(d) : '';
   const node = n => `<li><div class="r"><span>${esc(n.emoji)}</span><span><span class="n">${esc(n.drive)}</span> — ${n.n} open${n.children.length && n.n_own !== n.n ? ` · ${n.n_own} its own` : ''}${n.late ? ` · ${n.late} past date` : ''}${n.soon ? ` · ${n.soon} this week` : ''}</span><span class="t">${n.next ? 'next '+esc(short(n.next)) : ''}</span></div>${n.children.length ? `<ul>${n.children.map(node).join('')}</ul>` : ''}</li>`;
   page.append($(`<section><h2>open by drive</h2><p class="sub">${X.open} open on a drive${X.no_drive ? ` · ${X.no_drive} on none` : ''} · a drive that feeds another sits under it and counts in its number</p><ul class="bydrive">${X.tree.map(node).join('')}</ul></section>`));

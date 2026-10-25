@@ -463,7 +463,9 @@ def calendar(cal, rows, open_rows, today, days, L):
         e['row'] = bool(hit) or e['occasion']  # an occasion carries no row by design
     # clashes
     mine = [e for e in evs if e['who'] == L['self_calendar']]
-    away = [e for e in mine if e['allday'] and e['multi']]
+    # a stretch away, not a window to do something in: a ⬜ week to vote in is a window,
+    # and nothing that week clashes with it (25 Oct 2026: eleven events read as clashing)
+    away = [e for e in mine if e['allday'] and e['multi'] and not e['summary'].startswith(('⬜', '▫'))]
     for e in evs:
         e['clash'] = []
     for e in evs:
@@ -566,6 +568,11 @@ def find_conflicts(evs, today, days, L):
     across every calendar read. Each carries the pair it came from, if any."""
     me, kid_label = L['self_calendar'], (L.get('child_calendar') or '')
     ro = set(L.get('readonly_calendars') or [])
+    # a child's event that names another grown-up ('— Pat drives') says who has the child
+    others = [c for c in (L.get('other_calendars') or []) if c and c != kid_label]
+
+    def covered(k):
+        return any(re.search(rf'\b{re.escape(o)}\b', k['title']) for o in others)
     stop = today + dt.timedelta(days=days)
     timed = [e for e in evs if not e['allday'] and not e['occasion'] and today <= e['a'].date() < stop]
     out = []
@@ -581,7 +588,7 @@ def find_conflicts(evs, today, days, L):
                 add('overlap', x['a'].date(), f"{x['title']} and {y['title']} overlap", (x, y))
             elif me in whos and kid_label in whos:
                 k, m = (x, y) if x['who'] == kid_label else (y, x)
-                if k['stay']:
+                if k['stay'] or covered(k):
                     continue  # he is with someone else for the stretch — her event is covered
                 add('child', k['a'].date(), f"{m['title']} overlaps {kid_label}'s {k['title']} — who has {kid_label}?", (x, y))
             elif kid_label in whos and whos & ro:
@@ -785,6 +792,124 @@ def standing_steps(practices, rows, today, days):
     return out
 
 
+# ---------------------------------------------------------------- the weekend shapes
+# Saturday and Sunday are not weekdays with fewer meetings (25 Oct 2026, her words: a Sunday
+# look ahead is fundamentally different from Monday through Friday; Saturday is also different;
+# the goals are generally different). The Sunday shape is the one she had on 6 Sep and V53 lost
+# with its SUNDAY section: big picture only, no leverage list, no task queue — the week by day.
+# Sunday morning is reserved for reflection (her words, 25 Oct). Saturday is fun first, the
+# calendar after (24 Oct), with tending when there's room.
+SHAPES = ('weekday', 'saturday', 'sunday')
+DAYNAME = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+
+def shape_of(today, asked=None):
+    if asked:
+        return asked
+    return {5: 'saturday', 6: 'sunday'}.get(today.weekday(), 'weekday')
+
+
+def week_shape(days, evs, conflicts, L):
+    """The week after a Sunday, by day: the peak, the open days, the clashes, the trips.
+    `days` is the calendar's day list from tomorrow on; at most six are read (Mon–Sat)."""
+    me = L['self_calendar']
+    # a stretch away is a multi-day event of hers that isn't a window to do something in
+    # (a ⬜ week to vote in is a window; a ❔ trip is a stretch away)
+    stays = [e for e in evs if e['who'] == me and e['multi'] and not e['summary'].startswith(('⬜', '▫'))]
+    out = []
+    for d in days[:6]:
+        day = dt.date.fromisoformat(d['date'])
+        mine = [e for e in evs if e['who'] == me and not e['allday'] and not e['occasion']
+                and not e['stay'] and e['a'].date() == day]
+        hours = sum((e['b'] - e['a']).total_seconds() for e in mine) / 3600
+        notes = [c['text'] for c in conflicts if c['date'] == d['date'] and c['kind'] != 'full']
+        starts = [e['title'] for e in stays if e['a'].date() == day]
+        tags = []
+        if notes:
+            tags.append('clash')
+        if any(e['a'].date() <= day < e['b'].date() for e in stays):
+            tags.append('away')
+        if not mine and day.weekday() < 5 and 'away' not in tags:  # a day away is not an open day
+            tags.append('open')
+        out.append(dict(date=d['date'], label=d['label'], day=DAYNAME[day.weekday()], hours=round(hours, 1),
+                        n=len(mine), tags=tags, notes=notes, starts=starts,
+                        events=d['events'], due=d['due'], bands=d['bands']))
+    busiest = max(out, key=lambda w: (w['hours'], -out.index(w)), default=None)
+    if busiest and busiest['hours'] > 0:
+        busiest['tags'].insert(0, 'peak')
+    return out
+
+
+def week_lead(week):
+    """One line, the way the 6 Sep look ahead put it: Tuesday is the peak, Thursday has a
+    clash, Monday is open."""
+    said = {}
+    for tag, words_ in (('peak', 'is the peak'), ('clash', 'has a clash'), ('open', 'is open')):
+        w = next((w for w in week if tag in w['tags']), None)
+        if w:
+            said.setdefault(w['day'], []).append(words_)
+    parts = []
+    for w in week:
+        if w['day'] in said:
+            parts.append(f"{w['day']} {' and '.join(said[w['day']])}")
+        parts += [f"{s} starts {w['day']}" for s in w['starts']]
+    if not parts:
+        return 'A quiet week ahead.'
+    return ', '.join(parts) + '.'
+
+
+def ready_rows(open_rows, today, calendared, horizon=2, cap=5):
+    """What needs to be ready as the week opens: open work due in the next `horizon` days
+    that isn't a calendar event's own row (the calendar already shows those). `calendared`
+    holds record ids and keys: two records can share a key across the weekly bases."""
+    out = []
+    for r in open_rows:
+        if not r['target'] or r['id'] in calendared or (r['key'] and r['key'] in calendared):
+            continue
+        n = (local(r['target']).date() - today).days
+        if 1 <= n <= horizon:
+            out.append(r)
+    out.sort(key=lambda r: r['target'])
+    return out[:cap]
+
+
+def tending_rows(open_rows, today, L, cap=3):
+    """Saturday's tending: open rows under the rhythms the settings name as tending
+    (`tending`), never under work. Past its date first, then due this week, then in motion."""
+    tend = set(L.get('tending') or [])
+    work = set(L.get('work_parents') or [])
+    if not tend:
+        return []
+    ranked = []
+    for r in open_rows:
+        # the drive, every drive it feeds, and each one's parent rhythm (a move › Home)
+        up = set(bedo_drives.chain(r['rhythm'] or '', DRIVES)) | {r['rhythm'] or ''}
+        up |= {(DRIVES.get(k) or {}).get('parent') or '' for k in list(up)}
+        if not (up & tend) or (up & work):
+            continue
+        t = local(r['target']).date() if r['target'] else None
+        if t and t < today:
+            rank = 0
+        elif t and (t - today).days <= 7:
+            rank = 1
+        elif r['status'] == '▶️ in motion':
+            rank = 2
+        else:
+            continue
+        ranked.append((rank, r['target'] or '9', r['id'], r))
+    return [x[3] for x in sorted(ranked)[:cap]]
+
+
+def sunday_morning(evs, standing, today, L):
+    """Sunday morning is reserved for reflection: what belongs to it, and anything on the
+    calendar that would cut into it, named so she can decide."""
+    until = dt.time.fromisoformat(L.get('sunday_morning_until', '12:00'))
+    early = [dict(title=e['title'], when=hm(e['a']), who=e['who']) for e in evs
+             if not e['allday'] and e['a'].date() == today and e['a'].time() < until]
+    return dict(what=L.get('sunday_morning', 'reflection'), until=hm(dt.datetime.combine(today, until)),
+                steps=standing.get(today, []), early=early)
+
+
 # ---------------------------------------------------------------- main
 def install_local(L):
     """Put the person's own values where the module can see them. Missing a
@@ -865,6 +990,8 @@ def main():
                     help='"<row key or record id>::<why>" — the three as weighed in the chat; '
                          'the builder\'s own picks are the fallback')
     ap.add_argument('--now', help='the local clock at the write, HH:MM — keys the today rows (I12)')
+    ap.add_argument('--shape', choices=SHAPES,
+                    help="the page's shape; by default Saturday and Sunday have their own, every other day is a weekday")
     ap.add_argument('--plan-out', help='where the look-ahead plan goes; default beside --out')
     a = ap.parse_args()
     L = json.load(open(a.local, encoding='utf-8'))
@@ -1033,6 +1160,27 @@ def main():
         t = clean_title(tmr['row']['title']).split(' — ')[0]
         parts.append('Tomorrow: ' + t[0].lower() + t[1:] + '.')
     lead = ' '.join(parts) if parts else 'A clear day ahead.'
+
+    # the weekend shapes: Sunday reads the week by day, Saturday is fun first
+    shape = shape_of(today, a.shape)
+
+    def card(r):
+        return dict(id=r['id'], title=clean_title(r['title']), drive=r['rhythm'] or '', st=r['status'][:2],
+                    date=local(r['target']).date().isoformat() if r['target'] else None,
+                    emoji=(rhythms.get(r['rhythm'] or '') or {}).get('emoji') or '', move=move(r))
+    week = ready = tending = morning = None
+    if shape == 'sunday':
+        week = week_shape(days[1:], evs, conflicts, L)
+        lead = week_lead(week)
+        # what has to be ready as the week opens; the chat's own picks, when given, lead it
+        ready = [card(p['row']) for p in picks] if a.pick else []
+        cal_refs = calendared | {e['match_row']['key'] for e in evs if e.get('match_row') and e['match_row']['key']}
+        ready += [card(r) for r in ready_rows(open_rows, today, cal_refs) if r['id'] not in {x['id'] for x in ready}]
+        ready = ready[:5]
+        morning = sunday_morning(evs, standing, today, L)
+    elif shape == 'saturday':
+        lead = L.get('saturday_lead') or 'Fun first; the calendar comes after.'
+        tending = [card(r) for r in tending_rows(open_rows, today, L)]
     # open work targeted inside an away stretch, even past the window
     inside = []
     for w in away:
@@ -1055,9 +1203,12 @@ def main():
         intentions=(a.intention + [None, None, None])[:3], draft=a.draft,
         drives=plan['drives'],
         map=dict(start=today.isoformat(), end=L['map_end'], lanes=lanes, dests=list(dests.values()), away=away),
-        soon=soon, overdue=[o for o in overdue if o['id'] not in picked],  # a pick shows once, in the three
+        # a pick shows once, in the three; a weekend page draws no three, so there only a row
+        # already in a section of its own (Sunday's ready-for-Monday) is left out
+        soon=soon, overdue=[o for o in overdue if o['id'] not in (picked if shape == 'weekday' else {x['id'] for x in ready or []})],
         days=days, gaps=gaps, clashes=clashes,
         sunday=today.weekday() == 6, inside=inside,
+        shape=shape, week=week, ready=ready, tending=tending, morning=morning,
         prov=dict(reads=[f'{p.split("/")[-1].replace(".json", "")} {n}/{n}' for p, n in reads],
                   rhythms=(f"{RHYTHMS_NOTE[a.rhythms]['read_total']}/{RHYTHMS_NOTE[a.rhythms]['read_total']} ({nrh} active rows used)"
                            if RHYTHMS_NOTE.get(a.rhythms, {}).get('read_total') else f'{nrh}/{nrh}'), calendar=cal.get('read', {}),
@@ -1068,7 +1219,9 @@ def main():
     open(a.out, 'w', encoding='utf-8').write(html)
     plan_path = a.plan_out or re.sub(r'\.html?$', '', a.out) + '.plan.json'
     open(plan_path, 'w', encoding='utf-8').write(json.dumps(plan, ensure_ascii=False, indent=1))
-    print(json.dumps(dict(picks=[(p['kind'], clean_title(p['row']['title'])) for p in picks], next=nxt,
+    print(json.dumps(dict(shape=shape, lead=lead,
+                          ready=[x['title'] for x in ready or []], tending=[x['title'] for x in tending or []],
+                          picks=[(p['kind'], clean_title(p['row']['title'])) for p in picks], next=nxt,
                           soon=len(soon), overdue=len(overdue), gaps=gaps, clashes=clashes,
                           hidden=dropped['hidden'], quickies=dropped['quickie'],
                           today_rows=len(plan['today_rows']), today_asks=len(plan['today_asks']),

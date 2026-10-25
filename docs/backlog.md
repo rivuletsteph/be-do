@@ -32,7 +32,6 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 260929_0735 | ⬜ | Build the week ahead |
 | 260929_0745 | ⬜ | Look ahead: an already-done check at the read, across keys |
 | 260929_2225 | ⬜ | A row rises to a card if it has her words or a deliverable, not only by kind |
-| 260930_1523c | ⬜ | Teach the look ahead which parent covers which school day (a settings key, or the calendar) |
 | 261002_0620 | ⬜ | The remaining-practices page — pinned, live, tappable, ordered by minutes since wake |
 | 261002_0821 | ▫️ | A standard be•do palette — the default theme for every page |
 | 260926_1255 | ▫️ | Move the page builders to an Apps Script web app reading Airtable directly (after the pages settle) |
@@ -73,6 +72,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 260929_0645 | ▫️ | Recovery changes what be•do suggests, not only what it scores — build after a real recovery day is logged |
 | 260930_1506 | ▫️ | Forecast accuracy — score each day's high against the forecast made a week out |
 | 260922_2250 | ⬜ | Fold a fitness tracker's weekly stats into the weekly review |
+| 261025_plans | ⬜ | A drive's plan page sets dates the stream never sees. On 25 Oct the look ahead showed three rows past their date whose dates had moved in a roadmap page made two days before, and the page's next deliverable had no row at all. Her words: some of the deadlines on here are obsolete, have been updated — they live in the artifact that was created on Friday for that work. The session that publishes a plan writes each dated step onto its row (a new row where there is none) and names the page in the row's `[be•do]` block; the session entry's check, or `close`, asks whether a plan was published and its dates written |
 
 ## Tables and catalogs
 
@@ -110,6 +110,8 @@ When one ships, its line moves to **Done** with the PR that closed it.
 
 | key | item | shipped |
 |---|---|---|
+| 261025_sun | The day ahead has a Saturday and a Sunday shape. Sunday: the week read by day in one line (Monday is open, Tuesday is the peak), the morning held for reflection, the week ahead tagged peak · open · clash · away, ready for Monday, the week after — no three, no task list, no map. Saturday: fun first, the calendar, tending when there's room. V53 had dropped the SUNDAY section and the 6 Sep Sunday shape with it. Her words: a Sunday look ahead is fundamentally different from Monday through Friday; Saturday is also different; Sunday morning is reserved for reflection. Also: a ⬜ window (early voting) no longer reads as a stretch away every event clashes with. | day ahead, 25 Oct 2026 |
+| 260930_1523c | Which parent covers a school day, read off the calendar: a child's event that names the other grown-up (— X drives, where X is another calendar's label) is covered, not a who-has-him question. A settings key was the other route; not needed while the titles say it. | day ahead, 25 Oct 2026 |
 | 260921_1444 | Photos on the day behind: up to five from the week's W## photos folder, keepers first and drawn large, a photo on an info row left out (`look_behind.py --photos`, fetched by the runner when a Drive key is here). | keepers, 25 Oct 2026 |
 | 260928_1305 | Photos as references: a photo shared in a chat is logged with its kind in the stream's `photo` field (keeper · info), and at dusk the row gets the link to its file in the W## photos folder from the folder's names alone (`dusk --photos`, `core/bedo_photos`). Her words: I upload a photo, you log the time, and then a link to that photo. | keepers, 25 Oct 2026 |
 | 261022_0822 | Preflight's chat-name line is saved as the chat's name in the same reply, and yesterday's ✔️ rename too, wherever a tool can rename the chat (`set_session_title`) — the checks skill and V53 J0, J8. Her words: when you print the name you save it as the chat name so I don't have to do it manually. | checks skill, 22 Oct 2026 |
