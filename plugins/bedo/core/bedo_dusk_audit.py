@@ -255,7 +255,9 @@ def photo_fields(L, fetch=None):
     """The photo field ids. facts_local may not name them (it predates them,
     25 Oct 2026); the page builders' settings row (look_behind_local) does, so
     they are taken from there rather than asking her to edit a second file.
-    Returns only the keys facts_local is missing; {} when neither has them."""
+    Returns only the keys facts_local is missing; {} when neither has them.
+    A facts_local whose `photo` is the old checkbox (one was written so on 25
+    Oct) takes the select instead: writing a kind into a checkbox fails."""
     have = L.get('stream_fields') or {}
     missing = [k for k in PHOTO_KEYS if not have.get(k)]
     if not missing:
@@ -264,6 +266,8 @@ def photo_fields(L, fetch=None):
         from bedo_settings import fetch
     lb, _ = fetch('look_behind_local')
     got = ((lb or {}).get('fields') or {}).get('stream') or {}
+    if have.get('photo') and have['photo'] == got.get('photo_checked'):
+        missing.append('photo')
     return {k: got[k] for k in missing if got.get(k)}
 
 

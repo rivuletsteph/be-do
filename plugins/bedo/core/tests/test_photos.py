@@ -169,6 +169,12 @@ class Settings(unittest.TestCase):
         L = {'stream_fields': {'photo': 'P', 'photo_checked': 'C', 'photo_links': 'K'}}
         self.assertEqual(DA.photo_fields(L, fetch=lambda n: self.fail('fetched')), {})
 
+    def test_the_old_checkbox_named_as_photo_gives_way_to_the_select(self):
+        lb = {'fields': {'stream': {'photo': 'P', 'photo_checked': 'C', 'photo_links': 'K'}}}
+        L = {'stream_fields': {'photo': 'C'}}
+        self.assertEqual(DA.photo_fields(L, fetch=lambda n: (lb, None)),
+                         {'photo': 'P', 'photo_checked': 'C', 'photo_links': 'K'})
+
     def test_an_unreadable_settings_row_changes_nothing(self):
         self.assertEqual(DA.photo_fields({}, fetch=lambda n: (None, 'Airtable cannot be read here')), {})
 
