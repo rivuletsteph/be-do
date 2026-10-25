@@ -41,6 +41,8 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 
 - Log a practice when she says she's doing it or about to, in that turn. If it doesn't happen, correct in place.
 - One piece of evidence logs every practice it shows: a photo of two pills is two rows.
+- **A photo she shares is a keeper or info** (25 Oct 2026). Log what it shows, as always, and set the row's `photo` field. **info**: the photo only carries what the row needs — food on its own, a pill, a screen, a receipt, a flyer; the pages leave it out. **keeper**: everything else — an event, a place, people, a moment — and a meal when something about it is special: a restaurant or someone's table, people in it, or she said it was a spectacularly good meal. Her word flips it either way. A keeper gets one line back (📸 keeper — it'll be on the look behind); info gets nothing. The row's time is when the photo was taken if she says or it shows, else when she shared it.
+- **Her one step with photos:** at night she shares the day's photos into the week's `W## photos` Drive folder. At dusk, list that folder with the Drive connector — names and ids only, never the images — and run `dusk --photos folder.json`: write the kinds and links it prints, say once which keepers aren't in the folder yet, and take the photos no row explains as clues for the day's QA.
 - A row that standing evidence already settles (the nightly pair, a routine) is written from the pattern; she corrects.
 - Housework is logged. A 📒 journal is one row with a short key-points block; only actions and distinct practices are pulled out.
 - No row for what she can see; no *decide-on-X* rows; no reminders for media.

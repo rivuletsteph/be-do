@@ -31,13 +31,14 @@ chain is resolved, so a row that appears in two bases is one row. Every dump
 must be complete (I11): records returned == totalRecordCount, or the build
 aborts.
 """
-import argparse, json, os, re, sys, datetime as dt
+import argparse, base64, json, os, re, sys, datetime as dt
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from bedo_common import bedo_reader, complete, die, norm, offset_check, read_dump, sv, weekno  # noqa: E402
 import day_pie  # noqa: E402
 import bedo_people  # noqa: E402  (the core, beside or three folders up)
 import bedo_drives  # noqa: E402
+import bedo_photos  # noqa: E402
 from bedo_fill import word as practice_word  # noqa: E402
 
 # The field maps are the base's, not the builder's. install_local() fills them
@@ -45,7 +46,8 @@ from bedo_fill import word as practice_word  # noqa: E402
 # builder's own vocabulary and never change, only the ids behind them do.
 STREAM_KEYS = ('title', 'key', 'details', 'when', 'end', 'status', 'practice',
                'person', 'rhythm', 'wellness', 'deliv')
-OPTIONAL_STREAM_KEYS = ('device', 'mentioned', 'emotion', 'emoword', 'spent', 'event')
+OPTIONAL_STREAM_KEYS = ('device', 'mentioned', 'emotion', 'emoword', 'spent', 'event',
+                        'photo', 'photo_checked', 'photo_links')   # keepers on the page (25 Oct 2026)
 RHYTHM_KEYS = ('name', 'type', 'status', 'emoji', 'dest')
 OPTIONAL_RHYTHM_KEYS = ('feeds', 'code')     # drives within drives (9 Oct 2026)
 PRACTICE_KEYS = ('name', 'band', 'zero', 'group', 'typical')
@@ -383,6 +385,31 @@ def gate(day_rows, L, day):
 
 
 # ── main ──────────────────────────────────────────────────────────────────
+def day_photos(folder, rows, day, me, cap):
+    """The day's keepers for the strip (25 Oct 2026): photos on rows she holds as
+    keepers first, then the rest she shared, at most `cap`. A photo on an info row
+    (food on its own, a pill, a screen) is left out. Returns (strip, counts)."""
+    pics = []
+    if folder and os.path.isdir(folder):
+        idx = os.path.join(folder, 'index.json')
+        ids = json.load(open(idx, encoding='utf-8')) if os.path.exists(idx) else {}
+        for n in sorted(os.listdir(folder)):
+            t = bedo_photos.taken(n, UTC_OFFSET.total_seconds() / 3600)
+            if t and t.date() == day:
+                b64 = base64.b64encode(open(os.path.join(folder, n), 'rb').read()).decode()
+                pics.append((t, ids.get(n), 'data:image/jpeg;base64,' + b64))
+    lived = [dict(r, _a=local(r.get('when')), _b=local(r.get('end'))) for r in rows
+             if r.get('status') not in NOT_LIVED and local(r.get('when'))]
+    placed, left = bedo_photos.place(lived, pics, me)
+    keep = sorted(placed, key=lambda p: (not p['keeper'], p['t']))
+    strip = [{'thumb': p['src'], 'keeper': p['keeper'], 'url': bedo_photos.link(p['file']) if p['file'] else p['src'],
+              'alt': re.sub(r'^[^\w]+', '', clean_title(p['row'].get('title'))) if p['row'] else ''}
+             for p in keep[:cap]]
+    return strip, {'read': len(pics), 'keepers': sum(p['keeper'] for p in placed),
+                   'no_row': sum(p['row'] is None for p in placed), 'left_out': left,
+                   'not_drawn': len(placed) - len(strip)}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--day', required=True)
@@ -392,6 +419,7 @@ def main():
     ap.add_argument('--practices')
     ap.add_argument('--connections')
     ap.add_argument('--typical')
+    ap.add_argument('--photos', help='a folder of small photos named by the phone (day_photos.py --out)')
     ap.add_argument('--words', help='JSON: {"lead": "...", "story": [[glyph, text], ...]}')
     ap.add_argument('--lead')
     ap.add_argument('--template', required=True)
@@ -935,6 +963,10 @@ def main():
     by_drive = [drive_node(n) for n in bedo_drives.tree(rolled, rhythms)]
     qa['feeds_loops'] = [' → '.join(c + c[:1]) for c in bedo_drives.loops(rhythms)]
 
+    # ── the day's keepers, from the photos she shared into the week's folder ──
+    strip, photo_counts = day_photos(a.photos, latest.values(), day, self_name,
+                                     bedo_reader.FACTS['photos']['day_strip_max'])
+
     # ── the page's own labels ────────────────────────────────────────────
     wk = weekno(day, L['week_zero_sunday'], L['week_zero_number'])
     wd = day.weekday()
@@ -949,7 +981,7 @@ def main():
         'draft': {'lead': 'lead' in drafted, 'story': 'story' in drafted},
         'who': who,
         'highlights': highlights,
-        'photos': [],          # no attachment field in the read — see SKILL.md
+        'photos': strip,
         'intentions': intentions,
         'entries': entries,
         'books': booked,
@@ -989,7 +1021,7 @@ def main():
         'highlights': len(highlights), 'intentions': len(intentions),
         'destinations': [d['name'] for d in dests.values()],
         'drives': [('  ' * dep) + n['drive'] for dep, n in bedo_drives.flatten(by_drive)],
-        'photos': 'none — no attachment field is read',
+        'photos': photo_counts if a.photos else 'none — no --photos folder',
         'qa': qa,
         'lead_and_story': 'UNWRITTEN' if not (lead and story)
         else ("be•do's draft: " + ', '.join(drafted)) if drafted else 'written',

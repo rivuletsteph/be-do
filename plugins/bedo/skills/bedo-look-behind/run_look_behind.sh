@@ -54,6 +54,7 @@ if [ "$MODE" = prep ]; then
   S=be-do-main/plugins/bedo/skills/bedo-look-behind
   rm -rf scripts && cp -r $S/scripts . && cp $S/assets/look_behind_engine.html .
   cp be-do-main/plugins/bedo/skills/bedo-day-ahead/scripts/day_digest.py scripts/   # the digest lives with the day ahead
+  cp be-do-main/plugins/bedo/skills/bedo-week-look-behind/scripts/day_photos.py scripts/   # the photos live with the week behind
   cp be-do-main/plugins/bedo/core/*.py be-do-main/plugins/bedo/core/facts.json scripts/   # the one reader (I11 I15 I5)
   # an escape hatch: anything in overlay/ wins over the version store for this run
   if [ -d overlay ]; then cp overlay/*.py scripts/ 2>/dev/null || true
@@ -82,9 +83,15 @@ elif [ "$MODE" = build ]; then
   echo "words: $WORDS"
   # typical lengths, the median of the user's own timed rows (scripts/typical_time.py)
   TYPICAL=; [ -f typical_time.json ] && TYPICAL="--typical typical_time.json"
+  # the day's photos from the week's W## photos folder, when a Drive key is here (BEDO_DRIVE_SA
+  # or BEDO_DRIVE_SA_FILE); without one the strip stays hidden and the page builds as before
+  PHOTOS=
+  if [ -f scripts/day_photos.py ]; then rm -rf "photos-$DAY"
+    if "$PY" scripts/day_photos.py --day "$DAY" --local look_behind_local.json --out "photos-$DAY"; then
+      PHOTOS="--photos photos-$DAY"; else echo "photos: none read — the page builds without them"; fi; fi
   "$PY" scripts/look_behind.py --day "$DAY" --local look_behind_local.json $STREAMS \
     --rhythms data/rhythms.json --practices data/practices.json --connections data/connections.json \
-    --words "$WORDS" --template look_behind_engine.html $TYPICAL \
+    --words "$WORDS" --template look_behind_engine.html $TYPICAL $PHOTOS \
     --out "$DAY-day-behind.html" --secure "$SECURE"
   OUT=${LB_OUT:-/mnt/user-data/outputs}
   if mkdir -p "$OUT" 2>/dev/null; then cp "$DAY-day-behind.html" "$OUT/"

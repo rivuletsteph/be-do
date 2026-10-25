@@ -21,10 +21,10 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | key | status | item |
 |---|---|---|
 | 260924_2221b | ⏸️ | The day behind is built by hand, when she asks. The 03:00 routine (trig_01TVzvCv9aDCJ4FWvC4qr9y1) was paused on 11 Oct and stays off — her word, 24 Oct 2026: I don't want anything to build at 3am; let's get a version I'm happy with working and I'll build it manually. A my day chat is ✔️ once its look behind is seen. |
+| 261025_photos | ⬜ | Photos reach the pages only where a Drive key is (`BEDO_DRIVE_SA`): add the service account's key to the cloud environment, with the W## photos folders shared to it, so a cloud build draws the keepers too |
 | 260915_0744 | ⬜ | One codebase for the behind and ahead pages — mobile, nightly, reading Airtable, depersonalised |
 | 260921_1444c | ⬜ | The day behind's folded "more" — river, map, flows, self-check |
 | 260921_1444b | ⬜ | The day ahead as the day behind's mirror — her intentions in the same slots, linked both ways |
-| 260921_1444 | ⬜ | Photos on the day behind — a shared photo link and up to five thumbnails, fetched at build time |
 | 260924_0933b | ▫️ | Day ahead: turn the calendar and open rows into a real what-to-do-today list |
 | 260924_2240 | ▫️ | Make the pages black in the engine, not just locally |
 | 260924_2255 | ▫️ | Day behind: split the three intentions; read company from logged rows only |
@@ -79,7 +79,6 @@ When one ships, its line moves to **Done** with the PR that closed it.
 |---|---|---|
 | 260914_0648 | ⬜ | Places and a meaningful-geography map — where time was spent, doing what, why, with whom (the places catalog is built; the map is the remaining half) |
 | 260915_0810 | ▫️ | An images table — thumbnails in Airtable, linked out to Drive or a photo library |
-| 260928_1305 | ▫️ | Photos as references — timestamp and link, without uploading the file |
 | 260905_1804 | ▫️ | Inventory the recipes in Drive and wire them into the provisions planner |
 | 260812_1205 | ▫️ | A deep pass on the connections table — duplicates, circles, held names, missing surnames |
 | 260926_1130 | ▶️ | A provisions session left open on 26 Sep — reconcile done, close the row |
@@ -110,6 +109,8 @@ When one ships, its line moves to **Done** with the PR that closed it.
 
 | key | item | shipped |
 |---|---|---|
+| 260921_1444 | Photos on the day behind: up to five from the week's W## photos folder, keepers first and drawn large, a photo on an info row left out (`look_behind.py --photos`, fetched by the runner when a Drive key is here). | keepers, 25 Oct 2026 |
+| 260928_1305 | Photos as references: a photo shared in a chat is logged with its kind in the stream's `photo` field (keeper · info), and at dusk the row gets the link to its file in the W## photos folder from the folder's names alone (`dusk --photos`, `core/bedo_photos`). Her words: I upload a photo, you log the time, and then a link to that photo. | keepers, 25 Oct 2026 |
 | 261022_0822 | Preflight's chat-name line is saved as the chat's name in the same reply, and yesterday's ✔️ rename too, wherever a tool can rename the chat (`set_session_title`) — the checks skill and V53 J0, J8. Her words: when you print the name you save it as the chat name so I don't have to do it manually. | checks skill, 22 Oct 2026 |
 | 261009c | Day ahead: every open card names its next move — the step, the person, the links, what it waits on — read off the row (`Next:` line or the chat's `--step`), and says so when none is named. The 7 Oct amendment on the next step. Her words: so I just don't think of the whole big thing. | day ahead, 9 Oct 2026 |
 | 261009d | Day ahead: the chat's three go on the page (`--pick`), with live status, so a rebuild shows progress. | day ahead, 9 Oct 2026 |

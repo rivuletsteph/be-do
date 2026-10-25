@@ -25,11 +25,15 @@ One pass, in this order (A250, then the gate and the flag):
   ·  meals: every meal's prep and eating placed from context, written as
      ESTIMATED FROM CONTEXT, and shown to her as what went in the record
      (the meals amendment, 7 Oct 2026). be•do's job, never in the flag.
+  ·  photos (25 Oct 2026): every row read from a photo carries its kind,
+     keeper or info; with the week's W## photos folder listing (--photos), each
+     gets the link to its file, a keeper not in the folder yet is named, and a
+     photo no row explains is a clue for the day's QA. Never in the flag.
 
 An observation, never a score. Nothing here writes unless --write is given,
 and then only the derived attention.
 
-    python3 bedo_dusk_audit.py --live [--chats chats.json] [--write]
+    python3 bedo_dusk_audit.py --live [--chats chats.json] [--photos folder.json] [--write]
     python3 bedo_dusk_audit.py --day day.json --catalog practices.json --now 2026-10-03T03:30Z
 """
 import datetime as dt, json, sys
@@ -39,6 +43,7 @@ from bedo_entry import is_action, overlaps, utc
 import bedo_remaining as RL
 import bedo_stretches as ST
 import bedo_meals as ML
+import bedo_photos as PH
 
 ST_ = FACTS['status']
 INTENTION = ST_['plans'][1]
@@ -88,10 +93,11 @@ def derive_attention(r, rows=()):
     return None
 
 
-def audit(rows, now, off, steps=None, chats=(), day=None, people=()):
+def audit(rows, now, off, steps=None, chats=(), day=None, people=(), photo_files=None, me=''):
     """The one pass. `rows` are the day's rows under logical names; `steps` the
-    dusk flow's catalog steps; `chats` [{title, url|id, times}]. Returns a dict
-    of findings, the attention writes, and the flag line."""
+    dusk flow's catalog steps; `chats` [{title, url|id, times}]; `photo_files`
+    the week's photo folder listing, or None when it wasn't read. Returns a dict
+    of findings, the attention writes, the photo writes, and the flag line."""
     every = rows                 # a show that happened overlaps like anything else
     rows = in_play(rows)
     acts = [r for r in rows if is_action(r)]
@@ -101,7 +107,8 @@ def audit(rows, now, off, steps=None, chats=(), day=None, people=()):
             window_rows |= {r['id'] for r in acts if chat_of(r, [ch])}
     f = {k: [] for k in ('open_past', 'end_before_start', 'attention', 'no_attention', 'chat_no_entry',
                          'uncaptured', 'action_row', 'gate', 'for_my_day', 'no_rhythm', 'no_duration',
-                         'no_person', 'target_today', 'meals')}
+                         'no_person', 'target_today', 'meals', 'photo_kinds', 'photo_links', 'photo_missing',
+                         'photo_unlogged')}
 
     for r in rows:                                                    # 1
         if (r.get('status') == INTENTION and r.get('calendar_event') and r.get('datetime')
@@ -157,7 +164,41 @@ def audit(rows, now, off, steps=None, chats=(), day=None, people=()):
             f['target_today'].append(_name(r))
     meals = ML.propose(rows, off, people)
     f['meals'] = [m['line'] for m in meals]
-    return {'findings': f, 'writes': writes, 'flag': flag(f), 'meals': meals}
+    photo_writes = photos(every, off, day, photo_files, me, f)
+    return {'findings': f, 'writes': writes, 'photo_writes': photo_writes, 'flag': flag(f), 'meals': meals}
+
+
+def photos(rows, off, day, files, me, f):
+    """The photo pass: kinds for rows sorted by rule, and — with the folder's
+    listing — links, keepers not in the folder yet, and photos no row explains.
+    Returns the writes, one per row: {id, photo?, photo_links?}."""
+    def loc(s):
+        return (utc(s) + dt.timedelta(hours=off)).replace(tzinfo=None) if s else None
+    lived = [dict(r, _a=loc(r.get('datetime')), _b=loc(r.get('end'))) for r in rows if r.get('datetime')]
+    listing = PH.files_from(files) if files is not None else []
+    if day:
+        listing = [x for x in listing if (PH.taken(x['name'], off) or dt.datetime.min).date() == day]
+    m = PH.match(lived, listing, off, me)
+    out = {}
+    for k in m['kinds']:
+        out.setdefault(k['id'], {'id': k['id']})['photo'] = k['kind']
+        f['photo_kinds'].append(f"{k['title'] or k['id']} → {k['kind']}")
+    if files is None:
+        return list(out.values())
+    have = {r['id']: (r.get('photo_links') or '').strip() for r in rows}
+    for x in m['links']:
+        w = out.setdefault(x['id'], {'id': x['id']})
+        w['photo_links'] = '\n'.join(filter(None, [have.get(x['id']), x['url']]))
+        f['photo_links'].append(f"{x['title'] or x['id']} ← {x['name']} ({_clock_local(x['taken'])}, {x['kind']})")
+    for x in m['missing']:
+        f['photo_missing'].append(f"{x['title'] or x['id']} ({_clock_local(x['at'])})")
+    for x in m['unlogged']:
+        f['photo_unlogged'].append(f"{_clock_local(x['taken'])} · {x['name']}")
+    return list(out.values())
+
+
+def _clock_local(t):
+    return f'{t.hour % 12 or 12}:{t:%M} {"AM" if t.hour < 12 else "PM"}'
 
 
 def flag(f):
@@ -187,7 +228,11 @@ TITLES = [('open_past', '1 open, time passed — close from the day\'s rows, or 
           ('action_row', '5 ⚡ row against its stretches'),
           ('gate', 'gate — still to capture before the close'),
           ('for_my_day', 'for my day, still listed'),
-          ('meals', 'meals — write these ESTIMATED FROM CONTEXT, then show her what went in the record')]
+          ('meals', 'meals — write these ESTIMATED FROM CONTEXT, then show her what went in the record'),
+          ('photo_kinds', 'photos — kind by rule (keeper shows on the look behind, info stays off); written with --write'),
+          ('photo_links', 'photos — each row linked to its file in the W## photos folder; written with --write'),
+          ('photo_missing', 'keepers not in the W## photos folder yet — say once: share them there tonight'),
+          ('photo_unlogged', 'photos in the folder no row explains — clues for the day\'s QA, never chased')]
 
 
 def render(res, label):
@@ -210,6 +255,7 @@ def main(argv=None):
     ap.add_argument('--day', help='a complete read of the day\'s rows')
     ap.add_argument('--catalog', help='a complete read of the practices catalog')
     ap.add_argument('--chats', help='JSON [{title, url|id, times | transcript}] for the day\'s chats')
+    ap.add_argument('--photos', help='the week\'s W## photos folder listing: [{id, name}], or a Drive connector result')
     ap.add_argument('--date', help='YYYY-MM-DD, default today')
     ap.add_argument('--now', help='an ISO instant, default the clock')
     ap.add_argument('--write', action='store_true', help='write the derived attention (live only)')
@@ -220,7 +266,8 @@ def main(argv=None):
     off = offset_hours(L, now)
     day = dt.date.fromisoformat(a.date) if a.date else (now + dt.timedelta(hours=off)).date()
     names = ('datetime', 'end', 'time_spent', 'status', 'title', 'details', 'attention', 'key', 'practice',
-             'person', 'rhythm', 'waiting_on', 'queue', 'chat', 'target', 'calendar_event')
+             'person', 'rhythm', 'waiting_on', 'queue', 'chat', 'target', 'calendar_event',
+             'photo', 'photo_checked', 'photo_links')
     fields = {**{k: k for k in names}, **{k: v for k, v in L.get('stream_fields', {}).items() if k in names}}
     if a.live:
         from bedo_air import Air, read_day, read_catalog
@@ -240,18 +287,32 @@ def main(argv=None):
             if 'transcript' in ch:
                 ch['times'] = ST.times_from(ch.pop('transcript'))
             chats.append(ch)
-    res = audit(rows, now, off, steps, chats, day, (L.get('people') or {}).values())
+    pf = None
+    if a.photos:
+        from bedo_reader import read_dump
+        pf = read_dump(a.photos)
+    res = audit(rows, now, off, steps, chats, day, (L.get('people') or {}).values(), pf,
+                (L.get('people') or {}).get('self') or '')
     if a.json:
         print(json.dumps(res, ensure_ascii=False, indent=1))
     else:
         print(render(res, f'dusk audit · {day:%a %d %b} · {len(rows)} rows read'))
-    if a.write and res['writes']:
+    if a.write and (res['writes'] or res['photo_writes']):
         if not a.live:
             sys.exit('--write needs --live')
-        att = L['stream_fields']['attention']
-        air.patch(names_by[base], L['stream_table'],
-                  [{'id': w['id'], 'fields': {att: w['attention']}} for w in res['writes']])
-        print(f'wrote attention on {len(res["writes"])} rows')
+        SF = L['stream_fields']
+        if res['writes']:
+            air.patch(names_by[base], L['stream_table'],
+                      [{'id': w['id'], 'fields': {SF['attention']: w['attention']}} for w in res['writes']])
+            print(f'wrote attention on {len(res["writes"])} rows')
+        pw = [{'id': w['id'], 'fields': {SF[k]: v for k, v in w.items() if k != 'id' and SF.get(k)}}
+              for w in res['photo_writes']]
+        pw = [w for w in pw if w['fields']]
+        if pw:
+            air.patch(names_by[base], L['stream_table'], pw)
+            print(f'wrote photo kinds and links on {len(pw)} rows')
+        elif res['photo_writes']:
+            print('photo writes not made: facts_local stream_fields has no photo / photo_links ids')
 
 
 if __name__ == '__main__':

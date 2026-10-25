@@ -35,6 +35,7 @@ cellValuesByFieldId — so the builders need no change.
 import argparse, datetime as dt, json, os, sys, time, urllib.parse, urllib.request
 
 API = 'https://api.airtable.com/v0/'
+LATE_STREAM_KEYS = ('photo', 'photo_checked', 'photo_links')   # read when the base has them
 SLEEP = 0.22                      # Airtable allows five requests a second per base
 
 
@@ -161,7 +162,9 @@ def main():
         # some fields existed, so it is read for the ones it has (the key and
         # datetime at minimum), and the rest arrive empty, as they would via MCP
         tabs = air.tables(base)
-        need = set(sf) if wk == n else {F['stream']['key'], F['stream']['when']}
+        # the photo fields (25 Oct 2026) arrived after most bases were cloned: read when present
+        late = {F['stream'].get(k) for k in LATE_STREAM_KEYS} - {None}
+        need = set(sf) - late if wk == n else {F['stream']['key'], F['stream']['when']}
         tab = [t for t in tabs if need <= {f['id'] for f in t['fields']}]
         if not tab:
             die(f'{bname}: no table carries the stream field ids in the local settings')

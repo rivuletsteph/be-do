@@ -7,7 +7,10 @@ PXL_20261020_182005466.jpg is 18:20:05 UTC, 1:20 PM in Texas. The photos sync to
 the week's folder, `W## photos` inside the week folder. This reads that folder,
 keeps the photos taken on the day (local), and writes each one as a small JPEG
 into --out under its own name, so the builder can place it by its time
-(week_look_behind.py --photos).
+(week_look_behind.py --photos, look_behind.py --photos). `index.json` beside
+them maps each to its Drive file id, so a photo whose row links it (the dusk
+match, bedo_photos) lands on that row whenever it was shared. Run it once per
+day into the same folder for a week.
 
     python3 day_photos.py --day 2026-10-20 --local look_behind_local.json --out photos/
     python3 day_photos.py --day 2026-10-20 --local look_behind_local.json --out photos/ --from originals/
@@ -93,7 +96,7 @@ def main():
         for n in sorted(os.listdir(a.src)):
             if keep(n) and n not in seen:
                 seen.add(n)
-                kept.append((n, open(os.path.join(a.src, n), 'rb').read()))
+                kept.append((n, None, open(os.path.join(a.src, n), 'rb').read()))
     else:
         raw = os.environ.get('BEDO_DRIVE_SA') or (open(os.environ['BEDO_DRIVE_SA_FILE']).read()
                                                    if os.environ.get('BEDO_DRIVE_SA_FILE') else None)
@@ -112,9 +115,17 @@ def main():
         for f in listing(tok, f"'{found[0]['id']}' in parents and trashed = false and mimeType contains 'image/'"):
             if keep(f['name']) and f['name'] not in seen:      # the same photo synced twice is one photo
                 seen.add(f['name'])
-                kept.append((f['name'], drive(tok, 'files/' + f['id'], {'alt': 'media'}, raw=True)))
-    for n, b in kept:
-        open(os.path.join(a.out, re.sub(r'\.\w+$', '.jpg', n)), 'wb').write(small(b))
+                kept.append((f['name'], f['id'], drive(tok, 'files/' + f['id'], {'alt': 'media'}, raw=True)))
+    idx_path = os.path.join(a.out, 'index.json')
+    idx = json.load(open(idx_path, encoding='utf-8')) if os.path.exists(idx_path) else {}
+    for n, fid, b in kept:
+        small_name = re.sub(r'\.\w+$', '.jpg', n)
+        open(os.path.join(a.out, small_name), 'wb').write(small(b))
+        if fid:
+            idx[small_name] = fid
+    # each photo's Drive file id, so a page can match it to the row whose photo links name it
+    if idx:
+        json.dump(idx, open(idx_path, 'w', encoding='utf-8'), indent=1)
     print(json.dumps({'day': a.day, 'photos': len(kept), 'out': a.out}))
 
 
