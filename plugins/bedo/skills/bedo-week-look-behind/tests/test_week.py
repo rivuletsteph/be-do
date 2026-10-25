@@ -209,6 +209,8 @@ def one_day(w, out, loc, rows):
     assert '<title>The Day Behind</title>' in html and X['span'] == 'day' and X['range'] == 'Tue 29 Sep', X['range']
     assert len(X['days']) == 1 and X['days'][0]['bed'] == 480 and X['days'][0]['play'] == 60, X['days']
     assert X['stream']['days'][0]['lead'] == 'a walk and a show' and X['story'][1] == ['📺', 'the show'], X['story']
+    # the day behind's own keys, for words.py (25 Oct 2026): the day, the lead as title, what is still a draft
+    assert (X['day'], X['title'], X['draft']) == ('2026-09-29', 'a walk and a show', {'lead': False, 'story': False}), X['draft']
     assert not [m for d in X['stream']['days'] for m in d['stones']], 'Wednesday\'s moments are not Tuesday\'s'
     assert run({'day': '2026-09-30', 'lead': 'x', 'story': []}).returncode, 'words for another day must be refused'
     print('ok — one day: its own window, the whole night before, its own words, and no one else\'s')
