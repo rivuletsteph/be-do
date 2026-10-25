@@ -78,7 +78,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 
 | key | status | item |
 |---|---|---|
-| 260914_0648 | ⬜ | Places and a meaningful-geography map — where time was spent, doing what, why, with whom (the places catalog is built; the map is the remaining half) |
+| 260914_0648 | ▶️ | Places and a meaningful-geography map — where time was spent, doing what, why, with whom. The catalog is built; the day behind's *where you were* card shipped 25 Oct (the route in time order, `day_places.py`). Next: the week behind's places, then coordinates on the catalog for a real map (a geocoder the environment may reach, or the Takeout export) |
 | 260915_0810 | ▫️ | An images table — thumbnails in Airtable, linked out to Drive or a photo library |
 | 260905_1804 | ▫️ | Inventory the recipes in Drive and wire them into the provisions planner |
 | 260812_1205 | ▫️ | A deep pass on the connections table — duplicates, circles, held names, missing surnames |

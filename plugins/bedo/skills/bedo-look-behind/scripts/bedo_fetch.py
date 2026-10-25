@@ -211,6 +211,18 @@ def main():
             links = {'fields': link_f, 'names': names_by_id}
         files[f'{name}.json'] = shape(recs, links)
 
+    # ── the places catalog (25 Oct 2026), for the day behind's map card: its own base,
+    # found by name like a weekly one, its fields by name — a catalog with no such base
+    # is no catalog, and the card still draws the day's stops ──
+    base = L.get('places_base') or names.get('places')
+    if base:
+        tmeta = next((t for t in air.tables(base) if t['id'] == L.get('places_table')), None) or air.tables(base)[0]
+        by = {f['name']: f['id'] for f in tmeta['fields']}
+        want = [by[k] for k in ('place', 'standing', 'where', 'serves') if k in by]
+        if by.get('place'):
+            files['places.json'] = shape(air.records(base, tmeta['id'], want))
+            files['places.json']['fields'] = {k: by[k] for k in ('place', 'standing', 'where', 'serves') if k in by}
+
     # ── write only once every read has finished (I11) ──
     os.makedirs(a.out, exist_ok=True)
     for fn, d in files.items():

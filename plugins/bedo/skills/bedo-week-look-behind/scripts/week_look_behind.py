@@ -31,6 +31,7 @@ import bedo_reader  # noqa: E402
 import bedo_drives  # noqa: E402
 import bedo_photos  # noqa: E402
 from day_rings import day_rings  # noqa: E402
+from day_places import day_places  # noqa: E402
 
 STREAM_KEYS = ('title', 'key', 'when', 'end', 'status', 'rhythm')
 OPTIONAL_STREAM_KEYS = ('spent', 'deliv', 'target', 'practice', 'wellness', 'person', 'details', 'photo', 'device',
@@ -595,6 +596,19 @@ def read_photos(folder, off):
     return out
 
 
+def read_places(path):
+    """The places catalog bedo_fetch.py saved (its fields by name), as plain rows; none when it wasn't read."""
+    if not path or not os.path.exists(path):
+        return []
+    d = json.load(open(path, encoding='utf-8'))
+    by = d.get('fields') or {}
+    out = []
+    for r in bedo_reader.complete(path):
+        c = bedo_reader.cells(r)
+        out.append(dict({k: sv(c.get(f)) for k, f in by.items()}, id=r['id']))
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--week', help='the Sunday the week opens on, or any day in it')
@@ -605,6 +619,7 @@ def main():
     ap.add_argument('--stream', action='append', required=True, help='live base first')
     ap.add_argument('--rhythms', required=True)
     ap.add_argument('--practices', help="the catalog, so a flow practice shows under its flow")
+    ap.add_argument('--places', help="with --day: the places catalog (bedo_fetch.py's places.json), for the map card")
     ap.add_argument('--template', required=True)
     ap.add_argument('--out', required=True)
     a = ap.parse_args()
@@ -635,6 +650,7 @@ def main():
                               else f'Sun {sun.day} {sun:%b} – Sat {sat.day} {sat:%b}'),
         totals=totals, drives=drives, loops=qa['feeds_loops'], **more,
         rings=day_rings(rows, day, L, L.get('_flowset') or frozenset(), NOT_LIVED) if a.day else None,
+        places=day_places(rows, day, L, read_places(a.places), NOT_LIVED, L.get('_flowset') or frozenset()) if a.day else None,
         read=' · '.join(f'{n} {k}/{k}' for n, k in reads) + f' · rhythms {nrh}/{nrh}')
     if a.day:   # the day behind's own keys, so words.py can read the words back and carry edits to the page
         W = words or {}
@@ -661,7 +677,10 @@ def main():
                           rest=dict(nights=rest['nights'], bed=round(rest['bed']), play=round(rest['play']), readiness=rest['readiness']),
                           needs={k: [f"{g['label']} {g['min']}" for g in v] for k, v in more['needs'].items()},
                           secure=f"{more['secure_days']}/{ndays} ({more['secure_assumed']} assumed)",
-                          drives=list(outline(drives)), qa=qa, read=DATA['read']), ensure_ascii=False, indent=1))
+                          drives=list(outline(drives)), qa=qa, read=DATA['read'],
+                          **({'places': dict(DATA['places']['totals'], stops=[s['n'] for s in DATA['places']['stops']],
+                                             not_in_catalog=DATA['places']['unknown'])} if DATA.get('places') else {})),
+                     ensure_ascii=False, indent=1))
 
 
 if __name__ == '__main__':

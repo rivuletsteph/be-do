@@ -38,6 +38,7 @@ stays in view down its side while its cards scroll past).
 | How the day went | "I really want to know what percentage of my time is dedicated to sleeping, moving and eating. Also on a screen, also in a vehicle. Also doing care tasks and then having fun" — and she doesn't love the current categories | How Tuesday Went (15 Sep): a donut of 24 h, each slice with its hours and a line in her words |
 | Who was in your day | "the with-people part might just belong on its own sociogram" | the original page's circles; time with each person from the rows |
 | Body | "I do want to see my readiness, my sleep, my activity scores and what affected them each day" | Base Flow (3 Oct): the ring and the bars, the week as a line; Oura contributors and her rows |
+| Where you were | "every place that shows up on Google Maps would be great to have on my map" (25 Oct); the day behind first, then the week | `day_places.py`: the Timeline stops in the stream, the drives between, the places catalog |
 
 ## Decisions still open
 
@@ -274,3 +275,38 @@ stretch can be both, on two bands. A ⭐ highlight told later sits at the
 moment's own time and no longer stretches the dawn flow's span.
 
 **Next:** icons in place of labels; then the next card (the sociogram, or what moved).
+
+## Where you were: the map card (25 Oct 2026, first pass)
+
+Her words: "every place that shows up on Google Maps would be great to have on
+my map … for now let's just focus on the day behind map card, get that working
+great, and then we can expand it to the week behind."
+
+Built right after the rainbow, from what the stream already holds, with no new
+rows asked of her:
+- **every stop Timeline shows is a place**: home, work, a gas station, a drive-thru
+  window, a park, each in order;
+- a strip of the day for the glance (time at each place, the drives dashed
+  between), then the route: each stop with its times, who was there, what
+  happened there (moments first; at home only the moments), its address, and
+  *map ↗* to open it in Google Maps;
+- the totals on top: places, miles in the car, time driving;
+- the catalog names home and work, marks a place on her list *from your list*
+  when she reaches it, and marks one it doesn't know *new to your places*.
+  Nothing is added to the catalog by the card.
+
+**Not yet a map with geography.** The build can't look up coordinates (the
+cloud environment allows no geocoder), so the route is drawn in time order.
+The map with real distances needs a latitude and longitude for each place: two
+fields on the places catalog, filled once per place, either by a geocoder the
+environment is allowed to reach or from her Takeout export.
+
+**Open, hers:**
+1. Does a place enter the catalog when it first shows on Timeline (the card
+   would then name it every time after), or only at her word, as the catalog's
+   rule says now? Proposed: at dusk, one line, *3 new places today: add them?*
+2. A row for home in the catalog, with its address, the way work has one, so a
+   Timeline stop at home always reads *home*.
+3. Walks from home and back (a loop with the dog) aren't on the route yet,
+   since nothing moved her between places; on the card, or only on the rainbow?
+
