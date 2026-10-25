@@ -47,6 +47,7 @@ CHECKS = {
     'day_ahead.no_build_rows': 'day_ahead — be•do build rows stay off the day ahead',
     'stretches': "bedo_stretches — a session's time is the sum of its stretches",
     'order': 'bedo_order — the predicted flow order',
+    'close': 'bedo_close — a chat closes with QA, then its session entry, then the rename to done',
 }
 NOT_CODE = 'judgment'
 
