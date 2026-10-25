@@ -5,9 +5,16 @@ description: "Build The Day Behind page — the look behind for one day — from
 
 # The day behind
 
-One day, looked back on. The page is the canon build settled 21 Sep 2026: chip
-and date and lead · the story · who was in your day · highlights · how the day
-went · balance · effectiveness. That order, those sections, nothing else.
+One day, looked back on. **Since 25 Oct 2026 the page is the day page**: the
+week builder's `--day` mode (`bedo-week-look-behind/scripts/week_look_behind.py`),
+in this order: chip, lead and story · the day's photos · how the day went, the
+rainbow, with its bars and goals · what mattered, the moments as cards · what
+moved forward · the numbers, folded. Every decision about it, in the user's
+words, is in `docs/day-behind-cards.md`; the rainbow's rules are
+`bedo-week-look-behind/scripts/day_rings.py`. The canon build settled 21 Sep 2026
+(who was in your day · highlights · the pie · balance · effectiveness) is still
+here as `canon`, for comparison and for its QA checks, and is no longer
+published.
 
 **This folder is the skill; what is installed is a loader.** The copy installed
 in claude.ai is two files — a loader `SKILL.md` and the user's own
@@ -118,9 +125,13 @@ built page first, so a Drive copy of the page is enough to edit from.
 ## The files, inside this skill
 
 - `run_look_behind.sh` — the runner: `prep` reads Airtable directly and prints
-  the day's digest, `build` builds, `words` reads the lead and story back or
+  the day's digest, `qa` prints the checks to clear, `build` builds the day
+  page, `canon` builds the old page, `words` reads the lead and story back or
   changes them
-- `scripts/look_behind.py` — the reader and builder
+- `bedo-week-look-behind/scripts/week_look_behind.py --day` (with `day_rings.py`,
+  `day_photos.py` and `assets/week_look_behind_engine.html`) — the day page,
+  copied in fresh at every prep
+- `scripts/look_behind.py` — the canon reader and builder; the source of `qa`
 - `scripts/words.py` — the lead and the story as a file: drafted, read back,
   changed, carried to a built page, and carried through the stream from the
   dusk chat to the morning routine (`--row-block`, `--from-stream`)
@@ -208,18 +219,28 @@ chat except the digest the words are written from.
 3. **Secure base** — the day's ⏏️ row is in the digest: `secure`, or the other
    state as the row names it. **No row:** `secure` is the assumed default
    since 29 Sep 2026 — the ⏏️ row is no longer written every day, and the other
-   state is written only when the user names a knock-back — so build `secure`
-   and say the row was absent. (Her word on this is still being asked for;
+   state is written only when the user names a knock-back — so the day page
+   reads it as secure, starred as assumed, and you say the row was absent. (Her word on this is still being asked for;
    until it comes, this is the rule.)
-4. **Build** — `bash run_look_behind.sh build YYYY-MM-DD <state>`
-   Read what it printed (below) before publishing. If it aborts on a short
-   read, don't build from a partial read: read again. It aborts the same way
+4. **QA, then build** — `bash run_look_behind.sh qa YYYY-MM-DD` prints the QA
+   block; clear it (below) in the stream, `prep` again so the build reads the
+   fixes, then `bash run_look_behind.sh build YYYY-MM-DD`. The day page reads
+   the secure base from the ⏏️ row itself (none means secure, starred as
+   assumed). When `BEDO_DRIVE_SA` or `BEDO_DRIVE_SA_FILE` holds the Drive key,
+   the build fetches the day's photos itself (`day_photos.py`); without it the
+   page builds without them and says nothing. Before publishing, check the
+   rainbow against the day, not only the QA block: a span copied onto a closed
+   ⚡ action, a session's time spent running past where the work stopped, or a
+   person tag on a long estimated stretch each paint a band wrong (Sat 24 Oct).
+   Then check the page at phone width. If a read aborts on a short read, don't
+   build from a partial read: read again. The canon build aborts the same way
    on a missing field id, a missing clock offset, or an offset that disagrees
    with `time_zone` on that day — all three are the settings file's to fix,
    never worked around.
 5. **Publish** to the living page: the Artifact tool, `url` set to
    `artifact_url` from the settings file, the same file path every day. One
-   living page, republished in place; every republish is kept as a version.
+   living page, republished in place; every republish is kept as a version
+   (the user's choice, 25 Oct 2026, when the day page took it over).
 6. **Save the page to Drive**, in the folder of its own week:
    `be•do/<year>-W## <Mon D>/YYYY-MM-DD-day-behind.html` — the folder named for
    the week number and its Sunday, no leading zero. Search the folder by name;
@@ -343,7 +364,7 @@ page goes out:
   each one that happened its own row (a 🗓️ calendar event, ✅ done, titled as
   the calendar line, with the event link), and note any drift from the plan.
 
-**Check what the build printed** before publishing. Three lines are worth
+**Check what `qa` printed** before building. These lines are worth
 reading:
 - `estimates_trimmed_min` above zero means the logged and estimated minutes
   overran twenty-four hours and estimates were cut to fit. Say so in the chat.
@@ -456,10 +477,11 @@ its file in the week's `W## photos` folder (`photo_links`).
 `run_look_behind.sh build` fetches the day's photos from that folder with
 `day_photos.py` (the week behind's) when a Drive key is here (`BEDO_DRIVE_SA` or
 `BEDO_DRIVE_SA_FILE`, the service account the folders are shared with) and
-passes `--photos`. The strip shows up to five: keepers first, drawn large, then
-the rest she shared; a photo whose row is info (food on its own, a pill, a
-screen) is left out. No key: the strip stays hidden and the page builds as
-before. The build prints `photos` with what was read, placed and left out.
+passes `--photos` to the day page (`week_look_behind.py --day`): each photo on
+its row, else in the day's pictures with keepers first; a photo whose row is
+info (food on its own, a pill, a screen) is left out. `canon` (`look_behind.py`)
+draws the strip instead: up to five, keepers first, drawn large. No key: the
+page builds without photos. The build prints `photos` with what was read, placed and left out.
 Settings: `fields.stream.photo`, `photo_checked`, `photo_links` in
 `look_behind_local` (optional; an older base without them reads as no photos).
 

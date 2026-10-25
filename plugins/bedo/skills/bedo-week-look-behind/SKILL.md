@@ -109,9 +109,10 @@ from the updated week page). `week_look_behind.py --day YYYY-MM-DD --words
 words-YYYY-MM-DD.json` (the day behind's words file, refused if written for
 another day) builds the page for that day alone: its lead and story on top,
 its moments as stones, the numbers folded below, titled The Day Behind. The
-night that ended that morning counts whole, in day and week alike. It is a
-trial beside the canon day behind, published to its own page, not the living
-one.
+night that ended that morning counts whole, in day and week alike. Since 25 Oct
+2026 it is the day behind: the day skill's `run_look_behind.sh build` runs it and
+publishes to the living page. It carries `day`, `title` (the lead) and `draft`
+in its data, so the day skill's `words … --to-page` edits it in place.
 
 **How the day went** (24 Oct 2026, settled with her on Fri 23 Oct; every
 decision and her words are in `docs/day-behind-cards.md`). On a single day the
@@ -139,7 +140,11 @@ page opens, after the lead and story, with the waking day as a rainbow:
   the rhythms and people whose rows are caretaking (name parts);
   `system_rhythm`, the drive that is be•do itself; and `day_goals`, minutes a
   day by part (`{"inbed": 480, "move": 120}`; the night is measured against
-  `inbed`). All three were added to the live row on 24 Oct 2026.
+  `inbed`). All three were added to the live row on 24 Oct 2026. `recreation` —
+  `{"rhythms": [...]}`, rhythms whose lived rows with a span are recreation too,
+  whatever else they were (added 25 Oct 2026: her adventure rhythm).
+- A flow step placed at the moment's own time (a ⭐ highlight told later) does
+  not stretch its flow's span.
 Test: `tests/test_day_rings.py`.
 
 **Photos** (22 Oct 2026, her word: photos that piece the day together).

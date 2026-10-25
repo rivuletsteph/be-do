@@ -265,4 +265,12 @@ its own colour; a goal is a dark mark on its bar. Goals she has named: 8 h in
 bed, 2 h moving (`day_goals` in the settings). Each part is also outlined in
 its own colour's deeper shade, so eating and moving read apart on small pieces.
 
+**Recreation and caretaking at once, 25 Oct (Sat 24 Oct's QA).** A trampoline
+park with her son: "it was recreation and caretaking. I don't know how to define
+those. I mean it was recreation, my boy." The way through: caretaking is who it
+is for (her care people and rhythms), recreation is what it is (its practice, or
+a rhythm named in `recreation` in the settings: her adventure rhythm). One
+stretch can be both, on two bands. A ⭐ highlight told later sits at the
+moment's own time and no longer stretches the dawn flow's span.
+
 **Next:** icons in place of labels; then the next card (the sociogram, or what moved).

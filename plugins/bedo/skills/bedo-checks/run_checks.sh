@@ -12,6 +12,7 @@
 #                                # MMDD: a my day chat's date, from its title; the two reads let it deduce wellness
 #   bash run_checks.sh stretches FILE        # stamps, a claude.ai chat read, or a transcript
 #   bash run_checks.sh order [--json]        # her predicted order: typical times to write to the catalog
+#   bash run_checks.sh close --chat URL --title "TITLE" [--date YYYY-MM-DD]   # the chat close: QA, entry, title
 #
 # With an Airtable token (AIRTABLE_PAT, a bedo_secrets.json, or a Claude cloud
 # session's proxy) the checks read Airtable themselves. Without one, read through
@@ -65,7 +66,7 @@ find_local() {
   echo "facts_local.json not found — copy the skill's assets/facts_local.json into the working folder"; exit 1
 }
 
-has_files() { for a in "$@"; do case "$a" in --bases|--stream|--catalog|--day) return 0;; esac; done; return 1; }
+has_files() { for a in "$@"; do case "$a" in --bases|--stream|--catalog|--day|--rows) return 0;; esac; done; return 1; }
 
 live_or_files() {   # $1 = what to say is needed; rest = the args
   local need=$1; shift
@@ -107,6 +108,13 @@ case "$CMD" in
     else echo "NO TOKEN HERE: expected in Cowork or a plain chat, not a failure. Don't run the checks by hand."
          echo "Read through the Airtable connector and run this again with --stream (each weekly base, live first) and --catalog files"; exit 3; fi
     "$PY" "$W/core/bedo_order.py" "$@" ;;
+  close)   # her rule, 25 Oct 2026: QA, then the session entry, then the rename to done
+    [ -d "$W/core" ] || fetch_core; find_local
+    if has_files "$@"; then :
+    elif (cd "$W/core" && "$PY" -c 'import bedo_air, sys; sys.exit(0 if bedo_air.can_read() else 1)'); then set -- --live "$@"
+    else echo "NO TOKEN HERE: expected in Cowork or a plain chat, not a failure. Don't run the checks by hand."
+         echo "Read the chat's ⚡ entry (and, for a my day chat, the day's rows) through the connector and run this again with --rows FILE"; exit 3; fi
+    "$PY" "$W/core/bedo_close.py" "$@" ;;
   stretches)
     [ -d "$W/core" ] || fetch_core; find_local
     "$PY" "$W/core/bedo_stretches.py" "$@" ;;
@@ -147,5 +155,5 @@ for r in rows:
 sys.exit(1 if bad else 0)
 E
     ;;
-  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|entry|stretches|order [args]"; exit 2 ;;
+  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|entry|stretches|order|close [args]"; exit 2 ;;
 esac

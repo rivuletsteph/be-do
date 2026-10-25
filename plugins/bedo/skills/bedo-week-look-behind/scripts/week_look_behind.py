@@ -636,6 +636,10 @@ def main():
         totals=totals, drives=drives, loops=qa['feeds_loops'], **more,
         rings=day_rings(rows, day, L, L.get('_flowset') or frozenset(), NOT_LIVED) if a.day else None,
         read=' · '.join(f'{n} {k}/{k}' for n, k in reads) + f' · rhythms {nrh}/{nrh}')
+    if a.day:   # the day behind's own keys, so words.py can read the words back and carry edits to the page
+        W = words or {}
+        DATA.update(day=day.isoformat(), title=W.get('lead') or '',
+                    draft={p: p in (W.get('draft') or []) for p in ('lead', 'story')})
     tpl = open(a.template, encoding='utf-8').read()
     if '/*__DATA__*/null' not in tpl:
         die(f'{a.template}: no /*__DATA__*/null placeholder — is this the engine?')

@@ -21,6 +21,7 @@ only where nothing can execute, and then copy the same shape.
 | the meals alone | `meals --json` | every meal's prep and eating placed from context (her rules, the meals amendment): write the proposed rows ESTIMATED FROM CONTEXT through `entry`, then show her the printed list as what went in the record and ask if it's accurate. Never ask her to fill the times in |
 | a session entry | `stretches FILE` | the time spent is the sum it prints, and the stretches are named in the `[be•do]` block |
 | the weekly close | `order --json` | her predicted order: each flow practice's typical time from the last weeks of her rows (dawn as minutes after waking, dusk as clock time). Write the printed updates to the catalog's `typical time` field with the connector |
+| the end of every chat — she says *let's end the session*, or plainly that she's done | `close --chat URL --title "TITLE"` (a my day chat adds `--date YYYY-MM-DD`) | her order, 25 Oct: QA, then the session entry, then the rename. Do each `FIX` in the order printed — run `dayqa` (my day) or fix the entry, write the entry with the session-entry skill, rename the chat — and run it again until it prints `closed`. Only then is the chat done |
 
 ## Running it
 
@@ -34,6 +35,7 @@ bash run_checks.sh meals                     # the day's meals: prep and eating,
 bash run_checks.sh dayqa 2026-10-09          # the day's QA: one list to accept, at the dusk close
 bash run_checks.sh entry row.json --base "w41 be•do" --chat 1008
 bash run_checks.sh stretches transcript.jsonl
+bash run_checks.sh close --chat https://claude.ai/code/session_… --title "✔️1024 … my day" --date 2026-10-24
 ```
 
 `preflight` downloads the core fresh from the version store; the other

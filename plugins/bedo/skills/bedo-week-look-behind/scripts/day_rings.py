@@ -20,7 +20,10 @@ Nothing personal lives here. What counts as caretaking beyond the practices
 below (her rhythms and the people she cares for) is `care` in the settings:
 {"rhythms": [...], "people": [...]}; the system's own drive is `system_rhythm`;
 the daily goals the bars under the rainbow mark are `day_goals`, minutes by part
-({"inbed": 480, "move": 120}).
+({"inbed": 480, "move": 120}). Recreation beyond the practices below is
+`recreation` in the settings, {"rhythms": [...]}: a lived row with a span on
+one of those rhythms is recreation too, whatever else it was (Urban Air with
+her son, 24 Oct: "it was recreation and caretaking").
 """
 import datetime as dt
 import re
@@ -46,6 +49,7 @@ SCREENISH = {'action', 'log', 'text', 'ai chat', 'video call', 'phone', 'usage c
              'look ahead', 'look behind', 'intention check', 'journal', 'insight'}
 MOMENTS = {'highlight', 'glimmer', 'gratitude', 'insight', 'milestone', 'journal'}
 FLOW_CLOSES = {'dawn flow close', 'dusk flow close'}
+AT_THE_MOMENT = {'highlight'}  # a flow step whose row sits at the moment's own time, not when the step was done
 
 BANDS = [('flow', 'Flows', [('flow', 'dawn and dusk')]),
          ('being', 'Being', [('eat', 'eating and drinking'), ('move', 'moving'), ('recreation', 'recreation')]),
@@ -80,6 +84,7 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset()):
     e0 = s0 + dt.timedelta(days=1)
     care = L.get('care') or {}
     care_rh, care_who = tuple(care.get('rhythms') or ()), tuple(care.get('people') or ())
+    rec_rh = tuple((L.get('recreation') or {}).get('rhythms') or ())
     system = L.get('system_rhythm') or 'be•do'
     shared = (bedo_reader.FACTS.get('garden') or {}).get('shared_pattern')
 
@@ -128,14 +133,14 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset()):
             paint('eat', 'eat', a, bb, t)
         if pr in MOVE:
             paint('move', 'move', a, bb, t)
-        if pr in RECREATION and span:
+        rh, who = (r.get('rhythm') or ''), names(r.get('person'))
+        if span and (pr in RECREATION or (pr != 'action' and any(x in rh for x in rec_rh))):
             paint('recreation', 'recreation', a, b, t)
-        if pr in flows or pr in FLOW_CLOSES:
+        if (pr in flows and pr not in AT_THE_MOMENT) or pr in FLOW_CLOSES:
             paint('flow', 'flow', a, bb, t)
             WIN['dawn' if a.hour < 15 else 'dusk'].append(a)
         if pr == 'driving' and span:
             paint('drive', 'drive', a, b)
-        rh, who = (r.get('rhythm') or ''), names(r.get('person'))
         is_care = pr in CARE or any(x in rh for x in care_rh) or (
             span and pr in ('log', 'driving') and any(w in t or any(w in n for n in who) for w in care_who))
         if is_care and span:
