@@ -20,7 +20,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 
 | key | status | item |
 |---|---|---|
-| 260924_2221b | The day behind fires at 03:00 Central and lands on the living page; the routine drafts the words, dusk builds nothing, a failure is a push notification. A my day chat is ✔️ once its look behind is seen. | routine trig_01TVzvCv9aDCJ4FWvC4qr9y1, 8 Oct 2026 |
+| 260924_2221b | ⏸️ | The day behind is built by hand, when she asks. The 03:00 routine (trig_01TVzvCv9aDCJ4FWvC4qr9y1) was paused on 11 Oct and stays off — her word, 24 Oct 2026: I don't want anything to build at 3am; let's get a version I'm happy with working and I'll build it manually. A my day chat is ✔️ once its look behind is seen. |
 | 260915_0744 | ⬜ | One codebase for the behind and ahead pages — mobile, nightly, reading Airtable, depersonalised |
 | 260921_1444c | ⬜ | The day behind's folded "more" — river, map, flows, self-check |
 | 260921_1444b | ⬜ | The day ahead as the day behind's mirror — her intentions in the same slots, linked both ways |
@@ -41,6 +41,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 261004_1045 | ▶️ | Base flow card shipped; next the look behind and look ahead for day, week and month — an earthy palette, the look ahead light and the look behind dark; later nutrition folded into body |
 | 261004_1536 | ▶️ | Page cards from her review of every past page — card 2 (perhaps the dark mirror of card 1), whether the forward map gets its own card, card 1 into the day ahead itself |
 | 261009e | ⬜ | The day chat's Airtable read came back 401 on 9 Oct, so the day ahead couldn't build there; the cloud session's credential worked the same morning. Find which token the claude.ai chat holds and replace it, or settle that the day ahead builds only in Claude Code |
+| 261024a | ⬜ | A session row records when the laptop ran, not when she was working. Her word, 24 Oct 2026: if the laptop is running that's not me working; it's what I'm actually doing. Record when she was actually in a session, so working time is hers; until then the day behind counts a session's minutes only while she wasn't driving, eating, moving or asleep |
 
 ## Calendar
 

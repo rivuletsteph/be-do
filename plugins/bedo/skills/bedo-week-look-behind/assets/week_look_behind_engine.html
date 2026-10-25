@@ -83,9 +83,26 @@ a{color:var(--link)}
 .sd.empty{display:none}
 .fw{background:var(--tint);border:1px solid var(--rule);border-radius:14px;padding:10px 14px;display:grid;gap:2px}
 .fw b{font-size:1rem}.fw .v{font:400 .74rem var(--mono);color:var(--muted)}
-.stream{position:relative;margin:18px 0 0;padding-left:26px}
+.fw .ds{font:400 .74rem var(--mono);color:var(--water);overflow-wrap:anywhere}
+.fw.none b{color:var(--soft)}
+/* a tile opens to the moments that reached it; each one jumps to its card in the stream (22 Oct 2026) */
+details.fw{padding:0}
+details.fw>summary{list-style:none;cursor:pointer;padding:10px 14px;display:grid;gap:3px;border-radius:14px}
+details.fw>summary::-webkit-details-marker{display:none}
+details.fw>summary:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+details.fw .v::after{content:" · show";color:var(--link)}
+details.fw[open] .v::after{content:" · hide"}
+.fm{display:grid;gap:2px;margin:0;padding:0 8px 10px;list-style:none;border-top:1px solid var(--rule)}
+.fm button{all:unset;cursor:pointer;display:grid;grid-template-columns:1.6rem 3.4rem minmax(0,1fr);align-items:baseline;gap:6px;padding:7px 6px;border-radius:10px;font-size:.88rem;line-height:1.35;color:var(--ink)}
+.fm button:hover,.fm button:focus-visible{background:var(--ground)}
+.fm button:focus-visible{outline:2px solid var(--link)}
+.fm .tm{font:400 .72rem var(--mono);color:var(--muted)}
+.stone.hit{outline:2px solid var(--link);outline-offset:2px}
+@media (prefers-reduced-motion:no-preference){.stone{transition:outline-color .6s}}
+.stream{position:relative;margin:8px 0 0;padding-left:26px}
 .stream::before{content:"";position:absolute;left:9px;top:6px;bottom:6px;width:3px;border-radius:3px;background:linear-gradient(var(--water),var(--terra))}
 .sd{position:relative;margin:0 0 22px}
+.sd:last-child{margin-bottom:0}
 .sd::before{content:"";position:absolute;left:-23px;top:5px;width:11px;height:11px;border-radius:50%;background:var(--ground);border:3px solid var(--water)}
 .sd h2{font:600 .78rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0}
 .sd .dl{font:500 italic 1.1rem/1.3 var(--display);color:var(--terra);margin:2px 0 8px}
@@ -95,14 +112,65 @@ a{color:var(--link)}
 .stone .tt{font-weight:600;line-height:1.3;overflow-wrap:anywhere}
 .stone .bd{font-size:.82rem;margin-left:4px}
 .stone .her{font-style:italic;font-size:.9rem;line-height:1.45;color:var(--soft);overflow-wrap:anywhere}
-.stone .her .more{font:500 .78rem var(--sans);font-style:normal;color:var(--link);background:none;border:0;padding:0;cursor:pointer}
-.stone .her .more:focus-visible{outline:2px solid var(--terra);outline-offset:2px;border-radius:3px}
+.her .more{font:500 .78rem var(--sans);font-style:normal;color:var(--link);background:none;border:0;padding:0;cursor:pointer}
+.her .more:focus-visible{outline:2px solid var(--terra);outline-offset:2px;border-radius:3px}
 .stone .her [hidden]{display:none}
 .stone .meta{font:400 .74rem var(--mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 12px}
 .stone .to{font:400 .72rem var(--mono);color:var(--water);overflow-wrap:anywhere}
 .stone.big{border-color:var(--terra);box-shadow:inset 3px 0 0 var(--terra)}
+.dlead{font:500 italic 1.25rem/1.35 var(--display);color:var(--ink);margin:0}
+.dstory{margin:12px 0 4px;display:grid;gap:6px}
+.dstory li{display:grid;grid-template-columns:1.8rem minmax(0,1fr);font-size:.95rem;line-height:1.4;color:var(--soft)}
+.sh{font:500 italic clamp(1.6rem,6.5vw,2.1rem)/1.2 var(--display);color:var(--terra);margin:8px 0 0;text-wrap:balance}
+.moments{display:grid;gap:18px;margin:10px 0 0}
+.mo{display:grid;grid-template-columns:2.2rem minmax(0,1fr);gap:10px}
+.mo .g{font-size:1.5rem;line-height:1.2}
+.mo .tt{font-weight:600;line-height:1.35;margin:0}
+.mo .her{font-style:italic;font-size:.92rem;line-height:1.5;color:var(--soft);margin:3px 0 0}
+.mo .her summary{list-style:none;cursor:pointer;color:var(--soft);font-size:.92rem}
+.mo .her summary::-webkit-details-marker{display:none}
+.mo .her summary b{font-style:normal;font-weight:500;color:var(--link);font-size:.78rem}
+.mo .meta{font:400 .72rem var(--mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 12px;margin:4px 0 0}
+.mo .ph{display:grid;gap:6px;margin:8px 0 0}
+.mo .ph img,.stone .ph img{display:block;width:100%;max-width:100%;border-radius:12px}
+.stone .ph{display:grid;gap:6px;margin:6px 0 2px}
+.pics{display:flex;gap:10px;overflow-x:auto;margin:16px 0 0;padding-bottom:6px;scroll-snap-type:x mandatory}
+.pics figure{margin:0;flex:0 0 min(68%,240px);scroll-snap-align:start;min-width:0}
+.pics img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:12px;background:var(--tint)}
+.pics figcaption{font:400 .72rem var(--mono);color:var(--muted);margin-top:4px;line-height:1.35}
+.mv{display:grid;gap:14px;margin:10px 0 0}
+.mv .dh{display:flex;align-items:baseline;gap:8px;margin:0;font-size:.95rem}
+.mv .dh .n{font-weight:600}
+.mv .dh .m{font:400 .72rem var(--mono);color:var(--muted);margin-left:auto;white-space:nowrap}
+.mv ul{list-style:none;margin:4px 0 0;padding:0 0 0 1.9rem;display:grid;gap:3px}
+.mv li{font-size:.86rem;line-height:1.4;color:var(--soft)}
+/* how the day went — the rainbow (24 Oct 2026, docs/day-behind-cards.md): neutral flows, cool hues for being,
+   warm hues for doing, the night in blue in the gap; every colour a token, light and dark */
+:root{--rb-flow:#DDD5C9;--rb-flow-d:#8C8174;--rb-flow-t:#F1ECE4;--rb-eat:#86C2A4;--rb-move:#B4C987;--rb-recreation:#9FC4E2;--rb-being-t:#EEF4F3;--rb-being-d:#4F7F78;
+--rb-work:#C9805F;--rb-care:#E3A4A8;--rb-cook:#EEB672;--rb-system:#DCC89C;--rb-doing-t:#FAF0EA;--rb-doing-d:#94593D;--rb-screen:#2C2620;--rb-screen-d:#2C2620;--rb-screen-t:#ECE5DA;
+--rb-sleep:#D4DEF0;--rb-sleep-deep:#6F8CC4;--rb-sleep-d:#5A73A8;--rb-eat-d:#3F8A68;--rb-move-d:#6E8A35;--rb-recreation-d:#4A7FAE;--rb-work-d:#8E4A2C;--rb-care-d:#B05E66;--rb-cook-d:#B07A2A;--rb-system-d:#9C8455}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--rb-flow:#4A4540;--rb-flow-d:#BDB3A6;--rb-flow-t:#2B2830;--rb-being-t:#24302D;--rb-being-d:#CDE7DF;--rb-doing-t:#352B27;--rb-doing-d:#F4E0D4;--rb-screen:#EDE4E0;--rb-screen-d:#EDE4E0;--rb-screen-t:#2E2A30;--rb-sleep:#3A4766;--rb-sleep-deep:#8FA8DA;--rb-sleep-d:#C9D6EE;--rb-eat-d:#C4E6D4;--rb-move-d:#DCE8BC;--rb-recreation-d:#CFE2F2;--rb-work-d:#F0C6B2;--rb-care-d:#F5D0D2;--rb-cook-d:#F7D9AE;--rb-system-d:#EEE2C6}}
+:root[data-theme="dark"]{--rb-flow:#4A4540;--rb-flow-d:#BDB3A6;--rb-flow-t:#2B2830;--rb-being-t:#24302D;--rb-being-d:#CDE7DF;--rb-doing-t:#352B27;--rb-doing-d:#F4E0D4;--rb-screen:#EDE4E0;--rb-screen-d:#EDE4E0;--rb-screen-t:#2E2A30;--rb-sleep:#3A4766;--rb-sleep-deep:#8FA8DA;--rb-sleep-d:#C9D6EE;--rb-eat-d:#C4E6D4;--rb-move-d:#DCE8BC;--rb-recreation-d:#CFE2F2;--rb-work-d:#F0C6B2;--rb-care-d:#F5D0D2;--rb-cook-d:#F7D9AE;--rb-system-d:#EEE2C6}
+.rb svg{display:block;width:calc(100% + 24px);max-width:560px;height:auto;margin:4px -12px 0;overflow:visible}
+@media (min-width:600px){.rb svg{margin:4px auto 0;width:100%}}
+.rb svg text{font-family:var(--mono);fill:var(--muted)}
+.rb svg [data-tip]{cursor:pointer}
+.rb svg [data-tip]:focus-visible,.rb svg [data-tip].on{outline:none;stroke:var(--ink);stroke-width:2}
+.rb .tip{min-height:3.2em;margin:4px 0 0;padding:10px 12px;border-radius:12px;background:var(--tint);font-size:.86rem;line-height:1.45;color:var(--soft)}
+.rb .tip b{color:var(--ink);font-weight:600}
+.rb .bars{display:grid;gap:7px;margin:14px 0 0}
+.rb .bh{margin:8px 0 0;font:600 .68rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.rb .bh span{font:500 .72rem var(--mono);letter-spacing:0;text-transform:none;margin-left:6px}
+.rb .br{display:grid;grid-template-columns:6.2rem minmax(0,1fr) 4.8rem;align-items:center;gap:10px}
+.rb .bn{font-size:.84rem;color:var(--soft);line-height:1.2}
+.rb .bt{position:relative;height:14px;border-radius:7px;background:var(--tint)}
+.rb .bt i{position:absolute;left:0;top:0;bottom:0;border-radius:7px;border:1.5px solid;min-width:3px}
+.rb .bt b{position:absolute;top:-4px;bottom:-4px;width:2.5px;margin-left:-1px;border-radius:2px;background:var(--ink)}
+.rb .bv{font:500 .8rem var(--mono);font-variant-numeric:tabular-nums;text-align:right;color:var(--ink);line-height:1.15}
+.rb .bv small{display:block;font-size:.68rem;color:var(--muted)}
+.restline{font:400 .78rem var(--mono);color:var(--muted);border-top:1px solid var(--rule);padding-top:14px;margin:26px 0 0}
 .tex{font-size:.8rem;color:var(--muted);line-height:1.5;margin:2px 0 0}
-details.numbers{margin-top:26px;border-top:1px solid var(--rule);padding-top:14px}
+details.numbers{margin:0}
 details.numbers>summary{cursor:pointer;font:500 italic 1.15rem var(--display);color:var(--terra)}
 .garden{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}
 .fl{background:var(--tint);border-radius:16px;padding:10px 10px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
@@ -122,10 +190,12 @@ const DATA = /*__DATA__*/null;
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const hm = m => { m = Math.round(m || 0); const h = Math.floor(m / 60), r = m % 60; return h ? (r ? `${h} h ${String(r).padStart(2, "0")}` : `${h} h`) : `${r} min`; };
 const T = DATA.totals, P = document.getElementById("page");
+// one engine for the week and for a single day drawn the same way (20 Oct 2026)
+const SP = DATA.span || "week", ND = DATA.ndays || 7, ONE = SP === "day";
 const extra = (n, w) => n ? ` · ${n} ${w}` : "";
 P.innerHTML = `<div class="chip">${esc(DATA.chip)}</div>
-<p class="eyebrow">the look behind · the week · ${esc(DATA.week)} · ${esc(DATA.range)}</p>
-<h1 class="hd">what gave the week meaning</h1>
+<p class="eyebrow">the look behind · the ${SP} · ${esc(DATA.week)} · ${esc(DATA.range)}</p>
+<h1 class="hd">what gave the ${SP} meaning</h1>
 <p class="lead" id="slead" style="margin-top:8px"></p>
 <div class="card riv"><div class="rscroll"><svg id="river" role="img" aria-label="Each moment that mattered, flowing from its day to the flow, rhythm or drive it belongs to, and on to the destinations they serve"></svg></div>
 <div class="rkey" id="rkey"></div><p class="hint" id="rhint">tap a flow, rhythm, drive or destination to see just its moments below</p></div>
@@ -139,7 +209,7 @@ P.innerHTML = `<div class="chip">${esc(DATA.chip)}</div>
 <div class="stat"><b>${hm(DATA.time.people)}</b><span>with people</span></div></div>
 <div class="bars" id="areas" style="margin-top:14px"></div></section>
 <section><p class="label">what moved forward</p>
-<p class="note">every action closed in the week, and what is in motion and was touched in it</p>
+<p class="note">every action closed in the ${SP}, and what is in motion and was touched in it</p>
 <div id="moved"></div></section>
 <section><p class="label">rest as a reset</p>
 <p class="lead" id="restlead"></p>
@@ -147,15 +217,16 @@ P.innerHTML = `<div class="chip">${esc(DATA.chip)}</div>
 <section><p class="label">needs · on the secure base</p>
 <p class="lead" id="needlead"></p>
 <div id="needs"></div><div id="needdays"></div></section>
-<section><p class="label">the week on its drives</p>
+<section><p class="label">the ${SP} on its drives</p>
 <p class="note">each counted once${extra(hm(T.min_no_drive) !== "0 min" ? hm(T.min_no_drive) : "", "logged on no drive")}${extra(T.closed_no_drive, "closed on no drive")}${extra(T.open_no_drive, "open on no drive")}</p>
 <div class="stats"><div class="stat"><b>${hm(T.min)}</b><span>on drives</span></div>
 <div class="stat"><b>${T.closed}</b><span>✅ closed</span></div>
 <div class="stat"><b>${T.open}</b><span>still open</span></div></div></section>
 <section><p class="label">by drive</p>
-<p class="note">the drives that moved this week; a drive that feeds another sits under it, and its time and counts are in the parent's numbers</p>
+<p class="note">the drives that moved this ${SP}; a drive that feeds another sits under it, and its time and counts are in the parent's numbers</p>
 <div id="drives"></div><details id="quiet"><summary></summary><div id="quietdrives" style="margin-top:10px"></div></details></section>
-</details>
+</details></article>
+</div>
 <section class="foot" id="foot"></section>`;
 // one drive: its numbers including what feeds it, then its own lists, then the drives that feed it
 const node = n => {
@@ -172,7 +243,7 @@ const node = n => {
 // only the drives that moved are shown; the ones holding open items alone fold away (19 Oct 2026: the drive list is overwhelming)
 const moved = n => n.min > 0 || n.closed > 0;
 const live = DATA.drives.filter(moved), quiet = DATA.drives.filter(n => !moved(n));
-document.getElementById("drives").innerHTML = live.length ? live.map(node).join("") : `<p class="note">no drive moved this week</p>`;
+document.getElementById("drives").innerHTML = live.length ? live.map(node).join("") : `<p class="note">no drive moved this ${SP}</p>`;
 if (quiet.length) {
   document.querySelector("#quiet summary").textContent = `${quiet.length} more drives, open items only · ${quiet.reduce((s, n) => s + n.open, 0)} open`;
   document.getElementById("quietdrives").innerHTML = quiet.map(node).join("");
@@ -189,6 +260,7 @@ document.getElementById("slead").textContent = SM.n
   ? `${SM.n} moments mattered this week. Up top, the two flows you return to every day — how much of each you did, and whether you closed it. Below, each moment is what it was, in your words, on the rhythm or drive it lived in; a purple dot means a flow caught it.`
   : "no moments marked this week — a highlight, a glimmer, a gratitude or a few lines of your words is what lands here";
 // a long passage shows its opening; "more" reveals only the rest, in place (20 Oct 2026: no repeated text)
+const clock = at => { const [h, m] = at.slice(11, 16).split(":").map(Number); return `${h % 12 || 12}:${String(m).padStart(2, "0")}${h < 12 ? "a" : "p"}`; };
 const words = w => {
   if (!w) return "";
   if (w.length <= 260) return `<div class="her">${esc(w)}</div>`;
@@ -206,7 +278,8 @@ const stone = m => {
   const big = m.memory || m.synergy || (m.words || "").length > 500;
   return `<div class="stone${big ? " big" : ""}" data-at="${esc(sid(m))}"><span class="g">${esc(m.g || "·")}</span><div class="body">` +
     `<div class="tt">${esc(m.t)}${m.badges.length ? `<span class="bd">${esc(m.badges.join(" "))}</span>` : ""}</div>` +
-    words(m.words) + (meta.length ? `<div class="meta">${meta.map(x => `<span>${x}</span>`).join("")}</div>` : "") +
+    words(m.words) + ((m.photos || []).length ? `<div class="ph">${m.photos.map(src => `<img src="${src}" alt="" loading="lazy">`).join("")}</div>` : "") +
+    (meta.length ? `<div class="meta">${meta.map(x => `<span>${x}</span>`).join("")}</div>` : "") +
     flowline + (path.length ? `<div class="to">→ ${path.map(esc).join(" → ")}</div>` : "") + `</div></div>`;
 };
 document.getElementById("stream").innerHTML = SM.days.map(d =>
@@ -219,7 +292,7 @@ document.getElementById("stream").innerHTML = SM.days.map(d =>
 // gather on it and ends in the destination it serves. An envelope (the trip) is a band behind
 // its days. Colour is the KIND of place (validated: dataviz validate_palette, light and dark).
 (function () {
-  const svg = document.getElementById("river"); if (!svg || !SM.n) { document.querySelector(".riv")?.remove(); return; }
+  const svg = document.getElementById("river"); if (!svg || !SM.n || ONE) { document.querySelector(".riv")?.remove(); return; }
   const dark = (matchMedia("(prefers-color-scheme: dark)").matches && document.documentElement.dataset.theme !== "light")
     || document.documentElement.dataset.theme === "dark";
   const KC = dark ? {flow: "#9b6fd6", rhythm: "#199e70", drive: "#d95926", destination: "#3987e5"}
@@ -362,7 +435,7 @@ const rd = R.readiness, ra = R.activity || [];
 document.getElementById("restlead").textContent =
   `${hm(R.bed)} in bed across ${R.nights} logged night${R.nights === 1 ? "" : "s"}, ${hm(R.play)} of play` +
   (rd.length ? `; morning readiness ${rd.join(" · ")}` : "") + (ra.length ? `; activity ${ra.join(" · ")}` : "") +
-  ". Rest is counted here as part of the week's work, not time away from it.";
+  `. Rest is counted here as part of the ${SP}'s work, not time away from it.`;
 document.getElementById("restdays").innerHTML = `<table class="days"><tr><th>day</th><th>in bed</th><th>readiness</th><th>sleep</th><th>activity</th><th>play</th></tr>` +
   Dd.map(d => `<tr><td class="s">${esc(d.day)}</td><td>${d.bed ? hm(d.bed) : "—"}</td><td>${d.readiness ?? "—"}</td><td>${d.sleep_score ?? "—"}</td><td>${d.activity ?? "—"}</td><td>${d.play ? hm(d.play) : "—"}</td></tr>`).join("") + `</table>`;
 // coverage — how much of the waking week any row covers: the size of every number on this page
@@ -374,7 +447,7 @@ document.getElementById("cover").innerHTML = `the record covers <b>${hm(TM.logge
 const NE = DATA.needs, dsum = NE.deficiency.reduce((s, g) => s + g.min, 0), gsum = NE.growth.reduce((s, g) => s + g.min, 0);
 const pct = (a, b) => (a + b) ? Math.round(100 * a / (a + b)) : 0;
 document.getElementById("needlead").textContent =
-  `${DATA.secure_days} of 7 days on a secure base${DATA.secure_assumed ? ` (${DATA.secure_assumed} assumed — no ⏏️ row)` : ""}. ` +
+  `${ONE ? (DATA.secure_days ? "On a secure base" : "Not on a secure base") : `${DATA.secure_days} of ${ND} days on a secure base`}${DATA.secure_assumed ? ` (${DATA.secure_assumed} assumed — no ⏏️ row)` : ""}. ` +
   `${hm(dsum)} went to deficiency needs and ${hm(gsum)} to growth needs — ${pct(gsum, dsum)}% growth. ` +
   `From a secure base the deficiency needs get met, and that is what lets the growth side open.`;
 const side = (k, cls) => NE[k].map(g => {
@@ -387,5 +460,128 @@ document.getElementById("needdays").innerHTML = `<table class="days"><tr><th>day
   Dd.map(d => `<tr><td class="s">${esc(d.day)}</td><td class="s">${d.secure === "secure" ? (d.assumed ? "secure*" : "secure") : esc(d.secure)}</td><td>${d.deficiency ? hm(d.deficiency) : "—"}</td><td>${d.growth ? hm(d.growth) : "—"}</td>` +
     `<td><span class="split"><i class="d" style="width:${pct(d.deficiency, d.growth)}%"></i><i class="g" style="width:${(d.deficiency + d.growth) ? 100 - pct(d.deficiency, d.growth) : 0}%"></i></span></td></tr>`).join("") +
   `</table><p class="note" style="margin-top:6px">* no ⏏️ row that day; secure is the default. Deficiency: ${NE.deficiency.map(g => esc(g.label)).join(", ")} · growth: ${NE.growth.map(g => esc(g.label)).join(", ")}</p>`;
+// how the day went (24 Oct 2026): the waking day as a rainbow — up on the left, the evening down on the right,
+// the ends bent back like an open book's covers; the night in the gap at the bottom; bands overlap freely
+const rainbow = RB => {
+  if (!RB || !RB.bands) return "";
+  const SPAN = RB.span, WAKE = RB.wake, END = WAKE + SPAN, BED = RB.bed == null ? Math.min(1440, END) : RB.bed;
+  const SWEEP = 240, CX = 200, CY = 205, IDEAL = RB.ideal_bed, GAPDEG = 360 - SWEEP;
+  const th = m => (-90 - SWEEP / 2 + (Math.min(Math.max(m, WAKE), END) - WAKE) / SPAN * SWEEP) * Math.PI / 180;
+  const pt = (r, m) => [CX + r * Math.cos(th(m)), CY + r * Math.sin(th(m))];
+  const band = (r0, r1, a, b) => { const L = (b - a) / SPAN * SWEEP > 180 ? 1 : 0, [x0, y0] = pt(r1, a), [x1, y1] = pt(r1, b), [x2, y2] = pt(r0, b), [x3, y3] = pt(r0, a);
+    return `M${x0} ${y0}A${r1} ${r1} 0 ${L} 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${L} 0 ${x3} ${y3}Z`; };
+  const nth = m => (-90 - SWEEP / 2 - m / IDEAL * GAPDEG) * Math.PI / 180, npt = (r, m) => [CX + r * Math.cos(nth(m)), CY + r * Math.sin(nth(m))];
+  const nband = (r0, r1, a, b) => { const [x0, y0] = npt(r1, a), [x1, y1] = npt(r1, b), [x2, y2] = npt(r0, b), [x3, y3] = npt(r0, a), L = (b - a) / IDEAL * GAPDEG > 180 ? 1 : 0;
+    return `M${x0} ${y0}A${r1} ${r1} 0 ${L} 0 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${L} 1 ${x3} ${y3}Z`; };
+  const clip = ([k, a, b, t]) => [k, Math.max(a, WAKE), Math.min(b, END), t || []];
+  const B = Object.fromEntries(RB.bands.map(b => [b.k, b]));
+  const NAME = {flow: "a flow", eat: "eating and drinking", move: "moving", recreation: "recreation", work: "professional work",
+    care: "caretaking", cook: "cooking", system: "be•do", screen: "on a screen"};
+  const R0 = 30, FW = 10, W = 62, GAP = 4;
+  const RAD = {flow: [R0, R0 + FW]}; RAD.being = [RAD.flow[1] + 2, RAD.flow[1] + 2 + W]; RAD.doing = [RAD.being[1] + GAP, RAD.being[1] + GAP + W];
+  const OUT = RAD.doing[1], SR = OUT + 6, SW = 9;
+  let g = "", tips = [], hits = [];
+  // small pieces get a larger invisible tap area, about a fingertip wide wherever they sit, the smallest
+  // drawn last so it wins where tap areas overlap (24 Oct 2026: easier to tap the small ones)
+  const TAP = 26, perRad = SPAN / (SWEEP * Math.PI / 180);
+  const piece = (d, fill, stroke, tip, hit) => { tips.push(tip); const i = tips.length - 1;
+    if (hit) hits.push([hit[1], `<path d="${hit[0]}" fill="transparent" tabindex="-1" data-tip="${i}"/>`]);
+    return `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round" tabindex="0" data-tip="${i}"/>`; };
+  const widen = (r0, r1, a, b) => { const need = TAP / ((r0 + r1) / 2) * perRad; if (b - a >= need) return null;
+    const c = (a + b) / 2; return [band(Math.max(r0 - 4, 1), r1 + 4, c - need / 2, c + need / 2), b - a]; };
+  const say = (k, a, b, t) => `<b>${NAME[k][0].toUpperCase() + NAME[k].slice(1)}</b> · ${clock2(a)}–${clock2(b)} · ${hm(b - a)}${t.length ? "<br>" + t.map(esc).join(" · ") : ""}`;
+  ["flow", "being", "doing"].forEach(k => { const [r0, r1] = RAD[k];
+    g += `<path d="${band(r0, r1, WAKE, END)}" fill="var(--rb-${k === "flow" ? "flow-t" : k + "-t"})" pointer-events="none"/>`;
+    if (k === "flow") Object.entries(RB.win).forEach(([w, x]) => { const [, a, b] = clip([w, ...x]); if (b > a)
+      g += piece(band(r0, r1, a, b), "var(--rb-flow)", "var(--rb-flow-d)", `<b>${w === "dawn" ? "🌅 The dawn flow" : "🌄 The dusk flow"}</b> · ${clock2(a)}–${clock2(b)}`); });
+    (B[k] || {runs: []}).runs.map(clip).filter(([, a, b]) => b - a >= 2).forEach(([kk, a, b, t]) => {
+      if (k === "flow") { for (let m = a; m < b; m += 5) { const [x0, y0] = pt(r0 + 1, m + 1), [x1, y1] = pt(r1 - 1, m + 1);
+        g += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--rb-flow-d)" stroke-width="2.2" stroke-linecap="round" pointer-events="none"/>`; } return; }
+      g += piece(band(r0, r1, a, b), `var(--rb-${kk})`, `var(--rb-${kk}-d)`, say(kk, a, b, t), widen(r0, r1, a, b)); }); });   // each part outlined in its own deeper shade
+  g += `<path d="${band(SR, SR + SW, WAKE, END)}" fill="var(--rb-screen-t)" pointer-events="none"/>`;
+  (B.screen || {runs: []}).runs.map(clip).filter(([, a, b]) => b > a).forEach(([kk, a, b, t]) => { g += piece(band(SR, SR + SW, a, b), "var(--rb-screen)", "none", say("screen", a, b, t), widen(SR - 8, SR + SW + 8, a, b) || [band(SR - 8, SR + SW + 8, a, b), b - a]); });
+  if (BED < END) g += piece(band(R0, SR + SW, BED, END), "var(--rb-flow-t)", "none", `<b>🛏️ In bed at ${clock2(BED)}</b>, ${hm(END - BED)} before the 16 hours were up`);
+  if (RB.inbed != null) { const d = RB.inbed - IDEAL, fill = Math.min(RB.inbed, IDEAL), sg = (d >= 0 ? "+" : "−") + hm(Math.abs(d));
+    const lab = `<b>😴 In bed the night before</b> · ${hm(RB.inbed)} · ${d === 0 ? "exactly 8 h" : sg + " against 8 h"}`;
+    g += piece(nband(R0, OUT, 0, fill), "var(--rb-sleep)", "var(--rb-sleep-d)", lab);
+    if (d < 0) g += `<path d="${nband(R0, OUT, fill, IDEAL)}" fill="none" stroke="var(--rb-sleep-d)" stroke-width="1.2" stroke-dasharray="3 3"/>`;
+    if (d > 0) g += piece(nband(OUT + 2, OUT + 9, 0, Math.min(d, IDEAL)), "var(--rb-sleep-deep)", "none", lab);
+  }   // no number on the night: like every other piece, a tap says it (24 Oct 2026)
+  let last = -999, lift = 0;
+  RB.moments.forEach(m => { lift = m.m - last < 30 ? (lift + 1) % 2 : 0; last = m.m; const [x, y] = pt(SR + SW + 16 + lift * 22, m.m);
+    tips.push(`<b>${esc(m.g)} ${esc(m.p[0].toUpperCase() + m.p.slice(1))}</b> · ${clock2(m.m)}${m.d ? " · " + hm(m.d) : ""}<br>${esc(m.t)}`);
+    g += `<text x="${x}" y="${y + 7}" text-anchor="middle" style="font:21px var(--sans)" tabindex="0" data-tip="${tips.length - 1}">${esc(m.g)}</text>`;
+    hits.push([0, `<circle cx="${x}" cy="${y}" r="17" fill="transparent" tabindex="-1" data-tip="${tips.length - 1}"/>`]); });
+  // three times only, large enough to read on a phone: up, the middle of the waking day, its end
+  [0, 480, 960].forEach(o => { const [x, y] = o === 480 ? pt(SR + SW + 50, WAKE + o) : npt(OUT + 40, o === 0 ? 28 : IDEAL - 28);   // the ends' times sit just past the rainbow's feet
+    g += `<text x="${x}" y="${y + 5}" text-anchor="middle" style="font:500 15px var(--mono);fill:var(--muted)">${o === 0 ? "up " + clock2(WAKE) : clock2(WAKE + o)}</text>`; });
+  // the totals as bars on one scale, each in its part's colour, a goal marked where she has set one
+  // (24 Oct 2026: bars at the bottom with the totals, and the goal for each day)
+  const GO = RB.goals || {}, SHORT = {eat: "Eating", move: "Moving", recreation: "Recreation", work: "Work", care: "Caretaking", cook: "Cooking", system: "be•do"};
+  const rowsData = [["In bed", "sleep", RB.inbed || 0, "inbed"], ["Flow steps", "flow", B.flow.total, "flow"],
+    ...B.being.kinds.map(x => [SHORT[x.k], x.k, x.min, x.k]), ...B.doing.kinds.map(x => [SHORT[x.k], x.k, x.min, x.k]),
+    ["On a screen", "screen", B.screen.total, "screen"]];
+  const MAXB = Math.max(60, ...rowsData.map(r => r[2]), ...rowsData.map(r => GO[r[3]] || 0));
+  const head = (t, n) => `<p class="bh">${t}${n != null ? ` <span>${hm(n)}</span>` : ""}</p>`;
+  const bar = ([n, k, v, gk]) => { const goal = GO[gk], col = k === "sleep" ? "sleep" : k;
+    return `<div class="br"><span class="bn">${esc(n)}</span><span class="bt">` +
+      `<i style="width:${100 * v / MAXB}%;background:var(--rb-${col});border-color:var(--rb-${col}-d)"></i>` +
+      (goal ? `<b style="left:${100 * goal / MAXB}%" title="goal ${hm(goal)}"></b>` : "") + `</span>` +
+      `<span class="bv">${v ? hm(v) : "—"}${goal ? `<small>of ${hm(goal)}</small>` : ""}</span></div>`; };
+  const bars = head("the night before") + bar(rowsData[0]) + head("being", B.being.total) + rowsData.slice(1, 5).map(bar).join("") +
+    head("doing", B.doing.total) + rowsData.slice(5, 9).map(bar).join("") + bar(rowsData[9]);
+  // tap areas go underneath: a real piece always wins a tap on itself, and a tap on empty space
+  // goes to the nearest small piece (the tracks let taps through)
+  g = hits.sort((x, y) => y[0] - x[0]).map(h => h[1]).join("") + g;
+  rainbow.tips = tips;
+  return `<svg id="rbdial" viewBox="-28 -30 456 440" role="img" aria-label="The waking day as concentric arcs">${g}</svg>` +
+    `<div class="tip" id="rbtip" aria-live="polite">Up at ${clock2(WAKE)}, in bed at ${clock2(BED)}. Tap a piece of the rainbow or a moment around it.</div>` +
+    `<div class="bars">${bars}</div>`;
+};
+const clock2 = m => { m = ((Math.round(m) % 1440) + 1440) % 1440; const h = Math.floor(m / 60), mm = m % 60; return `${h % 12 || 12}:${String(mm).padStart(2, "0")}${h < 12 ? "a" : "p"}`; };
+// a single day, simply (22 Oct 2026, her word: too complex, go back to basics): the day in her
+// words, the moments that mattered, and one quiet line of how she rested. Everything else stays
+// on the week page.
+if (ONE) {
+  const d0 = Dd[0] || {}, day = SM.days[0] || {stones: []};
+  const at = m => clock(m.at);
+  const moment = m => {
+    const who = m.people.length ? `with ${esc(m.people.join(", "))}` : "";
+    const to = m.drives.length ? `→ ${esc(m.drives[0].e)} ${esc(m.drives[0].n)}` : "";
+    return `<li class="mo"><span class="g">${esc(m.g || "·")}</span><div class="mt">` +
+      `<p class="tt">${esc(m.t)}</p>${words(m.words)}` +
+      ((m.photos || []).length ? `<div class="ph">${m.photos.map(src => `<img src="${src}" alt="${esc(m.t)}" loading="lazy">`).join("")}</div>` : "") +
+      `<p class="meta">${[at(m), who, m.memory ? `↺ ${esc(m.memory)}` : "", to].filter(Boolean).map(x => `<span>${x}</span>`).join("")}</p></div></li>`;
+  };
+  // what moved forward (24 Oct 2026, her pick): the day's closed actions under their drive,
+  // the drives with the most time first; one with no drive comes last
+  const dmap = {}, walk = n => { dmap[n.drive] = n; n.children.forEach(walk); };
+  DATA.drives.forEach(walk);
+  const groups = {};
+  DATA.moved.closed.forEach(c => (groups[c.drive] = groups[c.drive] || []).push(c));
+  const order = Object.keys(groups).sort((a, b) => (!a - !b) || ((dmap[b] || {}).own_min || 0) - ((dmap[a] || {}).own_min || 0) || groups[b].length - groups[a].length);
+  const movedHtml = order.map(k => {
+    const n = dmap[k] || {}, mins = n.own_min ? hm(n.own_min) : "";
+    return `<div><p class="dh"><span>${esc(k ? n.emoji || "·" : "·")}</span><span class="n">${esc(k || "on no drive")}</span>${mins ? `<span class="m">${mins}</span>` : ""}</p>` +
+      `<ul>${groups[k].map(c => `<li>✅ ${c.url ? `<a href="${esc(c.url)}">${esc(c.t)}</a>` : esc(c.t)}</li>`).join("")}</ul></div>`;
+  }).join("");
+  const rest = [d0.bed ? `${hm(d0.bed)} in bed` : "", d0.readiness != null ? `readiness ${d0.readiness}` : "",
+    d0.people ? `${hm(d0.people)} with people` : ""].filter(Boolean).join(" · ");
+  P.innerHTML = `<div class="chip">${esc(DATA.chip)}</div>
+<p class="eyebrow">the day behind · ${esc(DATA.range)}</p>
+${day.lead ? `<h1 class="sh">${esc(day.lead)}</h1>` : ""}
+${(DATA.story || []).length ? `<ul class="dstory">${DATA.story.map(([g, t]) => `<li><span>${esc(g)}</span><span>${esc(t)}</span></li>`).join("")}</ul>` : ""}
+${(day.pictures || []).length ? `<div class="pics">${day.pictures.map(p => `<figure><img src="${p.src}" alt="${esc(p.t)}" loading="lazy"><figcaption>${clock(p.at)}${p.t ? ` · ${esc(p.g)} ${esc(p.t)}` : ""}</figcaption></figure>`).join("")}</div>` : ""}
+${DATA.rings ? `<section class="rb"><p class="label">how the day went</p>${rainbow(DATA.rings)}</section>` : ""}
+<section><p class="label">what mattered</p>
+${day.stones.length ? `<ul class="moments">${day.stones.map(moment).join("")}</ul>` : `<p class="note">nothing marked today</p>`}</section>
+${movedHtml ? `<section><p class="label">what moved forward</p><div class="mv">${movedHtml}</div></section>` : ""}
+${rest ? `<p class="restline">${rest}</p>` : ""}`;
+  const rbd = document.getElementById("rbdial");
+  if (rbd) { const show = e => { const t = e.target.closest("[data-tip]"); if (!t) return; rbd.querySelectorAll(".on").forEach(x => x.classList.remove("on"));
+    const real = rbd.querySelector(`[data-tip="${t.dataset.tip}"]:not([fill="transparent"])`) || t;
+    real.classList.add("on"); document.getElementById("rbtip").innerHTML = rainbow.tips[+t.dataset.tip]; };
+    rbd.addEventListener("click", show); rbd.addEventListener("focusin", show); }
+}
 </script>
 </body></html>
