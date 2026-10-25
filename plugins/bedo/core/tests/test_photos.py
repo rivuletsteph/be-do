@@ -158,5 +158,20 @@ class Dusk(unittest.TestCase):
         self.assertEqual(res['findings']['photo_missing'], [])
 
 
+class Settings(unittest.TestCase):
+
+    def test_photo_ids_come_from_the_page_settings_when_facts_local_lacks_them(self):
+        lb = {'fields': {'stream': {'photo': 'P', 'photo_checked': 'C', 'photo_links': 'K'}}}
+        L = {'stream_fields': {'title': 'T', 'photo': 'mine'}}
+        self.assertEqual(DA.photo_fields(L, fetch=lambda n: (lb, None)), {'photo_checked': 'C', 'photo_links': 'K'})
+
+    def test_nothing_to_fetch_when_facts_local_has_them(self):
+        L = {'stream_fields': {'photo': 'P', 'photo_checked': 'C', 'photo_links': 'K'}}
+        self.assertEqual(DA.photo_fields(L, fetch=lambda n: self.fail('fetched')), {})
+
+    def test_an_unreadable_settings_row_changes_nothing(self):
+        self.assertEqual(DA.photo_fields({}, fetch=lambda n: (None, 'Airtable cannot be read here')), {})
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=1)

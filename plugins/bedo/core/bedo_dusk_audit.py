@@ -248,6 +248,25 @@ def render(res, label):
     return '\n'.join(out)
 
 
+PHOTO_KEYS = ('photo', 'photo_checked', 'photo_links')
+
+
+def photo_fields(L, fetch=None):
+    """The photo field ids. facts_local may not name them (it predates them,
+    25 Oct 2026); the page builders' settings row (look_behind_local) does, so
+    they are taken from there rather than asking her to edit a second file.
+    Returns only the keys facts_local is missing; {} when neither has them."""
+    have = L.get('stream_fields') or {}
+    missing = [k for k in PHOTO_KEYS if not have.get(k)]
+    if not missing:
+        return {}
+    if fetch is None:
+        from bedo_settings import fetch
+    lb, _ = fetch('look_behind_local')
+    got = ((lb or {}).get('fields') or {}).get('stream') or {}
+    return {k: got[k] for k in missing if got.get(k)}
+
+
 def main(argv=None):
     import argparse
     ap = argparse.ArgumentParser(description='the dusk audit: the one-pass list from a filtered read')
@@ -268,6 +287,7 @@ def main(argv=None):
     names = ('datetime', 'end', 'time_spent', 'status', 'title', 'details', 'attention', 'key', 'practice',
              'person', 'rhythm', 'waiting_on', 'queue', 'chat', 'target', 'calendar_event',
              'photo', 'photo_checked', 'photo_links')
+    L.setdefault('stream_fields', {}).update(photo_fields(L))
     fields = {**{k: k for k in names}, **{k: v for k, v in L.get('stream_fields', {}).items() if k in names}}
     if a.live:
         from bedo_air import Air, read_day, read_catalog
