@@ -40,8 +40,11 @@ bash run_checks.sh close --chat https://claude.ai/code/session_… --title "✔�
 
 `preflight` downloads the core fresh from the version store; the other
 commands reuse that copy for the session. Her settings (`facts_local.json`:
-base and field ids, the time zone) come from the loader's assets and never from
-the repo.
+base and field ids, the time zone, which check enforces which amendment) come
+from the `facts_local` row of the `settings` table in `be•do system`, read live,
+and never from the repo. The loader's own copy is only the fallback, for a chat
+that can't read Airtable. **A settings change is one edit to that row, never a
+skill upload** (25 Oct 2026).
 
 **A row for `entry`** uses the logical names: `datetime`, `end`, `time_spent`,
 `status`, `practice`, `title`, `key`, `details`, `phase`, `wellness`,
@@ -50,7 +53,7 @@ One row, or a list.
 
 **`preflight` also names every active amendment no check in code enforces**:
 `⚠ rule on paper only: …`. The map from amendment to check is
-`amendment_checks` in `facts_local.json` (record id → check names from
+`amendment_checks` in the `facts_local` settings row (record id → check names from
 `core/bedo_rules.py`, or `["judgment"]`). A line there is a rule that still
 depends on a chat remembering: tell her once, and add it to the backlog.
 

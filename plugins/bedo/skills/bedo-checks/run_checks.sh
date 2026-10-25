@@ -25,7 +25,8 @@
 # A command given no files and no token says so and exits 3.
 #
 # Overrides: BC_DIR (where the core is kept, default ~/bedo-checks),
-# BEDO_FACTS_LOCAL (her settings file, if it isn't found by itself),
+# BEDO_FACTS_LOCAL (her settings file, used when the Airtable settings row can't be read),
+# BC_LOCAL_FIRST (use BEDO_FACTS_LOCAL even when the row can be read — tests only),
 # BC_CORE_SRC (a local core folder to use instead of the version store — tests only).
 set -euo pipefail
 CMD=${1:-}; shift || true
@@ -55,10 +56,13 @@ fetch_core() {
 }
 
 find_local() {
-  [ -n "${BEDO_FACTS_LOCAL:-}" ] && [ -f "$BEDO_FACTS_LOCAL" ] && return 0
-  # the live settings are a row in Airtable (be•do system › settings); without it, the copies below
-  if (cd "$W/core" && "$PY" bedo_settings.py facts_local --out "$W/facts_local.json"); then
+  # the live settings are a row in Airtable (be•do system › settings), and the
+  # row wins: the loader's copy is only the fallback, so a change is one edit
+  # to the row, never a skill upload (25 Oct 2026). BC_LOCAL_FIRST=1 keeps a
+  # given file first, for tests.
+  if [ -z "${BC_LOCAL_FIRST:-}" ] && (cd "$W/core" && "$PY" bedo_settings.py facts_local --out "$W/facts_local.json"); then
     export BEDO_FACTS_LOCAL="$W/facts_local.json"; return 0; fi
+  [ -n "${BEDO_FACTS_LOCAL:-}" ] && [ -f "$BEDO_FACTS_LOCAL" ] && return 0
   for c in ./facts_local.json "$W/facts_local.json" /root/.claude/skills/synced/*/bedo-checks/assets/facts_local.json \
            "$HOME/.bedo/facts_local.json"; do
     [ -f "$c" ] && { export BEDO_FACTS_LOCAL=$(cd "$(dirname "$c")" && pwd)/$(basename "$c"); return 0; }
