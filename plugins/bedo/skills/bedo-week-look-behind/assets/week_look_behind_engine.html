@@ -118,6 +118,9 @@ details.fw[open] .v::after{content:" · hide"}
 .stone .meta{font:400 .74rem var(--mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 12px}
 .stone .to{font:400 .72rem var(--mono);color:var(--water);overflow-wrap:anywhere}
 .stone.big{border-color:var(--terra);box-shadow:inset 3px 0 0 var(--terra)}
+/* a lead or story nobody has seen yet: a dashed mark by the chip and a dashed rule down the part (the day behind's draft) */
+.draft{font:500 .66rem var(--mono);color:var(--water);border:1px dashed var(--water);border-radius:999px;padding:1px 8px;margin-left:6px;white-space:nowrap}
+[data-draft]{border-left:2px dashed var(--water);padding-left:12px}
 .dlead{font:500 italic 1.25rem/1.35 var(--display);color:var(--ink);margin:0}
 .dstory{margin:12px 0 4px;display:grid;gap:6px}
 .dstory li{display:grid;grid-template-columns:1.8rem minmax(0,1fr);font-size:.95rem;line-height:1.4;color:var(--soft)}
@@ -567,10 +570,12 @@ if (ONE) {
   }).join("");
   const rest = [d0.bed ? `${hm(d0.bed)} in bed` : "", d0.readiness != null ? `readiness ${d0.readiness}` : "",
     d0.people ? `${hm(d0.people)} with people` : ""].filter(Boolean).join(" · ");
-  P.innerHTML = `<div class="chip">${esc(DATA.chip)}</div>
+  const lead = DATA.title || day.lead, DR = DATA.draft || {};
+  const drafted = DR.lead && DR.story ? "draft" : DR.lead ? "draft lead" : DR.story ? "draft story" : "";
+  P.innerHTML = `<div class="chip">${esc(DATA.chip)}${drafted ? ` <span class="draft">${drafted} · not yet your words</span>` : ""}</div>
 <p class="eyebrow">the day behind · ${esc(DATA.range)}</p>
-${day.lead ? `<h1 class="sh">${esc(day.lead)}</h1>` : ""}
-${(DATA.story || []).length ? `<ul class="dstory">${DATA.story.map(([g, t]) => `<li><span>${esc(g)}</span><span>${esc(t)}</span></li>`).join("")}</ul>` : ""}
+${lead ? `<h1 class="sh"${DR.lead ? " data-draft" : ""}>${esc(lead)}</h1>` : ""}
+${(DATA.story || []).length ? `<ul class="dstory"${DR.story ? " data-draft" : ""}>${DATA.story.map(([g, t]) => `<li><span>${esc(g)}</span><span>${esc(t)}</span></li>`).join("")}</ul>` : ""}
 ${(day.pictures || []).length ? `<div class="pics">${day.pictures.map(p => `<figure><img src="${p.src}" alt="${esc(p.t)}" loading="lazy"><figcaption>${clock(p.at)}${p.t ? ` · ${esc(p.g)} ${esc(p.t)}` : ""}</figcaption></figure>`).join("")}</div>` : ""}
 ${DATA.rings ? `<section class="rb"><p class="label">how the day went</p>${rainbow(DATA.rings)}</section>` : ""}
 <section><p class="label">what mattered</p>

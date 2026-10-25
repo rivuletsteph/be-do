@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.join(HERE, '..', '..', '..', 'core'))
 from day_rings import day_rings  # noqa: E402
 
 L = {'utc_offset_hours': -5, 'care': {'rhythms': ['Kid Club'], 'people': ['Pip']}, 'system_rhythm': 'the system',
-     'day_goals': {'inbed': 450, 'move': 120}}
+     'recreation': {'rhythms': ['Play Days']}, 'day_goals': {'inbed': 450, 'move': 120}}
 DAY = dt.date(2026, 3, 4)
 
 
@@ -42,6 +42,8 @@ ROWS = [
     row('🚶‍♀️ walking', '11:00', '12:00'),
     row('🍽️ lunch', '11:30', '11:45'),                                    # sitting to eat is not moving
     row('✨ glimmer', '14:00', title='the heron'),                         # a moment, no length
+    row('⭐ highlight', '14:30', title='the heron again'),                 # a flow step placed at its moment
+    row('📝 log', '16:00', '17:00', rhythm='Play Days', title='the trampoline park with Pip'),   # recreation and care
     row('🚗 driving', '15:00', '15:30', person=['Pip Plum'], title='school run'),
     row('📺 show', '20:00', '20:30', device='📺 tv', title='a mystery'),
     row('🚿 shower', '21:00', '21:20'),                                    # caring for herself
@@ -50,7 +52,7 @@ ROWS = [
     row('⚡ action', '13:00', '14:00', rhythm='Paid Work', status='⬜ intention'),   # never happened
 ]
 
-R = day_rings(ROWS, DAY, L, flows={'morning mantra'}, not_lived={'⬜ intention'})
+R = day_rings(ROWS, DAY, L, flows={'morning mantra', 'highlight'}, not_lived={'⬜ intention'})
 B = {b['k']: b for b in R['bands']}
 K = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in R['bands']}
 
@@ -58,12 +60,12 @@ assert R['goals'] == {'inbed': 450, 'move': 120} and R['ideal_bed'] == 450, R['g
 assert R['wake'] == 7 * 60 + 30 and R['bed'] == 23 * 60 and R['inbed'] == 510, (R['wake'], R['bed'], R['inbed'])
 assert K['being']['eat'] == 5 + 15, K['being']                       # coffee tick + lunch
 assert K['being']['move'] == 60 - 15, K['being']                     # the walk less the meal
-assert K['being']['recreation'] == 30, K['being']
+assert K['being']['recreation'] == 30 + 60, K['being']              # the show and the trampoline park
 assert K['doing']['work'] == 30, K['doing']                          # 9:00-9:30 only; the drive took the rest
-assert K['doing']['care'] == 30 + 20, K['doing']                     # the school run and the shower
+assert K['doing']['care'] == 30 + 20 + 60, K['doing']                # the school run, the shower, the trampoline park
 assert B['screen']['total'] == 60 + 30, B['screen']                  # the laptop hour and the show
 assert 'dusk' not in R['win'] and R['win']['dawn'] == [480, 485], R['win']
-assert [(m['m'], m['p']) for m in R['moments']] == [(14 * 60, 'glimmer')], R['moments']
+assert [(m['m'], m['p']) for m in R['moments']] == [(14 * 60, 'glimmer'), (14 * 60 + 30, 'highlight')], R['moments']
 care = next(r for r in B['doing']['runs'] if r[0] == 'care' and r[1] == 15 * 60)
 assert care[3] == ['school run'], care                               # a tap names what the chunk was
 print('ok — the night, food and moving, her work not the laptop\'s, caretaking, recreation, screens, flows and moments')
