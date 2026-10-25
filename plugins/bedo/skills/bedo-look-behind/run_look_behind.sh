@@ -4,7 +4,7 @@
 #
 #   bash run_look_behind.sh prep  YYYY-MM-DD           # fetch + print the day's digest
 #   bash run_look_behind.sh qa    YYYY-MM-DD           # the QA list to clear before building (no page)
-#   bash run_look_behind.sh build YYYY-MM-DD           # after the words are written: the day page (rainbow, places, moments)
+#   bash run_look_behind.sh build YYYY-MM-DD           # after the words are written: the day page (rainbow, moments, stream)
 #   bash run_look_behind.sh canon YYYY-MM-DD <secure>  # the old canon page (21 Sep 2026), kept for comparison
 #   bash run_look_behind.sh words YYYY-MM-DD [edits…]  # read the lead and story back, or change them
 #
@@ -101,7 +101,7 @@ elif [ "$MODE" = build ] || [ "$MODE" = canon ]; then
       "$PY" scripts/day_photos.py --day "$DAY" --local look_behind_local.json --out "photos-$DAY" || true
       if [ -n "$(ls -A "photos-$DAY" 2>/dev/null)" ]; then PHOTOS="--photos photos-$DAY"; fi
     fi
-    # the places catalog names home, work and the places on her list; without it the map card still draws the stops
+    # the places catalog, for the map card's data (day_places.py; not drawn yet, D6.68)
     PLACES=; [ -f data/places.json ] && PLACES="--places data/places.json"
     "$PY" scripts/week_look_behind.py --day "$DAY" --words "$WORDS" --local look_behind_local.json $STREAMS \
       --rhythms data/rhythms.json --practices data/practices.json \

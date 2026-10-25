@@ -147,24 +147,16 @@ page opens, after the lead and story, with the waking day as a rainbow:
   not stretch its flow's span.
 Test: `tests/test_day_rings.py`.
 
-**Where you were** (25 Oct 2026, her word: every place that shows up on Google
-Maps belongs on her map; the day first, the week after). On a single day, right
-after the rainbow, the day's places in order with the drives between them: a
-strip of the day for the glance, then the route — each stop with its times, who
-was there, what happened there (moments first; at home only the moments), its
-address and a link out to Google Maps. `scripts/day_places.py` finds the stops,
-best evidence first: a 📍 location row; a Timeline stop named in a row's details
-(the map check's lines, the dusk retiming: *Times from her Timeline: X, address,
-1:47–2:16 PM*, *at X 11:58 AM–1:24 PM*), counted only on a line that cites
-Timeline or on a 🚗, 📍 or 🗺️ row, so calendar times and estimates are never
-places; and the time between two 🚗 drives, named by the drives, or a walk when
-a walking row covers it. The same visit found twice is one. The places catalog
-(its own base, read by `bedo_fetch.py` into `places.json` by name — no settings
-key) names a stop by name or street address: its `home` and `work` rows name
-those stops, a `want to go` place is marked *from your list*, and a stop it
-doesn't know is *new to your places* and printed under `places.not_in_catalog`
-for her to name — nothing is added. No coordinates yet: the route is drawn in
-time order, not on a map (see `docs/day-behind-cards.md`).
+**The map card — groundwork only** (D6.68, 25 Oct 2026). `scripts/day_places.py`
+finds the day's stops from what the stream already holds — a 📍 location row; a
+Timeline stop named in a row's details (only on a line that cites Timeline or on
+a 🚗, 📍 or 🗺️ row, so calendar times and estimates are never places); the time
+between two 🚗 drives — and matches each to the places catalog (`places.json`,
+read by `bedo_fetch.py` by name). `--places` puts it in the day page's data as
+`places`; **the engine does not draw it yet.** A first pass drew it as a route
+with what happened at each stop and was turned down: routes are out, and the
+card is only where, never what (the rainbow's job). The card to build is the
+meaningful-geography map in `docs/day-behind-cards.md`.
 Test: `tests/test_day_places.py`.
 
 **Photos** (22 Oct 2026, her word: photos that piece the day together).

@@ -185,27 +185,6 @@ details.numbers>summary{cursor:pointer;font:500 italic 1.15rem var(--display);co
 .fl.big .t{font-size:.95rem;color:var(--ink)}
 .fl .k{font:400 .64rem var(--mono);color:var(--muted)}
 .gkey{display:flex;flex-wrap:wrap;gap:4px 12px;margin:12px 0 0;font-size:.72rem;color:var(--muted)}
-/* where she was (25 Oct 2026): every Timeline stop, the drives between, a link out to the map */
-.pl .sum{font-size:.95rem;color:var(--soft);margin:2px 0 10px}
-.pl .sum b{color:var(--ink)}
-.pl svg{display:block;width:100%;height:auto;overflow:visible}
-.pl svg text{font:400 9px var(--mono);fill:var(--faint)}
-.route{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:0}
-.route li{position:relative;padding:0 0 0 34px;margin:0}
-.route p{margin:0}
-.route li::before{content:"";position:absolute;left:13px;top:0;bottom:0;border-left:2px solid var(--rule)}
-.route li:first-child::before{top:12px}.route li:last-child::before{bottom:auto;height:12px}
-.route .st{padding-top:4px;padding-bottom:12px}
-.route .dot{position:absolute;left:14px;top:12px;width:var(--d);height:var(--d);margin:calc(var(--d) / -2) 0 0 calc(var(--d) / -2);border-radius:50%;border:2px solid;box-sizing:border-box}
-.route .nm{font-weight:700;font-size:.98rem;line-height:1.25}
-.route .nm a{font:500 .72rem var(--mono);margin-left:6px;text-decoration:none;white-space:nowrap}
-.route .tm{font:400 .74rem var(--mono);color:var(--muted);margin:1px 0 0}
-.route .ad{font-size:.78rem;color:var(--muted);margin:1px 0 0}
-.route .dd{font-size:.84rem;color:var(--soft);line-height:1.4;margin:4px 0 0}
-.route .bd{display:inline-block;font:600 .64rem var(--sans);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:9px;margin-left:6px;vertical-align:2px;background:var(--tint);color:var(--muted)}
-.route .bd.reach{background:var(--rb-move);color:var(--ink)}
-.route .lg{font:400 .74rem var(--mono);color:var(--muted);padding-top:2px;padding-bottom:12px}
-.route .lg::before{content:"";position:absolute;left:13px;top:0;bottom:0;border-left:2px dashed var(--faint)}
 .gkey i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:-1px}
 </style>
 <body><div class="wrap" id="page"></div>
@@ -562,45 +541,6 @@ const rainbow = RB => {
     `<div class="tip" id="rbtip" aria-live="polite">Up at ${clock2(WAKE)}, in bed at ${clock2(BED)}. Tap a piece of the rainbow or a moment around it.</div>` +
     `<div class="bars">${bars}</div>`;
 };
-// where she was (25 Oct 2026, her word: every place that shows up on Google Maps belongs on her map):
-// the day's stops in order with the drives between, a strip of the day for the glance, each place linked out
-const placesCard = PL => {
-  if (!PL || !PL.stops.length) return "";
-  const HUES = ["recreation", "cook", "care", "eat", "system", "move"];
-  let n = 0;
-  const hue = s => s.move ? "move" : s.home ? "flow" : /^work$/i.test(s.n) ? "work" : HUES[n++ % HUES.length];
-  const S = PL.stops.map(s => Object.assign({}, s, {h: hue(s)}));
-  const cap = t => t ? t[0].toUpperCase() + t.slice(1) : t;
-  const known = [...S.flatMap(s => [s.a, s.b]), ...PL.legs.flatMap(l => [l.a, l.b])].filter(x => x != null);
-  const LO = Math.min(360, ...known), HI = Math.max(1320, ...known), X = m => 4 + 352 * (m - LO) / (HI - LO);
-  let g = `<rect x="4" y="12" width="352" height="12" rx="6" fill="var(--tint)"/>`;
-  S.forEach(s => { const a = X(s.a ?? LO), b = X(s.b ?? HI);
-    g += `<rect x="${a}" y="10" width="${Math.max(2, b - a)}" height="16" rx="4" fill="var(--rb-${s.h === "flow" ? "flow-t" : s.h})" stroke="var(--rb-${s.h}-d)" stroke-width="1.2"><title>${esc(cap(s.n))}</title></rect>`; });
-  PL.legs.forEach(l => { g += `<line x1="${X(l.a)}" y1="18" x2="${X(l.b)}" y2="18" stroke="var(--soft)" stroke-width="2.5" stroke-dasharray="3 2"/>`; });
-  [360, 720, 1080].filter(m => m > LO && m < HI).forEach(m => { g += `<text x="${X(m)}" y="38" text-anchor="middle">${clock2(m)}</text>`; });
-  const T = PL.totals, mx = Math.max(60, ...S.map(s => s.min || 0));
-  const sum = [`<b>${T.places}</b> ${T.places === 1 ? "place" : "places"}`, T.miles ? `<b>${Math.round(T.miles)}</b> mi in the car` : "",
-    T.drive_min ? `${hm(T.drive_min)} driving` : ""].filter(Boolean).join(" · ");
-  const when = s => s.a == null ? `until ${clock2(s.b)}` : s.b == null ? `from ${clock2(s.a)}` : `${clock2(s.a)}–${clock2(s.b)} · ${hm(s.min)}`;
-  const link = s => s.home || s.move || /^(work|a stop)$/i.test(s.n) ? "" :
-    ` <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.n + (s.addr ? ", " + s.addr : ""))}" target="_blank" rel="noopener">map ↗</a>`;
-  const badge = s => s.place && /want to go/i.test(s.place.standing) ? `<span class="bd reach">from your list</span>` :
-    !s.place && !s.home && !s.move && s.n !== "a stop" ? `<span class="bd">new to your places</span>` : "";
-  const leg =l => `<li class="lg">🚗 ${l.mi ? `${l.mi} mi · ` : ""}${hm(l.min)}</li>`;
-  let used = new Set(), out = "";
-  S.forEach(s => {
-    PL.legs.filter(l => !used.has(l) && s.a != null && l.a < s.a).forEach(l => { used.add(l); out += leg(l); });
-    const d = 12 + 14 * Math.sqrt((s.min || 30) / mx);
-    out += `<li class="st"><span class="dot" style="--d:${d}px;background:var(--rb-${s.h === "flow" ? "flow-t" : s.h});border-color:var(--rb-${s.h}-d)"></span>` +
-      `<p class="nm">${s.move ? esc(s.move) + " " : ""}${esc(cap(s.n))}${badge(s)}${link(s)}</p>` +
-      `<p class="tm">${when(s)}${s.mi ? ` · ${s.mi} mi` : ""}${s.who.length ? ` · with ${esc(s.who.join(", "))}` : ""}</p>` +
-      (s.addr ? `<p class="ad">${esc(s.addr)}</p>` : "") +
-      (s.did.length ? `<p class="dd">${s.did.map(([gl, t]) => `${esc(gl)} ${esc(t)}`).join(" · ")}${s.more ? ` · +${s.more}` : ""}</p>` : "") + `</li>`;
-  });
-  PL.legs.filter(l => !used.has(l)).forEach(l => { out += leg(l); });
-  return `<p class="sum">${sum}</p><svg viewBox="0 0 360 42" role="img" aria-label="The day as a strip: time at each place, and the drives between">${g}</svg>` +
-    `<ol class="route">${out}</ol>`;
-};
 const clock2 = m => { m = ((Math.round(m) % 1440) + 1440) % 1440; const h = Math.floor(m / 60), mm = m % 60; return `${h % 12 || 12}:${String(mm).padStart(2, "0")}${h < 12 ? "a" : "p"}`; };
 // a single day, simply (22 Oct 2026, her word: too complex, go back to basics): the day in her
 // words, the moments that mattered, and one quiet line of how she rested. Everything else stays
@@ -638,7 +578,6 @@ ${lead ? `<h1 class="sh"${DR.lead ? " data-draft" : ""}>${esc(lead)}</h1>` : ""}
 ${(DATA.story || []).length ? `<ul class="dstory"${DR.story ? " data-draft" : ""}>${DATA.story.map(([g, t]) => `<li><span>${esc(g)}</span><span>${esc(t)}</span></li>`).join("")}</ul>` : ""}
 ${(day.pictures || []).length ? `<div class="pics">${day.pictures.map(p => `<figure><img src="${p.src}" alt="${esc(p.t)}" loading="lazy"><figcaption>${clock(p.at)}${p.t ? ` · ${esc(p.g)} ${esc(p.t)}` : ""}</figcaption></figure>`).join("")}</div>` : ""}
 ${DATA.rings ? `<section class="rb"><p class="label">how the day went</p>${rainbow(DATA.rings)}</section>` : ""}
-${DATA.places && DATA.places.stops.length ? `<section class="pl"><p class="label">where you were</p>${placesCard(DATA.places)}</section>` : ""}
 <section><p class="label">what mattered</p>
 ${day.stones.length ? `<ul class="moments">${day.stones.map(moment).join("")}</ul>` : `<p class="note">nothing marked today</p>`}</section>
 ${movedHtml ? `<section><p class="label">what moved forward</p><div class="mv">${movedHtml}</div></section>` : ""}

@@ -276,37 +276,40 @@ moment's own time and no longer stretches the dawn flow's span.
 
 **Next:** icons in place of labels; then the next card (the sociogram, or what moved).
 
-## Where you were: the map card (25 Oct 2026, first pass)
+## The map card: meaningful geography (25 Oct 2026, D6.68)
 
-Her words: "every place that shows up on Google Maps would be great to have on
-my map … for now let's just focus on the day behind map card, get that working
-great, and then we can expand it to the week behind."
+Her idea, 15 Sep (stream row 260914_0648): "I don't think the map needs to show
+my route and everything. I just think it needs to show the places where I spent
+time and what I was doing, and basically why I was there, who I was with … It's
+geography, but it's meaningful geography — like why I'm there." And the rule
+that is the design, **signal over noise**: the places she normally goes are the
+quiet background; a new place (the stream team meeting in Granbury) is what
+stands out. A first visit and an ordinary stop are drawn differently. **Routes
+are out.**
 
-Built right after the rainbow, from what the stream already holds, with no new
-rows asked of her:
-- **every stop Timeline shows is a place**: home, work, a gas station, a drive-thru
-  window, a park, each in order;
-- a strip of the day for the glance (time at each place, the drives dashed
-  between), then the route: each stop with its times, who was there, what
-  happened there (moments first; at home only the moments), its address, and
-  *map ↗* to open it in Google Maps;
-- the totals on top: places, miles in the car, time driving;
-- the catalog names home and work, marks a place on her list *from your list*
-  when she reaches it, and marks one it doesn't know *new to your places*.
-  Nothing is added to the catalog by the card.
+**First pass turned down, 25 Oct.** A route down the page (stop, drive, stop)
+listing what happened at each place. Her words: "this is not at all what I
+wanted. I want to create a card just for a map showing where I went … I don't
+want it to cannibalize the how I spent my days thing." So the card says
+**where**, not what: the rainbow already says what.
 
-**Not yet a map with geography.** The build can't look up coordinates (the
-cloud environment allows no geocoder), so the route is drawn in time order.
-The map with real distances needs a latitude and longitude for each place: two
-fields on the places catalog, filled once per place, either by a geocoder the
-environment is allowed to reach or from her Takeout export.
+**Her pick, 25 Oct: the meaningful map.** A real map, dots where she was:
+- familiar places small and grey (home, work, the places she normally goes);
+- places she has been before, a step up; **a first visit large and in colour**;
+- no routes, no drive lines;
+- a tap on a dot gives one line: why she was there and who with.
 
-**Open, hers:**
-1. Does a place enter the catalog when it first shows on Timeline (the card
-   would then name it every time after), or only at her word, as the catalog's
-   rule says now? Proposed: at dusk, one line, *3 new places today: add them?*
-2. A row for home in the catalog, with its address, the way work has one, so a
-   Timeline stop at home always reads *home*.
-3. Walks from home and back (a loop with the dog) aren't on the route yet,
-   since nothing moved her between places; on the card, or only on the rainbow?
+**What it needs: coordinates.** The cloud environment reaches no geocoder and no
+map tiles. She is allowing two hosts from the laptop: `nominatim.openstreetmap.org`
+(a place's coordinates, from its name and address) and `tile.openstreetmap.org`
+(the background, fetched at build time and embedded, attributed to OpenStreetMap).
+The Takeout export in Drive (13 Sep, Timeline only, 406 MB) holds every place she
+normally goes with coordinates, but its 20 MB part is over the Drive connector's
+10 MB limit, so it waits for another way in.
 
+**Familiar or new** is read from history, not asked: a place on more days in the
+past weeks' stream (or in the catalog as been, or home, or work) is familiar; one
+never seen before is a first visit.
+
+The groundwork is on the branch: `day_places.py` finds the stops and matches the
+catalog (see the week skill's SKILL.md).

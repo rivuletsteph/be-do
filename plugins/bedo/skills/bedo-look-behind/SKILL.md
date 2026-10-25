@@ -8,9 +8,8 @@ description: "Build The Day Behind page — the look behind for one day — from
 One day, looked back on. **Since 25 Oct 2026 the page is the day page**: the
 week builder's `--day` mode (`bedo-week-look-behind/scripts/week_look_behind.py`),
 in this order: chip, lead and story · the day's photos · how the day went, the
-rainbow, with its bars and goals · where you were, the day's places and drives
-(`day_places.py`) · what mattered, the moments as cards · what moved forward ·
-the numbers, folded. Every decision about it, in the user's
+rainbow, with its bars and goals · what mattered, the moments as cards · what
+moved forward · the numbers, folded. Every decision about it, in the user's
 words, is in `docs/day-behind-cards.md`; the rainbow's rules are
 `bedo-week-look-behind/scripts/day_rings.py`. The canon build settled 21 Sep 2026
 (who was in your day · highlights · the pie · balance · effectiveness) is still
