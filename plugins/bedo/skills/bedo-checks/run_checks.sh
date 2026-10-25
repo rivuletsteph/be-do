@@ -5,13 +5,14 @@
 #   bash run_checks.sh judgment   # the judgment file, read in full at the first reply
 #   bash run_checks.sh preflight [--kind week --week N] [--part B] [--handoff FILE]
 #   bash run_checks.sh remaining [--flow dawn|dusk] [--voice]
-#   bash run_checks.sh dusk      [--date YYYY-MM-DD] [--chats chats.json] [--write]
+#   bash run_checks.sh dusk      [--date YYYY-MM-DD] [--chats chats.json] [--photos folder.json] [--write]
 #   bash run_checks.sh meals     [--date YYYY-MM-DD] [--json]   # each meal's prep and eating, placed from context
 #   bash run_checks.sh dayqa     YYYY-MM-DD [--json]  # meals, gaps, movement, people, device: one list to accept
 #   bash run_checks.sh entry     row.json [--base "w41 be•do"] [--chat MMDD] [--catalog practices.json] [--rhythms rhythms.json]
 #                                # MMDD: a my day chat's date, from its title; the two reads let it deduce wellness
 #   bash run_checks.sh stretches FILE        # stamps, a claude.ai chat read, or a transcript
 #   bash run_checks.sh order [--json]        # her predicted order: typical times to write to the catalog
+#   bash run_checks.sh close --chat URL --title "TITLE" [--date YYYY-MM-DD]   # the chat close: QA, entry, title
 #
 # With an Airtable token (AIRTABLE_PAT, a bedo_secrets.json, or a Claude cloud
 # session's proxy) the checks read Airtable themselves. Without one, read through
@@ -24,7 +25,8 @@
 # A command given no files and no token says so and exits 3.
 #
 # Overrides: BC_DIR (where the core is kept, default ~/bedo-checks),
-# BEDO_FACTS_LOCAL (her settings file, if it isn't found by itself),
+# BEDO_FACTS_LOCAL (her settings file, used when the Airtable settings row can't be read),
+# BC_LOCAL_FIRST (use BEDO_FACTS_LOCAL even when the row can be read — tests only),
 # BC_CORE_SRC (a local core folder to use instead of the version store — tests only).
 set -euo pipefail
 CMD=${1:-}; shift || true
@@ -54,10 +56,13 @@ fetch_core() {
 }
 
 find_local() {
-  [ -n "${BEDO_FACTS_LOCAL:-}" ] && [ -f "$BEDO_FACTS_LOCAL" ] && return 0
-  # the live settings are a row in Airtable (be•do system › settings); without it, the copies below
-  if (cd "$W/core" && "$PY" bedo_settings.py facts_local --out "$W/facts_local.json"); then
+  # the live settings are a row in Airtable (be•do system › settings), and the
+  # row wins: the loader's copy is only the fallback, so a change is one edit
+  # to the row, never a skill upload (25 Oct 2026). BC_LOCAL_FIRST=1 keeps a
+  # given file first, for tests.
+  if [ -z "${BC_LOCAL_FIRST:-}" ] && (cd "$W/core" && "$PY" bedo_settings.py facts_local --out "$W/facts_local.json"); then
     export BEDO_FACTS_LOCAL="$W/facts_local.json"; return 0; fi
+  [ -n "${BEDO_FACTS_LOCAL:-}" ] && [ -f "$BEDO_FACTS_LOCAL" ] && return 0
   for c in ./facts_local.json "$W/facts_local.json" /root/.claude/skills/synced/*/bedo-checks/assets/facts_local.json \
            "$HOME/.bedo/facts_local.json"; do
     [ -f "$c" ] && { export BEDO_FACTS_LOCAL=$(cd "$(dirname "$c")" && pwd)/$(basename "$c"); return 0; }
@@ -65,7 +70,7 @@ find_local() {
   echo "facts_local.json not found — copy the skill's assets/facts_local.json into the working folder"; exit 1
 }
 
-has_files() { for a in "$@"; do case "$a" in --bases|--stream|--catalog|--day) return 0;; esac; done; return 1; }
+has_files() { for a in "$@"; do case "$a" in --bases|--stream|--catalog|--day|--rows) return 0;; esac; done; return 1; }
 
 live_or_files() {   # $1 = what to say is needed; rest = the args
   local need=$1; shift
@@ -107,6 +112,13 @@ case "$CMD" in
     else echo "NO TOKEN HERE: expected in Cowork or a plain chat, not a failure. Don't run the checks by hand."
          echo "Read through the Airtable connector and run this again with --stream (each weekly base, live first) and --catalog files"; exit 3; fi
     "$PY" "$W/core/bedo_order.py" "$@" ;;
+  close)   # her rule, 25 Oct 2026: QA, then the session entry, then the rename to done
+    [ -d "$W/core" ] || fetch_core; find_local
+    if has_files "$@"; then :
+    elif (cd "$W/core" && "$PY" -c 'import bedo_air, sys; sys.exit(0 if bedo_air.can_read() else 1)'); then set -- --live "$@"
+    else echo "NO TOKEN HERE: expected in Cowork or a plain chat, not a failure. Don't run the checks by hand."
+         echo "Read the chat's ⚡ entry (and, for a my day chat, the day's rows) through the connector and run this again with --rows FILE"; exit 3; fi
+    "$PY" "$W/core/bedo_close.py" "$@" ;;
   stretches)
     [ -d "$W/core" ] || fetch_core; find_local
     "$PY" "$W/core/bedo_stretches.py" "$@" ;;
@@ -147,5 +159,5 @@ for r in rows:
 sys.exit(1 if bad else 0)
 E
     ;;
-  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|entry|stretches|order [args]"; exit 2 ;;
+  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|entry|stretches|order|close [args]"; exit 2 ;;
 esac

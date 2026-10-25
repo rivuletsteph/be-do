@@ -59,8 +59,19 @@ rm -rf data && mkdir -p data/live data/week
 for f in data/week/w*.json; do if [ -f "data/live/$(basename "$f")" ]; then rm "$f"; fi; done   # a base read twice is read once
 STREAMS=$( { ls -r data/live/w*.json; ls -r data/week/w*.json 2>/dev/null || true; } | sed 's/^/--stream /' | tr '\n' ' ')
 
+# the week's photos from its W## photos folder, when a Drive key is here (BEDO_DRIVE_SA or
+# BEDO_DRIVE_SA_FILE); without one the page builds without them, and says so
+rm -rf photos; PHOTOS=()
+for i in 6 5 4 3 2 1 0; do
+  D=$("$PY" -c "import datetime as d; print(d.date.fromisoformat('$SAT') - d.timedelta(days=$i))")
+  if ! "$PY" scripts/day_photos.py --day "$D" --local look_behind_local.json --out photos; then
+    echo "photos: none read — the page builds without them"; break; fi
+done
+ls photos/*.jpg >/dev/null 2>&1 && PHOTOS=(--photos photos)
+
 OUTF="$SAT-week-behind.html"
 "$PY" scripts/week_look_behind.py --week "$DAY" --local look_behind_local.json $STREAMS \
-  --rhythms data/live/rhythms.json --template week_look_behind_engine.html --out "$OUTF"
+  --rhythms data/live/rhythms.json --practices data/live/practices.json --template week_look_behind_engine.html \
+  "${PHOTOS[@]}" --out "$OUTF"
 OUT=${LB_OUT:-/mnt/user-data/outputs}
 if mkdir -p "$OUT" 2>/dev/null; then cp "$OUTF" "$OUT/"; echo "also copied to $OUT/"; fi

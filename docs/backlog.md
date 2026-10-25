@@ -20,11 +20,11 @@ When one ships, its line moves to **Done** with the PR that closed it.
 
 | key | status | item |
 |---|---|---|
-| 260924_2221b | The day behind fires at 03:00 Central and lands on the living page; the routine drafts the words, dusk builds nothing, a failure is a push notification. A my day chat is ✔️ once its look behind is seen. | routine trig_01TVzvCv9aDCJ4FWvC4qr9y1, 8 Oct 2026 |
+| 260924_2221b | ⏸️ | The day behind is built by hand, when she asks. The 03:00 routine (trig_01TVzvCv9aDCJ4FWvC4qr9y1) was paused on 11 Oct and stays off — her word, 24 Oct 2026: I don't want anything to build at 3am; let's get a version I'm happy with working and I'll build it manually. A my day chat is ✔️ once its look behind is seen. |
+| 261025_photos | ⬜ | Photos reach the pages only where a Drive key is (`BEDO_DRIVE_SA`): add the service account's key to the cloud environment, with the W## photos folders shared to it, so a cloud build draws the keepers too |
 | 260915_0744 | ⬜ | One codebase for the behind and ahead pages — mobile, nightly, reading Airtable, depersonalised |
 | 260921_1444c | ⬜ | The day behind's folded "more" — river, map, flows, self-check |
 | 260921_1444b | ⬜ | The day ahead as the day behind's mirror — her intentions in the same slots, linked both ways |
-| 260921_1444 | ⬜ | Photos on the day behind — a shared photo link and up to five thumbnails, fetched at build time |
 | 260924_0933b | ▫️ | Day ahead: turn the calendar and open rows into a real what-to-do-today list |
 | 260924_2240 | ▫️ | Make the pages black in the engine, not just locally |
 | 260924_2255 | ▫️ | Day behind: split the three intentions; read company from logged rows only |
@@ -40,6 +40,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 261003_1433 | ▶️ | The daily measure checked against how the day felt; meals logged with how they were made and whether she ate with intention; the wellness wheel's role; the unmerged `claude/look-behind-dark-palette` branch — merge or let go |
 | 261004_1045 | ▶️ | Base flow card shipped; next the look behind and look ahead for day, week and month — an earthy palette, the look ahead light and the look behind dark; later nutrition folded into body |
 | 261004_1536 | ▶️ | Page cards from her review of every past page — card 2 (perhaps the dark mirror of card 1), whether the forward map gets its own card, card 1 into the day ahead itself |
+| 261024a | ⬜ | A session row records when the laptop ran, not when she was working. Her word, 24 Oct 2026: if the laptop is running that's not me working; it's what I'm actually doing. Record when she was actually in a session, so working time is hers; until then the day behind counts a session's minutes only while she wasn't driving, eating, moving or asleep |
 
 ## Calendar
 
@@ -65,6 +66,8 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 261006_inb_d | ⬜ | The intention check isn't asked again once she's said she isn't ready |
 | 261006_inb_e | ⬜ | Preflight and the remaining list in a plain chat: make the compact-form rules impossible to get wrong (the first try passed the whole catalog and the wrong total) |
 | 261006_inb_f | ⬜ | Say in the checks skill what to search for when `list_records_for_table` won't load — it stalled preflight for several tries |
+| 261024b | ⬜ | Two false findings from the Sat 24 Oct close: the dusk audit's check 5 read an ordinary work ⚡ intention (a GLO report fix) as a window chat's own ⚡ row and asked to strip its drive; and `meals` proposed "made lunch" for a restaurant meal, placing 15 minutes of cooking over the drive there. A restaurant meal is ordering, a few minutes at the counter on arrival |
+| 261024c | ⬜ | An intention that is a way of being (have fun) is a feeling, not a task (amendment, 25 Oct): `dayqa`'s overlaps and synergy checks and the dusk audit skip it, and nothing proposes a span or attention for it. On 24 Oct a span given to it marked nine rows partial and raised sixteen synergy questions. Needs a way to tell such an intention from a task — a field on the row, or a list in facts |
 | 261006_inb_g | ⬜ | Clear-inbox: archiving is one call per thread and burns the run — she clears the bulk herself once the sweep has read it, and be•do says when it's safe |
 | 261008_inb_a | ⬜ | Feelings are deduced from what she said, not guessed and not left empty — J6 rewritten; `bedo_entry` still to follow it (a feeling left blank on a row whose words carry one) |
 | 260929_0645 | ▫️ | Recovery changes what be•do suggests, not only what it scores — build after a real recovery day is logged |
@@ -77,13 +80,13 @@ When one ships, its line moves to **Done** with the PR that closed it.
 |---|---|---|
 | 260914_0648 | ⬜ | Places and a meaningful-geography map — where time was spent, doing what, why, with whom (the places catalog is built; the map is the remaining half) |
 | 260915_0810 | ▫️ | An images table — thumbnails in Airtable, linked out to Drive or a photo library |
-| 260928_1305 | ▫️ | Photos as references — timestamp and link, without uploading the file |
 | 260905_1804 | ▫️ | Inventory the recipes in Drive and wire them into the provisions planner |
 | 260812_1205 | ▫️ | A deep pass on the connections table — duplicates, circles, held names, missing surnames |
 | 260926_1130 | ▶️ | A provisions session left open on 26 Sep — reconcile done, close the row |
 | 260925_0726b | ▶️ | A books catalog base — the reading inventory is cued; still the store's data export for dates, the e-reader screenshots, which Drive folder holds the notes, whether read-alouds are marked as the child's |
 | 260925_1105 | ▶️ | Four catalogs, one shape — books, places, recipes, and the queued stories rows migrating into books; two decisions are hers: does location history feed places, and is "lived" a standing or its own field |
 | 261005_1440 | ▶️ | Places and visits from location history — loaded for one month; export and load the rest, turn the older pings into visits, decide where it lives (local and Drive, or a base too), check three names |
+| 261024d | ⬜ | The stories queue as a working watch list (read of all 118 rows, 24 Oct: 78 want, 22 in motion, 1 finished; 6 carry a link). Three parts: (1) every new row carries its link, its length and where it plays — a `length` and a `where` field, so a few free minutes can be answered from the queue; (2) a stream row that watches or finishes a story closes its stories row (in motion on start, finished on the end), matched by title or link; (3) news rows over 30 days old come back as one keep-or-drop list **when she opens the queue** — never on a schedule, which the base's own description rules out |
 
 ## Drives
 
@@ -107,6 +110,9 @@ When one ships, its line moves to **Done** with the PR that closed it.
 
 | key | item | shipped |
 |---|---|---|
+| 260921_1444 | Photos on the day behind: up to five from the week's W## photos folder, keepers first and drawn large, a photo on an info row left out (`look_behind.py --photos`, fetched by the runner when a Drive key is here). | keepers, 25 Oct 2026 |
+| 260928_1305 | Photos as references: a photo shared in a chat is logged with its kind in the stream's `photo` field (keeper · info), and at dusk the row gets the link to its file in the W## photos folder from the folder's names alone (`dusk --photos`, `core/bedo_photos`). Her words: I upload a photo, you log the time, and then a link to that photo. | keepers, 25 Oct 2026 |
+| 261022_0822 | Preflight's chat-name line is saved as the chat's name in the same reply, and yesterday's ✔️ rename too, wherever a tool can rename the chat (`set_session_title`) — the checks skill and V53 J0, J8. Her words: when you print the name you save it as the chat name so I don't have to do it manually. | checks skill, 22 Oct 2026 |
 | 261009e | The day chat's 401 on 9 Oct: not a bad token — the chat (Cowork) has no Airtable access, sent none, and nothing attached one. The fetch now says *no Airtable access here* and takes the no-token path (exit 3) instead of *revoked or rotated?*; the day ahead's draft builds at 6:45 every morning in the cloud environment that has the credential. | day ahead, 10 Oct 2026 |
 | 261009c | Day ahead: every open card names its next move — the step, the person, the links, what it waits on — read off the row (`Next:` line or the chat's `--step`), and says so when none is named. The 7 Oct amendment on the next step. Her words: so I just don't think of the whole big thing. | day ahead, 9 Oct 2026 |
 | 261009d | Day ahead: the chat's three go on the page (`--pick`), with live status, so a rebuild shows progress. | day ahead, 9 Oct 2026 |

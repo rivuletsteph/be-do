@@ -116,8 +116,8 @@ it is the only place the routine looks.
       build; log why, and go to the next day.
    2. **Secure base**: the day's ⏏️ row in the digest, or `secure` when there
       is none (the table above).
-   3. **Build**: `bash run_look_behind.sh build <day> <state>`. Read what it
-      printed. An abort is the end of that day, named, not worked around.
+   3. **Build**: `bash run_look_behind.sh build <day>` (the day page reads the
+      ⏏️ row itself). Read what it printed. An abort is the end of that day, named, not worked around.
    4. **Publish**: the Artifact tool, `url` = `artifact_url` from the
       settings. A fresh session has not viewed the live page, so the first
       publish is refused and hands back the live version: read it through, and

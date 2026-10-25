@@ -70,7 +70,10 @@
       "device": "",
       "target": "",
       "event": "",
-      "spent": ""
+      "spent": "",
+      "photo": "",
+      "photo_checked": "",
+      "photo_links": ""
     },
     "rhythms": {
       "name": "",
