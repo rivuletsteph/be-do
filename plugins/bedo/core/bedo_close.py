@@ -6,8 +6,12 @@ She starts it by saying *let's end the session*, or plainly that she's done
 with the chat. Three checks, in her order:
 
   qa      a my day chat's day carries the dayqa marker line (the dusk close
-          writes it); any other chat's session entry passes the entry check,
-          the best QA such a chat allows
+          writes it). Any other chat: the session entry passes the entry
+          check, and (her rule, 25 Oct 2026) its first line under
+          `what I did` names the objective and whether it was met —
+          `· objective: <what it was> — met | partly met | not met, <why>` —
+          and work not met names its next step under `still open`. A window
+          chat takes no objective
   entry   a session entry exists: an ⚡ action row whose `chat` is this chat
   title   the chat's status glyph matches the entry: ✔️ for a window chat,
           ☑️ for ✅ done, ▶️ ⏯️ or ⏸️ for work still in motion
@@ -19,7 +23,7 @@ with the chat. Three checks, in her order:
 reads the rows for the chat's entry wherever they are. Exit 0 when all three
 pass, 1 when something is left to do; each FIX names the next step.
 """
-import datetime as dt, json, sys
+import datetime as dt, json, re, sys
 
 from bedo_entry import ACTION, problems
 from bedo_reader import FACTS, as_rows, load_local
@@ -59,6 +63,48 @@ def session_entry(rows, chat_url):
     return max(mine, key=lambda r: r.get('created') or '', default=None)
 
 
+OBJECTIVE = re.compile(r'^·\s*objective:\s*(?P<what>.+?)\s+—\s+(?P<verdict>partly met|not met|met)\b[\s,:;—-]*(?P<why>.*)$')
+OBJECTIVE_LINE = '`· objective: <what it was> — met | partly met | not met, <why>`'
+
+
+def hers(details):
+    """The part of the details above the divider: her words."""
+    return (details or '').split('———')[0]
+
+
+def objective(details):
+    """(objective, verdict, why) from the first line under `what I did`, or None."""
+    lines = [l.strip() for l in hers(details).splitlines()]
+    if 'what I did' not in lines:
+        return None
+    first = next((l for l in lines[lines.index('what I did') + 1:] if l), '')
+    m = OBJECTIVE.match(first)
+    return (m['what'].strip(), m['verdict'], m['why'].strip()) if m else None
+
+
+def next_step(details):
+    """The first line under `still open`, unless it says none."""
+    lines = [l.strip() for l in hers(details).splitlines()]
+    if 'still open' not in lines:
+        return None
+    first = next((l for l in lines[lines.index('still open') + 1:] if l), '')
+    return first if first.lstrip('· ').strip().lower() not in ('', 'none') else None
+
+
+def objective_qa(entry):
+    """(ok, why) for the objective: named, judged, and a next step when not met."""
+    o = objective(entry.get('details'))
+    if not o:
+        return False, (f'the entry\'s first line under `what I did` is the objective and whether it was met: '
+                       f'{OBJECTIVE_LINE} — the one set at the open, or the one the chat worked toward when none was')
+    what, verdict, why = o
+    if not why:
+        return False, f'say why it was {verdict}, in a clause after the verdict'
+    if verdict != 'met' and not next_step(entry.get('details')):
+        return False, f'{verdict}: name the next step under `still open`'
+    return True, f'objective {verdict} — {what}'
+
+
 def qa_done(rows, day):
     """The dayqa marker for `day` in any row's details (the dusk close carries it)."""
     want = f'{MARKER} {day.isoformat()}'
@@ -78,7 +124,9 @@ def findings(rows, chat_url, title, day=None, local=None):
                                                f'and put its last line in the dusk close row'))
     elif entry:
         p = problems(entry, None, local.get('utc_offset_hours'), local.get('weekly_name', 'w{n} be•do'))
-        out.append((not p, 'QA', 'the session entry passes the entry check' if not p else '; '.join(p)))
+        ok, why = (True, 'the session entry passes the entry check') if is_window(title) else objective_qa(entry)
+        issues = p + ([] if ok else [why])
+        out.append((not issues, 'QA', '; '.join(issues) or why))
     else:
         out.append((False, 'QA', 'nothing to check yet — the session entry comes next, then this runs on it'))
 

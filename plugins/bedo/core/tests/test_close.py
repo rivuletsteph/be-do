@@ -15,11 +15,14 @@ DAY = dt.date(2026, 10, 24)
 LOCAL = {'utc_offset_hours': -5, 'weekly_name': 'w{n} be•do'}
 
 
-def entry(status='✅ done', chat=URL, created='2026-10-25T17:12:10.000Z'):
+MET = 'what I did\n· objective: the stage IV rainfall layer — met, built and checked against the gauges\n· built it'
+
+
+def entry(status='✅ done', chat=URL, created='2026-10-25T17:12:10.000Z', details=MET):
     return {'id': 'recE', 'created': created, 'practice': '⚡ action', 'status': status, 'key': '261024_0643',
             'title': 'my day, Sat 24 Oct', 'datetime': '2026-10-24T11:43:00.000Z', 'chat': chat,
             'wellness': '💨 air', 'device': '📱 phone',
-            'details': 'what I did\n· logged the day\n———\n[be•do] written by session-entry'}
+            'details': details + '\n\nstill open\n· none\n———\n[be•do] written by session-entry'}
 
 
 def close_row(marker=True):
@@ -92,6 +95,64 @@ class DriveChat(unittest.TestCase):
     def test_render_names_what_is_left_in_order(self):
         text = C.render('t', C.findings([], URL, '▶️ t', None, LOCAL))
         self.assertIn('still to do, in order: QA, session entry, title', text)
+
+
+class Objective(unittest.TestCase):
+    """Her rule, 25 Oct 2026: the close's QA is the objective — what it was, and was it met."""
+    TITLE = '☑️💧P03.13 Stage IV rainfall'
+
+    def qa(self, details, status='✅ done', title=None):
+        return C.findings([entry(status=status, details=details)], URL, title or self.TITLE, None, LOCAL)[0]
+
+    def test_met_and_named_passes_and_says_so(self):
+        ok, _, why = self.qa(MET)
+        self.assertTrue(ok)
+        self.assertEqual(why, 'objective met — the stage IV rainfall layer')
+
+    def test_no_objective_line_is_owed_with_the_shape(self):
+        ok, _, why = self.qa('what I did\n· built it')
+        self.assertFalse(ok)
+        self.assertIn('· objective: <what it was> — met | partly met | not met, <why>', why)
+
+    def test_the_old_line_without_the_objective_is_not_enough(self):
+        self.assertFalse(self.qa('what I did\n· objective met — built it\n· built it')[0])
+
+    def test_the_objective_must_come_first(self):
+        self.assertFalse(self.qa('what I did\n· built it\n· objective: the layer — met, built')[0])
+
+    def test_a_verdict_wants_a_why(self):
+        ok, _, why = self.qa('what I did\n· objective: the layer — met')
+        self.assertFalse(ok)
+        self.assertIn('why', why)
+
+    def test_partly_met_with_nothing_still_open_wants_the_next_step(self):
+        ok, _, why = self.qa('what I did\n· objective: the layer — partly met, the gauges are missing',
+                             status='▶️ in motion', title='▶️💧P03.13 Stage IV rainfall')
+        self.assertFalse(ok)
+        self.assertIn('still open', why)
+
+    def test_not_met_with_a_next_step_passes(self):
+        d = 'what I did\n· objective: the layer — not met, the download failed\n\nstill open\n· retry the download'
+        found = C.findings([dict(entry(status='▶️ in motion'), details=d + '\n———\n[be•do]')], URL,
+                           '▶️💧P03.13 Stage IV rainfall', None, LOCAL)
+        self.assertTrue(found[0][0], found[0][2])
+        self.assertEqual(found[0][2], 'objective not met — the layer')
+
+    def test_a_window_chat_takes_no_objective(self):
+        found = C.findings([entry(details='what I did\n· closed the week')], URL, '✔️\U0001684E my week W43', None, LOCAL)
+        self.assertTrue(found[0][0], found[0][2])
+
+    def test_a_my_day_chat_is_still_its_dayqa(self):
+        found = C.findings([close_row(), entry(details='what I did\n· logged the day')], URL,
+                           '✔️1024 ⏳ Sat W43 🔆 my day', DAY, LOCAL)
+        self.assertTrue(found[0][0])
+
+    def test_an_entry_problem_and_a_missing_objective_both_show(self):
+        bad = entry(details='what I did\n· built it'); bad['key'] = ''
+        ok, _, why = C.findings([bad], URL, self.TITLE, None, LOCAL)[0]
+        self.assertFalse(ok)
+        self.assertIn('key', why)
+        self.assertIn('objective', why)
 
 
 if __name__ == '__main__':
