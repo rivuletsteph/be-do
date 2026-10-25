@@ -154,10 +154,15 @@ JSON key in `BEDO_DRIVE_SA`, or a path in `BEDO_DRIVE_SA_FILE`), keeps the photo
 taken that day by the phone's own file name (`PXL_YYYYMMDD_HHMMSS…`, UTC), and
 writes each at 900 px. No key prints `NO DRIVE KEY HERE` and exits 3; the page
 builds without photos. `--from DIR` reads originals from a folder instead.
-`week_look_behind.py --photos photos/` places each by its time: on the row taken
-at that minute or spanning it, preferring a row read from a photo, then a moment.
-Inside its moment when it has one, else in the day's pictures under the story; a
-photo for a routine check (`photo_skip_practices` in `core/facts.json`) is left
-out. The Drive connector is not the way: every photo would pass through the chat.
+`week_look_behind.py --photos photos/` places each (`core/bedo_photos`, 25 Oct
+2026): on the row whose `photo_links` name its file (the dusk match), else on
+the row taken at that minute or spanning it, preferring a row read from a photo,
+then a moment. Inside its moment when it has one, else in the day's pictures
+under the story, keepers first. A photo whose row is info — the stream's `photo`
+field, or by rule for an older row: food on its own, a pill, a screen of scores
+(`photos` in `core/facts.json`) — is left out; a moment shows 📷 when one of its
+rows holds a keeper. `run_week_look_behind.sh` fetches the seven days into
+`photos/` when a key is here. The Drive connector is not the way: every photo
+would pass through the chat.
 
 Test: `python3 plugins/bedo/skills/bedo-week-look-behind/tests/test_week.py`.

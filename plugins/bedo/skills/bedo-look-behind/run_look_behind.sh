@@ -107,9 +107,15 @@ elif [ "$MODE" = build ] || [ "$MODE" = canon ]; then
   else
   # typical lengths, the median of the user's own timed rows (scripts/typical_time.py)
   TYPICAL=; [ -f typical_time.json ] && TYPICAL="--typical typical_time.json"
+  # the day's photos from the week's W## photos folder, when a Drive key is here (BEDO_DRIVE_SA
+  # or BEDO_DRIVE_SA_FILE); without one the strip stays hidden and the page builds as before
+  PHOTOS=
+  if [ -f scripts/day_photos.py ]; then rm -rf "photos-$DAY"
+    if "$PY" scripts/day_photos.py --day "$DAY" --local look_behind_local.json --out "photos-$DAY"; then
+      PHOTOS="--photos photos-$DAY"; else echo "photos: none read — the page builds without them"; fi; fi
   "$PY" scripts/look_behind.py --day "$DAY" --local look_behind_local.json $STREAMS \
     --rhythms data/rhythms.json --practices data/practices.json --connections data/connections.json \
-    --words "$WORDS" --template look_behind_engine.html $TYPICAL \
+    --words "$WORDS" --template look_behind_engine.html $TYPICAL $PHOTOS \
     --out "$DAY-day-behind.html" --secure "$SECURE"
   fi
   OUT=${LB_OUT:-/mnt/user-data/outputs}

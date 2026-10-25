@@ -466,12 +466,27 @@ One or two lines, not the page again. What the day was, and anything the build
 flagged — trimmed estimates, a container set aside, work with no drive on it.
 The page holds the rest.
 
+## Photos
+
+(25 Oct 2026, her words: the photos she shares are informational or moments to
+hold on to — keepers.) The stream's `photo` field says which, set by the chat
+that logged the row (V53 J2); a row from before it carries the old checkbox and
+is sorted by rule (`core/bedo_photos`). At dusk each photo row gets the link to
+its file in the week's `W## photos` folder (`photo_links`).
+
+`run_look_behind.sh build` fetches the day's photos from that folder with
+`day_photos.py` (the week behind's) when a Drive key is here (`BEDO_DRIVE_SA` or
+`BEDO_DRIVE_SA_FILE`, the service account the folders are shared with) and
+passes `--photos` to the day page (`week_look_behind.py --day`): each photo on
+its row, else in the day's pictures with keepers first; a photo whose row is
+info (food on its own, a pill, a screen) is left out. `canon` (`look_behind.py`)
+draws the strip instead: up to five, keepers first, drawn large. No key: the
+page builds without photos. The build prints `photos` with what was read, placed and left out.
+Settings: `fields.stream.photo`, `photo_checked`, `photo_links` in
+`look_behind_local` (optional; an older base without them reads as no photos).
+
 ## Not built yet
 
-- **Photos without the Drive key.** The day page places the day's phone photos
-  (the week skill's `day_photos.py`), but only where `BEDO_DRIVE_SA` holds a
-  service-account key the week's photos folder is shared with. Until that key
-  is set up, pages build without photos.
 - **A routine with connectors.** A routine created from inside a session
   carries no connectors, so it can read Airtable (the credential), build and
   publish (the Artifact tool), but cannot write the log row, save to Drive or

@@ -221,5 +221,23 @@
    ["🐟", ["catfish", "fishing"]],
    ["🌅", ["sky", "sunset"]]
   ]
+ },
+ "photos": {
+  "_about": "25 Oct 2026, her words: two kinds of photo. Informational ones carry what a row needs (a meal, a pill, a screen) and are not important in themselves. Keepers are the moments she wants to capture and hold on to; they show on the look behind, day and week. The chat that logs a photo sets the row's photo field to one or the other; a row from before the field (the old checkbox) is sorted by rule.",
+  "kinds": {"keeper": "keeper", "info": "info"},
+  "food_practices": ["breakfast", "lunch", "dinner", "snack", "meal", "smoothie", "coffee", "alcohol", "meal prep", "breakfast prep", "lunch prep", "dinner prep"],
+  "_food_practices": "Her rule, 25 Oct 2026: a picture of just food is info, hidden from the pages. It is a keeper when something about it is special: a restaurant or someone's table, people in it, or she said it was a spectacularly good meal. By rule (no kind set), a food row is a keeper when it names someone with her, or where it was (at …), or family.",
+  "food_keeper_pattern": "\\bat\\b|famil",
+  "info_practices": ["supplements", "bp meds", "meds", "other meds", "allergy meds", "morning oura", "evening oura", "weather check", "map check", "mirror check", "usage check", "shopping", "news", "capture", "morning book", "book", "calendar event", "text", "email", "action"],
+  "_info_practices": "A photo for one of these is the record of a check or a screen, not a picture of the day (garden.photo_skip_practices, 22 Oct, and the screens and flyers read since).",
+  "info_pattern": "'s meds$",
+  "near_seconds": 180,
+  "match_before_minutes": 90,
+  "match_after_minutes": 5,
+  "_match": "At dusk a photo row with no link takes the folder file taken nearest before the row's time, at most 90 minutes before or 5 after: a photo is shared after it is taken, rarely before.",
+  "day_strip_max": 5,
+  "drive_host": "drive.google.com",
+  "drive_path": "/file/d/{id}/view",
+  "phone_name": "^PXL_(\\d{8})_(\\d{6})\\d*.*\\.(jpe?g|png)$"
  }
 }

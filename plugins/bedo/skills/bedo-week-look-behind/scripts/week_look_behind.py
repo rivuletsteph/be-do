@@ -29,10 +29,12 @@ for _p in (os.path.join(_HERE, '..', '..', '..', 'core'), _HERE):
     sys.path.insert(0, os.path.normpath(_p))
 import bedo_reader  # noqa: E402
 import bedo_drives  # noqa: E402
+import bedo_photos  # noqa: E402
 from day_rings import day_rings  # noqa: E402
 
 STREAM_KEYS = ('title', 'key', 'when', 'end', 'status', 'rhythm')
-OPTIONAL_STREAM_KEYS = ('spent', 'deliv', 'target', 'practice', 'wellness', 'person', 'details', 'photo', 'device')
+OPTIONAL_STREAM_KEYS = ('spent', 'deliv', 'target', 'practice', 'wellness', 'person', 'details', 'photo', 'device',
+                        'photo_checked', 'photo_links')
 RHYTHM_KEYS = ('name',)
 OPTIONAL_RHYTHM_KEYS = ('emoji', 'type', 'status', 'code', 'feeds', 'dest')
 WELL = bedo_reader.FACTS['wellness']
@@ -259,7 +261,6 @@ def garden(rows, start, L, local, ndays=7):
 
 GLYPH = re.compile(r'^([^\w\s]+)\s*')
 LEAD = re.compile(r'\[be•do\] look behind (\d{4}-\d\d-\d\d) · (?:draft|final)\s*\n(?:draft )?lead: (.+)')
-PHOTO = re.compile(r'[Ff]rom (?:her|the same) photo')
 
 
 def flow_practices(path, L):
@@ -387,35 +388,31 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset(), ndays=7, words=N
             badges=badges, theirs=theirs,
             memory=next((w for w in G['memory'] if w in low), None),
             synergy=any(w in low for w in G['synergy']) or any('synergiz' in hers(r).lower() for r in rs),
-            photo=any(PHOTO.search(r.get('details') or '') or r.get('photo') for r in rs),
+            photo=any(bedo_photos.kind(r, me) == bedo_photos.KEEPER for r in rs),
             envelope=clean(env.get('title')).split(' — ')[0] if env else None, flow=flow,
             drives=[dict(n=d, e=(rhythms[d].get('emoji') or ''), type=kind(d)) for d in chain],
             dests=[dict(n=d, e=((rhythms.get(d) or {}).get('emoji') or ''), type='destination') for d in dests]))
         for r in rs:
             by_row[r['id']] = out[-1]
     out.sort(key=lambda m: m['at'])
-    # the day's photos, each placed by the time it was taken (22 Oct 2026): on the row
-    # taken at that minute or spanning it, preferring a row read from a photo, then a
-    # moment; inside its moment when it has one, else in the day's pictures. A photo
-    # for a routine check (a pill, a screen of scores) is left out.
-    skip = set(G.get('photo_skip_practices') or bedo_reader.FACTS['garden'].get('photo_skip_practices') or [])
-    skip_re = G.get('photo_skip_pattern') or bedo_reader.FACTS['garden'].get('photo_skip_pattern')
+    # the day's photos (22 Oct 2026; keepers, 25 Oct): each on the row whose photo links
+    # name its file, else on the row taken at that minute or spanning it, preferring a row
+    # read from a photo, then a moment. Inside its moment when it has one, else in the
+    # day's pictures, keepers first. A photo whose row is info (food on its own, a pill,
+    # a screen of scores) is left out — bedo_photos.
     pics = {}
-    for t, src in photos or []:
-        near = [r for r in lived if r['_a'].date() == t.date() and (abs((r['_a'] - t).total_seconds()) <= 180
-                                                                  or (r['_b'] and r['_a'] <= t <= r['_b']
-                                                                      and r['_b'] - r['_a'] <= MAX_SPAN))]
-        best = min(near, key=lambda r: ('photo' not in (r.get('details') or '').lower(), not marked(r),
-                                        abs((r['_a'] - t).total_seconds()))) if near else None
-        if best is not None and (norm(best.get('practice')) in skip
-                                 or (skip_re and re.search(skip_re, norm(best.get('practice'))))):
-            continue
+    placed, _ = bedo_photos.place(lived, photos or [], me, prefer=lambda r, t: (
+        not bedo_photos.has_photo(r), not marked(r), abs((r['_a'] - t).total_seconds())))
+    for p in placed:
+        best = p['row']
         if best is not None and best['id'] in by_row:
-            by_row[best['id']].setdefault('photos', []).append(src)
+            by_row[best['id']].setdefault('photos', []).append(p['src'])
         else:
-            pics.setdefault(t.date().isoformat(), []).append(dict(
-                src=src, at=t.isoformat(), g=glyph(best.get('practice')) if best else '',
+            pics.setdefault(p['t'].date().isoformat(), []).append(dict(
+                src=p['src'], at=p['t'].isoformat(), keeper=p['keeper'], g=glyph(best.get('practice')) if best else '',
                 t=clean(best.get('title')) if best else ''))
+    for v in pics.values():
+        v.sort(key=lambda x: not x['keeper'])
     days = []
     for i in range(ndays):
         d = (start + dt.timedelta(days=i)).date()
@@ -583,6 +580,21 @@ def readings(rows, timed, rhythms, start, L, local, ndays=7, words=None, photos=
                 secure_assumed=sum(1 for v in out if v['assumed']))
 
 
+def read_photos(folder, off):
+    """The small photos day_photos.py wrote, as (taken, Drive file id or None, data URI)."""
+    out = []
+    if not folder or not os.path.isdir(folder):
+        return out
+    idx = os.path.join(folder, 'index.json')
+    ids = json.load(open(idx, encoding='utf-8')) if os.path.exists(idx) else {}
+    for n in sorted(os.listdir(folder)):
+        t = bedo_photos.taken(n, off)
+        if t:
+            b64 = base64.b64encode(open(os.path.join(folder, n), 'rb').read()).decode()
+            out.append((t, ids.get(n), 'data:image/jpeg;base64,' + b64))
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--week', help='the Sunday the week opens on, or any day in it')
@@ -610,14 +622,7 @@ def main():
     rows, reads = load(a.stream, F)
     L['_flowset'] = flow_practices(a.practices, L)
     rhythms, nrh = load_rhythms(a.rhythms, RF)
-    photos = []
-    if a.photos and os.path.isdir(a.photos):
-        from day_photos import taken
-        for n in sorted(os.listdir(a.photos)):
-            t = taken(n, L['utc_offset_hours'])
-            if t:
-                b64 = base64.b64encode(open(os.path.join(a.photos, n), 'rb').read()).decode()
-                photos.append((t, 'data:image/jpeg;base64,' + b64))
+    photos = read_photos(a.photos, L['utc_offset_hours'])
     drives, totals, qa, more = build(rows, rhythms, start, L, ndays, words, photos)
     wk = L['week_zero_number'] + (sun - dt.date.fromisoformat(L['week_zero_sunday'])).days // 7
     sat = sun + dt.timedelta(days=6)
