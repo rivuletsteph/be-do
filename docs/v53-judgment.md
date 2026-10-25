@@ -159,6 +159,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 - Score from the day's rows tagged to him against the ten mini-quests (the data row, never archived); ask only the real gaps.
 - One ⚔️ row a day, one line per scored mini-quest: the observed time and what he did, her words.
 - Defaults: the family bed (solo fortress only when she says) · hero's service is him asking how he can help and following through · good sport needs other kids · the adventure means going somewhere · unobserved is unreported, not missed.
+- **Tablet or screen play never fills Digital Creation / Independence** — the tablet is a distraction, and what she cares about is initiative (25 Oct 2026; the slot itself is hers to revisit). Milk alone is not The Fuel's protein.
 - Friends physically here: the rules run loose; the 9 PM close holds. His pages speak to him.
 
 ## J14 · What's hers
