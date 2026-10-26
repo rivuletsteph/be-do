@@ -22,6 +22,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 |---|---|---|
 | 260924_2221b | ⏸️ | The day behind is built by hand, when she asks. The 03:00 routine (trig_01TVzvCv9aDCJ4FWvC4qr9y1) was paused on 11 Oct and stays off — her word, 24 Oct 2026: I don't want anything to build at 3am; let's get a version I'm happy with working and I'll build it manually. A my day chat is ✔️ once its look behind is seen. |
 | 261025_photos | ⬜ | Photos reach the pages only where a Drive key is (`BEDO_DRIVE_SA`): add the service account's key to the cloud environment, with the W## photos folders shared to it, so a cloud build draws the keepers too |
+| 261026_drive | ⬜ | The builders save the look ahead and the look behind to the week's Drive folder themselves, through the `BEDO_DRIVE_SA` service account, so no page passes through the chat on its way to Drive (her idea, 26 Oct 2026). Rides on the same key as 261025_photos |
 | 260915_0744 | ⬜ | One codebase for the behind and ahead pages — mobile, nightly, reading Airtable, depersonalised |
 | 260921_1444c | ⬜ | The day behind's folded "more" — river, map, flows, self-check |
 | 260921_1444b | ⬜ | The day ahead as the day behind's mirror — her intentions in the same slots, linked both ways |
