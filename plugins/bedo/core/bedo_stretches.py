@@ -16,7 +16,7 @@ stops that happening by hand.
     python3 bedo_stretches.py conversation.json     # a claude.ai chat read
     python3 bedo_stretches.py session.jsonl         # a Claude Code transcript
 """
-import datetime as dt, json, os
+import datetime as dt, json, os, re
 
 from bedo_reader import FACTS
 
@@ -61,6 +61,62 @@ def named(spans, offset_hours):
     off = dt.timedelta(hours=offset_hours)
     parts = [f'{_clock(a + off)}–{_clock(b + off)}' for a, b in spans]
     return ' · '.join(parts) + f' = {hm(minutes(spans))}'
+
+
+LINE = 'stretches:'
+_NAMED = re.compile(r'^\s*(?:\[be•do\]\s*)?stretches:\s*(?P<spans>.+?)\s*=\s*[^=]*$', re.M)
+_SPAN = re.compile(r'(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})')
+
+
+def block_line(spans, offset_hours):
+    """The line a session row's `[be•do]` block carries, so the day behind can
+    draw her stretches rather than the envelope: `stretches: 3:19–3:21 · … = 18m`."""
+    return f'{LINE} {named(spans, offset_hours)}'
+
+
+def on_day(spans, day, offset_hours):
+    """The stretches that start on her local `day` — a chat that runs across
+    days logs each day's work on that day's row."""
+    off = dt.timedelta(hours=offset_hours)
+    return [(a, b) for a, b in spans if (a + off).date() == day]
+
+
+def row_times(spans):
+    """A session row's clock, from her stretches: one stretch keeps a real
+    start and end; several keep the first start and the sum as time spent (in
+    seconds), with no end — the envelope is never the row's span."""
+    if not spans:
+        return {}
+    iso = lambda t: t.astimezone(dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+    if len(spans) == 1:
+        return {'datetime': iso(spans[0][0]), 'end': iso(spans[0][1])}
+    return {'datetime': iso(spans[0][0]), 'time_spent': minutes(spans) * 60}
+
+
+def from_details(details, anchor):
+    """[(start, end)] as local naive datetimes, read back from a row's
+    `stretches:` line; None when it names none. The clock is 12-hour, so each
+    time is read as the one nearest the row's own start (`anchor`, local) and
+    then forward in order."""
+    m = _NAMED.search(details or '')
+    if not m or anchor is None:
+        return None
+    out, prev = [], None
+    for h1, m1, h2, m2 in _SPAN.findall(m['spans']):
+        pair = []
+        for h, mi in ((h1, m1), (h2, m2)):
+            base = anchor.replace(hour=0, minute=0, second=0, microsecond=0)
+            cands = [base + dt.timedelta(days=d, hours=int(h) % 12 + half, minutes=int(mi))
+                     for d in (0, 1) for half in (0, 12)]
+            if prev is None:
+                t = min(cands, key=lambda c: abs(c - anchor))
+            else:
+                later = [c for c in cands if c >= prev]
+                t = min(later) if later else prev
+            pair.append(t)
+            prev = t
+        out.append(tuple(pair))
+    return out or None
 
 
 def uncaptured(spans, captures):
@@ -164,13 +220,22 @@ def main(argv=None):
     ap.add_argument('src')
     ap.add_argument('--offset', type=float, default=None, help='local UTC offset in hours')
     ap.add_argument('--gap', type=int, default=GAP)
+    ap.add_argument('--day', help='only the stretches that start on this local day, YYYY-MM-DD')
+    ap.add_argument('--json', action='store_true', help='the row\'s times and its stretches line, as JSON')
     a = ap.parse_args(argv)
     off = a.offset
     if off is None:
         from bedo_reader import load_local
         off = load_local(required=False).get('utc_offset_hours', 0)
     spans = stretches(times_from(a.src), a.gap)
+    if a.day:
+        spans = on_day(spans, dt.date.fromisoformat(a.day), off)
+    if a.json:
+        print(json.dumps(dict(row_times(spans), line=block_line(spans, off), minutes=minutes(spans)),
+                         ensure_ascii=False))
+        return
     print(f'{len(spans)} stretch{"es" if len(spans) != 1 else ""}: {named(spans, off)}')
+    print(f'for the row\'s [be•do] block: {block_line(spans, off)}')
 
 
 if __name__ == '__main__':

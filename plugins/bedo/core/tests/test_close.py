@@ -155,5 +155,32 @@ class Objective(unittest.TestCase):
         self.assertIn('objective', why)
 
 
+class Stretches(unittest.TestCase):
+    """A session with gaps carries her stretches and their sum (261024a)."""
+    TITLE = '☑️' + 'D6.65 the cards'
+
+    def qa(self, **kw):
+        e = dict(entry(), **kw)
+        return C.findings([e], URL, self.TITLE, local=LOCAL)[0]
+
+    def test_one_stretch_keeps_its_span_and_needs_no_line(self):
+        self.assertTrue(self.qa(end='2026-10-24T12:43:00.000Z')[0])
+
+    def test_gaps_without_her_stretches_are_owed(self):
+        ok, _, why = self.qa(time_spent=1500)
+        self.assertFalse(ok)
+        self.assertIn('stretches', why)
+
+    def test_gaps_with_her_stretches_and_their_sum_pass(self):
+        d = MET + '\n\nstill open\n· none\n———\n[be•do] written by session-entry\nstretches: 6:43–6:53 · 8:00–8:15 = 25m'
+        self.assertTrue(self.qa(time_spent=1500, details=d)[0])
+
+    def test_a_time_spent_that_is_the_envelope_is_named(self):
+        d = MET + '\n\nstill open\n· none\n———\n[be•do] stretches: 6:43–6:53 · 8:00–8:15 = 25m'
+        ok, _, why = self.qa(time_spent=92 * 60, details=d)
+        self.assertFalse(ok)
+        self.assertIn('not the sum of her stretches, 25m', why)
+
+
 if __name__ == '__main__':
     unittest.main()

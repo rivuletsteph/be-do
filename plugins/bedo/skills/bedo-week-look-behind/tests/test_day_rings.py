@@ -68,4 +68,19 @@ assert 'dusk' not in R['win'] and R['win']['dawn'] == [480, 485], R['win']
 assert [(m['m'], m['p']) for m in R['moments']] == [(14 * 60, 'glimmer'), (14 * 60 + 30, 'highlight')], R['moments']
 care = next(r for r in B['doing']['runs'] if r[0] == 'care' and r[1] == 15 * 60)
 assert care[3] == ['school run'], care                               # a tap names what the chunk was
-print('ok — the night, food and moving, her work not the laptop\'s, caretaking, recreation, screens, flows and moments')
+# A session that ran 6:00 to 7:30 with her away in between: the row names her
+# stretches, and only those are her work and her screen (261024a, 25 Oct 2026).
+NIGHT = [row('😴 sleep', '-23:00', '07:30')]
+gap = row('⚡ action', '18:00', rhythm='the system', device='💻 laptop', title='the cards', spent=25 * 60,
+          details='what I did\n· moved the cards\n———\n[be•do] stretches: 6:00–6:10 · 7:15–7:30 = 25m')
+R2 = day_rings(NIGHT + [gap], DAY, L)
+B2 = {b['k']: b for b in R2['bands']}
+runs = [(r[1], r[2]) for r in B2['doing']['runs']]
+assert runs == [(18 * 60, 18 * 60 + 10), (19 * 60 + 15, 19 * 60 + 30)], runs
+assert B2['screen']['total'] == 25, B2['screen']
+# the same row without the line falls back to its time spent from the start, as before
+old = dict(gap, details='what I did\n· moved the cards')
+assert [(r[1], r[2]) for r in {b['k']: b for b in day_rings(NIGHT + [old], DAY, L)['bands']}['doing']['runs']] == \
+    [(18 * 60, 18 * 60 + 25)]
+print('ok — the night, food and moving, her work not the laptop\'s, her stretches not the envelope, caretaking, '
+      'recreation, screens, flows and moments')

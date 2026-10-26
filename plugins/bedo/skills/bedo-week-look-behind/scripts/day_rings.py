@@ -11,8 +11,10 @@ words for it are in docs/day-behind-cards.md. In short:
   others and of herself, cooking, be•do); a thin line for time on a screen.
   Bands overlap freely: one stretch can be two things.
 - Doing makes or moves something; being is when the moment itself is the point.
-- Work is what she was doing, not what the laptop was doing: a session row's
-  minutes are hers only while she wasn't driving, eating, moving or asleep.
+- Work is what she was doing, not what the laptop was doing. A session row that
+  names her stretches (`stretches: …` in its `[be•do]` block, from her own
+  messages) is drawn over those stretches only; any session row's minutes are
+  hers only while she wasn't driving, eating, moving or asleep.
 - A meal is not moving. Food is all nutrition, drinks too.
 - The moments that mattered sit outside the rainbow at their own times.
 
@@ -29,6 +31,7 @@ import datetime as dt
 import re
 
 import bedo_reader
+import bedo_stretches as stretches
 
 TICK = 5                    # a moment with no length is drawn as five minutes
 IDEAL_BED = 480             # 16 waking hours and 8 in bed make the day
@@ -78,7 +81,7 @@ def title(t):
 def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset()):
     """The rainbow's data for one day, from rows already deduped (live base first).
     Each row carries 'when', 'end' (ISO, UTC), 'spent' (seconds), 'practice', 'title',
-    'status', 'rhythm', 'person', 'device'. `flows` holds the flow practices, normalised."""
+    'status', 'rhythm', 'person', 'device', 'details'. `flows` holds the flow practices, normalised."""
     off = dt.timedelta(hours=L['utc_offset_hours'])
     s0 = dt.datetime.combine(day, dt.time())
     e0 = s0 + dt.timedelta(days=1)
@@ -115,8 +118,12 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset()):
         a, b = local(r.get('when')), local(r.get('end'))
         if not a:
             continue
+        parts = stretches.from_details(r.get('details'), a)    # her stretches, when the row names them
+        if parts:
+            b = max(b or a, parts[-1][1])
         if not b and r.get('spent'):
             b = a + dt.timedelta(seconds=float(r['spent']))
+        pieces = parts or [(a, b)]
         span = b is not None and b > a and b - a <= dt.timedelta(hours=14)
         if (span and (b <= s0 or a >= e0)) or (not span and not s0 <= a < e0):
             continue
@@ -144,14 +151,18 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset()):
         is_care = pr in CARE or any(x in rh for x in care_rh) or (
             span and pr in ('log', 'driving') and any(w in t or any(w in n for n in who) for w in care_who))
         if is_care and span:
-            paint('work', 'care', a, b, t)
-        elif rh and span and pr == 'action' and b - a >= dt.timedelta(minutes=10):
-            paint('work', 'system' if rh == system else 'work', a, b, t)
+            for pa, pb in pieces:
+                paint('work', 'care', pa, pb, t)
+        elif rh and span and pr == 'action' and (parts or b - a >= dt.timedelta(minutes=10)):
+            for pa, pb in pieces:
+                paint('work', 'system' if rh == system else 'work', pa, pb, t)
         d = (r.get('device') or '').lower()
         if 'laptop' in d or 'desktop' in d or 'tv' in d or pr in TV:
-            paint('screen', 'screen', a, bb, t)
+            for pa, pb in (parts or [(a, bb)]):
+                paint('screen', 'screen', pa, pb, t)
         if 'phone' in d:
-            paint('screen', 'screen', a, bb if pr in SCREENISH else a + dt.timedelta(minutes=TICK), t)
+            for pa, pb in (parts or [(a, bb if pr in SCREENISH else a + dt.timedelta(minutes=TICK))]):
+                paint('screen', 'screen', pa, pb, t)
 
     asleep = [False] * 1440
     for n in nights:

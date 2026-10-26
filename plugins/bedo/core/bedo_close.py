@@ -11,7 +11,10 @@ with the chat. Three checks, in her order:
           `what I did` names the objective and whether it was met —
           `· objective: <what it was> — met | partly met | not met, <why>` —
           and work not met names its next step under `still open`. A window
-          chat takes no objective
+          chat takes no objective. A session with gaps (time spent, no end)
+          names her stretches in its `[be•do]` block (`stretches: … = …`,
+          from `bedo_stretches`) and its time spent is their sum
+          (backlog 261024a, 25 Oct 2026: her time, not the session's)
   entry   a session entry exists: an ⚡ action row whose `chat` is this chat
   title   the chat's status glyph matches the entry: ✔️ for a window chat,
           ☑️ for ✅ done, ▶️ ⏯️ or ⏸️ for work still in motion
@@ -25,6 +28,7 @@ pass, 1 when something is left to do; each FIX names the next step.
 """
 import datetime as dt, json, re, sys
 
+import bedo_stretches as ST
 from bedo_entry import ACTION, problems
 from bedo_reader import FACTS, as_rows, load_local
 
@@ -105,6 +109,25 @@ def objective_qa(entry):
     return True, f'objective {verdict} — {what}'
 
 
+def stretches_qa(entry, offset_hours):
+    """None, or what a session with gaps still owes: her stretches named, and
+    a time spent that is their sum. One stretch keeps a real start and end."""
+    spent, end = entry.get('time_spent'), entry.get('end')
+    if end or spent in (None, ''):
+        return None
+    when = entry.get('datetime')
+    anchor = (dt.datetime.fromisoformat(when.replace('Z', '+00:00')).replace(tzinfo=None)
+              + dt.timedelta(hours=offset_hours or 0)) if when else None
+    spans = ST.from_details(entry.get('details'), anchor)
+    if not spans:
+        return ('name her stretches in the `[be•do]` block: run `stretches` on this chat\'s transcript with '
+                '`--day` and copy its `stretches:` line — the time spent is their sum, never the envelope')
+    named = round(sum((b - a).total_seconds() for a, b in spans) / 60)
+    if abs(round(float(spent) / 60) - named) > 1:
+        return f'time spent {ST.hm(round(float(spent) / 60))} is not the sum of her stretches, {ST.hm(named)}'
+    return None
+
+
 def qa_done(rows, day):
     """The dayqa marker for `day` in any row's details (the dusk close carries it)."""
     want = f'{MARKER} {day.isoformat()}'
@@ -125,7 +148,8 @@ def findings(rows, chat_url, title, day=None, local=None):
     elif entry:
         p = problems(entry, None, local.get('utc_offset_hours'), local.get('weekly_name', 'w{n} be•do'))
         ok, why = (True, 'the session entry passes the entry check') if is_window(title) else objective_qa(entry)
-        issues = p + ([] if ok else [why])
+        gaps = None if is_window(title) else stretches_qa(entry, local.get('utc_offset_hours'))
+        issues = p + ([] if ok else [why]) + ([gaps] if gaps else [])
         out.append((not issues, 'QA', '; '.join(issues) or why))
     else:
         out.append((False, 'QA', 'nothing to check yet — the session entry comes next, then this runs on it'))
