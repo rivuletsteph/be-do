@@ -9,6 +9,8 @@
 # …and so are the core's facts: choice strings, glyphs and thresholds, nothing
 # personal. Its personal half is facts_local.json, which stays ignored.
 !plugins/bedo/core/facts.json
+# …and the project's Claude Code settings: permission rules, nothing personal.
+!.claude/settings.json
 
 # local
 bedo_local.py
