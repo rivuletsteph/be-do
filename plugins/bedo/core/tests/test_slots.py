@@ -163,6 +163,29 @@ class Stretches(unittest.TestCase):
             finally:
                 os.unlink(fh.name)
 
+    def test_a_session_row_takes_her_stretches_not_the_envelope(self):
+        # 261024a: the row's clock and the line its [be•do] block carries come from her stretches
+        spans = ST.stretches([at('2026-10-24 15:19'), at('2026-10-24 15:21'), at('2026-10-24 15:52'),
+                              at('2026-10-24 15:54'), at('2026-10-24 16:46'), at('2026-10-24 17:00')])
+        self.assertEqual(ST.row_times(spans), {'datetime': z('2026-10-24 15:19'), 'time_spent': 18 * 60})
+        self.assertEqual(ST.row_times(spans[:1]), {'datetime': z('2026-10-24 15:19'), 'end': z('2026-10-24 15:21')})
+        line = ST.block_line(spans, -5)
+        self.assertEqual(line, 'stretches: 3:19–3:21 · 3:52–3:54 · 4:46–5:00 = 18m')
+        back = ST.from_details('what I did\n———\n[be•do] written\n' + line, dt.datetime(2026, 10, 24, 15, 19))
+        self.assertEqual([(a.strftime('%H:%M'), b.strftime('%H:%M')) for a, b in back],
+                         [('15:19', '15:21'), ('15:52', '15:54'), ('16:46', '17:00')])
+        self.assertIsNone(ST.from_details('no line here', dt.datetime(2026, 10, 24, 15, 19)))
+
+    def test_the_twelve_hour_clock_reads_forward_from_the_row(self):
+        back = ST.from_details('stretches: 11:40–12:10 · 12:30–1:05 = 1h 05m', dt.datetime(2026, 10, 24, 23, 40))
+        self.assertEqual([(a.strftime('%d %H:%M'), b.strftime('%d %H:%M')) for a, b in back],
+                         [('24 23:40', '25 00:10'), ('25 00:30', '25 01:05')])
+
+    def test_a_chat_across_days_logs_each_days_own_stretches(self):
+        spans = ST.stretches([at('2026-10-24 22:00'), at('2026-10-24 22:10'), at('2026-10-25 09:00'),
+                              at('2026-10-25 09:12')])
+        self.assertEqual(ST.named(ST.on_day(spans, dt.date(2026, 10, 25), -5), -5), '9:00–9:12 = 12m')
+
     def test_a_claude_ai_read_counts_her_side(self):
         conv = {'chat_messages': [{'created_at': '2026-10-03T14:00:00Z', 'sender': 'human'},
                                   {'created_at': '2026-10-03T14:40:00Z', 'sender': 'assistant'}]}

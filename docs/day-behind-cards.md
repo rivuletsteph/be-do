@@ -115,8 +115,9 @@ during a school run is still the school run. Time together that isn't care work
 - **Her doing, not the system's.** "If the laptop is running that's not me
   working. It's what I'm actually doing." A session row records when the
   laptop ran; its minutes count as her work only while she wasn't driving,
-  eating, moving or asleep. (Open: session rows could record when she was
-  actually in the session; until then this rule stands in.)
+  eating, moving or asleep. (25 Oct 2026: a session row now names her
+  stretches, from her own messages, and is drawn over those only; this rule
+  still guards a row that names none.)
 - **One shade per ring, never several colours on one line.** Each ring has its
   own hue and a very light tint of it as its track; its parts differ by
   pattern: core (blue) sleep solid, flows dotted; body (sage) food solid,
