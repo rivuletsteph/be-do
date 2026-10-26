@@ -183,3 +183,12 @@ Each skill carries its own procedure; this file doesn't repeat them:
 `clear-inbox` · `provisions` · `shopping-watch` · `session-entry` · `chat-title` ·
 `bedo-day-ahead` · `bedo-look-behind` · `bedo-ahead-review` · `bedo-weekly-close` · `bedo-checks`,
 and the screen-time spec for her son's quest.
+
+**The version store's copy wins over an installed one.** Where a skill's
+procedure lives in the repo (`plugins/bedo/skills/<name>/SKILL.md`), that file
+is the skill; an installed copy that still carries its whole text is older and
+is overruled wherever they differ. **The session entry follows
+`plugins/bedo/skills/session-entry/SKILL.md`** from this same download (25 Oct
+2026): its times come from `stretches`, never from the chat's open and close,
+whatever the installed session-entry skill says. This holds until the
+installed copy is replaced by its loader, and costs nothing after.
