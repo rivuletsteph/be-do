@@ -34,7 +34,7 @@ def row(p, a, b=None, **kw):
 
 
 ROWS = [
-    row('😴 sleep', '-23:00', '07:30'),                                  # the night before: 8 h 30 in bed
+    row('😴 sleep', '-23:00', '07:30', details='———\n[be•do] From her Oura: 7 h 52 min asleep, efficiency 93%'),   # 8 h 30 in bed
     row('☕ coffee', '07:45'),                                             # a drink is food, a five-minute tick
     row('📿 morning mantra', '08:00'),                                    # a flow step
     row('⚡ action', '09:00', '10:00', rhythm='Paid Work', device='💻 laptop', title='the report'),
@@ -58,6 +58,7 @@ K = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in R['bands']}
 
 assert R['goals'] == {'inbed': 450, 'move': 120} and R['ideal_bed'] == 450, R['goals']   # the night is measured against her own goal
 assert R['wake'] == 7 * 60 + 30 and R['bed'] == 23 * 60 and R['inbed'] == 510, (R['wake'], R['bed'], R['inbed'])
+assert R['asleep'] == 472, R['asleep']                                   # asleep, from Oura's line, inside the hours in bed
 assert K['being']['eat'] == 5 + 15, K['being']                       # coffee tick + lunch
 assert K['being']['move'] == 60 - 15, K['being']                     # the walk less the meal
 assert K['being']['recreation'] == 30 + 60, K['being']              # the show and the trampoline park

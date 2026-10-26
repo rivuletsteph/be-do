@@ -274,4 +274,14 @@ a rhythm named in `recreation` in the settings: her adventure rhythm). One
 stretch can be both, on two bands. A ⭐ highlight told later sits at the
 moment's own time and no longer stretches the dawn flow's span.
 
+**Asleep inside in bed, 26 Oct (Sun 25 Oct's day behind).** "Show sleep as the
+darker blue: in bed is the whole span, but the actual asleep part darker blue."
+The night in the gap stays the hours in bed, in the misty blue; the minutes
+asleep, read from the Oura line in the sleep row (`7 h 18 min asleep`), sit
+inside it in the deeper blue (`--rb-sleep-deep`, lighter on a dark page), and a
+tap says asleep of in bed and how long awake. Oura's line says how long, not
+when, so the awake minutes are split between falling asleep and getting up. An
+Asleep bar sits under In bed. The rim for a night over 8 h moves to the outline
+blue so the deeper blue means asleep alone. No Oura line, no asleep part.
+
 **Next:** icons in place of labels; then the next card (the sociogram, or what moved).

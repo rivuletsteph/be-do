@@ -5,7 +5,8 @@ Settled with her on 24 Oct 2026, drawn on Fri 23 Oct; every decision and her
 words for it are in docs/day-behind-cards.md. In short:
 
 - The rainbow is the 16 waking hours from getting up; the gap at the bottom is
-  the 8 hours of a night, filled for the hours in bed the night before.
+  the 8 hours of a night, filled for the hours in bed the night before, and the
+  part of them asleep (Oura's figure in the sleep row) in the deeper blue.
 - From the inside out: a thin band for the dawn and dusk flows; being (eating
   and drinking, moving, recreation); doing (professional work, caretaking of
   others and of herself, cooking, be•do); a thin line for time on a screen.
@@ -78,6 +79,18 @@ def title(t):
     return re.sub(r'^[^\w]+', '', t or '').split(' — ')[0].strip()
 
 
+ASLEEP = re.compile(r'(?:(\d+)\s*h\s*)?(\d+)\s*min\s+asleep|(\d+)\s*h\s+asleep')
+
+
+def asleep_min(details):
+    """Minutes asleep, from the Oura line in a sleep row ('7 h 18 min asleep'); None when it isn't there.
+    In bed is the row's span; asleep is the part of it drawn in the deeper blue (26 Oct 2026)."""
+    m = ASLEEP.search(details or '')
+    if not m:
+        return None
+    return int(m.group(3)) * 60 if m.group(3) else int(m.group(1) or 0) * 60 + int(m.group(2))
+
+
 def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset()):
     """The rainbow's data for one day, from rows already deduped (live base first).
     Each row carries 'when', 'end' (ISO, UTC), 'spent' (seconds), 'practice', 'title',
@@ -133,7 +146,8 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset()):
             moments.append(dict(m=mins(a), g=(r.get('practice') or '·').split()[0], t=t, p=pr,
                                 d=int((b - a).total_seconds() // 60) if span else 0))
         if pr in SLEEP and span:
-            nights.append(dict(a=max(0, mins(a)), b=min(1440, mins(b)), inbed=int((b - a).total_seconds() // 60)))
+            nights.append(dict(a=max(0, mins(a)), b=min(1440, mins(b)), inbed=int((b - a).total_seconds() // 60),
+                               asleep=asleep_min(r.get('details'))))
         if pr in COOK:
             paint('cook', 'cook', a, bb, t)
         if pr in EAT:
@@ -216,5 +230,6 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset()):
                           kinds=[dict(k=kk, n=nn, min=sum(1 for x in arr if x == kk)) for kk, nn in kinds]))
     goals = dict(L.get('day_goals') or {})        # minutes a day she aims for, by part: {"inbed": 480, "move": 120}
     return dict(wake=wake, bed=evening['a'] if evening else None, inbed=morning['inbed'] if morning else None,
+                asleep=morning['asleep'] if morning else None,
                 ideal_bed=goals.get('inbed') or IDEAL_BED, span=SPAN, bands=bands, win=win, goals=goals,
                 moments=sorted(moments, key=lambda x: x['m']))

@@ -505,10 +505,16 @@ const rainbow = RB => {
   (B.screen || {runs: []}).runs.map(clip).filter(([, a, b]) => b > a).forEach(([kk, a, b, t]) => { g += piece(band(SR, SR + SW, a, b), "var(--rb-screen)", "none", say("screen", a, b, t), widen(SR - 8, SR + SW + 8, a, b) || [band(SR - 8, SR + SW + 8, a, b), b - a]); });
   if (BED < END) g += piece(band(R0, SR + SW, BED, END), "var(--rb-flow-t)", "none", `<b>🛏️ In bed at ${clock2(BED)}</b>, ${hm(END - BED)} before the 16 hours were up`);
   if (RB.inbed != null) { const d = RB.inbed - IDEAL, fill = Math.min(RB.inbed, IDEAL), sg = (d >= 0 ? "+" : "−") + hm(Math.abs(d));
-    const lab = `<b>😴 In bed the night before</b> · ${hm(RB.inbed)} · ${d === 0 ? "exactly 8 h" : sg + " against 8 h"}`;
+    const zz = RB.asleep ? ` · ${hm(RB.asleep)} asleep` : "";
+    const lab = `<b>😴 In bed the night before</b> · ${hm(RB.inbed)} · ${d === 0 ? "exactly 8 h" : sg + " against 8 h"}${zz}`;
     g += piece(nband(R0, OUT, 0, fill), "var(--rb-sleep)", "var(--rb-sleep-d)", lab);
+    // in bed is the whole span; the part asleep is the deeper blue inside it (26 Oct 2026). Oura gives how long,
+    // not where, so the awake minutes are split between falling asleep and getting up.
+    if (RB.asleep) { const k = fill / RB.inbed, z = Math.min(RB.asleep, RB.inbed), a = (RB.inbed - z) / 2 * k;
+      g += piece(nband(R0, OUT, a, a + z * k), "var(--rb-sleep-deep)", "var(--rb-sleep-d)",
+        `<b>💤 Asleep</b> · ${hm(z)} of ${hm(RB.inbed)} in bed${RB.inbed > z ? ` · ${hm(RB.inbed - z)} awake` : ""}`); }
     if (d < 0) g += `<path d="${nband(R0, OUT, fill, IDEAL)}" fill="none" stroke="var(--rb-sleep-d)" stroke-width="1.2" stroke-dasharray="3 3"/>`;
-    if (d > 0) g += piece(nband(OUT + 2, OUT + 9, 0, Math.min(d, IDEAL)), "var(--rb-sleep-deep)", "none", lab);
+    if (d > 0) g += piece(nband(OUT + 2, OUT + 9, 0, Math.min(d, IDEAL)), "var(--rb-sleep-d)", "none", lab);
   }   // no number on the night: like every other piece, a tap says it (24 Oct 2026)
   let last = -999, lift = 0;
   RB.moments.forEach(m => { lift = m.m - last < 30 ? (lift + 1) % 2 : 0; last = m.m; const [x, y] = pt(SR + SW + 16 + lift * 22, m.m);
@@ -526,12 +532,12 @@ const rainbow = RB => {
     ["On a screen", "screen", B.screen.total, "screen"]];
   const MAXB = Math.max(60, ...rowsData.map(r => r[2]), ...rowsData.map(r => GO[r[3]] || 0));
   const head = (t, n) => `<p class="bh">${t}${n != null ? ` <span>${hm(n)}</span>` : ""}</p>`;
-  const bar = ([n, k, v, gk]) => { const goal = GO[gk], col = k === "sleep" ? "sleep" : k;
+  const bar = ([n, k, v, gk]) => { const goal = GO[gk], col = k === "sleep" ? "sleep" : k === "asleep" ? "sleep-deep" : k;
     return `<div class="br"><span class="bn">${esc(n)}</span><span class="bt">` +
-      `<i style="width:${100 * v / MAXB}%;background:var(--rb-${col});border-color:var(--rb-${col}-d)"></i>` +
+      `<i style="width:${100 * v / MAXB}%;background:var(--rb-${col});border-color:var(--rb-${k === "asleep" ? "sleep" : col}-d)"></i>` +
       (goal ? `<b style="left:${100 * goal / MAXB}%" title="goal ${hm(goal)}"></b>` : "") + `</span>` +
       `<span class="bv">${v ? hm(v) : "—"}${goal ? `<small>of ${hm(goal)}</small>` : ""}</span></div>`; };
-  const bars = head("the night before") + bar(rowsData[0]) + head("being", B.being.total) + rowsData.slice(1, 5).map(bar).join("") +
+  const bars = head("the night before") + bar(rowsData[0]) + (RB.asleep ? bar(["Asleep", "asleep", RB.asleep, "asleep"]) : "") + head("being", B.being.total) + rowsData.slice(1, 5).map(bar).join("") +
     head("doing", B.doing.total) + rowsData.slice(5, 9).map(bar).join("") + bar(rowsData[9]);
   // tap areas go underneath: a real piece always wins a tap on itself, and a tap on empty space
   // goes to the nearest small piece (the tracks let taps through)
