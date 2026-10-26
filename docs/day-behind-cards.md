@@ -297,4 +297,12 @@ stretches fall where they happened; the even split stays only for a row with
 no Oura period. The bars under the rainbow count in bed and asleep midnight to
 midnight. A bedtime flow step done in bed before sleep is still a flow.
 
+**Midnight at the bottom, 26 Oct.** "This is really good. I do feel like
+midnight should be at 6:00." The dial was already a 24-hour clock in scale (a
+quarter degree a minute), turned so the middle of the waking day sat at the
+top. Now it keeps clock time: midnight straight down, noon straight up, the
+morning on the left and the evening on the right, so the rainbow tilts with the
+hour she got up. The top label reads noon; the feet keep their times, set
+clear of midnight's name.
+
 **Next:** icons in place of labels; then the next card (the sociogram, or what moved).
