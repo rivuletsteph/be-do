@@ -129,7 +129,7 @@ built page first, so a Drive copy of the page is enough to edit from.
   page, `canon` builds the old page, `words` reads the lead and story back or
   changes them
 - `bedo-week-look-behind/scripts/week_look_behind.py --day` (with `day_rings.py`,
-  `day_photos.py` and `assets/week_look_behind_engine.html`) — the day page,
+  `day_sleep.py` (Oura's five-minute timeline, for where in the night she slept), `day_photos.py` and `assets/week_look_behind_engine.html`) — the day page,
   copied in fresh at every prep
 - `scripts/look_behind.py` — the canon reader and builder; the source of `qa`
 - `scripts/words.py` — the lead and the story as a file: drafted, read back,

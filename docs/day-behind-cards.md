@@ -284,4 +284,17 @@ when, so the awake minutes are split between falling asleep and getting up. An
 Asleep bar sits under In bed. The rim for a night over 8 h moves to the outline
 blue so the deeper blue means asleep alone. No Oura line, no asleep part.
 
+**Split at midnight, 26 Oct (the same morning).** Looking at Sunday's page: "I
+feel like I was in bed for a long time before I went to sleep last night, but
+that's not really what this is showing", then "it needs to split at midnight",
+and "the midnight split needs to show clearly". The gap under the arch is now
+the rest of the calendar day: from the left foot (getting up) back to midnight
+is the end of the night before; from the right foot (the 16 hours' end) on to
+midnight is tonight. A bold line marks midnight, named below the gap. Bed
+inside the 16 hours runs across the rings. Asleep is placed by Oura's
+five-minute timeline (`day_sleep.py`, the night's 1, 2 and 3), so the awake
+stretches fall where they happened; the even split stays only for a row with
+no Oura period. The bars under the rainbow count in bed and asleep midnight to
+midnight. A bedtime flow step done in bed before sleep is still a flow.
+
 **Next:** icons in place of labels; then the next card (the sociogram, or what moved).

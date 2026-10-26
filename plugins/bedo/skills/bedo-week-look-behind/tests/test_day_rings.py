@@ -85,3 +85,19 @@ assert [(r[1], r[2]) for r in {b['k']: b for b in day_rings(NIGHT + [old], DAY, 
     [(18 * 60, 18 * 60 + 25)]
 print('ok — the night, food and moving, her work not the laptop\'s, her stretches not the envelope, caretaking, '
       'recreation, screens, flows and moments')
+
+# the night split at midnight, asleep from Oura's timeline (26 Oct 2026)
+SLEEP = [dict(start='2026-%s-%sT23:00:00-05:00' % ((DAY - dt.timedelta(days=1)).strftime('%m'), (DAY - dt.timedelta(days=1)).strftime('%d')),
+              end=DAY.isoformat() + 'T07:30:00-05:00', type='long_sleep', phases='4' * 12 + '2' * 90 + '4' * 0),
+         dict(start=DAY.isoformat() + 'T23:30:00-05:00', end=(DAY + dt.timedelta(days=1)).isoformat() + 'T07:00:00-05:00',
+              type='long_sleep', phases='4' * 6 + '2' * 84)]
+ROWS2 = [r for r in ROWS] + [row('🌌 evening blessing', '23:10')]
+R2 = day_rings(ROWS2, DAY, L, flows={'morning mantra', 'highlight', 'evening blessing'}, not_lived={'⬜ intention'}, sleep=SLEEP)
+N = {(st, a): b for st, a, b in R2['night']}
+assert R2['asleep_from'] == 'oura', R2['asleep_from']
+assert N.get(('asleep', 0)) == 450, R2['night']                             # midnight to 7:30, asleep all the way (awake 23:00–24:00 was the day before)
+assert N.get(('bed', 1380)) == 1440, R2['night']                              # tonight: in bed at 23:00, awake to midnight (Oura's fours)
+assert R2['inbed_day'] == 450 + 60 and R2['asleep_day'] == 450, (R2['inbed_day'], R2['asleep_day'])
+FB = {b['k']: b for b in R2['bands']}
+assert FB['flow']['total'] >= B['flow']['total'], (FB['flow']['total'], B['flow']['total'])
+print('ok — the night split at midnight: in bed from the rows, asleep from Oura, a bedtime step in bed still a flow')
