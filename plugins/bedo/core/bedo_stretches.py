@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """A chat's time is the sum of its stretches, never its envelope (A250, A251).
 
-A stretch is a run of message and write timestamps with no gap over
-`minutes.stretch_gap` (15) between neighbours. The 3 Oct evening was counted as
+A stretch is a run of her own message timestamps with no gap over
+`minutes.stretch_gap` (15) between neighbours; Claude's turns are not her time. The 3 Oct evening was counted as
 one 5h 30m block and was really five stretches, 4h 04m; this file is what
 stops that happening by hand.
 
@@ -92,28 +92,69 @@ def action_row_problems(row, title, capture_minutes=None):
     return out
 
 
+def _hers(turn):
+    """A turn she typed, spoke or shared. Claude's turns, tool results, skill
+    text, subagents and compaction summaries are not her time: a session
+    building on its own takes a turn every few seconds, and counting them drew
+    an afternoon out on 24 Oct as 1h 42m on the phone when her messages were
+    3:20, 3:53 and 4:47–5:00 (her amendment, 25 Oct 2026: device time is only
+    as long as the data shows)."""
+    if any(turn.get(k) for k in ('isMeta', 'isSynthetic', 'isSidechain', 'isCompactSummary')):
+        return False
+    origin = turn.get('origin')
+    if isinstance(origin, dict) and origin.get('kind') not in (None, 'human'):
+        return False
+    content = (turn.get('message') or {}).get('content')
+    if isinstance(content, list) and any(isinstance(c, dict) and c.get('type') == 'tool_result' for c in content):
+        return False
+    return True
+
+
+def _parse(text):
+    """One JSON document; a list_events read saved as the tool gave it (inside
+    its wrapper text, or as [{"type": "text", "text": …}]); or one object a
+    line, where a live transcript can end mid-line."""
+    try:
+        d = json.loads(text)
+    except json.JSONDecodeError:
+        d = None
+    if isinstance(d, list) and d and isinstance(d[0], dict) and d[0].get('type') == 'text':
+        text, d = ''.join(x.get('text', '') for x in d), None
+    if d is None and '{"ccr"' in text:
+        d, _ = json.JSONDecoder().raw_decode(text[text.index('{"ccr"'):])
+    if d is None:
+        d = []
+        for l in text.splitlines():
+            try:
+                d.append(json.loads(l))
+            except json.JSONDecodeError:
+                pass
+    return d
+
+
 def times_from(src):
-    """Message timestamps from what a chat can hand over: a plain list of
-    stamps; a claude.ai conversation read (chat_messages[].created_at); or a
-    Claude Code transcript, one JSON object a line, user and assistant turns."""
+    """Her message timestamps from what a chat can hand over: a plain list of
+    stamps; a claude.ai conversation read (chat_messages[].created_at, her
+    side only); a Claude Code transcript, one JSON object a line; or a cloud
+    session's event read (list_events, saved as it came). Only her turns count
+    (`_hers`) — the time a session ran is not the time she was on a device."""
     if isinstance(src, (str, os.PathLike)):
         with open(src, encoding='utf-8') as fh:
-            text = fh.read()
-        try:
-            d = json.loads(text)
-        except json.JSONDecodeError:              # one object a line; a live
-            d = []                                # transcript can end mid-line
-            for l in text.splitlines():
-                try:
-                    d.append(json.loads(l))
-                except json.JSONDecodeError:
-                    pass
+            d = _parse(fh.read())
     else:
         d = src
     if isinstance(d, dict) and 'chat_messages' in d:
-        return [m['created_at'] for m in d['chat_messages'] if m.get('created_at')]
+        return [m['created_at'] for m in d['chat_messages']
+                if m.get('created_at') and m.get('sender', 'human') == 'human']
+    if isinstance(d, dict) and 'data' in d.get('ccr', d):     # list_events: {"ccr": {"data": [...]}}
+        out = []
+        for e in d.get('ccr', d)['data']:
+            u = e.get('user')
+            if isinstance(u, dict) and e.get('created_at') and _hers(u.get('internal_anthropic_catchall', u)):
+                out.append(e['created_at'])
+        return out
     if isinstance(d, list) and d and isinstance(d[0], dict):
-        return [e['timestamp'] for e in d if e.get('type') in ('user', 'assistant') and e.get('timestamp')]
+        return [e['timestamp'] for e in d if e.get('type') == 'user' and e.get('timestamp') and _hers(e)]
     return list(d)
 
 

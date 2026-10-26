@@ -39,7 +39,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 261003_1433 | ▶️ | The daily measure checked against how the day felt; meals logged with how they were made and whether she ate with intention; the wellness wheel's role; the unmerged `claude/look-behind-dark-palette` branch — merge or let go |
 | 261004_1045 | ▶️ | Base flow card shipped; next the look behind and look ahead for day, week and month — an earthy palette, the look ahead light and the look behind dark; later nutrition folded into body |
 | 261004_1536 | ▶️ | Page cards from her review of every past page — card 2 (perhaps the dark mirror of card 1), whether the forward map gets its own card, card 1 into the day ahead itself |
-| 261024a | ⬜ | A session row records when the laptop ran, not when she was working. Her word, 24 Oct 2026: if the laptop is running that's not me working; it's what I'm actually doing. Record when she was actually in a session, so working time is hers; until then the day behind counts a session's minutes only while she wasn't driving, eating, moving or asleep |
+| 261024a | ⬜ | A session row records when the laptop ran, not when she was working. Her word, 24 Oct 2026: if the laptop is running that's not me working; it's what I'm actually doing. Record when she was actually in a session, so working time is hers; until then the day behind counts a session's minutes only while she wasn't driving, eating, moving or asleep. 25 Oct 2026: `stretches` now counts her turns only, so a transcript gives her time; what's left is writing session rows from it rather than from the envelope |
 
 ## Calendar
 
