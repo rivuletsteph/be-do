@@ -34,7 +34,7 @@ def row(p, a, b=None, **kw):
 
 
 ROWS = [
-    row('😴 sleep', '-23:00', '07:30'),                                  # the night before: 8 h 30 in bed
+    row('😴 sleep', '-23:00', '07:30', details='———\n[be•do] From her Oura: 7 h 52 min asleep, efficiency 93%'),   # 8 h 30 in bed
     row('☕ coffee', '07:45'),                                             # a drink is food, a five-minute tick
     row('📿 morning mantra', '08:00'),                                    # a flow step
     row('⚡ action', '09:00', '10:00', rhythm='Paid Work', device='💻 laptop', title='the report'),
@@ -58,6 +58,7 @@ K = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in R['bands']}
 
 assert R['goals'] == {'inbed': 450, 'move': 120} and R['ideal_bed'] == 450, R['goals']   # the night is measured against her own goal
 assert R['wake'] == 7 * 60 + 30 and R['bed'] == 23 * 60 and R['inbed'] == 510, (R['wake'], R['bed'], R['inbed'])
+assert R['asleep'] == 472, R['asleep']                                   # asleep, from Oura's line, inside the hours in bed
 assert K['being']['eat'] == 5 + 15, K['being']                       # coffee tick + lunch
 assert K['being']['move'] == 60 - 15, K['being']                     # the walk less the meal
 assert K['being']['recreation'] == 30 + 60, K['being']              # the show and the trampoline park
@@ -84,3 +85,19 @@ assert [(r[1], r[2]) for r in {b['k']: b for b in day_rings(NIGHT + [old], DAY, 
     [(18 * 60, 18 * 60 + 25)]
 print('ok — the night, food and moving, her work not the laptop\'s, her stretches not the envelope, caretaking, '
       'recreation, screens, flows and moments')
+
+# the night split at midnight, asleep from Oura's timeline (26 Oct 2026)
+SLEEP = [dict(start='2026-%s-%sT23:00:00-05:00' % ((DAY - dt.timedelta(days=1)).strftime('%m'), (DAY - dt.timedelta(days=1)).strftime('%d')),
+              end=DAY.isoformat() + 'T07:30:00-05:00', type='long_sleep', phases='4' * 12 + '2' * 90 + '4' * 0),
+         dict(start=DAY.isoformat() + 'T23:30:00-05:00', end=(DAY + dt.timedelta(days=1)).isoformat() + 'T07:00:00-05:00',
+              type='long_sleep', phases='4' * 6 + '2' * 84)]
+ROWS2 = [r for r in ROWS] + [row('🌌 evening blessing', '23:10')]
+R2 = day_rings(ROWS2, DAY, L, flows={'morning mantra', 'highlight', 'evening blessing'}, not_lived={'⬜ intention'}, sleep=SLEEP)
+N = {(st, a): b for st, a, b in R2['night']}
+assert R2['asleep_from'] == 'oura', R2['asleep_from']
+assert N.get(('asleep', 0)) == 450, R2['night']                             # midnight to 7:30, asleep all the way (awake 23:00–24:00 was the day before)
+assert N.get(('bed', 1380)) == 1440, R2['night']                              # tonight: in bed at 23:00, awake to midnight (Oura's fours)
+assert R2['inbed_day'] == 450 + 60 and R2['asleep_day'] == 450, (R2['inbed_day'], R2['asleep_day'])
+FB = {b['k']: b for b in R2['bands']}
+assert FB['flow']['total'] >= B['flow']['total'], (FB['flow']['total'], B['flow']['total'])
+print('ok — the night split at midnight: in bed from the rows, asleep from Oura, a bedtime step in bed still a flow')

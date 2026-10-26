@@ -116,11 +116,13 @@ in its data, so the day skill's `words … --to-page` edits it in place.
 
 **How the day went** (24 Oct 2026, settled with her on Fri 23 Oct; every
 decision and her words are in `docs/day-behind-cards.md`). On a single day the
-page opens, after the lead and story, with the waking day as a rainbow:
-`scripts/day_rings.py` reads the day's rows and the engine draws them.
-- The rainbow is the 16 hours from getting up, bent back like an open book;
-  the gap at the bottom is the 8 hours of a night, filled blue for the hours in
-  bed the night before (dashed where short, a deeper rim where over).
+page opens, after the lead and story, with the day as a clock of rings:
+`scripts/day_rings.py` reads the day's rows and the engine draws them; `scripts/day_sleep.py`
+reads Oura's sleep periods around the day so the night shows asleep where it was.
+- The dial is the calendar day, midnight to midnight (26 Oct 2026): midnight at
+  the bottom, a bold line, noon at the top, morning up the left and evening down
+  the right. In bed is the misty blue across every ring, asleep the deeper blue
+  (Oura's five-minute timeline), drawn under what she did in bed.
 - From the inside out: a thin neutral band for the dawn and dusk flows (their
   span and a line per step); **being** in cool hues (eating and drinking,
   moving, recreation); **doing** in warm hues (professional work, caretaking of

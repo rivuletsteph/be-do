@@ -601,6 +601,7 @@ def main():
     ap.add_argument('--day', help='one day instead of a week: the day behind as a stream (20 Oct 2026)')
     ap.add_argument('--words', help="with --day: the day behind's words file (lead and story)")
     ap.add_argument('--photos', help='a folder of small photos named by the phone (day_photos.py --out)')
+    ap.add_argument('--sleep', help="with --day: Oura's sleep periods around the day (day_sleep.py --out)")
     ap.add_argument('--local', required=True)
     ap.add_argument('--stream', action='append', required=True, help='live base first')
     ap.add_argument('--rhythms', required=True)
@@ -634,7 +635,8 @@ def main():
         week=f'W{wk}', range=(f'{DAY3[day.weekday()]} {day.day} {day:%b}' if a.day
                               else f'Sun {sun.day} {sun:%b} – Sat {sat.day} {sat:%b}'),
         totals=totals, drives=drives, loops=qa['feeds_loops'], **more,
-        rings=day_rings(rows, day, L, L.get('_flowset') or frozenset(), NOT_LIVED) if a.day else None,
+        rings=day_rings(rows, day, L, L.get('_flowset') or frozenset(), NOT_LIVED,
+                        json.load(open(a.sleep, encoding='utf-8')) if a.sleep else None) if a.day else None,
         read=' · '.join(f'{n} {k}/{k}' for n, k in reads) + f' · rhythms {nrh}/{nrh}')
     if a.day:   # the day behind's own keys, so words.py can read the words back and carry edits to the page
         W = words or {}

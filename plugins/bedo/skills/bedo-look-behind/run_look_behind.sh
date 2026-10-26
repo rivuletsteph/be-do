@@ -101,9 +101,12 @@ elif [ "$MODE" = build ] || [ "$MODE" = canon ]; then
       "$PY" scripts/day_photos.py --day "$DAY" --local look_behind_local.json --out "photos-$DAY" || true
       if [ -n "$(ls -A "photos-$DAY" 2>/dev/null)" ]; then PHOTOS="--photos photos-$DAY"; fi
     fi
+    # where in the night she was asleep, from Oura's five-minute timeline; without it the sleep row's own line places it
+    SLEEPARG=
+    if "$PY" scripts/day_sleep.py --day "$DAY" --out "sleep-$DAY.json"; then SLEEPARG="--sleep sleep-$DAY.json"; fi
     "$PY" scripts/week_look_behind.py --day "$DAY" --words "$WORDS" --local look_behind_local.json $STREAMS \
       --rhythms data/rhythms.json --practices data/practices.json \
-      --template week_look_behind_engine.html $PHOTOS --out "$DAY-day-behind.html"
+      --template week_look_behind_engine.html $PHOTOS $SLEEPARG --out "$DAY-day-behind.html"
   else
   # typical lengths, the median of the user's own timed rows (scripts/typical_time.py)
   TYPICAL=; [ -f typical_time.json ] && TYPICAL="--typical typical_time.json"

@@ -274,4 +274,44 @@ a rhythm named in `recreation` in the settings: her adventure rhythm). One
 stretch can be both, on two bands. A ⭐ highlight told later sits at the
 moment's own time and no longer stretches the dawn flow's span.
 
+**Asleep inside in bed, 26 Oct (Sun 25 Oct's day behind).** "Show sleep as the
+darker blue: in bed is the whole span, but the actual asleep part darker blue."
+The night in the gap stays the hours in bed, in the misty blue; the minutes
+asleep, read from the Oura line in the sleep row (`7 h 18 min asleep`), sit
+inside it in the deeper blue (`--rb-sleep-deep`, lighter on a dark page), and a
+tap says asleep of in bed and how long awake. Oura's line says how long, not
+when, so the awake minutes are split between falling asleep and getting up. An
+Asleep bar sits under In bed. The rim for a night over 8 h moves to the outline
+blue so the deeper blue means asleep alone. No Oura line, no asleep part.
+
+**Split at midnight, 26 Oct (the same morning).** Looking at Sunday's page: "I
+feel like I was in bed for a long time before I went to sleep last night, but
+that's not really what this is showing", then "it needs to split at midnight",
+and "the midnight split needs to show clearly". The gap under the arch is now
+the rest of the calendar day: from the left foot (getting up) back to midnight
+is the end of the night before; from the right foot (the 16 hours' end) on to
+midnight is tonight. A bold line marks midnight, named below the gap. Bed
+inside the 16 hours runs across the rings. Asleep is placed by Oura's
+five-minute timeline (`day_sleep.py`, the night's 1, 2 and 3), so the awake
+stretches fall where they happened; the even split stays only for a row with
+no Oura period. The bars under the rainbow count in bed and asleep midnight to
+midnight. A bedtime flow step done in bed before sleep is still a flow.
+
+**Midnight at the bottom, 26 Oct.** "This is really good. I do feel like
+midnight should be at 6:00." The dial was already a 24-hour clock in scale (a
+quarter degree a minute), turned so the middle of the waking day sat at the
+top. Now it keeps clock time: midnight straight down, noon straight up, the
+morning on the left and the evening on the right, so the rainbow tilts with the
+hour she got up. The top label reads noon; the feet keep their times, set
+clear of midnight's name.
+
+**Midnight to midnight, 26 Oct.** "I want a day to always begin and end at
+midnight. Midnight's in the right place on the clock, but it needs to start
+there, not when I go to sleep." The rainbow's 16-hour arc and the gap under it
+are gone: the dial is the whole calendar day, all the way round, starting and
+ending at the bold midnight line at the bottom. The night is in bed across
+every ring (asleep deeper, from Oura's timeline), drawn under everything else,
+so what she did in bed (a bedtime step, reading, the phone) shows on top of it.
+The labels are the clock's quarters: 6a, noon, 6p, and midnight named below.
+
 **Next:** icons in place of labels; then the next card (the sociogram, or what moved).
