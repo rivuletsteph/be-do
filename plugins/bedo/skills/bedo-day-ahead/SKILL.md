@@ -425,6 +425,43 @@ The provenance line counts what each filter set aside.
 now palette (`plugins/bedo/assets/now-palette.css`), which `test_palette.py`
 holds it to. It must fit a phone: no horizontal scroll at 390 px.
 
+## Saturday and Sunday have their own shape
+
+25 Oct 2026, the user's words: *a Sunday look ahead is fundamentally different
+from Monday through Friday. Saturday is also different. The goals are generally
+different* — and *Sunday morning is reserved for reflection*. V53 dropped the
+SUNDAY section (crosswalk row 66) and the Sunday look ahead's shape went with
+it; this puts it back in code. The builder picks the shape from the date;
+`--shape weekday|saturday|sunday` overrides it (a Sunday that is a travel day
+may want the weekday page).
+
+**Sunday** — big picture only, no leverage list, no task queue (the 6 Sep
+Sunday look ahead's own words). In order: the date and the lead, which reads
+the week in one line (*Monday is open, Tuesday is the peak, Thursday has a
+clash*); her intention; **sunday morning**, held for reflection until
+`sunday_morning_until` (12:00), with the day's cadence practices (the 🕯️
+reflection) and any event that would cut into the morning named, not moved;
+the week's word; today on the calendar; **the week ahead**, Monday to
+Saturday, each day tagged *the peak* (the most hours on her calendar), *open*
+(a weekday with nothing of hers), *clash* (a named conflict, said under it) or
+*away* (a stretch away; a ⬜ window like early voting is not one); **ready for
+Monday**, open work due in the next two days that isn't a calendar event's own
+row, the chat's `--pick`s first when given; past its date; **the week after**.
+No be•do's three, no task list, no map, no open by drive. In the chat, say the
+lead line and what's ready for Monday, not the three.
+
+**Saturday** — fun first; the calendar comes after (her words, 24 Oct). Her
+intention, today on the calendar, past its date, **when there's room:
+tending** (at most three open rows under the rhythms the settings name in
+`tending`, never under `work_parents`: past their date first, then due this
+week, then in motion), then the next two weeks. No three, no task list, no map.
+`saturday_lead` in the settings can reword the lead.
+
+The settings keys (`tending`, `sunday_morning`, `sunday_morning_until`,
+`saturday_lead`) are optional and live in the `day_ahead_local` settings row,
+so changing one is an edit to that row, not an upload. Without `tending`,
+Saturday draws no tending section.
+
 ## What the user sees in the chat
 
 One or two lines, not the page again: the three, the today rows just written,
