@@ -305,4 +305,13 @@ morning on the left and the evening on the right, so the rainbow tilts with the
 hour she got up. The top label reads noon; the feet keep their times, set
 clear of midnight's name.
 
+**Midnight to midnight, 26 Oct.** "I want a day to always begin and end at
+midnight. Midnight's in the right place on the clock, but it needs to start
+there, not when I go to sleep." The rainbow's 16-hour arc and the gap under it
+are gone: the dial is the whole calendar day, all the way round, starting and
+ending at the bold midnight line at the bottom. The night is in bed across
+every ring (asleep deeper, from Oura's timeline), drawn under everything else,
+so what she did in bed (a bedtime step, reading, the phone) shows on top of it.
+The labels are the clock's quarters: 6a, noon, 6p, and midnight named below.
+
 **Next:** icons in place of labels; then the next card (the sociogram, or what moved).

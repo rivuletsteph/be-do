@@ -4,11 +4,11 @@
 Settled with her on 24 Oct 2026, drawn on Fri 23 Oct; every decision and her
 words for it are in docs/day-behind-cards.md. In short:
 
-- The rainbow is the 16 waking hours from getting up; the gap at the bottom is
-  the rest of the calendar day, split at midnight (26 Oct 2026): from the left
-  foot back to midnight is this morning's end of the night, from the right foot
-  on to midnight is tonight. In bed is the misty blue, asleep the deeper blue,
-  placed by Oura's five-minute timeline (day_sleep.py) where there is one.
+- The dial is the calendar day, midnight to midnight, on a clock (26 Oct 2026):
+  midnight at the bottom, noon at the top. In bed is the misty blue across every
+  ring, asleep the deeper blue, placed by Oura's five-minute timeline
+  (day_sleep.py) where there is one. `wake` and `span` stay in the data for the
+  words and the bars; the drawing no longer starts at getting up.
 - From the inside out: a thin band for the dawn and dusk flows; being (eating
   and drinking, moving, recreation); doing (professional work, caretaking of
   others and of herself, cooking, be•do); a thin line for time on a screen.

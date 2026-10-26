@@ -467,21 +467,16 @@ document.getElementById("needdays").innerHTML = `<table class="days"><tr><th>day
 // the ends bent back like an open book's covers; the night in the gap at the bottom; bands overlap freely
 const rainbow = RB => {
   if (!RB || !RB.bands) return "";
-  const SPAN = RB.span, WAKE = RB.wake, END = WAKE + SPAN, BED = RB.bed == null ? Math.min(1440, END) : RB.bed;
-  const SWEEP = 240, CX = 200, CY = 205, IDEAL = RB.ideal_bed, GAPDEG = 360 - SWEEP;
-  // clock time (26 Oct 2026, her word: "midnight should be at 6:00"): midnight straight down, noon straight up,
-  // a quarter degree a minute, so the rainbow tilts with the hour she got up
-  const th = m => (90 + Math.min(Math.max(m, WAKE), END) / 4) * Math.PI / 180;
+  const WAKE = RB.wake, BED = RB.bed, CX = 200, CY = 205;
+  // the whole day, midnight to midnight, on a clock (26 Oct 2026, her words: "a day always begins and ends at
+  // midnight", "midnight should be at 6:00"): midnight straight down, noon straight up, a quarter degree a minute,
+  // the morning up the left and the evening down the right; the night is in bed across every ring
+  const th = m => (90 + Math.min(Math.max(m, 0), 1440) / 4) * Math.PI / 180;
   const pt = (r, m) => [CX + r * Math.cos(th(m)), CY + r * Math.sin(th(m))];
-  const band = (r0, r1, a, b) => { const L = (b - a) / SPAN * SWEEP > 180 ? 1 : 0, [x0, y0] = pt(r1, a), [x1, y1] = pt(r1, b), [x2, y2] = pt(r0, b), [x3, y3] = pt(r0, a);
+  const band = (r0, r1, a, b) => { if (b - a >= 1440) return band(r0, r1, 0, 720) + band(r0, r1, 720, 1440);
+    const L = (b - a) / 4 > 180 ? 1 : 0, [x0, y0] = pt(r1, a), [x1, y1] = pt(r1, b), [x2, y2] = pt(r0, b), [x3, y3] = pt(r0, a);
     return `M${x0} ${y0}A${r1} ${r1} 0 ${L} 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${L} 0 ${x3} ${y3}Z`; };
-  // the gap is the rest of the calendar day, split at midnight (26 Oct 2026): offsets run from the left foot (getting up)
-  // back to midnight, then on from the right foot (the 16 hours' end) to midnight
-  const GAPM = 1440 - SPAN, gu = t => t < WAKE ? WAKE - t : WAKE + 1440 - t;
-  const nth = m => (90 + (WAKE - m) / 4) * Math.PI / 180, npt = (r, m) => [CX + r * Math.cos(nth(m)), CY + r * Math.sin(nth(m))];
-  const nband = (r0, r1, a, b) => { const [x0, y0] = npt(r1, a), [x1, y1] = npt(r1, b), [x2, y2] = npt(r0, b), [x3, y3] = npt(r0, a), L = (b - a) / GAPM * GAPDEG > 180 ? 1 : 0;
-    return `M${x0} ${y0}A${r1} ${r1} 0 ${L} 0 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${L} 1 ${x3} ${y3}Z`; };
-  const clip = ([k, a, b, t]) => [k, Math.max(a, WAKE), Math.min(b, END), t || []];
+  const clip = ([k, a, b, t]) => [k, Math.max(a, 0), Math.min(b, 1440), t || []];
   const B = Object.fromEntries(RB.bands.map(b => [b.k, b]));
   const NAME = {flow: "a flow", eat: "eating and drinking", move: "moving", recreation: "recreation", work: "professional work",
     care: "caretaking", cook: "cooking", system: "be•do", screen: "on a screen"};
@@ -491,7 +486,7 @@ const rainbow = RB => {
   let g = "", tips = [], hits = [];
   // small pieces get a larger invisible tap area, about a fingertip wide wherever they sit, the smallest
   // drawn last so it wins where tap areas overlap (24 Oct 2026: easier to tap the small ones)
-  const TAP = 26, perRad = SPAN / (SWEEP * Math.PI / 180);
+  const TAP = 26, perRad = 4 * 180 / Math.PI;
   const piece = (d, fill, stroke, tip, hit) => { tips.push(tip); const i = tips.length - 1;
     if (hit) hits.push([hit[1], `<path d="${hit[0]}" fill="transparent" tabindex="-1" data-tip="${i}"/>`]);
     return `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round" tabindex="0" data-tip="${i}"/>`; };
@@ -499,43 +494,35 @@ const rainbow = RB => {
     const c = (a + b) / 2; return [band(Math.max(r0 - 4, 1), r1 + 4, c - need / 2, c + need / 2), b - a]; };
   const say = (k, a, b, t) => `<b>${NAME[k][0].toUpperCase() + NAME[k].slice(1)}</b> · ${clock2(a)}–${clock2(b)} · ${hm(b - a)}${t.length ? "<br>" + t.map(esc).join(" · ") : ""}`;
   ["flow", "being", "doing"].forEach(k => { const [r0, r1] = RAD[k];
-    g += `<path d="${band(r0, r1, WAKE, END)}" fill="var(--rb-${k === "flow" ? "flow-t" : k + "-t"})" pointer-events="none"/>`;
+    g += `<path d="${band(r0, r1, 0, 1440)}" fill="var(--rb-${k === "flow" ? "flow-t" : k + "-t"})" pointer-events="none"/>`; });
+  g += `<path d="${band(SR, SR + SW, 0, 1440)}" fill="var(--rb-screen-t)" pointer-events="none"/>`;
+  // the night under everything else: in bed the misty blue, asleep the deeper blue (Oura's five-minute timeline where
+  // there is one), across every ring; anything she did in bed draws on top of it
+  const ZZ = {bed: ["😴 In bed", "var(--rb-sleep)"], asleep: ["💤 Asleep", "var(--rb-sleep-deep)"]};
+  (RB.night || []).forEach(([st, a, b]) => { if (b - a < 1) return;
+    g += piece(band(R0, SR + SW, a, b), ZZ[st][1], "var(--rb-sleep-d)",
+      `<b>${ZZ[st][0]}</b>${st === "bed" ? ", awake" : ""} · ${clock2(a)}–${clock2(b)} · ${hm(b - a)}<br>${a < 720 ? "after midnight" : "before midnight"}`,
+      widen(R0, SR + SW, a, b)); });
+  ["flow", "being", "doing"].forEach(k => { const [r0, r1] = RAD[k];
     if (k === "flow") Object.entries(RB.win).forEach(([w, x]) => { const [, a, b] = clip([w, ...x]); if (b > a)
       g += piece(band(r0, r1, a, b), "var(--rb-flow)", "var(--rb-flow-d)", `<b>${w === "dawn" ? "🌅 The dawn flow" : "🌄 The dusk flow"}</b> · ${clock2(a)}–${clock2(b)}`); });
     (B[k] || {runs: []}).runs.map(clip).filter(([, a, b]) => b - a >= 2).forEach(([kk, a, b, t]) => {
       if (k === "flow") { for (let m = a; m < b; m += 5) { const [x0, y0] = pt(r0 + 1, m + 1), [x1, y1] = pt(r1 - 1, m + 1);
         g += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--rb-flow-d)" stroke-width="2.2" stroke-linecap="round" pointer-events="none"/>`; } return; }
       g += piece(band(r0, r1, a, b), `var(--rb-${kk})`, `var(--rb-${kk}-d)`, say(kk, a, b, t), widen(r0, r1, a, b)); }); });   // each part outlined in its own deeper shade
-  g += `<path d="${band(SR, SR + SW, WAKE, END)}" fill="var(--rb-screen-t)" pointer-events="none"/>`;
   (B.screen || {runs: []}).runs.map(clip).filter(([, a, b]) => b > a).forEach(([kk, a, b, t]) => { g += piece(band(SR, SR + SW, a, b), "var(--rb-screen)", "none", say("screen", a, b, t), widen(SR - 8, SR + SW + 8, a, b) || [band(SR - 8, SR + SW + 8, a, b), b - a]); });
-  // the night, midnight to midnight: in bed the misty blue, asleep the deeper blue (Oura's five-minute timeline where
-  // there is one), in the gap for the hours outside the 16 and across the rings for bed inside them (26 Oct 2026)
-  const NR = RB.night || [], ZZ = {bed: ["😴 In bed", "var(--rb-sleep)"], asleep: ["💤 Asleep", "var(--rb-sleep-deep)"]};
-  const ntip = (st, a, b) => `<b>${ZZ[st][0]}</b>${st === "bed" ? ", awake" : ""} · ${clock2(a)}–${clock2(b)} · ${hm(b - a)}` +
-    `<br>${a < WAKE ? "after midnight, this morning" : "tonight, before midnight"}`;
-  g += `<path d="${nband(R0, OUT, 0, GAPM)}" fill="none" stroke="var(--rb-sleep-d)" stroke-width="1.2" stroke-dasharray="3 3" pointer-events="none"/>`;
-  NR.forEach(([st, a, b]) => {
-    const segs = [[a, Math.min(b, WAKE), "gap"], [Math.max(a, WAKE), Math.min(b, END), "arc"], [Math.max(a, END), b, "gap"]];
-    segs.forEach(([x, y, w]) => { if (y - x < 1) return;
-      if (w === "arc") { g += piece(band(R0, SR + SW, x, y), ZZ[st][1], "var(--rb-sleep-d)", ntip(st, x, y), widen(R0, SR + SW, x, y)); return; }
-      const [v0, v1] = x < WAKE ? [WAKE - y, WAKE - x] : [WAKE + 1440 - y, WAKE + 1440 - x];
-      const p0 = Math.max(0, v0), p1 = Math.min(GAPM, v1); if (p1 - p0 < 1) return;
-      g += piece(nband(R0, OUT, p0, p1), ZZ[st][1], "var(--rb-sleep-d)", ntip(st, x, y)); }); });
-  // midnight, drawn plainly: a line across the gap, past the rings, and its name (her word: "it needs to show clearly")
-  if (WAKE > 0 && WAKE < GAPM) { const [x0, y0] = npt(R0 - 6, WAKE), [x1, y1] = npt(OUT + 12, WAKE);
-    g += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round" pointer-events="none"/>` +
-      `<text x="${CX}" y="${y1 + 18}" text-anchor="middle" style="font:600 13px var(--mono);fill:var(--ink)">midnight</text>`; }
+  // midnight, where the day begins and ends, drawn plainly across every ring (her word: "it needs to show clearly")
+  { const [x0, y0] = pt(R0 - 8, 0), [x1, y1] = pt(SR + SW + 10, 0);
+    g += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--ink)" stroke-width="3" stroke-linecap="round" pointer-events="none"/>` +
+      `<text x="${CX}" y="${y1 + 20}" text-anchor="middle" style="font:600 14px var(--mono);fill:var(--ink)">midnight</text>`; }
   let last = -999, lift = 0;
   RB.moments.forEach(m => { lift = m.m - last < 30 ? (lift + 1) % 2 : 0; last = m.m; const [x, y] = pt(SR + SW + 16 + lift * 22, m.m);
     tips.push(`<b>${esc(m.g)} ${esc(m.p[0].toUpperCase() + m.p.slice(1))}</b> · ${clock2(m.m)}${m.d ? " · " + hm(m.d) : ""}<br>${esc(m.t)}`);
     g += `<text x="${x}" y="${y + 7}" text-anchor="middle" style="font:21px var(--sans)" tabindex="0" data-tip="${tips.length - 1}">${esc(m.g)}</text>`;
     hits.push([0, `<circle cx="${x}" cy="${y}" r="17" fill="transparent" tabindex="-1" data-tip="${tips.length - 1}"/>`]); });
-  // three times only, large enough to read on a phone: up, the middle of the waking day, its end
-  [0, 480, 960].forEach(o => { if (o === 480 && !(WAKE < 720 && 720 < END)) return;
-    const u = o === 0 ? 28 : GAPM - 28, far = Math.abs(u - WAKE) < 70;   // a foot near midnight steps out past its label
-    const [x, y] = o === 480 ? pt(SR + SW + 50, 720) : npt(OUT + (far ? 62 : 36), u);   // the ends' times just past the rainbow's feet; noon at the top
-    const anc = o === 480 || Math.abs(x - CX) < 30 ? "middle" : x < CX ? "end" : "start";
-    g += `<text x="${x}" y="${y + 5}" text-anchor="${anc}" style="font:500 15px var(--mono);fill:var(--muted)">${o === 0 ? "up " + clock2(WAKE) : o === 480 ? "noon" : clock2(WAKE + o)}</text>`; });
+  // the clock's quarters, large enough to read on a phone: midnight is named below, noon at the top, 6a and 6p at the sides
+  [[360, "6a"], [720, "noon"], [1080, "6p"]].forEach(([m, t]) => { const [x, y] = pt(SR + SW + 58, m);
+    g += `<text x="${x}" y="${y + 5}" text-anchor="middle" style="font:500 15px var(--mono);fill:var(--muted)">${t}</text>`; });
   // the totals as bars on one scale, each in its part's colour, a goal marked where she has set one
   // (24 Oct 2026: bars at the bottom with the totals, and the goal for each day)
   const GO = RB.goals || {}, SHORT = {eat: "Eating", move: "Moving", recreation: "Recreation", work: "Work", care: "Caretaking", cook: "Cooking", system: "be•do"};
@@ -555,7 +542,7 @@ const rainbow = RB => {
   // goes to the nearest small piece (the tracks let taps through)
   g = hits.sort((x, y) => y[0] - x[0]).map(h => h[1]).join("") + g;
   rainbow.tips = tips;
-  return `<svg id="rbdial" viewBox="-80 -48 560 516" role="img" aria-label="The waking day as concentric arcs">${g}</svg>` +
+  return `<svg id="rbdial" viewBox="-80 -48 560 516" role="img" aria-label="The day, midnight to midnight, as concentric rings">${g}</svg>` +
     `<div class="tip" id="rbtip" aria-live="polite">Up at ${clock2(WAKE)}${RB.bed != null ? `, in bed at ${clock2(BED)}` : ""}. Tap a piece of the rainbow or a moment around it.</div>` +
     `<div class="bars">${bars}</div>`;
 };
