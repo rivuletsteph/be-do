@@ -105,9 +105,68 @@ class Stretches(unittest.TestCase):
             fh.write(json.dumps({'type': 'assistant', 'timestamp': '2026-10-03T14:02:00Z'}) + '\n')
             fh.write('{"type": "user", "timest')               # a live transcript, mid-write
         try:
-            self.assertEqual(ST.times_from(fh.name), ['2026-10-03T14:00:00Z', '2026-10-03T14:02:00Z'])
+            self.assertEqual(ST.times_from(fh.name), ['2026-10-03T14:00:00Z'])   # Claude's turn is not hers
         finally:
             os.unlink(fh.name)
+
+    def test_a_session_building_on_its_own_is_not_her_on_the_phone(self):
+        # 24 Oct: her messages at 3:20, 3:53 and 4:47–5:00, out for the afternoon, and between
+        # them Claude built for half an hour at a time. Counting its turns drew one
+        # 3:20–5:01 block, 1h 42m on her phone; her own turns are 13 minutes.
+        hers = ['15:20', '15:53', '16:47', '16:49', '16:52', '16:55', '17:00']
+        lines = []
+        for t in hers:
+            lines.append({'type': 'user', 'timestamp': z(f'2026-10-24 {t}'), 'origin': {'kind': 'human'},
+                          'message': {'role': 'user', 'content': 'a message'}})
+        m = at('2026-10-24 15:20')
+        while m <= at('2026-10-24 17:01'):                   # its turns and tool results, every 4 min
+            s = m.strftime('%Y-%m-%dT%H:%M:%S.000Z')
+            lines.append({'type': 'assistant', 'timestamp': s})
+            lines.append({'type': 'user', 'timestamp': s, 'message': {'role': 'user', 'content': [
+                {'type': 'tool_result', 'tool_use_id': 'toolu_1', 'content': 'ok'}]}})
+            m += dt.timedelta(minutes=4)
+        lines.append({'type': 'user', 'timestamp': z('2026-10-24 16:10'), 'isMeta': True,
+                      'message': {'role': 'user', 'content': [{'type': 'text', 'text': 'skill text'}]}})
+        lines.append({'type': 'user', 'timestamp': z('2026-10-24 16:20'), 'origin': {'kind': 'task-notification'},
+                      'message': {'role': 'user', 'content': 'an agent finished'}})
+        with tempfile.NamedTemporaryFile('w', suffix='.jsonl', delete=False, encoding='utf-8') as fh:
+            fh.write('\n'.join(json.dumps(l) for l in lines))
+        try:
+            spans = ST.stretches(ST.times_from(fh.name))
+        finally:
+            os.unlink(fh.name)
+        self.assertEqual(ST.named(spans, -5), '3:20–3:20 · 3:53–3:53 · 4:47–5:00 = 13m')
+        # the old count, every turn: one 3:20–5:00 block
+        self.assertEqual(ST.minutes(ST.stretches([l['timestamp'] for l in lines])), 100)
+
+    def test_a_cloud_sessions_event_read_counts_her_turns(self):
+        # list_events, saved as the tool gave it: wrapper text around {"ccr": {"data": […]}}
+        ev = {'ccr': {'data': [
+            {'created_at': '2026-10-24T20:20:14Z', 'user': {'internal_anthropic_catchall': {
+                'client_platform': 'android', 'message': {'role': 'user', 'content': 'hers'}}}},
+            {'created_at': '2026-10-24T20:25:00Z', 'user': {'internal_anthropic_catchall': {
+                'message': {'role': 'user', 'content': [{'type': 'tool_result', 'content': 'ok'}]}}}},
+            {'created_at': '2026-10-24T20:26:00Z', 'user': {'internal_anthropic_catchall': {
+                'isSynthetic': True, 'message': {'role': 'user', 'content': [{'type': 'text', 'text': 'skill'}]}}}},
+            {'created_at': '2026-10-24T20:27:00Z', 'assistant': {'message': {'role': 'assistant'}}},
+            {'created_at': '2026-10-24T20:53:08Z', 'user': {'internal_anthropic_catchall': {
+                'client_platform': 'android', 'message': {'role': 'user', 'content': 'hers'}}}}],
+            'has_more': True}}
+        want = ['2026-10-24T20:20:14Z', '2026-10-24T20:53:08Z']
+        self.assertEqual(ST.times_from(ev), want)
+        for body in ('<other-session>\n    ' + json.dumps(ev) + '\n</other-session>',
+                     json.dumps([{'type': 'text', 'text': '<other-session>\n' + json.dumps(ev) + '\n</other-session>'}])):
+            with tempfile.NamedTemporaryFile('w', suffix='.txt', delete=False, encoding='utf-8') as fh:
+                fh.write(body)
+            try:
+                self.assertEqual(ST.times_from(fh.name), want)
+            finally:
+                os.unlink(fh.name)
+
+    def test_a_claude_ai_read_counts_her_side(self):
+        conv = {'chat_messages': [{'created_at': '2026-10-03T14:00:00Z', 'sender': 'human'},
+                                  {'created_at': '2026-10-03T14:40:00Z', 'sender': 'assistant'}]}
+        self.assertEqual(ST.times_from(conv), ['2026-10-03T14:00:00Z'])
 
 
 # ── the remaining list ─────────────────────────────────────────────────────
