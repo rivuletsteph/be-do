@@ -160,7 +160,7 @@
   "_about": "20 Oct 2026, her words: I have a lot of skills and I just need to standardize when they get run, so I don't have to remember them. Every skill has a set time, kept here, the one place a skill's timing lives; preflight reads it at each chat's first reply and names what is due.",
   "dawn": ["👁️ look ahead (bedo-day-ahead)", "remaining, every reply"],
   "dusk": ["📧 clear gmail inbox (clear-inbox, then inbox)", "photos (dusk --photos)", "dayqa", "dusk audit", "remaining, every reply"],
-  "sunday": ["the weekly close (bedo-weekly-close)", "the week look behind, once every day has its dayqa (bedo-week-look-behind)"],
+  "sunday": ["the weekly close (bedo-weekly-close)", "the week look behind, once every day has its dayqa (bedo-week-look-behind)", "the events calendar for the next two weeks, at the close (facts_local events_calendar)"],
   "monthly": ["the ahead review, by the 5th (bedo-ahead-review)"],
   "when_it_comes_up": ["provisions (meals)", "shopping-watch (something to buy)", "session-entry (a chat's close)"],
   "monthly_by_day": 5
