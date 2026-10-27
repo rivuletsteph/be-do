@@ -84,6 +84,9 @@
   "never_held_open": ["optional"],
   "wake": "😶 wake",
   "after_sunrise": ["🔅 morning sun"],
+  "sun_by_minutes": 60,
+  "either_or": [["🌬️ evening breaths", "🌙 evening meditation"]],
+  "about_either_or": "8 Oct 2026, her words: evening breaths are an either-or on the meditation. One logged closes both; the other is never asked for.",
   "sequences": {
    "dawn": [["☕ coffee", "🥤 morning water"], ["🔅 morning sun", "🧎‍♀️ hip exercises"], ["🔅 morning sun", "💪 strength training"], ["🔅 morning sun", "🌬️ morning breaths"]],
    "dusk": []
@@ -94,9 +97,9 @@
    "dawn": ["🥤 morning water", "🤸🏻‍♀️ morning movement", "☕ coffee", "🪐 morning oura", "🌦️ weather check", "👁️ look ahead", "⚡ intention check", "🙏 gratitude", "📿 morning mantra", "📗 morning book", "🌅 dawn flow close"],
    "dusk": null
   },
-  "about_core": "A228, 2 Oct 2026: the core prints one line each in a code block; every other remaining step goes on ONE line underneath. Nothing leaves the catalog and everything counts toward done. The dusk core is not set yet (null prints every step as core)."
+  "about_core": "A228, 2 Oct 2026, as the one line (20 Oct): the core is named; every other remaining step is its glyph after also:. Nothing leaves the catalog and everything counts toward done. The dusk core is not set yet (null prints every step as core)."
  },
- "about_widget": "A237, 2 Oct 2026: the remaining list on a widget surface is a pill strip. Dawn's bar is #EFA038, the marigold she named for spirit; dusk's is #7B6FD6, the blue-violet of the ☑️ box — her words 4 Oct 2026: dusk should be more of a purple, something like ☑️.",
+ "about_widget": "The remaining list is never a widget (7, 8, 11 and 20 Oct 2026): it is one horizontal code line. The two bar colours stay, for the day behind. A237, 2 Oct 2026, had the pill strip: dawn's bar is #EFA038, the marigold she named for spirit; dusk's is #7B6FD6, the blue-violet of the ☑️ box — her words 4 Oct 2026: dusk should be more of a purple, something like ☑️.",
  "catalog_fields": {"practice": "practice", "phase": "phase", "group": "group", "order": "order", "active": "active", "zero_duration": "zero duration", "typical_time": "typical time"},
  "preflight": {"newest_row_within_hours": 36},
  "window_chats": ["my day", "my week", "my month", "my season", "my year"],

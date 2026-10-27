@@ -9,9 +9,17 @@ Each line is a rule a chat used to have to remember, and skipped:
   A166  remainders only, with a done count on top; done steps are left off
   A208  bare practice names: no cadence, no last-logged line, no reasons
   A200 · A227  📿 morning mantra prints as its name; the words come on request
-  A228  a core in a code block, everything else on ONE line underneath; nothing
-        leaves the catalog and every step counts toward done
+  A228  nothing leaves the catalog and every step counts toward done; the
+        core is named, everything else is its glyph after `also:`
+  line  ONE line in a code box, never a widget and never a stacked list (her
+        words 7, 8, 11 and 20 Oct 2026: printed horizontally in code, no widget
+        that needs to drop and go away): flow glyph, n of N, the remaining
+        practices in order separated by ·, then also: and the other glyphs
   A126  the dawn list stops printing at noon; dusk opens after 7 PM
+  either  🌬️ evening breaths and 🌙 evening meditation are an either-or: one
+        logged closes both, and the other is never asked for (8 Oct 2026)
+  sun-by  🔅 morning sun by an hour after sunrise or waking, whichever is
+        later: the line names that time while the sun is still to come (8 Oct)
 
 Predicted order is the catalog's own `order` field, low first; a step with no
 order goes last. Nothing personal lives here: the flow's practices come from
@@ -133,8 +141,30 @@ def flow_steps(cat, flow, first=(), not_before=None):
 
 def logged(day_rows):
     """Every practice the day already carries, in any status — a ⨂ skipped
-    step is captured, not remaining."""
-    return {norm(r.get('practice')) for r in day_rows if r.get('practice')}
+    step is captured, not remaining. One of an either-or pair closes the other
+    (facts flows.either_or)."""
+    have = {norm(r.get('practice')) for r in day_rows if r.get('practice')}
+    for pair in FLOWS.get('either_or', []):
+        if have & {norm(p) for p in pair}:
+            have |= {norm(p) for p in pair}
+    return have
+
+
+def sun_by(day_rows, rise, loc):
+    """Minutes after midnight, local, by which 🔅 morning sun is due: an hour
+    after sunrise or waking, whichever is later (8 Oct 2026). None without
+    today's 😶 wake row or a sunrise."""
+    wakes = [r['datetime'] for r in day_rows if norm(r.get('practice')) == norm(FLOWS['wake']) and r.get('datetime')]
+    if not (rise and wakes):
+        return None
+    t = dt.datetime.fromisoformat(min(wakes).replace('Z', '+00:00'))
+    w = t + dt.timedelta(hours=offset_hours(loc, t))
+    return max(rise[1], w.hour * 60 + w.minute) + FLOWS['sun_by_minutes']
+
+
+def clock12(minutes):
+    h, m = divmod(int(minutes) % 1440, 60)
+    return f'{h % 12 or 12}:{m:02d}'
 
 
 def open_flow(now_local, day_rows):
@@ -176,16 +206,22 @@ def holds_open(steps, day_rows, flow):
             and (want is None or norm(s['practice']) in want)]
 
 
-def render(flow, steps, day_rows):
-    """The text form: a code block with the count and the core, then one line."""
+def render(flow, steps, day_rows, due=None):
+    """ONE line in a code box: the flow's glyph, n of N, the core still to do
+    by name, then also: and the other steps as their glyphs. `due` is the
+    sun-by time (minutes after midnight), named on 🔅 morning sun."""
     done, total, core, rest = split(steps, day_rows, flow)
-    head = f'{FLOWS["phase"][flow]} · {done} of {total} done'
+    glyph = FLOWS['phase'][flow].split(' ')[0]
     if not core and not rest:
-        return '```\n' + FLOWS['phase'][flow] + f' · all {total} done\n```'
-    out = '```\n' + '\n'.join([head] + core) + '\n```'
+        return f'```\n{glyph} all {total} done\n```'
+    sun = {norm(p) for p in FLOWS['after_sunrise']}
+
+    def by(p, text):
+        return f'{text} by {clock12(due)}' if due is not None and norm(p) in sun else text
+    parts = [f'{glyph} {done} of {total}'] + [by(p, p) for p in core]
     if rest:
-        out += '\nalso: ' + ' · '.join(rest)
-    return out
+        parts.append('also: ' + ' '.join(by(p, p.split(' ')[0]) for p in rest))
+    return '```\n' + ' · '.join(parts) + '\n```'
 
 
 def spoken(flow, steps, day_rows):
@@ -198,66 +234,6 @@ def spoken(flow, steps, day_rows):
     return f'{name}: {len(left)} left, next is {left[0]}.'
 
 
-def _ref(text):
-    """Every non-ASCII character as a numeric reference, so a glyph cannot
-    drift in the markup (A237)."""
-    return ''.join(c if ord(c) < 128 else f'&#x{ord(c):X};' for c in text)
-
-
-def short(name):
-    """(glyph, one or two words): '🔅 evening sun' → ('🔅', 'evening sun');
-    '📧 clear gmail inbox' → ('📧', 'gmail inbox')."""
-    glyph, _, words = (name or '').partition(' ')
-    words = words.split()
-    return glyph, ' '.join(words[-2:]) if len(words) > 2 else ' '.join(words)
-
-
-def widget(flow, steps, day_rows):
-    """The remaining list as her pill strip (A237, A248): the flow's glyph and a
-    marigold bar, no words and no count; one row of uniform pills, glyphs shown,
-    scrolling left to right; a tap opens a note box and sends nothing until she
-    says. Order is the catalog's for now — the predicted order (minutes since
-    wake) is backlog 261002_0620. Returns an HTML fragment for a widget surface."""
-    done, total, core, rest = split(steps, day_rows, flow)
-    left = core + rest
-    bar = FLOWS['widget']['bar'][flow]
-    head = _ref(FLOWS['phase'][flow].split(' ')[0])
-    pct = round(100 * done / total) if total else 100
-    pills = ''.join(
-        f'<button class="p" data-n="{_ref(n)}"><span class="g">{_ref(g)}</span>{_ref(w)}</button>'
-        for n, (g, w) in ((n, short(n)) for n in left))
-    return f"""<div class="bedo-rl">
-<style>
-.bedo-rl{{font:15px/1.2 system-ui,sans-serif;color:inherit}}
-.bedo-rl .h{{display:flex;align-items:center;gap:10px;margin:0 0 10px}}
-.bedo-rl .h .f{{font-size:22px}}
-.bedo-rl .t{{flex:1;height:8px;border-radius:4px;background:rgba(127,127,127,.18);overflow:hidden}}
-.bedo-rl .t i{{display:block;height:100%;width:{pct}%;background:{bar};border-radius:4px}}
-.bedo-rl .s{{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px}}
-.bedo-rl .p{{flex:0 0 auto;scroll-snap-align:start;height:40px;padding:0 16px;border-radius:20px;border:1px solid rgba(127,127,127,.4);background:rgba(127,127,127,.1);color:inherit;font:inherit;cursor:pointer;white-space:nowrap}}
-.bedo-rl .g{{margin-right:8px}}
-.bedo-rl .n{{display:none;margin-top:10px;gap:8px;flex-direction:column}}
-.bedo-rl .n.on{{display:flex}}
-.bedo-rl textarea{{font:inherit;color:inherit;background:rgba(127,127,127,.08);border:1px solid rgba(127,127,127,.4);border-radius:10px;padding:8px;min-height:56px}}
-.bedo-rl .b{{display:flex;gap:8px}}
-.bedo-rl .b button{{height:36px;padding:0 16px;border-radius:18px;border:1px solid rgba(127,127,127,.4);background:transparent;color:inherit;font:inherit;cursor:pointer}}
-.bedo-rl .b .go{{background:{bar};border-color:{bar};color:#14121c}}
-</style>
-<div class="h"><span class="f">{head}</span><div class="t"><i></i></div></div>
-<div class="s">{pills}</div>
-<div class="n"><div class="w"></div><textarea placeholder="a note, if you want one"></textarea>
-<div class="b"><button class="go">log it</button><button class="x">cancel</button></div></div>
-<script>
-(function(){{var a=document.querySelectorAll('.bedo-rl'),r=a[a.length-1],n=r.querySelector('.n'),w=n.querySelector('.w'),
-ta=n.querySelector('textarea'),cur=null;
-r.querySelectorAll('.p').forEach(function(b){{b.onclick=function(){{cur=b.getAttribute('data-n');w.textContent=cur;ta.value='';n.classList.add('on');ta.focus();}};}});
-n.querySelector('.x').onclick=function(){{n.classList.remove('on');cur=null;}};
-n.querySelector('.go').onclick=function(){{if(!cur)return;var t='log '+cur+(ta.value.trim()?' — '+ta.value.trim():'');
-if(typeof sendPrompt==='function')sendPrompt(t);n.classList.remove('on');}};}})();
-</script>
-</div>"""
-
-
 def main(argv=None):
     import argparse
     ap = argparse.ArgumentParser(description='the remaining list for the open flow')
@@ -266,7 +242,7 @@ def main(argv=None):
     ap.add_argument('--flow', choices=['dawn', 'dusk'])
     ap.add_argument('--date', help='YYYY-MM-DD, default today')
     ap.add_argument('--voice', action='store_true')
-    ap.add_argument('--widget', action='store_true', help='the pill strip, as HTML for a widget surface')
+    ap.add_argument('--widget', action='store_true', help='retired: the list is the code line, never a widget')
     ap.add_argument('--next', action='append', default=[], help='what she says she is doing next; goes first')
     a = ap.parse_args(argv)
     L = load_local()
@@ -289,7 +265,7 @@ def main(argv=None):
     if not flow:
         print('no flow open')
         return
-    gate = {}
+    gate, due = {}, None
     if flow == 'dawn':
         rise = sunrise(every, L)
         if not rise and a.live:                      # the weather check often comes after the sun
@@ -298,10 +274,9 @@ def main(argv=None):
                 rise = sunrise(prev, L)
                 if rise:
                     break
-        gate = sun_gate(rows, rise, L)
+        gate, due = sun_gate(rows, rise, L), sun_by(rows, rise, L)
     steps = flow_steps(cat, flow, a.next, gate)
-    print(spoken(flow, steps, rows) if a.voice else widget(flow, steps, rows) if a.widget
-          else render(flow, steps, rows))
+    print(spoken(flow, steps, rows) if a.voice else render(flow, steps, rows, due))
 
 
 if __name__ == '__main__':
