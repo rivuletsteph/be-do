@@ -39,9 +39,27 @@ attention.* Two things at once are two rows, each with all its minutes; each
 row that shares minutes with another carries 🌓 partial attention. Attention
 belongs on any row, not only an ⚡ action. overlaps() names what a row shares.
 
+From the amendments of 6 to 26 Oct 2026:
+
+  bucket  every row that happened sits in a flow, or under a rhythm or a
+          drive: deduced like wellness (a story is her stories rhythm, a window
+          chat's row the system drive), else asked in passing (20, 26 Oct)
+  open device  an open ⚡ action (▫️ ⬜) carries the device it will be done on
+          (8 Oct): the laptop when the title says so, the phone for a quickie
+          or a phone task, else asked in passing
+  being/doing  an ⚡ action on a drive takes the drive's element, never a being
+          area; passive rest (a show, a movie) is never a doing element (24 Oct)
+  appointment  an appointment still ahead carries its calendar event link: it
+          goes on her calendar, not just in the stream (6 Oct)
+  weather  a sun practice the weather took is 🌥️ weather, never ⨂ skipped;
+          until the base carries that choice the row is held (26 Oct)
+  in the moment  a row that shares minutes with another is asked about in that
+          reply, once: synergy or competition (23 Oct). A note, never a refusal
+
 `row` uses the logical names in facts_local.example.json's stream_fields:
 datetime, end, time_spent, status, practice, key, details, phase, wellness,
-emotion (a list), attention, device, rhythm.
+emotion (a list), attention, device, rhythm, person, target, quickie,
+calendar_event.
 """
 import datetime as dt, re
 
@@ -125,7 +143,8 @@ def chat_day_problem(row, chat_day, utc_offset_hours):
 
 
 PARTIAL = FACTS['attention'][1]
-NOT_LIVED = set(FACTS['status']['plans']) | {FACTS['status']['actions'][4], FACTS['status']['logs'][2]}
+NOT_LIVED = set(FACTS['status']['plans']) | {FACTS['status']['actions'][4], FACTS['status']['logs'][2],
+                                             FACTS['weather_status']['status']}
 NOT_ACTIVITY = {bedo_fill.word(p) for p in RULES['not_activities']}
 
 
@@ -167,8 +186,109 @@ def notes(row, fill=None):
     detail): the row is written, and the chat may ask in passing."""
     ctx = fill or bedo_fill.Context()
     _, ask = bedo_fill.deduce(row, ctx)
-    return [f'{f} left empty — nothing deduces it; ask in passing if it matters: '
-            + bedo_fill.ask_line(row, f, ctx) for f in ask]
+    out = [f'{f} left empty — nothing deduces it; ask in passing if it matters: '
+           + bedo_fill.ask_line(row, f, ctx) for f in ask]
+    t = (row.get('title') or row.get('practice') or '?')[:60]
+    b = bedo_fill.bucket(row, ctx)
+    if b and not b[0]:
+        out.append(f'rhythm left empty — every row sits in a flow, a rhythm or a drive; ask in passing: '
+                   f'which rhythm or drive for “{t}”?')
+    d = bedo_fill.open_device(row, ctx)
+    if d and not d[0]:
+        out.append(f'device left empty on an open action — ask in passing: laptop or phone for “{t}”?')
+    out += synergy_now(row, ctx)
+    return out
+
+
+SY_WORDS = [w for ws in FACTS['synergy']['her_words'].values() for w in ws]
+
+
+def synergy_now(row, ctx):
+    """Two things at once are asked about in the moment, as she logs them (23
+    Oct 2026), never the next day: one question, in that reply."""
+    d = (row.get('details') or '').lower()
+    if 'overlap —' in d or any(w in d for w in SY_WORDS):
+        return []
+    others = overlaps(row, ctx.day_rows)
+    if not others:
+        return []
+    o = others[0]
+    who = (o.get('title') or o.get('practice') or '?')[:50]
+    return [f'two things at once with “{who}” — ask in this reply, once: did they help each other, get in '
+            f'each other\'s way, both, or neither? (synergy or competition; no answer is fine). Her answer goes '
+            f'at the end of her words: {FACTS["synergy"]["note"].format(answer="<answer>", partner=o.get("key") or who)}']
+
+
+BD = FACTS['being_doing']
+BEING = set(FACTS['wellness']['be'])
+DOING = set(FACTS['wellness']['do'])
+AP = FACTS['appointments']
+WS = FACTS['weather_status']
+SKIPPED = FACTS['status']['logs'][2]
+
+
+def bucket_problems(row, fill=None):
+    ctx = fill or bedo_fill.Context()
+    out = []
+    b = bedo_fill.bucket(row, ctx)
+    if b and b[0]:
+        out.append(f'rhythm: empty — deduced {b[0]} ({b[1]}); every row sits in a flow, a rhythm or a drive — '
+                   'write it with the row')
+    d = bedo_fill.open_device(row, ctx)
+    if d and d[0]:
+        out.append(f'device: an open action carries the device it will be done on — deduced {d[0]} ({d[1]}); '
+                   'write it with the row')
+    return out
+
+
+def being_doing_problems(row, fill=None):
+    """24 Oct 2026: being and doing stay distinct."""
+    ctx = fill or bedo_fill.Context()
+    w, p, out = row.get('wellness'), bedo_fill.word(row.get('practice')), []
+    if is_action(row) and w in BEING and row.get('rhythm'):
+        el = next((ctx.drives[d.strip()] for d in row['rhythm'].split(',') if ctx.drives.get(d.strip())), None)
+        if el in DOING:
+            out.append(f'wellness: work on {row["rhythm"]} takes its element {el} (doing), not {w}')
+    if p in {bedo_fill.word(x) for x in BD['passive_rest']} and w in DOING:
+        out.append(f'wellness: passive rest is being, never {w} — 🩷 heart with people, else what she says')
+    return out
+
+
+def appointment_problems(row, now=None):
+    """6 Oct 2026: an appointment she shares goes on her calendar."""
+    if row.get('calendar_event') or row.get('status') in NOT_LIVED - PLANS:
+        return []
+    p, t = bedo_fill.word(row.get('practice')), (row.get('title') or '').lower()
+    named = p in {bedo_fill.word(x) for x in AP['practices']}
+    if not named:
+        if is_action(row) and any(t.lstrip('⚡ ').startswith(b) for b in AP['booking_words']):
+            return []                                       # a to-do to book one is not the appointment
+        if not any(w in t for w in AP['words']):
+            return []
+        when = row.get('target') or row.get('datetime')
+        now = now or dt.datetime.now(dt.timezone.utc)
+        if not (row.get('status') in PLANS or (when and when.endswith('Z') and utc(when) > now)):
+            return []                                       # one that already happened is a log, not a booking
+    return ['calendar event: an appointment goes on her calendar, not just in the stream — write the event '
+            '(the calendar named, read back) and put its link on this row']
+
+
+def weather_problems(row):
+    """26 Oct 2026: a sun practice the weather took is neither done nor missed."""
+    st, p = row.get('status'), bedo_fill.word(row.get('practice'))
+    sun = p in {bedo_fill.word(x) for x in WS['practices']}
+    out = []
+    if st == WS['status']:
+        if not sun:
+            out.append(f'status: {WS["status"]} is for a sun practice the weather took, not {row.get("practice")!r}')
+        elif not WS['in_base']:
+            out.append(f'status: {WS["status"]} is not a choice in the base yet — hers to add in the status field; '
+                       'hold this row until it is, and never write it as ⨂ skipped')
+    elif sun and st == SKIPPED and any(w in (row.get('details') or '').lower() + (row.get('title') or '').lower()
+                                       for w in WS['words']):
+        out.append(f'status: the weather took the sun — that is {WS["status"]}, neither done nor missed, not ⨂ skipped'
+                   + ('' if WS['in_base'] else '; the choice is hers to add, so hold the row until it is there'))
+    return out
 
 
 def span_problems(row, utc_offset_hours=None):
@@ -189,7 +309,7 @@ def span_problems(row, utc_offset_hours=None):
 
 
 def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•do', chat_day=None, fill=None,
-             self_name=None):
+             self_name=None, now=None):
     """`fill` is a bedo_fill.Context; without one the device rules still run and
     wellness, which needs the catalog, is asked. `self_name` is hers: her own
     name on her own plan is not someone she hasn't met yet."""
@@ -198,7 +318,7 @@ def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•
     if nd:
         out.append(nd)
     st, key = row.get('status'), (row.get('key') or '').strip()
-    if st not in ALL_STATUSES:
+    if st not in ALL_STATUSES and st != WS['status']:
         out.append(f'status: {st!r} is not one of the eight choices (I4)')
     for f, ok in CHOICES.items():
         v = row.get(f)
@@ -237,6 +357,10 @@ def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•
     if not prac:
         out.append('practice: every row carries one — name it, or ask her which')
     out += whole_problems(row, fill)
+    out += bucket_problems(row, fill)
+    out += being_doing_problems(row, fill)
+    out += appointment_problems(row, now)
+    out += weather_problems(row)
     if row.get('status') in PLANS and [p for p in (row.get('person') or '').split(',')
                                          if p.strip() and p.strip() != self_name]:
         out.append(f'person: {row.get("status")} is a plan — the people go in mentioned until it happens')

@@ -5,7 +5,7 @@ rule actually broke. Every row is invented; the shapes are the base's.
 
     python3 plugins/bedo/core/tests/test_slots.py
 """
-import datetime as dt, json, os, sys, tempfile, unittest, urllib.error
+import datetime as dt, io, json, os, sys, tempfile, unittest, urllib.error
 from unittest import mock
 
 CORE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -219,16 +219,19 @@ class Remaining(unittest.TestCase):
         self.assertIn('a quest day', dusk)                       # ordered into the flow
         self.assertNotIn('a quest child', dusk)                  # not a flow step
 
-    def test_remainders_only_bare_names_core_then_one_line(self):
+    def test_remainders_only_bare_names_on_one_line(self):
+        # 7, 8, 11 and 20 Oct 2026: one horizontal line in a code box, never stacked
         day = [row('🥤 morning water', '2026-10-04 07:00', status=DONE_LOG),
                row('☕ coffee', '2026-10-04 07:30', status='⨂ skipped')]
         text = RL.render('dawn', RL.flow_steps(CAT, 'dawn'), day)
-        block, also = text.split('\n```\n')
-        self.assertIn('2 of 8 done', block)
-        self.assertNotIn('🥤', block)                             # done steps are left off
-        self.assertNotIn('☕', block)                             # skipped is captured too
-        self.assertIn('\n📿 morning mantra\n', block)              # the name alone (A227)
-        self.assertEqual(also, 'also: 🔅 morning sun · 🪞 mirror check · 😶 wake')
+        self.assertTrue(text.startswith('```\n') and text.endswith('\n```'))
+        line = text[4:-4]
+        self.assertNotIn('\n', line)                              # one line, scrolls left to right
+        self.assertTrue(line.startswith('🌅 2 of 8 · '))           # flow glyph, n of N
+        self.assertNotIn('🥤', line)                               # done steps are left off
+        self.assertNotIn('☕', line)                               # skipped is captured too
+        self.assertIn(' · 📿 morning mantra · ', line)             # the name alone (A227)
+        self.assertTrue(line.endswith(' · also: 🔅 🪞 😶'))         # the rest as glyphs, last
 
     def test_a_skin_tone_is_the_same_step(self):
         day = [row('🤸‍♀️ morning movement', '2026-10-04 07:10', status=DONE_LOG)]
@@ -293,18 +296,51 @@ class Remaining(unittest.TestCase):
         self.assertEqual([r['practice'] for r in R.on_day(week, dt.date(2026, 10, 4), LOCAL)],
                          ['🥤 morning water', '📿 morning mantra'])
 
-    def test_the_widget_is_her_pill_strip(self):
+    def test_never_a_widget(self):
+        # 20 Oct 2026: I'm not sure why the widget is back. I prefer the horizontal code line.
+        self.assertFalse(hasattr(RL, 'widget'))
         steps = RL.flow_steps(CAT, 'dusk')
         day = [row('🫖 evening tea', '2026-10-04 20:00', status=DONE_LOG)]
-        html = RL.widget('dusk', steps, day)
-        self.assertIn(F['flows']['widget']['bar']['dusk'], html)          # the dusk colour, not dawn's
-        self.assertNotIn(F['flows']['widget']['bar']['dawn'], html)
-        self.assertNotIn('of 4', html)                                    # no count, no caption (A237)
-        self.assertNotIn('🌬', html)                                      # glyphs only as numeric references
-        self.assertIn('&#x1F32C;&#xFE0F;', html)
-        self.assertEqual(html.count('class="p"'), 3)                      # remaining only: tea is done
-        self.assertNotIn('sendPrompt(t);n', html.split('onclick=function(){cur=')[0])   # a tap opens the note, sends nothing
-        self.assertEqual(RL.short('📧 clear gmail inbox'), ('📧', 'gmail inbox'))
+        out = io.StringIO()
+        with tempfile.TemporaryDirectory() as d:
+            cp, dp = os.path.join(d, 'c.json'), os.path.join(d, 'd.json')
+            json.dump({'records': [{'id': f'r{i}', 'createdTime': 'x', 'fields': s_} for i, s_ in enumerate(CAT)],
+                       'metadata': {'totalRecordCount': len(CAT)}}, open(cp, 'w', encoding='utf-8'))
+            json.dump({'records': [{'id': r['id'], 'createdTime': 'x', 'fields': r} for r in day],
+                       'metadata': {'totalRecordCount': 1}}, open(dp, 'w', encoding='utf-8'))
+            lp = os.path.join(d, 'facts_local.json')
+            json.dump(LOCAL, open(lp, 'w', encoding='utf-8'))
+            with mock.patch.dict(os.environ, {'BEDO_FACTS_LOCAL': lp}), \
+                    mock.patch('sys.stdout', out):
+                RL.main(['--catalog', cp, '--day', dp, '--flow', 'dusk', '--date', '2026-10-04', '--widget'])
+        self.assertEqual(out.getvalue().strip(), RL.render('dusk', steps, day))   # an old caller gets the line
+        self.assertNotIn('<', out.getvalue())
+
+    def test_evening_breaths_or_meditation_closes_both(self):
+        # 8 Oct 2026: evening breaths are an either-or on the meditation
+        steps = RL.flow_steps(CAT + [step('🌙 evening meditation', 'dusk', 36)], 'dusk')
+        for done in ('🌬️ evening breaths', '🌙 evening meditation'):
+            day = [row(done, '2026-10-04 21:00', status=DONE_LOG)]
+            line = RL.render('dusk', steps, day)
+            self.assertNotIn('breaths', line)
+            self.assertNotIn('meditation', line)
+            self.assertNotIn('🌬️ evening breaths', RL.holds_open(steps, day, 'dusk'))
+            self.assertIn(' 2 of 5 ', line)                        # both count as done
+
+    def test_morning_sun_names_its_sun_by_time(self):
+        # 8 Oct 2026: sunrise 7:31, woke 7:17, so sun-by was 8:31
+        w = [row('🌦️ weather check', '2026-10-08 07:20', details='sunrise 7:31 am')]
+        rise = RL.sunrise(w, LOCAL)
+        day = [row('😶 wake', '2026-10-08 07:17', status=DONE_LOG)]
+        due = RL.sun_by(day, rise, LOCAL)
+        self.assertEqual(RL.clock12(due), '8:31')
+        late = [row('😶 wake', '2026-10-08 08:05', status=DONE_LOG)]   # up after sunrise: an hour after waking
+        self.assertEqual(RL.clock12(RL.sun_by(late, rise, LOCAL)), '9:05')
+        self.assertIsNone(RL.sun_by([], rise, LOCAL))                 # no wake, no promise
+        line = RL.render('dawn', RL.flow_steps(CAT, 'dawn'), day, due)
+        self.assertIn('🔅 by 8:31', line)
+        done = day + [row('🔅 morning sun', '2026-10-08 08:20', status=DONE_LOG)]
+        self.assertNotIn('by 8:31', RL.render('dawn', RL.flow_steps(CAT, 'dawn'), done, due))
 
     def test_her_predicted_order(self):
         def st(name, t, order):
@@ -434,12 +470,38 @@ class Preflight(unittest.TestCase):
     def test_the_morning_opens_on_yesterdays_look_behind(self):
         # her word, 8 Oct 2026: a my day chat is complete once its look behind is seen
         local = dict(LOCAL, look_behind_url='https://claude.ai/artifact/X')
-        text, _ = P.report(local, {'w41 be•do': 'a'}, [row('☕ coffee', '2026-10-08 07:30')], at('2026-10-08 08:00'))
+        built = P.built_pages([{'details': '[be•do] look behind 2026-10-07 · final'}])
+        text, _ = P.report(local, {'w41 be•do': 'a'}, [row('☕ coffee', '2026-10-08 07:30')], at('2026-10-08 08:00'),
+                           built=built)
         self.assertIn("yesterday's look behind · https://claude.ai/artifact/X", text)
         self.assertIn('becomes ✔️1007 💧 Wed ' + P.MARK + ' W41 🔆 my day', text)
         week, _ = P.report(local, {'w41 be•do': 'a'}, [row('☕ coffee', '2026-10-08 07:30')],
                            at('2026-10-08 08:00'), kind='week')
         self.assertNotIn('look behind', week)
+
+    def test_the_page_is_yesterdays_only_when_its_log_row_says_so(self):
+        # 27 Oct 2026: Sunday's day behind (✔️1025) was offered as Monday's
+        local = dict(LOCAL, look_behind_url='https://claude.ai/artifact/LIVING')
+        sun = {'datetime': z('2026-10-25 23:58'), 'created': '2026-10-26T22:15:10.000Z',
+               'details': 'her words\n———\n[be•do] look behind 2026-10-25 · final\nlead: connection',
+               'deliverable': 'https://claude.ai/artifact/8B1og'}
+        base = ({'w44 be•do': 'a'}, [row('☕ coffee', '2026-10-27 07:30')], at('2026-10-27 08:00'))
+        text, _ = P.report(local, *base, built=P.built_pages([sun]))
+        self.assertNotIn('artifact/', text)                                 # never given as yesterday's
+        self.assertIn("yesterday's look behind wasn't built: no final page for Mon 26 Oct", text)
+        self.assertIn('the page still shows Sun 25 Oct', text)
+        self.assertNotIn('becomes', text)                                  # the ✔️ rename waits
+        draft = dict(sun, datetime=z('2026-10-26 23:50'), created='2026-10-27T04:00:00.000Z',
+                     details='[be•do] look behind 2026-10-26 · draft', deliverable=None)
+        text, _ = P.report(local, *base, built=P.built_pages([sun, draft]))
+        self.assertIn('only the dusk draft was written', text)
+        final = dict(draft, details='[be•do] look behind 2026-10-26 · final',
+                     deliverable='https://claude.ai/artifact/LIVING', created='2026-10-27T08:01:00.000Z')
+        text, _ = P.report(local, *base, built=P.built_pages([sun, draft, final]))
+        self.assertIn("yesterday's look behind · https://claude.ai/artifact/LIVING", text)
+        self.assertIn('becomes ✔️1026 🌕 Mon', text)
+        text, _ = P.report(local, *base)                                   # no log rows read: says so
+        self.assertIn('not checked', text)
 
     def test_a_short_read_newest_first_is_enough(self):
         # 6 Oct: Cowork read 125 rows to learn one thing, the newest. The

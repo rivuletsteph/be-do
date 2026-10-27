@@ -371,7 +371,11 @@ the user. A project with no named next step is the defect.
 
 1. **The date**, with ⏏️ beside it when the base is secure — a small emoji,
    no callout. Anything other than secure gets one line under it, in the
-   user's words.
+   user's words. Under the lead, **one chore for her son** (11 Oct 2026): one
+   small thing that fits the day — help packing when there's an outing, else
+   the next of `kid_chores` (or the builder's own list). Name it once in the
+   reply, as the build prints it; she decides whether he does it, and it is
+   never pushed again that day. It feeds Hero's Service on his quest.
 2. **Your intention** — one slot, in the user's words; one empty slot before
    they name it. More slots only when they name more. Above the week's word (8 Oct 2026, their
    words: *my daily intention above the week's intention, then the calendar*).

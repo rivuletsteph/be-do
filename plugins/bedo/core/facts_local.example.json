@@ -15,7 +15,12 @@
   "photo_checked": "fld… (the old checkbox, read for older rows)", "photo_links": "fld…"
  },
  "practices_fields": {"practice": "fld…", "phase": "fld…", "group": "fld…", "order": "fld…", "active": "fld…", "zero_duration": "fld…", "typical_time": "fld…", "wellness": "fld…"},
- "rhythms_fields": {"name": "fld…", "element": "fld…"},
+ "rhythms_fields": {"name": "fld…", "element": "fld…", "parent": "fld… (parent name, for work drives)"},
+ "stories_rhythm": "the rhythm stories go under (read or watched)",
+ "calendar": {"calendars": {"her calendar": "…@…", "her son's": "…@group.calendar.google.com", "dropped": "…"},
+              "work_parents": ["the mission her work drives sit under"], "work_words": ["words a work event's title carries"]},
+ "inbox": {"keep_from": {"a name": ["…@…"]},
+           "archive_unless": [{"name": "a sender", "from": ["their domain"], "keep_words": ["what makes one a keep"]}]},
  "connections_fields": {"name": "fld…", "short": "fld…", "aliases": "fld… (optional)"},
  "amendments_fields": {"decision": "fld…", "date": "fld…", "status": "fld…"},
  "amendment_checks": {"rec…": ["entry.whole", "look_behind.gate"], "rec…  (a rule that needs judgment, not code)": ["judgment"]},

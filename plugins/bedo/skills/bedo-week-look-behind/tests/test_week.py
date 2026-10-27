@@ -67,10 +67,14 @@ def main():
         open(p, 'w', encoding='utf-8').write(json.dumps(obj, ensure_ascii=False))
         return p
     out = os.path.join(tmp, 'week.html')
-    r = subprocess.run([sys.executable, BUILDER, '--week', '2026-09-30', '--local', w('local.json', LOCAL),
-                        '--stream', w('w40.json', dump(STREAM)), '--rhythms', w('rhythms.json', dump(RHYTHMS)),
-                        '--template', ENGINE, '--out', out],
-                       capture_output=True, text=True, encoding='utf-8', timeout=60,
+    args = [sys.executable, BUILDER, '--week', '2026-09-30', '--local', w('local.json', LOCAL),
+            '--stream', w('w40.json', dump(STREAM)), '--rhythms', w('rhythms.json', dump(RHYTHMS)),
+            '--template', ENGINE, '--out', out]
+    # 19 Oct 2026: a week is QA'd day by day before its look behind — no dayqa, no build
+    r = subprocess.run(args, capture_output=True, text=True, encoding='utf-8', timeout=60,
+                       env=dict(os.environ, PYTHONIOENCODING='utf-8'))
+    assert r.returncode and 'no dayqa for Sun 27 Sep' in r.stderr and 'Sat 03 Oct' in r.stderr, r.stderr
+    r = subprocess.run(args + ['--qa-anyway'], capture_output=True, text=True, encoding='utf-8', timeout=60,
                        env=dict(os.environ, PYTHONIOENCODING='utf-8'))
     if r.returncode:
         sys.exit(r.stdout + r.stderr)
@@ -93,6 +97,7 @@ def main():
     loop = [x for x in D['drives'] if x['drive'] in (LA, LB)]
     assert len(loop) == 1 and loop[0]['min'] == 20 and loop[0]['children'][0]['min'] == 20, loop
     assert len(D['loops']) == 1 and LA in D['loops'][0], D['loops']
+    assert 'no_dayqa' in json.loads(r.stdout)['qa'], r.stdout        # built as it is, and says so
     print('ok — the week rolls up two levels, nests, counts once, keeps to its window, and a loop ends')
     readings(w, out)
 
@@ -129,8 +134,15 @@ def readings(w, out):
         r('checked Oura — readiness 84, sleep 77, activity 91', '🪐 morning oura', '🤸\u200d♀️ body', D.format(29, '06:10'),
           details='7 h 35 asleep of 8 h'),
         r('not secure — a hard call', '⏏️ secure base', '💖 spirit', D.format(30, '08:00')),
-        r('a plan', '⚡ action', '🌎 earth', D.format(30, '09:00'), D.format(30, '10:00'), status=INT),  # never lived
+        r('a plan', '⚡ action', '🌎 earth', D.format(30, '09:00'), D.format(30, '10:00'), status=INT,  # never lived
+          details='\n'.join(f'[be•do] dayqa shown 2026-{d} 21:40 · 0 proposed'      # every day QA'd: it builds
+                            for d in ('09-27', '09-28', '09-29', '09-30', '10-01', '10-02', '10-03'))),
     ]
+    fc = r('forecast: the garden fence is up by Thursday', '💡 insight', '🧠 mind', '2026-09-20T09:00:00.000Z')
+    fc['cellValuesByFieldId'][SF['target']] = D.format(30, '17:00')               # due this week (20 Oct 2026)
+    late = r('forecast: snow by January', '💡 insight', '🧠 mind', '2026-09-20T09:00:00.000Z')
+    late['cellValuesByFieldId'][SF['target']] = '2027-01-29T17:00:00.000Z'
+    rows += [fc, late]
     rows += [r('the river day', '⭐ highlight', '💖 spirit', D.format(30, '18:00'), person='♑ Kid',
                details='The rope swing, swimming, and the hike we did five years ago. Even more wonderful with them.'),
              r('the river day', "🌟 kid's highlight", '💖 spirit', D.format(30, '18:00'), person='♑ Kid'),
@@ -186,7 +198,10 @@ def readings(w, out):
     assert be[3]['dusk'] == dict(n=1, closed=False, g=['🫖']) and be[3]['dawn']['n'] == 0, be[3]
     fl = X['stream']['flowed']   # each place it reached opens to its moments
     assert all(x['at'] for t in fl for x in t['moments']), fl
+    assert X['forecasts'] == [{'t': 'forecast: the garden fence is up by Thursday'}], X['forecasts']
+    assert 'how it turned out' in ' '.join(json.loads(rr.stdout)['qa']['forecasts_due'])
     print('ok — time by area, rest and readiness, the needs on the secure base, the garden and the stream')
+    print('ok — the week builds once every day has its dayqa, and lists the forecasts due in it')
     one_day(w, out, loc, rows)
 
 

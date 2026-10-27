@@ -23,13 +23,23 @@ returned instead, so the turn pastes it rather than composes it (A219).
              yesterday's chat takes once she says she has seen it — a my day
              chat is ✔️ complete once its look behind has been seen (her word,
              8 Oct 2026).
+             The page is one living URL, so the link alone says nothing about
+             which day it shows: preflight reads the look behind's log rows
+             (`[be•do] look behind YYYY-MM-DD · final`) and gives the link only
+             when yesterday's final is there. Otherwise it says plainly that
+             yesterday's page wasn't built, and which day the page still shows
+             (27 Oct 2026: Sunday's day behind was offered as Monday's).
+  due        what the skills schedule (facts skills_schedule) says is due now:
+             dawn before noon, dusk after 7 PM, the close on Sunday, the ahead
+             review by the 5th (20 Oct 2026: so she doesn't have to remember)
   paper      an active amendment no check in code enforces is named, one line
              each: `rule on paper only` (9 Oct 2026). The map from amendment
              to check is hers, in facts_local (bedo_rules says how).
 
     python3 bedo_preflight.py --live                  # my day
     python3 bedo_preflight.py --live --kind week      # my week
-    python3 bedo_preflight.py --bases names.json --stream w41.json [--amendments amendments.json]
+    python3 bedo_preflight.py --bases names.json --stream w41.json [--amendments amendments.json] \
+        [--look-behind log_rows.json]
 """
 import datetime as dt, glob, json, re, sys
 
@@ -143,16 +153,77 @@ def look_behind_url(local):
     return None
 
 
-def yesterday_line(day, url):
+LOG_HEAD = re.compile(r'^\[be\u2022do\] look behind (\d{4}-\d{2}-\d{2})(?:\s*\u00b7\s*(draft|final))?\s*$', re.M)
+
+
+def built_pages(rows):
+    """{day: (draft | final, link)} from the look behind's log rows — the newest
+    row for a day wins, as in look_behind_log."""
+    out = {}
+    for r in sorted(rows, key=lambda r: (r.get('created') or '', r.get('datetime') or '')):
+        m = LOG_HEAD.search(r.get('details') or '')
+        if m:
+            out[m.group(1)] = (m.group(2) or 'draft', (r.get('deliverable') or '').strip() or None)
+    return out
+
+
+def yesterday_line(day, url, built=None):
     """What the morning chat shows first: yesterday's look behind, and the
-    title yesterday's chat takes once she has seen it."""
+    title yesterday's chat takes once she has seen it. `built` is
+    built_pages() of the log rows; None when they could not be read."""
     y = day - dt.timedelta(days=1)
     seen = chat_name(y, status=FACTS['chat_status']['window_closed'])
-    return (f'first  yesterday\'s look behind · {url or "the look behind page (no link in the settings)"}\n'
-            f'       once she has seen it, yesterday\'s chat becomes {seen}')
+    if built is None:
+        return (f'first  yesterday\'s look behind · {url or "the look behind page (no link in the settings)"}'
+                ' — not checked: no log rows were read, so open it and check its date before calling it yesterday\'s\n'
+                f'       once she has seen it, yesterday\'s chat becomes {seen}')
+    page, link = built.get(y.isoformat(), (None, None))
+    if page == 'final':
+        return (f'first  yesterday\'s look behind · {link or url or "the look behind page (no link in the settings)"}\n'
+                f'       once she has seen it, yesterday\'s chat becomes {seen}')
+    finals = sorted(d for d, (p, _) in built.items() if p == 'final' and d < y.isoformat())
+    shows = (f'; the page still shows {dt.date.fromisoformat(finals[-1]):%a %d %b}' if finals else '')
+    why = 'only the dusk draft was written' if page == 'draft' else 'the 03:00 routine left no log row for it'
+    return (f'first  yesterday\'s look behind wasn\'t built: no final page for {y:%a %d %b} ({why}){shows}.\n'
+            f'       Say so plainly and offer to build it now (bedo-look-behind); never give the page as '
+            f'yesterday\'s. {seen} waits until she has seen it')
 
 
-def report(local, names, rows, now=None, kind='day', part=None, week=None, handoff=None, amendments=None):
+def read_log_rows(air, names, day, local):
+    """The look behind's log rows from the bases in play, dated from four days
+    before `day`: a handful of rows, details and deliverable only."""
+    sf = local['stream_fields']
+    f, d = sf['datetime'], sf['details']
+    since = (day - dt.timedelta(days=4)).isoformat()
+    formula = (f"AND(FIND('[be\u2022do] look behind ', {{{d}}}), "
+               f"NOT(IS_BEFORE({{{f}}}, DATETIME_PARSE('{since}'))))")
+    fields = {k: sf[k] for k in ('datetime', 'details', 'deliverable') if sf.get(k)}
+    rows = []
+    for name in bases_in_play(day, local):
+        if name in names:
+            src = air.dump(names[name], local['stream_table'], by_id=True, formula=formula)
+            rows += as_rows(src['records'], fields)
+    return rows
+
+
+def due(now_local):
+    """What the skills schedule says is due at this hour, as one line, or None."""
+    S, F = FACTS['skills_schedule'], FACTS['flows']
+    t = now_local.time()
+    out = []
+    if t < dt.time(*map(int, F['backup_close']['dawn'].split(':'))):
+        out += S['dawn']
+    if t >= dt.time(*map(int, F['dusk_opens_after'].split(':'))):
+        out += S['dusk']
+    if now_local.weekday() == 6:
+        out += S['sunday']
+    if now_local.day <= S['monthly_by_day']:
+        out += S['monthly']
+    return 'due    ' + ' · '.join(out) if out else None
+
+
+def report(local, names, rows, now=None, kind='day', part=None, week=None, handoff=None, amendments=None,
+           built=None):
     now, now_local, off, probs = clock(local, now)
     day = now_local.date()
     want, bprobs, stop = check_base(names, rows, now, day, local, handoff)
@@ -163,7 +234,10 @@ def report(local, names, rows, now=None, kind='day', part=None, week=None, hando
     if t:
         lines.append(f'newest {(now - t).total_seconds() / 3600:.1f} h ago')
     if kind == 'day':
-        lines.append(yesterday_line(day, look_behind_url(local)))
+        lines.append(yesterday_line(day, look_behind_url(local), built))
+    d = due(now_local)
+    if d:
+        lines.append(d)
     lines += ['⚠ ' + p for p in probs + bprobs]
     if amendments is not None:
         lines += ['⚠ ' + p for p in bedo_rules.lines(amendments, local.get('amendment_checks'))]
@@ -183,6 +257,7 @@ def main(argv=None):
     ap.add_argument('--week', type=int, help='the week under review, for a my week chat')
     ap.add_argument('--handoff', help='the week\'s handoff file')
     ap.add_argument('--amendments', help='a read of the amendments table')
+    ap.add_argument('--look-behind', help="a read of the look behind's log rows (details and deliverable)")
     a = ap.parse_args(argv)
     L = load_local()
     fields = {'datetime': L.get('stream_fields', {}).get('datetime', 'datetime')}
@@ -199,6 +274,7 @@ def main(argv=None):
                            formula=f"IS_BEFORE({{{f}}}, NOW())",
                            **{'sort[0][field]': f, 'sort[0][direction]': 'desc'})
             rows = as_rows(src['records'], fields)
+        built = built_pages(read_log_rows(air, names, now_local.date(), L)) if a.kind == 'day' else None
         amend = (L.get('bases') or {}).get('amendments')
         amendments = bedo_rules.active(air.records(*amend, by_id=bool(L.get('amendments_fields'))), L) if amend else None
     else:
@@ -207,8 +283,12 @@ def main(argv=None):
         names = json.load(open(a.bases, encoding='utf-8'))
         rows = stream_rows(a.stream, fields)
         amendments = bedo_rules.active(complete(a.amendments, 'amendments'), L) if a.amendments else None
+        sf = L.get('stream_fields') or {}
+        built = (built_pages(as_rows(complete(a.look_behind, 'look behind log rows'),
+                                     {k: sf.get(k, k) for k in ('datetime', 'details', 'deliverable')}))
+                 if a.look_behind else None)
     handoff = open(a.handoff, encoding='utf-8').read() if a.handoff else None
-    text, stop = report(L, names, rows, now, a.kind, a.part, a.week, handoff, amendments)
+    text, stop = report(L, names, rows, now, a.kind, a.part, a.week, handoff, amendments, built)
     print(text)
     sys.exit(1 if stop else 0)
 

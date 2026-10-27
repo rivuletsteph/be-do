@@ -79,7 +79,14 @@ original (`moved from w## (recID)`), and the original is skipped.
 
 **QA the week first.** The page reads what was logged, so every day gets its
 dayqa before the build (the same amendment): sleep from the Oura rows, meals,
-the stretches between rows, wellness on every row.
+the stretches between rows, wellness on every row. **The build stops** on a day
+with no `dayqa shown YYYY-MM-DD` marker in any row and names it: run
+`run_checks.sh dayqa` for that day, write what she accepts, then build. Pass
+`--qa-anyway` only when she says build it as it is; the QA then names the days.
+
+**Forecasts** (20 Oct 2026): a forecast due in the week (a row titled
+`forecast: …` whose target falls in it) is listed on the page and in the QA as
+`forecasts_due` — ask her, in her own words, how each turned out.
 
 **Not built yet** (from the full page spec): the week's word and the reading,
 the wheel, the river, highlights, the quest grid, the queues, who was there,

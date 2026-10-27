@@ -30,6 +30,7 @@ for _p in (os.path.join(_HERE, '..', '..', '..', 'core'), _HERE):
 import bedo_reader  # noqa: E402
 import bedo_drives  # noqa: E402
 import bedo_photos  # noqa: E402
+import bedo_forecast  # noqa: E402
 from day_rings import day_rings  # noqa: E402
 
 STREAM_KEYS = ('title', 'key', 'when', 'end', 'status', 'rhythm')
@@ -42,7 +43,9 @@ SLEEP = bedo_reader.FACTS['practice']['sleep']
 ST = bedo_reader.FACTS['status']
 DONE = ST['closed'][0]                                   # ✅ done
 OPEN = set(ST['open'])                                   # ▫️ ⬜ ▶️
-NOT_LIVED = set(ST['plans']) | {ST['actions'][4], ST['logs'][2]}   # ▫️ ⬜ ✖️ ⨂: never happened
+NOT_LIVED = set(ST['plans']) | {ST['actions'][4], ST['logs'][2],   # ▫️ ⬜ ✖️ ⨂: never happened
+                                bedo_reader.FACTS['weather_status']['status']}   # 🌥️ neither done nor missed (26 Oct)
+QA_MARK = bedo_reader.FACTS['dayqa']['marker']
 MAX_SPAN = dt.timedelta(hours=bedo_reader.FACTS['entry_rules']['max_span_hours'])
 DAY3 = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 MARK = chr(0x1684E)                                      # be•do's mark, by codepoint
@@ -51,6 +54,15 @@ MOVED = re.compile(r'moved from w\d+ \((rec[A-Za-z0-9]+)\)')   # a row moved bet
 
 def die(msg):
     sys.exit('ABORT: ' + msg)
+
+
+def unqad(rows, sun, ndays=7):
+    """The days of the week with no dayqa marker in any row: a week is QA'd day
+    by day before its look behind (19 Oct 2026). The marker names the day it
+    covers, so a travel day QA'd the next morning still counts."""
+    text = '\n'.join(r.get('details') or '' for r in rows)
+    days = [sun + dt.timedelta(days=i) for i in range(ndays)]
+    return [d for d in days if f'{QA_MARK} {d.isoformat()}' not in text]
 
 
 def sv(v):
@@ -608,6 +620,8 @@ def main():
     ap.add_argument('--practices', help="the catalog, so a flow practice shows under its flow")
     ap.add_argument('--template', required=True)
     ap.add_argument('--out', required=True)
+    ap.add_argument('--qa-anyway', action='store_true',
+                    help='build though a day has no dayqa — only when she says build it as it is')
     a = ap.parse_args()
     L = json.load(open(a.local, encoding='utf-8'))
     F, RF = fields(L)
@@ -621,10 +635,24 @@ def main():
     if words and words.get('day') not in (None, day.isoformat()):
         die(f"{a.words} holds the words for {words.get('day')}, not {day}")
     rows, reads = load(a.stream, F)
+    if not a.day:
+        missing = unqad(rows, sun)
+        if missing and not a.qa_anyway:
+            die('the week is QA\'d day by day before its look behind (19 Oct 2026): no dayqa for '
+                + ', '.join(f'{d:%a %d %b}' for d in missing)
+                + ' — run run_checks.sh dayqa YYYY-MM-DD for each, write what she accepts, then build;'
+                ' --qa-anyway only when she says build it as it is')
+    off = dt.timedelta(hours=L['utc_offset_hours'])
+    a0 = dt.datetime.combine(day if a.day else sun, dt.time(), dt.timezone.utc) - off
+    due = bedo_forecast.due_in(rows, a0, a0 + dt.timedelta(days=ndays))
     L['_flowset'] = flow_practices(a.practices, L)
     rhythms, nrh = load_rhythms(a.rhythms, RF)
     photos = read_photos(a.photos, L['utc_offset_hours'])
     drives, totals, qa, more = build(rows, rhythms, start, L, ndays, words, photos)
+    if due:
+        qa['forecasts_due'] = [bedo_forecast.line(r) for r in due]
+    if not a.day and a.qa_anyway and unqad(rows, sun):
+        qa['no_dayqa'] = [f'{d:%a %d %b}' for d in unqad(rows, sun)]
     wk = L['week_zero_number'] + (sun - dt.date.fromisoformat(L['week_zero_sunday'])).days // 7
     sat = sun + dt.timedelta(days=6)
     last = sat if not a.day else day
@@ -635,6 +663,7 @@ def main():
         week=f'W{wk}', range=(f'{DAY3[day.weekday()]} {day.day} {day:%b}' if a.day
                               else f'Sun {sun.day} {sun:%b} – Sat {sat.day} {sat:%b}'),
         totals=totals, drives=drives, loops=qa['feeds_loops'], **more,
+        forecasts=[{'t': (r.get('title') or '').strip()} for r in due],
         rings=day_rings(rows, day, L, L.get('_flowset') or frozenset(), NOT_LIVED,
                         json.load(open(a.sleep, encoding='utf-8')) if a.sleep else None) if a.day else None,
         read=' · '.join(f'{n} {k}/{k}' for n, k in reads) + f' · rhythms {nrh}/{nrh}')

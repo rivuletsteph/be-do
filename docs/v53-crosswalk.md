@@ -410,7 +410,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | A234 | 10-02 | a moment takes its practice's usual length | code ✓ | look-behind (usual length) |
 | A235 | 10-02 | rules she has settled go into code | judgment | J0 |
 | A236 | 10-02 | the build order (this migration first) | drop · state | lives in the stream as an action row |
-| A237 | 10-02 | the pill strip spec | code ✓ | core/bedo_remaining --widget, the predicted order (bedo_order) and the sunrise hold |
+| A237 | 10-02 | the pill strip spec | code ✓ · widget superseded | the predicted order (bedo_order) and the sunrise hold stay; the pill strip gave way to the one code line (7–20 Oct) |
 | A238 | 10-02 | an unused intention slot is not drawn | code | next: day-ahead engine |
 | A239 | 10-02 | an intention carries a when and why, not a date | judgment | J9 |
 | A240 | 10-02 | noticing, offered at the dawn close | judgment | J8 |
@@ -421,7 +421,7 @@ Only these touched what she logs or sees. She said yes to all five on 4 Oct 2026
 | A245 | 10-02 | places, the ninth permanent base | facts | facts_local bases |
 | A246 | 10-02 | areas of interest may be queued | judgment | J12 |
 | A247 | 10-02 | resolve a chain across every base before a review or patch | code ✓ | core/bedo_reader + ahead-review (every base, live first) |
-| A248 | 10-03 | the widget is the remaining list | code ✓ | core/bedo_remaining --widget, run by bedo-checks; J8 says it ends every reply |
+| A248 | 10-03 | the widget is the remaining list | drop · superseded | by the one code line, never a widget (7, 8, 11, 20 Oct); core/bedo_remaining, run by bedo-checks |
 | A249 | 10-03 | read the feeling from her words | judgment | J6 |
 | A250 | 10-03 | the dusk close audits rows; chat time is the sum of stretches | code ✓ | core/bedo_dusk_audit (the five checks) + core/bedo_stretches |
 | A251 | 10-03 | a window chat's ⚡ row has no duration and no drive | code | next: session entry check |

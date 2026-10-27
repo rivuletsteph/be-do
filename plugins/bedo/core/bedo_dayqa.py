@@ -49,7 +49,8 @@ Q = FACTS['dayqa']
 SRC = Q['sources']
 EST = 'ESTIMATED FROM CONTEXT'
 PLANS = set(FACTS['status']['plans'])
-NOT_LIVED = PLANS | {FACTS['status']['actions'][4], FACTS['status']['logs'][2]}   # ✖️ dropped, ⨂ skipped
+NOT_LIVED = PLANS | {FACTS['status']['actions'][4], FACTS['status']['logs'][2],
+                     FACTS['weather_status']['status']}   # ✖️ dropped, ⨂ skipped
 DIVIDER = FACTS['divider']
 MOVE = {FL.word(p) for p in Q['movement_practices']}
 NOTES = {FL.word(p) for p in Q['note_practices']}
@@ -143,6 +144,14 @@ def _gap_fill(g, t, mins, off, at, inside, before, after, ctx):
     well = collections.Counter(r['wellness'] for r in inside + [at] if r and r.get('wellness'))
     if well:
         new['wellness'] = well.most_common(1)[0][0]
+    # a stretch with family that nothing else names is heart, with the people on it (19 Oct 2026)
+    people = (getattr(ctx, 'local', None) or {}).get('people') or {}
+    fam = {v for k, v in people.items() if k != 'self' and v}
+    with_ = sorted({p.strip() for r in inside + [at] if r for p in (r.get('person') or '').split(',')} & fam)
+    if with_:
+        new['person'] = ', '.join(with_)
+        if not well:
+            new['wellness'] = FACTS['wellness']['be'][0]
     got, _ = FL.deduce(new, ctx) if ctx else ({}, [])
     new.update({f: v for f, (v, _) in got.items()})
     return fill('gaps', f'{_clock(g, off)}–{_clock(t, off)} ({mins} min) {new["title"]}; clues: '
@@ -366,7 +375,10 @@ def _partner(o):
 
 
 def synergy(rows, off, history=()):
-    """Noticed lines, fills from her past weeks, and at most one question."""
+    """Noticed lines, fills from her past weeks, and a count of the rest. The
+    question is asked in the moment, as she logs two things at once (the entry
+    check's note), never the next day: here the unanswered pairs are counted and
+    the QA moves on (her rule, 23 Oct 2026)."""
     past = {}
     by_key = {r.get('key'): r for r in history if r.get('key')}
     for r in history:
@@ -396,8 +408,8 @@ def synergy(rows, off, history=()):
             else:
                 unknown.append(pair)
     if unknown:
-        out.append(ask('synergy', f'synergizing, competing, both or neutral? {len(unknown)} overlap(s): '
-                                  + '; '.join(unknown[:4]) + (' …' if len(unknown) > 4 else '')))
+        out.append({'check': 'synergy', 'kind': 'count', 'n': len(unknown),
+                    'line': f'{len(unknown)} two things at once with no answer — counted, not asked after the fact'})
     return out
 
 
@@ -449,7 +461,7 @@ def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=N
                     + (' …' if len(nodev) > 4 else '')}]
     asks.sort(key=lambda i: -('spans' == i['check']))
     items = (sorted(fills + batched, key=rank) + asks + [i for i in items if i['kind'] == 'open']
-             + [i for i in items if i['kind'] == 'notice'])
+             + [i for i in items if i['kind'] in ('notice', 'count')])
     for i, it in enumerate(i for i in items if i['kind'] in ('fill', 'ask')):
         it['n'] = i + 1
     return items
@@ -471,6 +483,7 @@ def render(items, day, rows, off, now_local=None):
         lines.append('  noticed — two things at once:')
         lines += [f'    {"🔗" if i["answer"] == "synergizing" else "⚔" if i["answer"] == "competing" else "·"} {i["line"]}'
                   for i in seen]
+    lines += [f'  {i["line"]}' for i in items if i['kind'] == 'count']
     if open_:
         lines.append(f'  left open, no clue: {sum(i["mins"] for i in open_)} min (' + ', '.join(i['line'] for i in open_) + ')')
     if not items:

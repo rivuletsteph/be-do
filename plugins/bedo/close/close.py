@@ -30,7 +30,7 @@ from bedo_air import Air  # noqa: E402
 
 # the stream's REST field names, as the close reads them
 FIELDS = {'key': 'action key', 'status': 'status', 'datetime': 'datetime',
-          'practice': 'practice text', 'title': 'action'}
+          'practice': 'practice text', 'title': 'action', 'target': 'target datetime'}
 
 
 def die(m):

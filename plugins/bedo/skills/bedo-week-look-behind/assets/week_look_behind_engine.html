@@ -251,6 +251,8 @@ if (quiet.length) {
   document.querySelector("#quiet summary").textContent = `${quiet.length} more drives, open items only · ${quiet.reduce((s, n) => s + n.open, 0)} open`;
   document.getElementById("quietdrives").innerHTML = quiet.map(node).join("");
 } else document.getElementById("quiet").remove();
+if ((DATA.forecasts || []).length)   // 🔭 forecasts due in the window, hers to say how each turned out (20 Oct 2026)
+  document.getElementById("foot").insertAdjacentHTML("beforebegin", `<section aria-label="forecasts due"><p class="note">\u{1F52D} forecasts due this ${SP} \u00B7 how did each turn out? in your words</p><ul>${DATA.forecasts.map(f => `<li>${esc(f.t)}</li>`).join("")}</ul></section>`);
 document.getElementById("foot").innerHTML = `read ${esc(DATA.read)}` +
   (DATA.loops.length ? `<br><span class="warn">feeds loops — fix in the base: ${DATA.loops.map(esc).join(" · ")}</span>` : "") +
   `<br>not built yet: the reading, the wheel, who was there`;
