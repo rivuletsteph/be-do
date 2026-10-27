@@ -840,6 +840,30 @@ def week_shape(days, evs, conflicts, L):
     return out
 
 
+CHORES = ['unload the dishwasher', 'put away a load of laundry', 'feed the dogs', 'set the table for dinner',
+          'water the plants', 'help carry in the groceries', 'wipe the kitchen table']
+
+
+def chore_for(today, events, L):
+    """One small chore for her son, planted at the morning look ahead (11 Oct
+    2026, her words: give him a way to contribute … if we plant the seed early
+    in the day it's more likely to happen). It fits the day: an outing with a
+    place to go is help packing for it; otherwise the next of her list
+    (day_ahead_local kid_chores, else CHORES), turning by the date. She decides
+    whether he does it; it is named once and never pushed again that day. It
+    feeds Hero's Service on his quest."""
+    kid = L.get('child_calendar') or 'him'
+    out = [e for e in events if e['a'].date() == today and not e['allday'] and e.get('location')
+           and e['who'] in (L.get('self_calendar'), L.get('child_calendar'))]
+    if out:
+        e = min(out, key=lambda e: e['a'])
+        text = f"help pack for {e['title']}"
+    else:
+        chores = L.get('kid_chores') or CHORES
+        text = chores[today.toordinal() % len(chores)]
+    return dict(kid=kid, text=text)
+
+
 def week_lead(week):
     """One line, the way the 6 Sep look ahead put it: Tuesday is the peak, Thursday has a
     clash, Monday is open."""
@@ -1160,6 +1184,7 @@ def main():
         t = clean_title(tmr['row']['title']).split(' — ')[0]
         parts.append('Tomorrow: ' + t[0].lower() + t[1:] + '.')
     lead = ' '.join(parts) if parts else 'A clear day ahead.'
+    chore = chore_for(today, evs, L)
 
     # the weekend shapes: Sunday reads the week by day, Saturday is fun first
     shape = shape_of(today, a.shape)
@@ -1192,7 +1217,7 @@ def main():
                 inside.append(dict(title=clean_title(r['title']), label=fmt_day(local(r['target']).date()), away=w['title']))
 
     DATA = dict(
-        chip=chip, date=today.isoformat(), dateLabel=f'{today:%A} {today.day} {today:%B}', lead=lead,
+        chip=chip, date=today.isoformat(), dateLabel=f'{today:%A} {today.day} {today:%B}', lead=lead, chore=chore,
         word=word,
         secure=dict(state=a.secure, words=a.secure_words) if a.secure else None,
         pareto=[dict(kind=p['kind'], title=clean_title(p['row']['title']), drive=p['row']['rhythm'] or '',
@@ -1219,7 +1244,7 @@ def main():
     open(a.out, 'w', encoding='utf-8').write(html)
     plan_path = a.plan_out or re.sub(r'\.html?$', '', a.out) + '.plan.json'
     open(plan_path, 'w', encoding='utf-8').write(json.dumps(plan, ensure_ascii=False, indent=1))
-    print(json.dumps(dict(shape=shape, lead=lead,
+    print(json.dumps(dict(shape=shape, lead=lead, chore=f"one chore for {chore['kid']}: {chore['text']}",
                           ready=[x['title'] for x in ready or []], tending=[x['title'] for x in tending or []],
                           picks=[(p['kind'], clean_title(p['row']['title'])) for p in picks], next=nxt,
                           soon=len(soon), overdue=len(overdue), gaps=gaps, clashes=clashes,

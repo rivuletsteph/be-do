@@ -198,7 +198,8 @@ page.append($(`<header>
   <p class="chip">${esc(D.chip)}${D.draft?' <span class="draft">draft · before your intentions</span>':''}</p>
   <h1>${esc(D.dateLabel)}${D.secure&&D.secure.state==='secure'?' <span class="sb" title="secure base">⏏️</span>':''}</h1>
   ${D.secure&&D.secure.state!=='secure'?`<p class="sbx">⏏️ ${esc(D.secure.state)}${D.secure.words?' — '+esc(D.secure.words):''}</p>`:''}
-  <p class="lead">${esc(D.lead)}</p></header>`));
+  <p class="lead">${esc(D.lead)}</p>
+  ${D.chore?`<p class="lead">\u{1F9FA} one chore for ${esc(D.chore.kid)} today: ${esc(D.chore.text)} \u00B7 yours to offer, once</p>`:''}</header>`));
 
 /* the order (8 Oct 2026, her words): my intention above the week's word, then the calendar */
 /* your intention — one slot, empty until you name it (her rule, 21 and 25 Oct 2026: ask for one; more only if she names more) */

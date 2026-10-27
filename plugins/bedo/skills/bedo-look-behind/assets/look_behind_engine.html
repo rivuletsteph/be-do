@@ -205,6 +205,10 @@ details.wheel summary:focus-visible{outline:2px solid var(--link);outline-offset
     <ul class="hl" id="hl"></ul>
     <div class="photos" id="photos"></div>
   </section>
+  <section aria-label="forecasts due" id="fcsec">
+    <p class="label">forecasts due</p>
+    <ul class="hl" id="fc"></ul>
+  </section>
   <section aria-label="who was there">
     <p class="label">who was in your day</p>
     <p class="bal-note">Everyone you were with or in touch with, grouped by their first circle and sized by how much of the day you shared.</p>
@@ -279,6 +283,9 @@ if (DRAFT.lead || DRAFT.story) {
 }
 const hl = document.getElementById("hl");
 DATA.highlights.forEach(h => hl.insertAdjacentHTML("beforeend", `<li><span aria-hidden="true">${h.glyph}</span><span>${esc(h.text)}</span></li>`));
+const fc = document.getElementById("fc");
+(DATA.forecasts || []).forEach(f => fc.insertAdjacentHTML("beforeend", `<li><span aria-hidden="true">\u{1F52D}</span><span>${esc(f.t)}<span class="sub">due today \u00B7 how did it turn out? in your words</span></span></li>`));
+if (!(DATA.forecasts || []).length) document.getElementById("fcsec").hidden = true;
 const ph = document.getElementById("photos");
 DATA.photos.slice(0,5).forEach(p => ph.insertAdjacentHTML("beforeend", `<a href="${esc(p.url)}"${p.keeper ? ' class="keeper"' : ""}><img src="${p.thumb}" alt="${esc(p.alt||"")}"></a>`));
 const ul = document.getElementById("list");

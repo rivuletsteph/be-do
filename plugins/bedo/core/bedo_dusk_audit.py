@@ -108,7 +108,7 @@ def audit(rows, now, off, steps=None, chats=(), day=None, people=(), photo_files
     f = {k: [] for k in ('open_past', 'end_before_start', 'attention', 'no_attention', 'chat_no_entry',
                          'uncaptured', 'action_row', 'gate', 'for_my_day', 'no_rhythm', 'no_duration',
                          'no_person', 'target_today', 'meals', 'photo_kinds', 'photo_links', 'photo_missing',
-                         'photo_unlogged')}
+                         'photo_unlogged', 'photo_import')}
 
     for r in rows:                                                    # 1
         if (r.get('status') == INTENTION and r.get('calendar_event') and r.get('datetime')
@@ -183,7 +183,9 @@ def photos(rows, off, day, files, me, f):
     for k in m['kinds']:
         out.setdefault(k['id'], {'id': k['id']})['photo'] = k['kind']
         f['photo_kinds'].append(f"{k['title'] or k['id']} → {k['kind']}")
-    if files is None:
+    if files is None:     # photo import is a dusk-close step (20 Oct 2026): say so, never skip it quietly
+        f['photo_import'].append("the day's photos weren't imported — list the week's W## photos folder with "
+                                 'the Drive connector (names and ids) and run dusk again with --photos')
         return list(out.values())
     have = {r['id']: (r.get('photo_links') or '').strip() for r in rows}
     for x in m['links']:
@@ -232,7 +234,8 @@ TITLES = [('open_past', '1 open, time passed — close from the day\'s rows, or 
           ('photo_kinds', 'photos — kind by rule (keeper shows on the look behind, info stays off); written with --write'),
           ('photo_links', 'photos — each row linked to its file in the W## photos folder; written with --write'),
           ('photo_missing', 'keepers not in the W## photos folder yet — say once: share them there tonight'),
-          ('photo_unlogged', 'photos in the folder no row explains — clues for the day\'s QA, never chased')]
+          ('photo_unlogged', 'photos in the folder no row explains — clues for the day\'s QA, never chased'),
+          ('photo_import', 'photos — imported at the dusk close')]
 
 
 def render(res, label):

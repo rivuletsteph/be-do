@@ -9,8 +9,14 @@ import datetime as dt, os, sys, unittest
 
 CORE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, CORE)
+import bedo_calendar as CA  # noqa: E402
+import bedo_dusk_audit as D  # noqa: E402
 import bedo_entry as E  # noqa: E402
 import bedo_fill as FL  # noqa: E402
+import bedo_forecast as FC  # noqa: E402
+import bedo_inbox as IB  # noqa: E402
+import bedo_preflight as P  # noqa: E402
+import bedo_split as S  # noqa: E402
 from bedo_reader import FACTS as F  # noqa: E402
 
 LOG, DONE, INT, POT, SKIP = '● log', '◉ done', '⬜ intention', '▫️potential', '⨂ skipped'
@@ -42,7 +48,7 @@ class Bucket(unittest.TestCase):
     """20 Oct 2026: every row sits in a flow, or under a rhythm or a drive."""
 
     def test_a_story_goes_under_the_stories_rhythm(self):
-        out = probs(row(practice='🎥 movie', title='Jaws, with popcorn', wellness='🩷 heart', person='a friend'))
+        out = probs(row(practice='🎥 movie', title='a shark film, with popcorn', wellness='🩷 heart', person='a pal'))
         self.assertTrue(any('rhythm: empty — deduced Stories' in p for p in out), out)
 
     def test_a_window_chat_and_its_captures_sit_under_the_system_drive(self):
@@ -120,7 +126,7 @@ class Appointment(unittest.TestCase):
     """6 Oct 2026: an appointment she shares goes on her calendar."""
 
     def test_an_appointment_ahead_needs_its_event(self):
-        r = row(practice='💆 massage', title='massage with Jodi, Thursday 2 pm', status=INT, device=None,
+        r = row(practice='💆 massage', title='massage, Thursday 2 pm', status=INT, device=None,
                 datetime=z(14, day=DAY + dt.timedelta(days=3)))
         self.assertTrue(any('goes on her calendar' in p for p in probs(r)))
         self.assertFalse([p for p in probs(dict(r, calendar_event='https://calendar/x')) if 'calendar' in p])
@@ -178,6 +184,133 @@ class InTheMoment(unittest.TestCase):
         self.assertFalse([x for x in E.notes(hips, ctx(day_rows=[video, hips])) if 'two things' in x])
         alone = dict(hips, details='')
         self.assertFalse([x for x in E.notes(alone, ctx(day_rows=[alone])) if 'two things' in x])
+
+
+CAL_LOCAL = {'calendar': {'calendars': {'mine': 'me@example.com', 'Kid': 'kid@example.com',
+                                        'dropped': 'drop@example.com'},
+                          'work_parents': ['Work mission'], 'work_words': ['University']}}
+
+
+class Calendar(unittest.TestCase):
+    """6 Oct 2026: every calendar write names the calendar and is read back.
+    9 Oct 2026: every work event is purple."""
+
+    def ev(self, **kw):
+        return dict({'summary': 'piano lesson', 'startTime': '2026-10-29T16:00:00',
+                     'endTime': '2026-10-29T17:00:00', 'calendarId': 'kid@example.com'}, **kw)
+
+    def test_the_calendar_is_named_never_the_default(self):
+        out, _ = CA.problems(self.ev(calendarId=None), CAL_LOCAL)
+        self.assertTrue(any('name it' in p and 'never the tool default' in p for p in out))
+        out, _ = CA.problems(self.ev(calendarId='stray@example.org'), CAL_LOCAL)
+        self.assertTrue(any('not one of hers' in p for p in out))
+        self.assertEqual(CA.problems(self.ev(), CAL_LOCAL)[0], [])
+
+    def test_it_is_not_done_until_read_back_there(self):
+        out, nxt = CA.problems(self.ev(), CAL_LOCAL)
+        self.assertIn('read it back from Kid', nxt)
+        found = {'events': [{'id': 'e1', 'summary': 'Piano lesson'}]}
+        self.assertEqual(CA.problems(self.ev(), CAL_LOCAL, found, 'kid@example.com'), ([], None))
+        out, _ = CA.problems(self.ev(), CAL_LOCAL, {'events': []}, 'kid@example.com')
+        self.assertTrue(any('did not come back' in p and 'not done' in p for p in out))
+        out, _ = CA.problems(self.ev(), CAL_LOCAL, found, 'me@example.com')
+        self.assertTrue(any('not the calendar it was written to' in p for p in out))
+
+    def test_work_is_purple(self):
+        parents = {'River data': 'Water work', 'Water work': 'Work mission'}
+        work = self.ev(summary='quarterly data review', calendarId='me@example.com', drive='River data')
+        out, _ = CA.problems(work, CAL_LOCAL, parents=parents)
+        self.assertTrue(any('purple — colorId 3' in p for p in out))         # two levels down still counts
+        self.assertEqual(CA.problems(dict(work, colorId='3'), CAL_LOCAL, parents=parents)[0], [])
+        out, _ = CA.problems(self.ev(summary='University seminar', calendarId='me@example.com',
+                                     recurrenceData=['RRULE:FREQ=WEEKLY']), CAL_LOCAL)
+        self.assertTrue(any('on the series' in p for p in out))
+        self.assertEqual(CA.problems(self.ev(), CAL_LOCAL)[0], [])            # a piano lesson is not work
+
+
+INBOX = {'keep_from': {'Pat': ['pat@example.com']},
+         'archive_unless': [{'name': 'The Club', 'from': ['example.org'], 'keep_words': ['data center']}]}
+
+
+def thread(i, sender, subj, snip=''):
+    return {'id': i, 'messages': [{'sender': sender, 'subject': subj, 'snippet': snip}]}
+
+
+class Inbox(unittest.TestCase):
+    """22, 25 and 26 Oct 2026: the keeps, the archive rule and the nudge."""
+
+    def test_her_person_is_an_automatic_keep_and_never_archived(self):
+        ts = [thread('t1', 'Pat <Pat@example.com>', 'dinner?'), thread('t2', 'shop@example.com', 'sale')]
+        res = IB.check({'threads': ts}.get('threads'), INBOX, planned=['t1', 't2'])
+        self.assertEqual([k[0] for k in res['keeps']], ['t1'])
+        self.assertTrue(res['fixes'] and 'take it out' in res['fixes'][0])
+        self.assertEqual(IB.check(ts, INBOX, planned=['t2'])['fixes'], [])
+
+    def test_the_club_is_archived_unless_about_data_centers(self):
+        ts = [thread('c1', 'news@example.org', 'Fall drive: give today'),
+              thread('c2', 'action@example.org', 'Hearing on the new data center')]
+        res = IB.check(ts, INBOX)
+        self.assertEqual([a[0] for a in res['archives']], ['c1'])
+        self.assertEqual([k[0] for k in res['keeps']], ['c2'])
+
+    def test_she_gets_the_nudge_before_anything_is_archived(self):
+        res = IB.check([thread('c1', 'news@example.org', 'Fall drive')], INBOX, planned=['c1', 'x2', 'x3'])
+        self.assertIn('give your inbox a quick look before I archive the rest — 3 thread(s)', res['nudge'])
+        text = IB.render(res, 1)
+        self.assertTrue(text.endswith('archive only on her go'))
+        self.assertIsNone(IB.check([], INBOX)['nudge'])                       # nothing to archive, nothing to say
+
+
+class Forecasts(unittest.TestCase):
+    """20 Oct 2026: every look behind lists the forecasts due in its window."""
+
+    def f(self, target, **kw):
+        return dict({'practice': '💡 insight', 'title': 'forecast: the CO2 map is ready', 'target': target}, **kw)
+
+    def test_due_in_a_window(self):
+        a = dt.datetime(2027, 1, 29, 5, tzinfo=dt.timezone.utc)
+        rows = [self.f('2027-01-29T23:00:00.000Z'), self.f('2027-02-02T23:00:00.000Z'),
+                self.f('2027-01-29T23:00:00.000Z', title='lunch'), {'practice': '🔭 forecast', 'title': 'snow',
+                                                                    'target': '2027-01-29T12:00:00.000Z'}]
+        self.assertEqual([r['title'] for r in FC.due_in(rows, a, a + dt.timedelta(days=1))],
+                         ['snow', 'forecast: the CO2 map is ready'])
+
+    def test_the_split_carries_a_forecast_not_yet_due(self):
+        def rec(rid, **c):
+            return {'id': rid, 'createdTime': '2026-10-20T12:00:00.000Z', 'cellValuesByFieldId': c}
+        fields = {k: k for k in ('key', 'status', 'datetime', 'practice', 'title', 'target')}
+        old = [rec('f1', status=LOG, practice='💡 insight', datetime='2026-10-21T00:48:00.000Z',
+                   title='forecast: LA CO2 — a map for January', target='2027-01-29T23:00:00.000Z'),
+               rec('f2', status=LOG, practice='💡 insight', datetime='2026-10-21T00:48:00.000Z',
+                   title='forecast: the fence is up', target='2026-10-23T23:00:00.000Z'),
+               rec('g1', status=LOG, practice='📝 log', datetime='2026-10-21T00:48:00.000Z', title='a note')]
+        dump = {'records': old, 'metadata': {'totalRecordCount': 3}}
+        p = S.plan(dump, dump, [], fields, dt.date(2026, 10, 25), -5, '2026-10-25T00:00:00.000Z')
+        self.assertEqual(p['carry_forecasts'], ['f1'])
+        self.assertEqual(sorted(p['delete_ids']), ['f2', 'g1'])               # one already due stays behind
+
+
+class DuskPhotos(unittest.TestCase):
+    """20 Oct 2026: photos are imported at the dusk close."""
+
+    def test_no_folder_read_is_said_never_skipped(self):
+        res = D.audit([], NOW, -5, day=DAY)
+        self.assertTrue(res['findings']['photo_import'])
+        self.assertIn('photos — imported at the dusk close', D.render(res, 'dusk'))
+        self.assertEqual(D.audit([], NOW, -5, day=DAY, photo_files=[])['findings']['photo_import'], [])
+
+
+class Schedule(unittest.TestCase):
+    """20 Oct 2026: every skill has a set time, and preflight names what is due."""
+
+    def test_what_is_due_by_the_clock(self):
+        tue = dt.datetime(2026, 10, 27, 8, 0)
+        self.assertIn('look ahead', P.due(tue))
+        self.assertNotIn('dusk --photos', P.due(tue))
+        self.assertIn('dusk --photos', P.due(tue.replace(hour=20)))
+        self.assertIn('weekly close', P.due(dt.datetime(2026, 11, 1, 9)))       # Sunday
+        self.assertIn('ahead review', P.due(dt.datetime(2026, 11, 3, 9)))       # by the 5th
+        self.assertIsNone(P.due(tue.replace(hour=14)))
 
 
 if __name__ == '__main__':

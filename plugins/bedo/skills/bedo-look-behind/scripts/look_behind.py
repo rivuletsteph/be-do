@@ -39,6 +39,7 @@ import day_pie  # noqa: E402
 import bedo_people  # noqa: E402  (the core, beside or three folders up)
 import bedo_drives  # noqa: E402
 import bedo_photos  # noqa: E402
+import bedo_forecast  # noqa: E402
 from bedo_fill import word as practice_word  # noqa: E402
 
 # The field maps are the base's, not the builder's. install_local() fills them
@@ -47,7 +48,8 @@ from bedo_fill import word as practice_word  # noqa: E402
 STREAM_KEYS = ('title', 'key', 'details', 'when', 'end', 'status', 'practice',
                'person', 'rhythm', 'wellness', 'deliv')
 OPTIONAL_STREAM_KEYS = ('device', 'mentioned', 'emotion', 'emoword', 'spent', 'event',
-                        'photo', 'photo_checked', 'photo_links')   # keepers on the page (25 Oct 2026)
+                        'photo', 'photo_checked', 'photo_links',   # keepers on the page (25 Oct 2026)
+                        'target')                                  # a forecast's day (20 Oct 2026)
 RHYTHM_KEYS = ('name', 'type', 'status', 'emoji', 'dest')
 OPTIONAL_RHYTHM_KEYS = ('feeds', 'code')     # drives within drives (9 Oct 2026)
 PRACTICE_KEYS = ('name', 'band', 'zero', 'group', 'typical')
@@ -74,6 +76,7 @@ DIVIDERS = ('———', '---', '——')
 BULLET = re.compile(r'^\s*[-•*✓•]\s+(.+?)\s*$')
 _ST = bedo_reader.FACTS['status']
 NOT_LIVED = set(_ST['plans']) | {_ST['actions'][4], _ST['logs'][2]}    # ▫️ ⬜ ✖️ ⨂: never happened
+NOT_LIVED.add(bedo_reader.FACTS['weather_status']['status'])          # 🌥️ the weather took it: neither done nor missed (26 Oct)
 # Movement counts no matter what else is happening (9 Oct 2026, rule 7): these are
 # Moving whatever the settings' map says, and Moving wins the minute on the pie
 MOVEMENT = {practice_word(p) for p in bedo_reader.FACTS['dayqa']['movement_practices']}
@@ -465,7 +468,7 @@ def main():
         typical = (read_dump(a.typical) or {}).get('practices', {})
 
     self_name = L['self_person']
-    noscore = set(L.get('noscore_statuses') or [])
+    noscore = set(L.get('noscore_statuses') or []) | {bedo_reader.FACTS['weather_status']['status']}   # 🌥️ neither done nor missed
     done_st = set(L.get('done_statuses') or [])
     zero_pr = {norm(x) for x in (L.get('zero_practices') or [])}
     zero_grp = {norm(x) for x in (L.get('zero_practice_groups') or [])}
@@ -664,6 +667,12 @@ def main():
     missing = gate(day_rows, L, day)
     if missing:
         qa['not_yet_whole'] = missing
+    # forecasts due today, from every row read (a forecast rides the split, 20 Oct 2026)
+    d0 = dt.datetime.combine(day, dt.time(), dt.timezone.utc) - UTC_OFFSET
+    due = bedo_forecast.due_in([dict(r, title=r.get('title') or '') for r in latest.values()],
+                               d0, d0 + dt.timedelta(days=1))
+    if due:
+        qa['forecasts_due'] = [bedo_forecast.line(r) for r in due]
     ages = sorted((day - key_day(r)).days for r in books)
     booked = {'n': len(books), 'oldest': ages[-1] if ages else 0}
 
@@ -981,6 +990,7 @@ def main():
         'draft': {'lead': 'lead' in drafted, 'story': 'story' in drafted},
         'who': who,
         'highlights': highlights,
+        'forecasts': [{'t': (r.get('title') or '').strip()} for r in due],
         'photos': strip,
         'intentions': intentions,
         'entries': entries,

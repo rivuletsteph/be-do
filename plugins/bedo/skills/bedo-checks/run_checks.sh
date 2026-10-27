@@ -14,6 +14,9 @@
 #   bash run_checks.sh stretches FILE        # stamps, a claude.ai chat read, or a transcript
 #   bash run_checks.sh order [--json]        # her predicted order: typical times to write to the catalog
 #   bash run_checks.sh close --chat URL --title "TITLE" [--date YYYY-MM-DD]   # the chat close: QA, entry, title
+#   bash run_checks.sh calendar event.json [--readback read.json --from CALENDAR_ID] [--rhythms rhythms.json]
+#                                # every calendar write: named, read back, work in purple
+#   bash run_checks.sh inbox threads.json [--archive planned.json]   # before the inbox sweep archives anything
 #
 # With an Airtable token (AIRTABLE_PAT, a bedo_secrets.json, or a Claude cloud
 # session's proxy) the checks read Airtable themselves. Without one, read through
@@ -123,6 +126,12 @@ case "$CMD" in
   stretches)
     [ -d "$W/core" ] || fetch_core; find_local
     "$PY" "$W/core/bedo_stretches.py" "$@" ;;
+  calendar)   # 6 and 9 Oct 2026: the calendar named, the write read back, work in purple
+    [ -d "$W/core" ] || fetch_core; find_local
+    "$PY" "$W/core/bedo_calendar.py" "$@" ;;
+  inbox)      # 22, 25 and 26 Oct 2026: automatic keeps, archive by rule, the nudge before archiving
+    [ -d "$W/core" ] || fetch_core; find_local
+    "$PY" "$W/core/bedo_inbox.py" "$@" ;;
   entry)
     [ -d "$W/core" ] || fetch_core; find_local
     ROW=${1:?usage: run_checks.sh entry row.json [--base NAME] [--chat MMDD] [--catalog FILE] [--rhythms FILE] [--day FILE]}; shift
@@ -165,5 +174,5 @@ for r in rows:
 sys.exit(1 if bad else 0)
 E
     ;;
-  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|entry|stretches|order|close [args]"; exit 2 ;;
+  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|entry|stretches|order|close|calendar|inbox [args]"; exit 2 ;;
 esac

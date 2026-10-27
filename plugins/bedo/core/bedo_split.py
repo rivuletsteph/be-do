@@ -9,6 +9,8 @@ the plan is a list of record ids a write-scoped tool acts on after her yes.
        the id rule.
   I5 + I15  the carry set is the open HEAD of every chain, resolved across
        every base read, live first, reading action rows only.
+  forecast  a forecast whose day hasn't come is carried too: it is a ● log, not
+       an open chain, and its day's look behind must still find it (20 Oct 2026)
   carry-verify  every open chain, across all bases, has a row in the new base.
        A gap that is not media stops the close: that is how the W39 split lost
        two open actions without anyone seeing.
@@ -16,6 +18,7 @@ the plan is a list of record ids a write-scoped tool acts on after her yes.
 import datetime as dt
 
 from bedo_reader import FACTS, OPEN_STATUSES, cells, complete, die, merge_live_first, resolve, sv
+import bedo_forecast
 
 MEDIA = frozenset(FACTS['practice']['media'])
 
@@ -58,6 +61,10 @@ def plan(new_base, outgoing, archives, fields, first_new_day, offset_hours, clon
         return bool(s) and local_date(s, offset_hours) >= first_new_day
 
     keep = {i for i, r in W.items() if in_new_week(r)}
+    fields_ok = all(k in fields for k in ('title', 'target'))
+    forecasts = {i for i, r in W.items() if fields_ok and bedo_forecast.ahead(
+        {k: g(r, k) for k in ('practice', 'title', 'target') if k in fields}, first_new_day, offset_hours)}
+    keep |= forecasts
     delete = sorted(set(W) - carry - keep)                                  # I16
     clone = clone_time or max(r['createdTime'] for r in W.values())
     late = [i for i in delete if W[i]['createdTime'] > clone]
@@ -70,7 +77,8 @@ def plan(new_base, outgoing, archives, fields, first_new_day, offset_hours, clon
         'delete_ids': delete,
         'carry_ids': sorted(carry & set(W)),
         'carry_elsewhere': sorted(carry - set(W)),
-        'keep_new_week': len(keep),
+        'keep_new_week': len(keep - forecasts),
+        'carry_forecasts': sorted(forecasts),
         'after': len(W) - len(delete),
         'reads': [(str(p), n) for p, n in reads],
     }

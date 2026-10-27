@@ -142,6 +142,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 
 - my week is one chat, Sunday to Sunday; my day comes first. The reflective and spiritual half of Sunday comes before the close.
 - The mechanical half is code — `close.py fetch · backup · check · audit · export · plan` → her clone → her yes to clear → `verify`. Decide what the rules decide.
+- **A 🌥️ weather day is neither done nor missed** for the week's focus practice: when the weather took the sun, leave that day out of the count (26 Oct 2026).
 - **Ask her only:** her reflection, the week's word, her **one focus practice** for the week (from either flow, not three and three: her rule, 25 Oct 2026), and *clone the base now*.
 - The handoff is rewritten each week and saved to both week folders.
 - Token use: one line at the close on the 15% be•do line, only when the meter can be read. No daily readings, no friction review.

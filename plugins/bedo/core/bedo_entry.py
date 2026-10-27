@@ -143,7 +143,8 @@ def chat_day_problem(row, chat_day, utc_offset_hours):
 
 
 PARTIAL = FACTS['attention'][1]
-NOT_LIVED = set(FACTS['status']['plans']) | {FACTS['status']['actions'][4], FACTS['status']['logs'][2]}
+NOT_LIVED = set(FACTS['status']['plans']) | {FACTS['status']['actions'][4], FACTS['status']['logs'][2],
+                                             FACTS['weather_status']['status']}
 NOT_ACTIVITY = {bedo_fill.word(p) for p in RULES['not_activities']}
 
 

@@ -29,6 +29,9 @@ returned instead, so the turn pastes it rather than composes it (A219).
              when yesterday's final is there. Otherwise it says plainly that
              yesterday's page wasn't built, and which day the page still shows
              (27 Oct 2026: Sunday's day behind was offered as Monday's).
+  due        what the skills schedule (facts skills_schedule) says is due now:
+             dawn before noon, dusk after 7 PM, the close on Sunday, the ahead
+             review by the 5th (20 Oct 2026: so she doesn't have to remember)
   paper      an active amendment no check in code enforces is named, one line
              each: `rule on paper only` (9 Oct 2026). The map from amendment
              to check is hers, in facts_local (bedo_rules says how).
@@ -203,6 +206,22 @@ def read_log_rows(air, names, day, local):
     return rows
 
 
+def due(now_local):
+    """What the skills schedule says is due at this hour, as one line, or None."""
+    S, F = FACTS['skills_schedule'], FACTS['flows']
+    t = now_local.time()
+    out = []
+    if t < dt.time(*map(int, F['backup_close']['dawn'].split(':'))):
+        out += S['dawn']
+    if t >= dt.time(*map(int, F['dusk_opens_after'].split(':'))):
+        out += S['dusk']
+    if now_local.weekday() == 6:
+        out += S['sunday']
+    if now_local.day <= S['monthly_by_day']:
+        out += S['monthly']
+    return 'due    ' + ' · '.join(out) if out else None
+
+
 def report(local, names, rows, now=None, kind='day', part=None, week=None, handoff=None, amendments=None,
            built=None):
     now, now_local, off, probs = clock(local, now)
@@ -216,6 +235,9 @@ def report(local, names, rows, now=None, kind='day', part=None, week=None, hando
         lines.append(f'newest {(now - t).total_seconds() / 3600:.1f} h ago')
     if kind == 'day':
         lines.append(yesterday_line(day, look_behind_url(local), built))
+    d = due(now_local)
+    if d:
+        lines.append(d)
     lines += ['⚠ ' + p for p in probs + bprobs]
     if amendments is not None:
         lines += ['⚠ ' + p for p in bedo_rules.lines(amendments, local.get('amendment_checks'))]

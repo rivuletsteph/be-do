@@ -151,6 +151,29 @@
   "span_practices": ["location", "walking", "driving", "cycling"],
   "generic_practices": ["action", "log"]
  },
+ "forecast": {
+  "_about": "20 Oct 2026: a forecast is one stream row in her words, what she thinks will happen, its target the day it comes due. No score, no percentages. Every look behind lists the forecasts due in its window; she says in her own words how each turned out.",
+  "practices": ["forecast"],
+  "title_prefix": "forecast"
+ },
+ "skills_schedule": {
+  "_about": "20 Oct 2026, her words: I have a lot of skills and I just need to standardize when they get run, so I don't have to remember them. Every skill has a set time, kept here, the one place a skill's timing lives; preflight reads it at each chat's first reply and names what is due.",
+  "dawn": ["👁️ look ahead (bedo-day-ahead)", "remaining, every reply"],
+  "dusk": ["📧 clear gmail inbox (clear-inbox, then inbox)", "photos (dusk --photos)", "dayqa", "dusk audit", "remaining, every reply"],
+  "sunday": ["the weekly close (bedo-weekly-close)", "the week look behind, once every day has its dayqa (bedo-week-look-behind)"],
+  "monthly": ["the ahead review, by the 5th (bedo-ahead-review)"],
+  "when_it_comes_up": ["provisions (meals)", "shopping-watch (something to buy)", "session-entry (a chat's close)"],
+  "monthly_by_day": 5
+ },
+ "calendar": {
+  "_about": "6 Oct 2026: every calendar write names its calendar and is read back before it's called done. 9 Oct 2026: every work event is purple, Google Calendar colorId 3 (Grape), her employer's colour. Her calendar ids, work parents and work words live in facts_local under calendar.",
+  "work_color": "3"
+ },
+ "inbox": {
+  "_about": "Her inbox rules, in code (bedo_inbox): an automatic keep (26 Oct: anything from her husband is important, like a star) always gets a line on the one list and is never archived; a sender archived by default (25 Oct: a club's mail, a keep only when it's about what she cares about there); and before anything is archived she gets one line to glance through the inbox herself, and archiving waits for her go (22 Oct). The senders live in facts_local under inbox.",
+  "nudge": "give your inbox a quick look before I archive the rest — {n} thread(s) · {link}",
+  "link": "https://mail.google.com/mail/u/0/#inbox"
+ },
  "open_actions": {
   "_about": "8 Oct 2026, her words: hey, I'm on my phone and I have a few minutes, what are some quickie tasks. Every new ⬜ ▶️ ▫️ action row is written with the device it will be done on, deduced like wellness; she corrects, she never fills it in. The quickie box is judgment (J12).",
   "phone_words": ["call", "text", "email", "reply", "order", "pay", "buy", "sign up", "rsvp", "venmo", "look up"]
@@ -168,7 +191,7 @@
  "appointments": {
   "_about": "6 Oct 2026, her words: when I share an appointment like that, I need you to add it to the calendar. A row for an appointment still ahead carries its calendar event link; a to-do to book one is not the appointment.",
   "practices": ["calendar event"],
-  "words": ["appointment", "appt", "massage", "dentist", "doctor", "dr.", "haircut", "vet ", "therapy", "checkup", "check-up", "physical", "orthodont", "dermatolog"],
+  "words": ["appointment", "appt", "massage", "dentist", "doctor", "haircut", "vet ", "therapy", "checkup", "check-up", "physical", "orthodont", "dermatolog"],
   "booking_words": ["book", "make", "set up", "schedule", "remind", "call", "ask", "find"]
  },
  "weather_status": {
@@ -176,7 +199,7 @@
   "status": "🌥️ weather",
   "in_base": false,
   "practices": ["morning sun", "evening sun"],
-  "words": ["cloud", "overcast", "rain", "storm", "weather", "fog", "gray sky", "grey sky", "no sun"]
+  "words": ["cloud", "overcast", "rain", "storm", "weather", "fog", "no sun"]
  },
  "entry_rules": {
   "_about": "The 9 Oct amendment, rules 2 and 6, and the 8 Oct one that every row carries a practice. A row's datetime and end fall on one local day and span at most max_span_hours; closing an old chain row sets its datetime to the act, never a multi-day span from its first date. A night's sleep is the one row that crosses midnight. person is for people she was with or in direct contact with; a plan (▫️ ⬜) names them in mentioned until it happens.",

@@ -112,6 +112,7 @@ def main():
         html = open(out, encoding='utf-8').read()
         D = json.loads(html.split('const DATA=', 1)[1].split(';</script>', 1)[0])
         assert D['shape'] == shape, D['shape']
+        assert D['chore'] and D['chore']['text'], D.get('chore')     # one chore for her son, every shape (11 Oct)
         assert (D['week'] is not None) == (shape == 'sunday') and (D['morning'] is not None) == (shape == 'sunday')
         assert (D['tending'] is not None) == (shape == 'saturday')
         if shape == 'sunday':
