@@ -17,7 +17,7 @@
 # With an Airtable token (AIRTABLE_PAT, a bedo_secrets.json, or a Claude cloud
 # session's proxy) the checks read Airtable themselves. Without one, read through
 # the Airtable connector, save the results as files, and pass them:
-#   preflight --bases names.json --stream recent.json [--amendments amendments.json]
+#   preflight --bases names.json --stream recent.json [--amendments amendments.json] [--look-behind log.json]
 #   remaining --catalog practices.json --day today.json
 #   dusk      --day today.json --catalog practices.json
 #   meals     --day today.json

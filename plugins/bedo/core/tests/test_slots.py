@@ -470,12 +470,38 @@ class Preflight(unittest.TestCase):
     def test_the_morning_opens_on_yesterdays_look_behind(self):
         # her word, 8 Oct 2026: a my day chat is complete once its look behind is seen
         local = dict(LOCAL, look_behind_url='https://claude.ai/artifact/X')
-        text, _ = P.report(local, {'w41 be•do': 'a'}, [row('☕ coffee', '2026-10-08 07:30')], at('2026-10-08 08:00'))
+        built = P.built_pages([{'details': '[be•do] look behind 2026-10-07 · final'}])
+        text, _ = P.report(local, {'w41 be•do': 'a'}, [row('☕ coffee', '2026-10-08 07:30')], at('2026-10-08 08:00'),
+                           built=built)
         self.assertIn("yesterday's look behind · https://claude.ai/artifact/X", text)
         self.assertIn('becomes ✔️1007 💧 Wed ' + P.MARK + ' W41 🔆 my day', text)
         week, _ = P.report(local, {'w41 be•do': 'a'}, [row('☕ coffee', '2026-10-08 07:30')],
                            at('2026-10-08 08:00'), kind='week')
         self.assertNotIn('look behind', week)
+
+    def test_the_page_is_yesterdays_only_when_its_log_row_says_so(self):
+        # 27 Oct 2026: Sunday's day behind (✔️1025) was offered as Monday's
+        local = dict(LOCAL, look_behind_url='https://claude.ai/artifact/LIVING')
+        sun = {'datetime': z('2026-10-25 23:58'), 'created': '2026-10-26T22:15:10.000Z',
+               'details': 'her words\n———\n[be•do] look behind 2026-10-25 · final\nlead: connection',
+               'deliverable': 'https://claude.ai/artifact/8B1og'}
+        base = ({'w44 be•do': 'a'}, [row('☕ coffee', '2026-10-27 07:30')], at('2026-10-27 08:00'))
+        text, _ = P.report(local, *base, built=P.built_pages([sun]))
+        self.assertNotIn('artifact/', text)                                 # never given as yesterday's
+        self.assertIn("yesterday's look behind wasn't built: no final page for Mon 26 Oct", text)
+        self.assertIn('the page still shows Sun 25 Oct', text)
+        self.assertNotIn('becomes', text)                                  # the ✔️ rename waits
+        draft = dict(sun, datetime=z('2026-10-26 23:50'), created='2026-10-27T04:00:00.000Z',
+                     details='[be•do] look behind 2026-10-26 · draft', deliverable=None)
+        text, _ = P.report(local, *base, built=P.built_pages([sun, draft]))
+        self.assertIn('only the dusk draft was written', text)
+        final = dict(draft, details='[be•do] look behind 2026-10-26 · final',
+                     deliverable='https://claude.ai/artifact/LIVING', created='2026-10-27T08:01:00.000Z')
+        text, _ = P.report(local, *base, built=P.built_pages([sun, draft, final]))
+        self.assertIn("yesterday's look behind · https://claude.ai/artifact/LIVING", text)
+        self.assertIn('becomes ✔️1026 🌕 Mon', text)
+        text, _ = P.report(local, *base)                                   # no log rows read: says so
+        self.assertIn('not checked', text)
 
     def test_a_short_read_newest_first_is_enough(self):
         # 6 Oct: Cowork read 125 rows to learn one thing, the newest. The
