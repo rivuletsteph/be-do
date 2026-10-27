@@ -53,8 +53,10 @@ From the amendments of 6 to 26 Oct 2026:
           goes on her calendar, not just in the stream (6 Oct)
   weather  a sun practice the weather took is 🌥️ weather, never ⨂ skipped;
           until the base carries that choice the row is held (26 Oct)
-  in the moment  a row that shares minutes with another is asked about in that
-          reply, once: synergy or competition (23 Oct). A note, never a refusal
+  in the moment  a row that shares minutes with another: synergy or competition
+          is read from what she says about it; when her words don't say, it is
+          asked right then, once — never a day late, when she has forgotten
+          (23 and 27 Oct). A note, never a refusal
 
 `row` uses the logical names in facts_local.example.json's stream_fields:
 datetime, end, time_spent, status, practice, key, details, phase, wellness,
@@ -200,23 +202,56 @@ def notes(row, fill=None):
     return out
 
 
-SY_WORDS = [w for ws in FACTS['synergy']['her_words'].values() for w in ws]
+SY = FACTS['synergy']
+
+
+def her_words(row):
+    return (row.get('details') or '').split(DIVIDER, 1)[0].split(BLOCK, 1)[0]
+
+
+def synergy_from(text):
+    """(answer, the words it rests on) read from what she says about two things
+    at once, or (None, None). Her own word first (synergy, competing), then the
+    cues; both kinds in one row read as both (27 Oct 2026: deduce it from what
+    I say, never ask)."""
+    low = (text or '').lower()
+    found = {}
+    for kind in ('her_words', 'cues'):
+        for ans, cues in SY.get(kind, {}).items():
+            hit = next((c for c in cues if c in low), None)
+            if hit and ans not in found:
+                found[ans] = hit
+        if found:
+            break
+    if len(found) > 1:
+        return 'both', ' and '.join(found.values())
+    return next(iter(found.items()), (None, None))
 
 
 def synergy_now(row, ctx):
-    """Two things at once are asked about in the moment, as she logs them (23
-    Oct 2026), never the next day: one question, in that reply."""
-    d = (row.get('details') or '').lower()
-    if 'overlap —' in d or any(w in d for w in SY_WORDS):
+    """Two things at once, as she logs them: synergy or competition is read
+    from what she says about it and written with the row. When her words don't
+    say, ask in that same reply, once — her words, 27 Oct 2026: not that I
+    never want to be asked, but when it's a day late I will have forgotten."""
+    mine = her_words(row)
+    if 'overlap —' in mine:
         return []
     others = overlaps(row, ctx.day_rows)
     if not others:
         return []
     o = others[0]
+    ans, cue = synergy_from(mine)
+    if not ans:
+        ans, cue = synergy_from(her_words(o))
     who = (o.get('title') or o.get('practice') or '?')[:50]
-    return [f'two things at once with “{who}” — ask in this reply, once: did they help each other, get in '
-            f'each other\'s way, both, or neither? (synergy or competition; no answer is fine). Her answer goes '
-            f'at the end of her words: {FACTS["synergy"]["note"].format(answer="<answer>", partner=o.get("key") or who)}']
+    if not ans:
+        return [f'two things at once with “{who}” and her words don\'t say how they went together — ask in this '
+                f'reply, once, while it\'s fresh: did they help each other, get in each other\'s way, both, or '
+                f'neither? No answer is fine; never ask it later. Her answer goes at the end of her words: '
+                + SY['note'].format(answer='<answer>', partner=o.get('key') or who)]
+    note = SY['note'].format(answer=ans, partner=o.get('key') or who)
+    return [f'two things at once with “{who}” — her words say {ans} (“{cue}”): add the line “{note}” at the end '
+            f'of her words, above the divider; she corrects in passing']
 
 
 BD = FACTS['being_doing']

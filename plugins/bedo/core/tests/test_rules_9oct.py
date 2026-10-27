@@ -334,16 +334,21 @@ class Synergy(unittest.TestCase):
                         details=hip_words), id='h1')
         return [video, hips]
 
-    def test_her_words_are_noticed_back(self):
+    def test_her_words_are_read_and_written_as_the_note(self):
+        # 27 Oct 2026: deduce synergy or competition from what I say about the event
         out = Q.synergy(self.rows('There was a lot of synergy there.'), -5)
-        self.assertEqual([i['kind'] for i in out], ['notice'])
+        self.assertEqual([i['kind'] for i in out], ['fill'])
         self.assertIn('do more of that', out[0]['line'])
+        self.assertEqual(out[0]['patch']['append_her_words'], 'overlap — synergizing with 261008_1600 (a talk on a video)')
         out = Q.synergy(self.rows('I felt fractured, not doing either well'), -5)
         self.assertIn('try them apart', out[0]['line'])
+        out = Q.synergy(self.rows('I was so distracted I lost count'), -5)          # a cue, not her word
+        self.assertTrue(out[0]['patch']['append_her_words'].startswith('overlap — competing'))
 
     def test_her_note_line_is_read(self):
         note = 'hips\noverlap — competing with 261008_1600 (a talk on a video)'
-        self.assertEqual(Q.synergy(self.rows(note), -5)[0]['answer'], 'competing')
+        out = Q.synergy(self.rows(note), -5)
+        self.assertEqual((out[0]['kind'], out[0]['answer']), ('notice', 'competing'))   # already written: said back
 
     def test_a_pair_answered_before_is_proposed_with_that_answer(self):
         past = [dict(row(practice='📼 video', key='260924_1600', datetime=z(16)), id='pv'),

@@ -41,6 +41,7 @@ import collections, datetime as dt, json, re, sys
 
 from bedo_reader import FACTS, as_rows, cells, complete, load_local, offset_hours, on_day, sv
 from bedo_entry import OVERNIGHT, PARTIAL, RULES, overlaps, span_problems, utc
+import bedo_entry as E
 import bedo_fill as FL
 import bedo_meals as ML
 import bedo_people as PP
@@ -357,17 +358,14 @@ def _pair_key(a, b):
 
 
 def _said(r):
-    """(answer, partner text) from her overlap note, else (answer, None) from her
-    own words ('there was a lot of synergy there'), else (None, None)."""
+    """(answer, partner text) from her overlap note, else (answer, None) read
+    from her own words about it ('there was a lot of synergy there', 'I was so
+    distracted'), else (None, None)."""
     words = her_words(r)
     m = _NOTE.search(words)
     if m:
         return m.group(1).lower(), m.group(2).strip()
-    low = words.lower()
-    for ans, cues in SY['her_words'].items():
-        if any(c in low for c in cues):
-            return ans, None
-    return None, None
+    return E.synergy_from(words)[0], None
 
 
 def _partner(o):
@@ -375,10 +373,10 @@ def _partner(o):
 
 
 def synergy(rows, off, history=()):
-    """Noticed lines, fills from her past weeks, and a count of the rest. The
-    question is asked in the moment, as she logs two things at once (the entry
-    check's note), never the next day: here the unanswered pairs are counted and
-    the QA moves on (her rule, 23 Oct 2026)."""
+    """Noticed lines, the note line filled from her words or her past weeks,
+    and a count of the rest. Never a question (her rule, 23 and 27 Oct 2026:
+    deduce it from what I say; it doesn't work to ask me after the fact): a pair
+    her words say nothing about is counted and the QA moves on."""
     past = {}
     by_key = {r.get('key'): r for r in history if r.get('key')}
     for r in history:
@@ -395,11 +393,21 @@ def synergy(rows, off, history=()):
             if pk in seen:
                 continue
             seen.add(pk)
-            ans = _said(r)[0] or _said(o)[0]
             pair = f'{_t(r)[:40]} + {_t(o)[:40]}'
-            if ans:
-                out.append({'check': 'synergy', 'kind': 'notice', 'answer': ans,
-                            'line': f'{pair}: {SY["say"][ans]}'})
+            noted = _NOTE.search(her_words(r)) or _NOTE.search(her_words(o))
+            mine, other = r, o                      # the note goes on the row whose words carry it
+            ans, cue = E.synergy_from(her_words(r))
+            if not ans:
+                ans, cue = E.synergy_from(her_words(o))
+                mine, other = o, r
+            if noted:
+                a = noted.group(1).lower()
+                out.append({'check': 'synergy', 'kind': 'notice', 'answer': a,
+                            'line': f'{pair}: {SY["say"][a]}'})
+            elif ans:
+                note = SY['note'].format(answer=ans, partner=_partner(other))
+                out.append(fill('synergy', f'{pair}: {ans}, from your words (“{cue}”) — {SY["say"][ans]}',
+                                SRC['words'], patch={'id': mine.get('id'), 'append_her_words': note}, note=note))
             elif past.get(_pair_key(r, o)):
                 a = past[_pair_key(r, o)]
                 note = SY['note'].format(answer=a, partner=_partner(o))
@@ -441,6 +449,7 @@ def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=N
     fills = [i for i in items if i['kind'] == 'fill']
     batched = []
     for check, what in (('overlaps', 'partial attention where two things happened at once'),
+                        ('synergy', 'two things at once, synergy or competition read from your words'),
                         ('plans', 'people on plans moved to mentioned'),
                         ('device', 'device and wellness')):
         mine = [i for i in fills if i['check'] == check]
