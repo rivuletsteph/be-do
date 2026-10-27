@@ -72,7 +72,8 @@ def problems(event, local, readback=None, read_from=None, parents=None):
     out = []
     cid = (event.get('calendarId') or '').strip()
     if not cid:
-        out.append('calendar: name it — ' + ', '.join(f'{k} ({v})' for k, v in cals.items())
+        out.append('calendar: name it — ' + (', '.join(f'{k} ({v})' for k, v in cals.items())
+                                             or 'her calendars are not in facts_local yet')
                    + ' — never the tool default')
     elif cals and cid not in names:
         out.append(f'calendar: {cid} is not one of hers — ' + ', '.join(cals) + '; a write there is invisible to her')

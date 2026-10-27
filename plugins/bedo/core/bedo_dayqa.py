@@ -144,6 +144,14 @@ def _gap_fill(g, t, mins, off, at, inside, before, after, ctx):
     well = collections.Counter(r['wellness'] for r in inside + [at] if r and r.get('wellness'))
     if well:
         new['wellness'] = well.most_common(1)[0][0]
+    # a stretch with family that nothing else names is heart, with the people on it (19 Oct 2026)
+    people = (getattr(ctx, 'local', None) or {}).get('people') or {}
+    fam = {v for k, v in people.items() if k != 'self' and v}
+    with_ = sorted({p.strip() for r in inside + [at] if r for p in (r.get('person') or '').split(',')} & fam)
+    if with_:
+        new['person'] = ', '.join(with_)
+        if not well:
+            new['wellness'] = FACTS['wellness']['be'][0]
     got, _ = FL.deduce(new, ctx) if ctx else ({}, [])
     new.update({f: v for f, (v, _) in got.items()})
     return fill('gaps', f'{_clock(g, off)}–{_clock(t, off)} ({mins} min) {new["title"]}; clues: '

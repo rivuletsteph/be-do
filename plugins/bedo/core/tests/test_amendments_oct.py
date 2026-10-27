@@ -10,6 +10,7 @@ import datetime as dt, os, sys, unittest
 CORE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, CORE)
 import bedo_calendar as CA  # noqa: E402
+import bedo_dayqa as Q  # noqa: E402
 import bedo_dusk_audit as D  # noqa: E402
 import bedo_entry as E  # noqa: E402
 import bedo_fill as FL  # noqa: E402
@@ -189,6 +190,21 @@ class InTheMoment(unittest.TestCase):
 CAL_LOCAL = {'calendar': {'calendars': {'mine': 'me@example.com', 'Kid': 'kid@example.com',
                                         'dropped': 'drop@example.com'},
                           'work_parents': ['Work mission'], 'work_words': ['University']}}
+
+
+class FamilyIsHeart(unittest.TestCase):
+    """19 Oct 2026, rule 3: a stretch with family that nothing else names is heart."""
+
+    def test_the_stretch_takes_heart_and_the_people(self):
+        loc = {'people': {'self': '♋ Me', 'kid': '♑ Kid'}}
+        rows = [row(practice='😶 wake', datetime=z(7), status=DONE, id='w'),
+                row(practice='☕ coffee', datetime=z(7, 5), end=z(7, 20), status=DONE, id='c'),
+                row(practice='✨ glimmer', title='he laughed at the ducks', datetime=z(9, 30), person='♑ Kid',
+                    wellness=None, id='g'),
+                row(practice='🍽️ lunch', datetime=z(11), end=z(11, 30), status=DONE, id='l')]
+        fills = [i for i in Q.gaps(rows, -5, (), FL.Context(local=loc)) if i['kind'] == 'fill']
+        self.assertEqual(len(fills), 1, fills)
+        self.assertEqual((fills[0]['new']['wellness'], fills[0]['new']['person']), ('🩷 heart', '♑ Kid'))
 
 
 class Calendar(unittest.TestCase):
