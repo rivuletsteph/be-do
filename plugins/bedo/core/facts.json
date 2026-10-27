@@ -151,6 +151,33 @@
   "span_practices": ["location", "walking", "driving", "cycling"],
   "generic_practices": ["action", "log"]
  },
+ "open_actions": {
+  "_about": "8 Oct 2026, her words: hey, I'm on my phone and I have a few minutes, what are some quickie tasks. Every new ⬜ ▶️ ▫️ action row is written with the device it will be done on, deduced like wellness; she corrects, she never fills it in. The quickie box is judgment (J12).",
+  "phone_words": ["call", "text", "email", "reply", "order", "pay", "buy", "sign up", "rsvp", "venmo", "look up"]
+ },
+ "buckets": {
+  "_about": "20 Oct 2026, her words: everything should fit either under a rhythm or a drive. A flow practice belongs to its flow and carries no rhythm; every other row that happened carries a rhythm or a drive, deduced like wellness, corrected in passing. Stories, read or watched, are her stories rhythm (facts_local stories_rhythm); a window chat's rows and captures are the system drive (facts_local system_rhythm, 26 Oct guideline).",
+  "stories_practices": ["movie", "book", "show", "podcast", "audiobook", "video"],
+  "system_practices": ["capture"],
+  "flow_groups_not": ["log type"]
+ },
+ "being_doing": {
+  "_about": "24 Oct 2026, her words: passively laying on the couch and watching a show is not doing much. An ⚡ action on a drive or rhythm takes that bucket's element (doing), never a being area by default; passive rest takes a being area, 🩷 heart with people, else what she says.",
+  "passive_rest": ["show", "movie"]
+ },
+ "appointments": {
+  "_about": "6 Oct 2026, her words: when I share an appointment like that, I need you to add it to the calendar. A row for an appointment still ahead carries its calendar event link; a to-do to book one is not the appointment.",
+  "practices": ["calendar event"],
+  "words": ["appointment", "appt", "massage", "dentist", "doctor", "dr.", "haircut", "vet ", "therapy", "checkup", "check-up", "physical", "orthodont", "dermatolog"],
+  "booking_words": ["book", "make", "set up", "schedule", "remind", "call", "ask", "find"]
+ },
+ "weather_status": {
+  "_about": "26 Oct 2026, her words: the goal with morning sun is to actually have direct exposure, so when it's a weather issue there needs to be a different category. A weather-blocked sun practice is 🌥️ weather, neither done nor missed. The choice is hers to add in the stream's status field; until it is there (in_base false) such a row is held, never written as skipped. Flip in_base once the base carries it.",
+  "status": "🌥️ weather",
+  "in_base": false,
+  "practices": ["morning sun", "evening sun"],
+  "words": ["cloud", "overcast", "rain", "storm", "weather", "fog", "gray sky", "grey sky", "no sun"]
+ },
  "entry_rules": {
   "_about": "The 9 Oct amendment, rules 2 and 6, and the 8 Oct one that every row carries a practice. A row's datetime and end fall on one local day and span at most max_span_hours; closing an old chain row sets its datetime to the act, never a multi-day span from its first date. A night's sleep is the one row that crosses midnight. person is for people she was with or in direct contact with; a plan (▫️ ⬜) names them in mentioned until it happens.",
   "max_span_hours": 12,

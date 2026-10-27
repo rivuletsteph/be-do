@@ -8,8 +8,9 @@
 #   bash run_checks.sh dusk      [--date YYYY-MM-DD] [--chats chats.json] [--photos folder.json] [--write]
 #   bash run_checks.sh meals     [--date YYYY-MM-DD] [--json]   # each meal's prep and eating, placed from context
 #   bash run_checks.sh dayqa     YYYY-MM-DD [--json]  # meals, gaps, movement, people, device: one list to accept
-#   bash run_checks.sh entry     row.json [--base "w41 be•do"] [--chat MMDD] [--catalog practices.json] [--rhythms rhythms.json]
-#                                # MMDD: a my day chat's date, from its title; the two reads let it deduce wellness
+#   bash run_checks.sh entry     row.json [--base "w41 be•do"] [--chat MMDD] [--catalog practices.json] [--rhythms rhythms.json] [--day today.json]
+#                                # MMDD: a my day chat's date, from its title; the catalog and rhythms let it deduce
+#                                # wellness and know a flow step; the day's rows let it see two things at once
 #   bash run_checks.sh stretches FILE        # stamps, a claude.ai chat read, or a transcript
 #   bash run_checks.sh order [--json]        # her predicted order: typical times to write to the catalog
 #   bash run_checks.sh close --chat URL --title "TITLE" [--date YYYY-MM-DD]   # the chat close: QA, entry, title
@@ -124,15 +125,15 @@ case "$CMD" in
     "$PY" "$W/core/bedo_stretches.py" "$@" ;;
   entry)
     [ -d "$W/core" ] || fetch_core; find_local
-    ROW=${1:?usage: run_checks.sh entry row.json [--base NAME] [--chat MMDD] [--catalog FILE] [--rhythms FILE]}; shift
-    BASE=""; CHAT=""; CAT=""; RHY=""
+    ROW=${1:?usage: run_checks.sh entry row.json [--base NAME] [--chat MMDD] [--catalog FILE] [--rhythms FILE] [--day FILE]}; shift
+    BASE=""; CHAT=""; CAT=""; RHY=""; DAY=""
     while [ $# -gt 0 ]; do case "$1" in --base) BASE=${2:-}; shift 2;; --chat) CHAT=${2:-}; shift 2;;
-      --catalog) CAT=${2:-}; shift 2;; --rhythms) RHY=${2:-}; shift 2;; *) shift;; esac; done
-    "$PY" - "$W/core" "$ROW" "$BASE" "$CHAT" "$CAT" "$RHY" <<'E'
+      --catalog) CAT=${2:-}; shift 2;; --rhythms) RHY=${2:-}; shift 2;; --day) DAY=${2:-}; shift 2;; *) shift;; esac; done
+    "$PY" - "$W/core" "$ROW" "$BASE" "$CHAT" "$CAT" "$RHY" "$DAY" <<'E'
 import datetime as dt, json, sys
 sys.path.insert(0, sys.argv[1])
 from bedo_entry import notes, problems, utc
-from bedo_reader import complete, load_local
+from bedo_reader import as_rows, complete, load_local
 import bedo_fill as FL
 L = load_local()
 rows = json.load(open(sys.argv[2], encoding='utf-8'))
@@ -143,9 +144,14 @@ if sys.argv[4]:   # the chat's MMDD, from its title; the year is the row's (a Ja
     chat = dt.date(y, int(sys.argv[4][:2]), int(sys.argv[4][2:4]))
 # device and wellness are deduced, never left empty (9 Oct 2026): the catalog
 # gives wellness, the drives their element; spans come from the rows written together
-fill = FL.Context(catalog=FL.catalog_wellness(complete(sys.argv[5], 'catalog'), L) if sys.argv[5] else None,
+cat = complete(sys.argv[5], 'catalog') if sys.argv[5] else None
+day = as_rows(complete(sys.argv[7], 'day'), {**{k: k for k in ('datetime', 'end', 'status', 'practice', 'title', 'key')},
+                                              **(L.get('stream_fields') or {})}) if sys.argv[7] else []
+ids = {r.get('id') for r in rows if r.get('id')}
+fill = FL.Context(catalog=FL.catalog_wellness(cat, L) if cat else None,
                   drives=FL.drive_elements(complete(sys.argv[6], 'rhythms'), L) if sys.argv[6] else None,
-                  day_rows=rows, local=L)
+                  day_rows=rows + [r for r in day if r.get('id') not in ids], local=L,
+                  flows=FL.catalog_flows(cat, L) if cat else None)
 bad = 0
 for r in rows:
     p = problems(r, sys.argv[3] or None, L.get('utc_offset_hours'), L.get('weekly_name', 'w{n} be•do'), chat, fill,

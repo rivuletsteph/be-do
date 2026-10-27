@@ -33,6 +33,9 @@ from bedo_reader import FACTS
 FILL = FACTS['fill']
 PLANS = set(FACTS['status']['plans'])
 ACTION = FACTS['practice']['action']
+DOING = set(FACTS['wellness']['do'])
+HEART = FACTS['wellness']['be'][0]
+NOT_HAPPENED = PLANS | {FACTS['status']['actions'][4], FACTS['status']['logs'][2]}
 
 
 def word(practice):
@@ -48,8 +51,9 @@ class Context:
     """What the rules read. Every part is optional: a rule whose input is
     missing simply doesn't fire, and the field is asked instead."""
 
-    def __init__(self, catalog=None, drives=None, day_rows=(), history=(), local=None):
+    def __init__(self, catalog=None, drives=None, day_rows=(), history=(), local=None, flows=None):
         local = local or {}
+        self.local = local
         extra = local.get('fill') or {}
         self.none = {word(p) for p in FILL['device_none'] + (extra.get('device_none') or [])}
         self.phone = {word(p) for p in FILL['device_phone'] + (extra.get('device_phone') or [])}
@@ -59,11 +63,18 @@ class Context:
         span_pr = {word(p) for p in FILL['span_practices']}
         self.spans = [(_utc(r['datetime']), _utc(r['end'])) for r in day_rows
                       if word(r.get('practice')) in span_pr and r.get('datetime') and r.get('end')]
+        F = FACTS['flows']
+        either = [x for pr in F.get('either_or', []) for x in pr]          # one of a pair is a flow step
+        self.flows = ({word(p) for p in list(flows) + either} if flows is not None else   # no catalog: facts' named steps
+                      {word(p) for p in (F['core']['dawn'] + list(F['close'].values()) + [F['wake']]
+                                         + F['after_sunrise'] + either)})
+        self.day_rows = list(day_rows)
         self.hist = {'wellness': collections.defaultdict(collections.Counter),
-                     'device': collections.defaultdict(collections.Counter)}
+                     'device': collections.defaultdict(collections.Counter),
+                     'rhythm': collections.defaultdict(collections.Counter)}
         for r in history:
             p = word(r.get('practice'))
-            for f in ('wellness', 'device'):
+            for f in ('wellness', 'device', 'rhythm'):
                 if r.get(f):
                     self.hist[f][p][r[f]] += 1
 
@@ -87,13 +98,19 @@ def deduce(row, ctx):
     p = word(row.get('practice'))
     if not row.get('wellness'):
         w = None
-        if (row.get('practice') or '').strip() == ACTION and row.get('rhythm'):
-            w = _drive_element(row, ctx)
-            src = "the drive's element"
-        if not w and ctx.catalog.get(p):
-            w, src = ctx.catalog[p], "the practice's catalog wellness"
-        if not w and ctx.hint('wellness', p):
-            w, src = ctx.hint('wellness', p), 'what this practice usually carries'
+        if p in PASSIVE:          # passive rest is being (24 Oct 2026): heart with people, else hers to say
+            w, src = (HEART, 'passive rest with people') if row.get('person') else (None, None)
+            if not w:
+                c = ctx.catalog.get(p) or ctx.hint('wellness', p)
+                w, src = (c, "the practice's catalog wellness") if c and c not in DOING else (None, None)
+        else:
+            if (row.get('practice') or '').strip() == ACTION and row.get('rhythm'):
+                w = _drive_element(row, ctx)
+                src = "the drive's element"
+            if not w and ctx.catalog.get(p):
+                w, src = ctx.catalog[p], "the practice's catalog wellness"
+            if not w and ctx.hint('wellness', p):
+                w, src = ctx.hint('wellness', p), 'what this practice usually carries'
         if w:
             got['wellness'] = (w, src)
         else:
@@ -117,6 +134,68 @@ def deduce(row, ctx):
         else:
             ask.append('device')
     return got, ask
+
+
+PASSIVE = {word(p) for p in FACTS['being_doing']['passive_rest']}
+BK = FACTS['buckets']
+STORIES = {word(p) for p in BK['stories_practices']}
+SYSTEM = {word(p) for p in BK['system_practices']}
+WINDOWS = [w.lower() for w in FACTS['window_chats']]
+OPEN = FACTS['open_actions']
+
+
+def is_window(title):
+    t = (title or '').lower()
+    return any(w in t for w in WINDOWS)
+
+
+def bucket(row, ctx):
+    """Every row that happened sits in a flow, or under a rhythm or a drive
+    (20 Oct 2026). None when the row needs nothing; else (value, source), with
+    value None when nothing deduces it and she is asked in passing."""
+    p = word(row.get('practice'))
+    if not p or row.get('rhythm') or row.get('status') in NOT_HAPPENED or p in ctx.flows:
+        return None
+    sys_r, stories = ctx.local.get('system_rhythm'), ctx.local.get('stories_rhythm')
+    if sys_r and (p in SYSTEM or (p == word(ACTION) and is_window(row.get('title')))):
+        return sys_r, 'a window chat sits under the system drive'
+    if stories and p in STORIES:
+        return stories, 'a story, read or watched'
+    h = ctx.hint('rhythm', p)
+    return (h, 'what this practice usually carries') if h else (None, None)
+
+
+def open_device(row, ctx):
+    """An open ⚡ action (▫️ ⬜) is written with the device it will be done on
+    (8 Oct 2026): (value, source), value None when nothing deduces it. None
+    when the row needs nothing — ▶️ in motion is deduced like any lived row."""
+    if (row.get('practice') or '').strip() != ACTION or row.get('status') not in PLANS or row.get('device'):
+        return None
+    t = row.get('title') or ''
+    if any(w in t.lower() or w in t for w in FILL['laptop_words']):
+        return '💻 laptop', 'the title names the laptop'
+    if row.get('quickie'):
+        return '📱 phone', 'a quickie is phone-doable'
+    if any(re.search(r'\b' + re.escape(w) + r'\b', t.lower()) for w in OPEN['phone_words']):
+        return '📱 phone', 'the title is a phone task'
+    return None, None
+
+
+def catalog_flows(recs, local):
+    """The practices that belong to a flow: active, in the dawn or dusk phase,
+    in a group that is not the log-type one."""
+    from bedo_reader import cells, sv
+    pf = local.get('practices_fields') or {}
+    phases = set(FACTS['flows']['phase'].values())
+    out = set()
+    for r in recs:
+        c = cells(r)
+        name = sv(c.get(pf.get('practice', 'practice'), c.get('practice')))
+        ph = sv(c.get(pf.get('phase', 'phase'), c.get('phase')))
+        grp = sv(c.get(pf.get('group', 'group'), c.get('group')))
+        if name and ph in phases and grp and grp not in BK['flow_groups_not']:
+            out.add(name)
+    return out
 
 
 def ask_line(row, field, ctx):
