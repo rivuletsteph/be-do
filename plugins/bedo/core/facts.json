@@ -160,7 +160,7 @@
   "_about": "20 Oct 2026, her words: I have a lot of skills and I just need to standardize when they get run, so I don't have to remember them. Every skill has a set time, kept here, the one place a skill's timing lives; preflight reads it at each chat's first reply and names what is due.",
   "dawn": ["👁️ look ahead (bedo-day-ahead)", "remaining, every reply"],
   "dusk": ["📧 clear gmail inbox (clear-inbox, then inbox)", "photos (dusk --photos)", "dayqa", "dusk audit", "remaining, every reply"],
-  "sunday": ["the weekly close (bedo-weekly-close)", "the week look behind, once every day has its dayqa (bedo-week-look-behind)"],
+  "sunday": ["the weekly close (bedo-weekly-close)", "the week look behind, once every day has its dayqa (bedo-week-look-behind)", "the events calendar for the next two weeks, at the close (facts_local events_calendar)"],
   "monthly": ["the ahead review, by the 5th (bedo-ahead-review)"],
   "when_it_comes_up": ["provisions (meals)", "shopping-watch (something to buy)", "session-entry (a chat's close)"],
   "monthly_by_day": 5
@@ -209,7 +209,7 @@
  },
  "dayqa": {
   "_about": "run_checks.sh dayqa DATE: meals, gaps, movement, people and device in one list. Every fill is ESTIMATED FROM CONTEXT and names its source; the dusk close shows it, writes only what she accepts, and carries the marker line in its [be•do] block. The look behind will not build a day whose rows don't carry the marker.",
-  "sources": {"photo": "photo time", "oura": "Oura", "timeline": "Timeline", "message": "message time", "rule": "your stated rule", "usual": "your usual, from your past weeks"},
+  "sources": {"photo": "photo time", "oura": "Oura", "timeline": "Timeline", "message": "message time", "rule": "your stated rule", "usual": "your usual, from your past weeks", "words": "your words about it"},
   "marker": "dayqa shown",
   "movement_words": ["walk", "walked", "walking", "bike", "biked", "biking", "bicycle", "cycled", "cycling", "rode my bike", "yoga", "hike", "hiked", "swim", "swam", "barre"],
   "about_movement_words": "Only words that mean movement whatever the sentence: 'run' and 'running' read as running the checks on 6 Oct.",
@@ -223,10 +223,13 @@
  },
 
  "synergy": {
-  "_about": "Her rule, 24 Aug 2026, and her words 9 Oct: when two things run at once, are they synergizing or competing? Four answers — synergizing (one plus one makes four), competing (one plus one makes one), both, neutral — and declining is always fine. The answer is a note, not a field: one line at the end of her words, 'overlap — synergizing with <key or title>'. be•do helps her notice: synergy, do more of that; competing, try them apart. Asked only when the answer isn't already in her words or her past weeks, and then once, optional.",
+  "_about": "Her rule, 24 Aug 2026, and her words 9 Oct: when two things run at once, are they synergizing or competing? Four answers — synergizing (one plus one makes four), competing (one plus one makes one), both, neutral — and declining is always fine. The answer is a note, not a field: one line at the end of her words, 'overlap — synergizing with <key or title>'. be•do helps her notice: synergy, do more of that; competing, try them apart. Read from what she says about it first (27 Oct 2026, her words: I want the system to deduce synergy or competition from what I say about the event or action; it doesn't work to ask me about it after the fact), her own word, then the cues below. When her words don't say, it is asked in the moment, once, as she logs it — never a day late (her words: not that I never want to be asked, but when it's a day late I will have forgotten).",
   "answers": ["synergizing", "competing", "both", "neutral"],
   "note": "overlap — {answer} with {partner}",
   "her_words": {"synergizing": ["synergy", "synergiz", "synergis", "multiply", "complement"], "competing": ["competing", "compete", "conflict", "fractured", "detract"]},
+  "cues": {"synergizing": ["helped me", "made it better", "made it more", "even better", "even more", "better with", "went well with", "perfect for", "loved doing", "enjoyed doing", "so relaxing", "kept me going", "got through it", "made the time fly", "worked well"],
+           "competing": ["distracted", "couldn't focus", "hard to focus", "couldn't concentrate", "half-listening", "half listening", "interrupted", "frustrat", "annoy", "rushed", "overwhelm", "pulled in", "too much at once", "got in the way", "neither well", "split my attention"]},
+  "about_cues": "Phrases that say how two things went together without her naming synergy or competition. Her own word wins; both kinds of cue in one row read as both.",
   "say": {"synergizing": "synergy — do more of that", "competing": "competing — next time, try them apart", "both": "some of each — notice which part helped", "neutral": "they just sat side by side"}
  },
  "needs": {

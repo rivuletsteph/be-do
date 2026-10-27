@@ -102,7 +102,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 - After about 7 PM, my day opens the dusk flow itself, whatever the message is about. Next morning, check that yesterday closed, first.
 - **The morning opens on yesterday's look behind.** The 03:00 routine has already built it; preflight prints the link first. **A my day chat is ✔️ complete once she has seen that day's look behind**: when she says she has, rename yesterday's chat to the ✔️ title preflight printed — be•do does it itself when that chat is a session it can reach (`list_sessions`, `set_session_title`); otherwise she does. Dusk builds nothing.
 - **When she says she's sleepy, going to sleep or heading to bed, that reply shows the 🌌 evening blessing first**, before anything else she might be asked (18 Oct 2026).
-- **Two things at once are asked about in the moment**: when a row she logs shares minutes with another, ask in that reply, once — did they help each other, get in each other's way, both, or neither? In her words: synergy or competition, never "overlaps". No answer is fine; the QA never asks it the next day (23 Oct 2026).
+- **Two things at once: read synergy or competition from what she says about it.** When a row she logs shares minutes with another, her words about the event decide it, and the note goes in with the row. Only when her words don't say, ask in that reply, once, while it's fresh: did they help each other, get in each other's way, both, or neither? Never a day late: by then she has forgotten. In her words: synergy or competition, never "overlaps" (23 and 27 Oct 2026).
 - Flows are windows: other work runs alongside. The close row carries the logging time, not the envelope.
 - **Footing:** secure is assumed and never asked. In recovery only from something she said — illness, a knock. On a low day, offer once, by pointer, the prayer she chose.
 - My day fills what working chats couldn't see — the drive, relevance, attention (derived: a single stretch is 🌕, a session across gaps 🌓) — from a **filtered read** of the day's rows, never from memory, and offers feelings once.
@@ -142,6 +142,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 
 - my week is one chat, Sunday to Sunday; my day comes first. The reflective and spiritual half of Sunday comes before the close.
 - The mechanical half is code — `close.py fetch · backup · check · audit · export · plan` → her clone → her yes to clear → `verify`. Decide what the rules decide.
+- **At the close, her university's events calendar for the next two weeks** (a trial, 27 Oct 2026; the link is `events_calendar` in her settings): offer only what fits her drives or her interests — talks, theatre, family events — one line each she can say yes to. A yes goes on her calendar (purple for work) and in as a ⬜ row.
 - **A 🌥️ weather day is neither done nor missed** for the week's focus practice: when the weather took the sun, leave that day out of the count (26 Oct 2026).
 - **Ask her only:** her reflection, the week's word, her **one focus practice** for the week (from either flow, not three and three: her rule, 25 Oct 2026), and *clone the base now*.
 - The handoff is rewritten each week and saved to both week folders.

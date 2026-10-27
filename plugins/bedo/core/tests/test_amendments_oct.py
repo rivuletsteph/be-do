@@ -169,27 +169,40 @@ class Weather(unittest.TestCase):
 
 
 class InTheMoment(unittest.TestCase):
-    """23 Oct 2026: the synergy-or-competing question is asked as she logs it."""
+    """23 and 27 Oct 2026: synergy or competition is read from what she says about
+    it; asked in the moment only when her words don't say, never a day late."""
 
-    def test_two_things_at_once_are_asked_about_now(self):
+    def pair(self, words=''):
         video = row(practice='📼 video', title='a talk', datetime=z(16), end=z(16, 30), key='261026_1600')
-        hips = row(practice='🧎‍♀️ hip exercises', title='hips', datetime=z(16, 5), end=z(16, 15))
-        n = E.notes(hips, ctx(day_rows=[video, hips]))
-        self.assertTrue(any('two things at once with “a talk”' in x and 'help each other' in x for x in n), n)
-        self.assertTrue(any('overlap — <answer> with 261026_1600' in x for x in n))
+        hips = row(practice='🧎‍♀️ hip exercises', title='hips', datetime=z(16, 5), end=z(16, 15), details=words)
+        return video, hips
 
-    def test_already_answered_or_alone_is_not_asked(self):
-        video = row(practice='📼 video', title='a talk', datetime=z(16), end=z(16, 30))
-        hips = row(practice='🧎‍♀️ hip exercises', datetime=z(16, 5), end=z(16, 15),
-                   details='so much synergy there')
+    def test_her_words_decide_it(self):
+        video, hips = self.pair('the talk made the time fly')
+        n = [x for x in E.notes(hips, ctx(day_rows=[video, hips])) if 'two things' in x]
+        self.assertEqual(len(n), 1)
+        self.assertIn('her words say synergizing', n[0])
+        self.assertIn('overlap — synergizing with 261026_1600', n[0])
+        self.assertNotIn('?', n[0])                                         # never asked when her words say
+        video, hips = self.pair("couldn't focus on either")
+        self.assertIn('her words say competing', E.notes(hips, ctx(day_rows=[video, hips]))[-1])
+        self.assertEqual(E.synergy_from('loved doing it, though so distracted')[0], 'both')
+
+    def test_asked_right_then_only_when_her_words_dont_say(self):
+        video, hips = self.pair()
+        n = [x for x in E.notes(hips, ctx(day_rows=[video, hips])) if 'two things' in x]
+        self.assertTrue(n and 'ask in this reply, once' in n[0] and 'never ask it later' in n[0], n)
+
+    def test_already_noted_or_alone_says_nothing(self):
+        video, hips = self.pair('hips\noverlap — synergizing with 261026_1600')
         self.assertFalse([x for x in E.notes(hips, ctx(day_rows=[video, hips])) if 'two things' in x])
-        alone = dict(hips, details='')
+        _, alone = self.pair()
         self.assertFalse([x for x in E.notes(alone, ctx(day_rows=[alone])) if 'two things' in x])
 
-
-CAL_LOCAL = {'calendar': {'calendars': {'mine': 'me@example.com', 'Kid': 'kid@example.com',
-                                        'dropped': 'drop@example.com'},
-                          'work_parents': ['Work mission'], 'work_words': ['University']}}
+    def test_the_qa_never_asks_a_day_late(self):
+        video, hips = self.pair()
+        out = Q.synergy([dict(video, id='v'), dict(hips, id='h')], -5)
+        self.assertEqual([i['kind'] for i in out], ['count'])
 
 
 class FamilyIsHeart(unittest.TestCase):
@@ -205,6 +218,11 @@ class FamilyIsHeart(unittest.TestCase):
         fills = [i for i in Q.gaps(rows, -5, (), FL.Context(local=loc)) if i['kind'] == 'fill']
         self.assertEqual(len(fills), 1, fills)
         self.assertEqual((fills[0]['new']['wellness'], fills[0]['new']['person']), ('🩷 heart', '♑ Kid'))
+
+
+CAL_LOCAL = {'calendar': {'calendars': {'mine': 'me@example.com', 'Kid': 'kid@example.com',
+                                        'dropped': 'drop@example.com'},
+                          'work_parents': ['Work mission'], 'work_words': ['University']}}
 
 
 class Calendar(unittest.TestCase):
