@@ -355,10 +355,15 @@ class Synergy(unittest.TestCase):
         self.assertEqual(fills[0]['source'], 'your usual, from your past weeks')
         self.assertIn('overlap — synergizing with', fills[0]['patch']['append_her_words'])
 
-    def test_anything_new_is_one_optional_question(self):
+    def test_anything_new_is_counted_never_asked_the_next_day(self):
+        # 23 Oct 2026: I need to be asked that in the moment — never the next day at the QA check
         out = Q.synergy(self.rows(), -5)
-        self.assertEqual([i['kind'] for i in out], ['ask'])
-        self.assertIn('synergizing, competing, both or neutral?', out[0]['line'])
+        self.assertEqual([i['kind'] for i in out], ['count'])
+        self.assertEqual(out[0]['n'], 1)
+        self.assertNotIn('?', out[0]['line'])
+        items = Q.run(self.rows(), DAY, -5, {})
+        self.assertFalse([i for i in items if i['check'] == 'synergy' and i['kind'] == 'ask'])
+        self.assertIn('counted, not asked', Q.render(items, DAY, self.rows(), -5))
 
 
 if __name__ == '__main__':
