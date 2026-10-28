@@ -26,14 +26,17 @@ One pass, in this order (A250, then the gate and the flag):
      ESTIMATED FROM CONTEXT, and shown to her as what went in the record
      (the meals amendment, 7 Oct 2026). be•do's job, never in the flag.
   ·  photos (25 Oct 2026): every row read from a photo carries its kind,
-     keeper or info; with the week's W## photos folder listing (--photos), each
+     keeper or info; with the week's W## photos folder listing (--photos), first
+     the same photo shared twice (one name, one size) is found and its extra
+     copies named for the Drive trash — the linked copy kept, else the oldest
+     (28 Oct 2026) — then each
      gets the link to its file, a keeper not in the folder yet is named, and a
      photo no row explains is a clue for the day's QA. Never in the flag.
 
 An observation, never a score. Nothing here writes unless --write is given,
 and then only the derived attention.
 
-    python3 bedo_dusk_audit.py --live [--chats chats.json] [--photos folder.json] [--write]
+    python3 bedo_dusk_audit.py --live [--chats chats.json] [--photos folder.json [--links week.json]] [--write]
     python3 bedo_dusk_audit.py --day day.json --catalog practices.json --now 2026-10-03T03:30Z
 """
 import datetime as dt, json, sys
@@ -93,11 +96,13 @@ def derive_attention(r, rows=()):
     return None
 
 
-def audit(rows, now, off, steps=None, chats=(), day=None, people=(), photo_files=None, me=''):
+def audit(rows, now, off, steps=None, chats=(), day=None, people=(), photo_files=None, me='', week_links=None):
     """The one pass. `rows` are the day's rows under logical names; `steps` the
     dusk flow's catalog steps; `chats` [{title, url|id, times}]; `photo_files`
-    the week's photo folder listing, or None when it wasn't read. Returns a dict
-    of findings, the attention writes, the photo writes, and the flag line."""
+    the week's photo folder listing, or None when it wasn't read; `week_links`
+    the Drive ids every row of the week links, or None when they weren't read.
+    Returns a dict of findings, the attention writes, the photo writes, the
+    extra photo copies to trash, and the flag line."""
     every = rows                 # a show that happened overlaps like anything else
     rows = in_play(rows)
     acts = [r for r in rows if is_action(r)]
@@ -108,7 +113,7 @@ def audit(rows, now, off, steps=None, chats=(), day=None, people=(), photo_files
     f = {k: [] for k in ('open_past', 'end_before_start', 'attention', 'no_attention', 'chat_no_entry',
                          'uncaptured', 'action_row', 'gate', 'for_my_day', 'no_rhythm', 'no_duration',
                          'no_person', 'target_today', 'meals', 'photo_kinds', 'photo_links', 'photo_missing',
-                         'photo_unlogged', 'photo_import')}
+                         'photo_unlogged', 'photo_import', 'photo_dupes', 'photo_dupes_held')}
 
     for r in rows:                                                    # 1
         if (r.get('status') == INTENTION and r.get('calendar_event') and r.get('datetime')
@@ -164,18 +169,30 @@ def audit(rows, now, off, steps=None, chats=(), day=None, people=(), photo_files
             f['target_today'].append(_name(r))
     meals = ML.propose(rows, off, people)
     f['meals'] = [m['line'] for m in meals]
-    photo_writes = photos(every, off, day, photo_files, me, f)
-    return {'findings': f, 'writes': writes, 'photo_writes': photo_writes, 'flag': flag(f), 'meals': meals}
+    photo_writes, photo_trash = photos(every, off, day, photo_files, me, f, week_links)
+    return {'findings': f, 'writes': writes, 'photo_writes': photo_writes, 'photo_trash': photo_trash,
+            'flag': flag(f), 'meals': meals}
 
 
-def photos(rows, off, day, files, me, f):
+def photos(rows, off, day, files, me, f, week_links=None):
     """The photo pass: kinds for rows sorted by rule, and — with the folder's
-    listing — links, keepers not in the folder yet, and photos no row explains.
-    Returns the writes, one per row: {id, photo?, photo_links?}."""
+    listing — first the extra copies of a photo shared twice, then links,
+    keepers not in the folder yet, and photos no row explains. The extras are
+    named for the trash only when the week's links were read: a row from
+    another day may link the newer copy. Returns (the writes, one per row:
+    {id, photo?, photo_links?}; the extra copies to trash)."""
     def loc(s):
         return (utc(s) + dt.timedelta(hours=off)).replace(tzinfo=None) if s else None
     lived = [dict(r, _a=loc(r.get('datetime')), _b=loc(r.get('end'))) for r in rows if r.get('datetime')]
     listing = PH.files_from(files) if files is not None else []
+    trash = []
+    if files is not None:                            # the first step: one photo, one copy
+        d = PH.dedupe(listing, set(week_links or ()) | {i for r in rows for i in PH.linked(r)})
+        listing = d['files']
+        for g in d['groups']:
+            f['photo_dupes' if week_links is not None else 'photo_dupes_held'].append(_dupe_line(g, off))
+        if week_links is not None:
+            trash = [dict(x, url=PH.link(x['id'])) for x in d['trash']]
     if day:
         listing = [x for x in listing if (PH.taken(x['name'], off) or dt.datetime.min).date() == day]
     m = PH.match(lived, listing, off, me)
@@ -185,8 +202,8 @@ def photos(rows, off, day, files, me, f):
         f['photo_kinds'].append(f"{k['title'] or k['id']} → {k['kind']}")
     if files is None:     # photo import is a dusk-close step (20 Oct 2026): say so, never skip it quietly
         f['photo_import'].append("the day's photos weren't imported — list the week's W## photos folder with "
-                                 'the Drive connector (names and ids) and run dusk again with --photos')
-        return list(out.values())
+                                 'the Drive connector (names, ids, sizes and upload times) and run dusk again with --photos')
+        return list(out.values()), trash
     have = {r['id']: (r.get('photo_links') or '').strip() for r in rows}
     for x in m['links']:
         w = out.setdefault(x['id'], {'id': x['id']})
@@ -196,11 +213,25 @@ def photos(rows, off, day, files, me, f):
         f['photo_missing'].append(f"{x['title'] or x['id']} ({_clock_local(x['at'])})")
     for x in m['unlogged']:
         f['photo_unlogged'].append(f"{_clock_local(x['taken'])} · {x['name']}")
-    return list(out.values())
+    return list(out.values()), trash
 
 
 def _clock_local(t):
     return f'{t.hour % 12 or 12}:{t:%M} {"AM" if t.hour < 12 else "PM"}'
+
+
+def _dupe_line(g, off):
+    """PXL_….jpg · 1.6 MB — keep 1AbCdEfG… (oldest, Sun 25 Oct 1:59 PM) · trash 1HiJkLmN… (Wed 28 Oct 5:29 AM)"""
+    def when(x):
+        if not x.get('created'):
+            return ''
+        t = PH._created(x) + dt.timedelta(hours=off)
+        return f'{t:%a %d %b} {_clock_local(t)}'
+    def one(x, why=''):
+        return f"{x['id'][:8]}… ({', '.join(filter(None, [why, when(x)]))})"
+    keep = ', '.join(one(x, g['why']) for x in g['keep'])
+    return (f"{g['name']} · {g['size'] / 1e6:.1f} MB — keep {keep} · trash "
+            + ', '.join(one(x) for x in g['trash']))
 
 
 def flag(f):
@@ -221,7 +252,12 @@ def flag(f):
     return ' · '.join(parts)
 
 
-TITLES = [('open_past', '1 open, time passed — close from the day\'s rows, or ask'),
+TITLES = [('photo_dupes', 'photos, first — the same photo in the W## photos folder more than once (one name, one size): '
+                         'show her this list; on her yes trash the extra copies with the Drive connector (recoverable '
+                         'for 30 days; --json gives them as photo_trash) and say what was trashed'),
+          ('photo_dupes_held', 'photos, first — the same photo more than once, but the week\'s photo links weren\'t '
+                               'read, so nothing is named for the trash: run dusk again with --links (or --live)'),
+          ('open_past', '1 open, time passed — close from the day\'s rows, or ask'),
           ('end_before_start', '2 end before start'),
           ('attention', '3 attention derived'),
           ('no_attention', '3 ⚡ done with no span to read attention from'),
@@ -281,7 +317,9 @@ def main(argv=None):
     ap.add_argument('--day', help='a complete read of the day\'s rows')
     ap.add_argument('--catalog', help='a complete read of the practices catalog')
     ap.add_argument('--chats', help='JSON [{title, url|id, times | transcript}] for the day\'s chats')
-    ap.add_argument('--photos', help='the week\'s W## photos folder listing: [{id, name}], or a Drive connector result')
+    ap.add_argument('--photos', help='the week\'s W## photos folder listing: [{id, name, size, created}], or a Drive connector result')
+    ap.add_argument('--links', help='a complete read of the week\'s stream rows whose photo links are filled, '
+                                    'so the copy a row links is the one kept (--live reads it itself)')
     ap.add_argument('--date', help='YYYY-MM-DD, default today')
     ap.add_argument('--now', help='an ISO instant, default the clock')
     ap.add_argument('--write', action='store_true', help='write the derived attention (live only)')
@@ -297,7 +335,7 @@ def main(argv=None):
     L.setdefault('stream_fields', {}).update(photo_fields(L))
     fields = {**{k: k for k in names}, **{k: v for k, v in L.get('stream_fields', {}).items() if k in names}}
     if a.live:
-        from bedo_air import Air, read_day, read_catalog
+        from bedo_air import Air, read_day, read_catalog, read_week_links
         air = Air()
         names_by = air.bases()
         day_src, base = read_day(air, L, day, names_by)
@@ -314,12 +352,15 @@ def main(argv=None):
             if 'transcript' in ch:
                 ch['times'] = ST.times_from(ch.pop('transcript'))
             chats.append(ch)
-    pf = None
+    pf = links = None
     if a.photos:
         from bedo_reader import read_dump
         pf = read_dump(a.photos)
+        if a.links or a.live:
+            src = a.links or read_week_links(air, L, day, names_by)
+            links = {i for r in as_rows(complete(src, 'links'), fields) for i in PH.linked(r)}
     res = audit(rows, now, off, steps, chats, day, (L.get('people') or {}).values(), pf,
-                (L.get('people') or {}).get('self') or '')
+                (L.get('people') or {}).get('self') or '', links)
     if a.json:
         print(json.dumps(res, ensure_ascii=False, indent=1))
     else:
