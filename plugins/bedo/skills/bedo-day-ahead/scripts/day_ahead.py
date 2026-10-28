@@ -232,6 +232,8 @@ URL_RE = re.compile(r'https?://[^\s<>()"\'\]]+')
 
 
 def link_label(u):
+    if u.startswith('claude://') or re.match(r'https?://claude\.ai/(chat|code|cowork)/', u):
+        return 'chat'   # a claude.ai chat, a cloud session, or a Claude app session
     host = re.sub(r'^https?://(www\.)?', '', u).split('/')[0].lower()
     if 'mail.google' in host:
         return 'email thread'
