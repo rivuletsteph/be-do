@@ -978,7 +978,7 @@ def main():
     # ── the page's own labels ────────────────────────────────────────────
     wk = weekno(day, L['week_zero_sunday'], L['week_zero_number'])
     wd = day.weekday()
-    chip = f'✔️{day:%m%d} {DAYEMO[wd]} {DAY3[wd]} {MARK} W{wk} \U0001F506 my day'
+    chip = f'✔️\U0001F506{day:%m%d} {DAYEMO[wd]} {DAY3[wd]} {MARK} W{wk} my day'
 
     DATA = {
         'chip': chip,

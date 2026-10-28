@@ -656,7 +656,7 @@ def main():
     sat = sun + dt.timedelta(days=6)
     last = sat if not a.day else day
     DATA = dict(
-        chip=f'✔️{last:%m%d} ⏳ {DAY3[last.weekday()]} {MARK} W{wk} 🔆 my day',
+        chip=f'✔️🔆{last:%m%d} ⏳ {DAY3[last.weekday()]} {MARK} W{wk} my day',
         span='day' if a.day else 'week', ndays=ndays,
         story=[list(x) for x in (words or {}).get('story') or []],
         week=f'W{wk}', range=(f'{DAY3[day.weekday()]} {day.day} {day:%b}' if a.day

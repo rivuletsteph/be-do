@@ -6,7 +6,7 @@ returned instead, so the turn pastes it rather than composes it (A219).
              alone: status, date, day emoji, the mark, the week number, the
              kind, and the chat's letter when the day has more than one —
              lowercase, right after the date, so the titles sort and stay one
-             width: ▶️1004c ☀️ Sun 𖡎 W41 🔆 my day (her word, 4 Oct 2026;
+             width: ▶️🔆1004c ☀️ Sun 𖡎 W41 my day (her word, 4 Oct 2026;
              replaces P1 P2 at the end).
              Week number and day emoji are derived, never copied forward —
              seven daily titles once carried a wrong week.
@@ -53,8 +53,9 @@ WITHIN = FACTS['preflight']['newest_row_within_hours']
 
 
 def chat_name(day, kind='day', part=None, status=FACTS['chat_status']['moving'], week=None):
-    """The fixed-width title line. A day: ▶️1004 ☀️ Sun 𖡎 W41 🔆 my day, or
-    ▶️1004c ☀️ Sun 𖡎 W41 🔆 my day for its third chat.
+    """The fixed-width title line. A day: ▶️🔆1004 ☀️ Sun 𖡎 W41 my day, or
+    ▶️🔆1004c ☀️ Sun 𖡎 W41 my day for its third chat. The status leads, then the
+    sun, so a my day chat stands out in her list at a glance (her word, 28 Oct 2026).
     A week: ▶️𖡎 my week W40 — titled by the week under review, so give
     `week` when the close runs in the next one. `part` is the chat's letter
     when its day or week has more than one; a number is turned into one."""
@@ -65,7 +66,7 @@ def chat_name(day, kind='day', part=None, status=FACTS['chat_status']['moving'],
         return f'{status}{MARK} my week W{week or week_number(day)}{p}'
     d3 = DAY3[day.weekday()]
     p = part.lower() if part else ''
-    return f'{status}{day:%m%d}{p} {FACTS["day_emoji"][d3]} {d3} {MARK} W{week_number(day)} 🔆 my day'
+    return f'{status}🔆{day:%m%d}{p} {FACTS["day_emoji"][d3]} {d3} {MARK} W{week_number(day)} my day'
 
 
 def clock(local, now=None):
