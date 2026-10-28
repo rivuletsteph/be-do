@@ -43,8 +43,7 @@ SLEEP = bedo_reader.FACTS['practice']['sleep']
 ST = bedo_reader.FACTS['status']
 DONE = ST['closed'][0]                                   # ✅ done
 OPEN = set(ST['open'])                                   # ▫️ ⬜ ▶️
-NOT_LIVED = set(ST['plans']) | {ST['actions'][4], ST['logs'][2],   # ▫️ ⬜ ✖️ ⨂: never happened
-                                bedo_reader.FACTS['weather_status']['status']}   # 🌥️ neither done nor missed (26 Oct)
+NOT_LIVED = set(ST['plans']) | {ST['actions'][4], ST['logs'][2]}   # ▫️ ⬜ ✖️ ⨂: never happened
 QA_MARK = bedo_reader.FACTS['dayqa']['marker']
 MAX_SPAN = dt.timedelta(hours=bedo_reader.FACTS['entry_rules']['max_span_hours'])
 DAY3 = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']

@@ -50,8 +50,7 @@ Q = FACTS['dayqa']
 SRC = Q['sources']
 EST = 'ESTIMATED FROM CONTEXT'
 PLANS = set(FACTS['status']['plans'])
-NOT_LIVED = PLANS | {FACTS['status']['actions'][4], FACTS['status']['logs'][2],
-                     FACTS['weather_status']['status']}   # ✖️ dropped, ⨂ skipped
+NOT_LIVED = PLANS | {FACTS['status']['actions'][4], FACTS['status']['logs'][2]}   # ✖️ dropped, ⨂ skipped
 DIVIDER = FACTS['divider']
 MOVE = {FL.word(p) for p in Q['movement_practices']}
 NOTES = {FL.word(p) for p in Q['note_practices']}

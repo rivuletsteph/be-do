@@ -35,8 +35,7 @@ PLANS = set(FACTS['status']['plans'])
 ACTION = FACTS['practice']['action']
 DOING = set(FACTS['wellness']['do'])
 HEART = FACTS['wellness']['be'][0]
-NOT_HAPPENED = PLANS | {FACTS['status']['actions'][4], FACTS['status']['logs'][2],
-                        FACTS['weather_status']['status']}
+NOT_HAPPENED = PLANS | {FACTS['status']['actions'][4], FACTS['status']['logs'][2]}
 
 
 def word(practice):

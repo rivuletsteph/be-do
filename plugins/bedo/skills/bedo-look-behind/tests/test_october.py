@@ -2,7 +2,6 @@
 """October amendments on the day page. Every row is invented.
 
   · 🔭 a forecast due on the day is listed, on the page and in the QA (20 Oct)
-  · 🌥️ a sun practice the weather took is neither done nor missed (26 Oct)
 
     python3 tests/test_october.py
 """
@@ -12,7 +11,6 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from test_rules_9oct import CFD, DAY, RFD, SF, Fixture, iso  # noqa: E402
 
 SFT = dict(SF, target='fldTarget')
-WEATHER = '🌥️ weather'
 
 
 class Forecasts(unittest.TestCase):
@@ -32,18 +30,6 @@ class Forecasts(unittest.TestCase):
         f = Fixture(); f.whole_day()
         r, D = f.build()
         self.assertEqual(D['forecasts'], [])
-
-
-class Weather(unittest.TestCase):
-    def test_the_weather_took_the_sun_counts_as_nothing(self):
-        f = Fixture(); f.whole_day()
-        f.row('🔅 morning sun', 480, 500, status=WEATHER, wellness='💖 spirit')
-        _, held = f.build()
-        f = Fixture(); f.whole_day()
-        f.row('🔅 morning sun', 480, 500, status='◉ done', wellness='💖 spirit')
-        _, done = f.build()
-        self.assertEqual(held['balance']['domains']['spirit'], 0)
-        self.assertGreater(done['balance']['domains']['spirit'], 0)
 
 
 if __name__ == '__main__':
