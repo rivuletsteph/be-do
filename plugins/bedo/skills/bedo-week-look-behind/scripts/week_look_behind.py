@@ -35,7 +35,7 @@ from day_rings import day_rings  # noqa: E402
 
 STREAM_KEYS = ('title', 'key', 'when', 'end', 'status', 'rhythm')
 OPTIONAL_STREAM_KEYS = ('spent', 'deliv', 'target', 'practice', 'wellness', 'person', 'details', 'photo', 'device',
-                        'photo_checked', 'photo_links')
+                        'photo_checked', 'photo_links', 'event')
 RHYTHM_KEYS = ('name',)
 OPTIONAL_RHYTHM_KEYS = ('emoji', 'type', 'status', 'code', 'feeds', 'dest')
 WELL = bedo_reader.FACTS['wellness']

@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.join(HERE, '..', 'scripts'))
 sys.path.insert(0, os.path.join(HERE, '..', '..', '..', 'core'))
 from day_rings import day_rings  # noqa: E402
 
-L = {'utc_offset_hours': -5, 'care': {'rhythms': ['Kid Club'], 'people': ['Pip']}, 'system_rhythm': 'the system',
+L = {'utc_offset_hours': -5, 'care': {'rhythms': ['Kid Club'], 'people': ['Pip'], 'together': ['the kids']}, 'system_rhythm': 'the system',
      'recreation': {'rhythms': ['Play Days']}, 'day_goals': {'inbed': 450, 'move': 120}}
 DAY = dt.date(2026, 3, 4)
 
@@ -43,7 +43,7 @@ ROWS = [
     row('🍽️ lunch', '11:30', '11:45'),                                    # sitting to eat is not moving
     row('✨ glimmer', '14:00', title='the heron'),                         # a moment, no length
     row('⭐ highlight', '14:30', title='the heron again'),                 # a flow step placed at its moment
-    row('📝 log', '16:00', '17:00', rhythm='Play Days', title='the trampoline park with Pip'),   # recreation and care
+    row('📝 log', '16:00', '17:00', rhythm='Play Days', person=['Pip Plum'], title='the trampoline park with Pip'),   # recreation and care
     row('🚗 driving', '15:00', '15:30', person=['Pip Plum'], title='school run'),
     row('📺 show', '20:00', '20:30', device='📺 tv', title='a mystery'),
     row('🚿 shower', '21:00', '21:20'),                                    # caring for herself
@@ -63,11 +63,12 @@ assert K['being']['eat'] == 5 + 15, K['being']                       # coffee ti
 assert K['being']['move'] == 60 - 15, K['being']                     # the walk less the meal
 assert K['being']['recreation'] == 30 + 60, K['being']              # the show and the trampoline park
 assert K['doing']['work'] == 30, K['doing']                          # 9:00-9:30 only; the drive took the rest
-assert K['doing']['care'] == 30 + 20 + 60, K['doing']                # the school run, the shower, the trampoline park
+assert K['doing']['family'] == 30 + 60, K['doing']                    # the school run, the trampoline park
+assert K['being']['personal'] == 20, K['being']                       # the shower: personal care
 assert B['screen']['total'] == 60 + 30, B['screen']                  # the laptop hour and the show
 assert 'dusk' not in R['win'] and R['win']['dawn'] == [480, 485], R['win']
 assert [(m['m'], m['p']) for m in R['moments']] == [(14 * 60, 'glimmer'), (14 * 60 + 30, 'highlight')], R['moments']
-care = next(r for r in B['doing']['runs'] if r[0] == 'care' and r[1] == 15 * 60)
+care = next(r for r in B['doing']['runs'] if r[0] == 'family' and r[1] == 15 * 60)
 assert care[3] == ['school run'], care                               # a tap names what the chunk was
 # A session that ran 6:00 to 7:30 with her away in between: the row names her
 # stretches, and only those are her work and her screen (261024a, 25 Oct 2026).
@@ -86,6 +87,21 @@ assert [(r[1], r[2]) for r in {b['k']: b for b in day_rings(NIGHT + [old], DAY, 
 print('ok — the night, food and moving, her work not the laptop\'s, her stretches not the envelope, caretaking, '
       'recreation, screens, flows and moments')
 
+# An action is professional work only when it is: reading with Pip on a recreation rhythm is caretaking and
+# recreation, a playmate's visit with Pip along is too, and a paid-work action stays work (27 Oct 2026).
+MIX = NIGHT + [
+    row('⚡ action', '09:00', '09:40', rhythm='Play Days', person=['Pip Plum'], title='finished the book with Pip'),
+    row('⚡ action', '12:00', '14:00', rhythm='Play Days', person=['Moss Quill', 'Pip Plum'], title='Moss came to play'),
+    row('⚡ action', '15:00', '16:00', rhythm='Play Days', title='booked the zipline'),
+    row('⚡ action', '17:00', '18:00', rhythm='Paid Work', title='the report'),
+    row('💦 weekly check', '20:00', '20:10', rhythm='Paid Work', title='the weekly check, posted'),   # a work practice
+]
+KM = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in day_rings(MIX, DAY, L)['bands']}
+assert KM['doing'].get('family') == 40 + 120, KM['doing']
+assert KM['being'].get('recreation') == 40 + 120 + 60, KM['being']
+assert KM['doing'].get('work') == 60 + 10, KM['doing']                # the report and the weekly check
+print('ok — reading and a visit with Pip are caretaking and recreation, not work; the report is still work')
+
 # the night split at midnight, asleep from Oura's timeline (26 Oct 2026)
 SLEEP = [dict(start='2026-%s-%sT23:00:00-05:00' % ((DAY - dt.timedelta(days=1)).strftime('%m'), (DAY - dt.timedelta(days=1)).strftime('%d')),
               end=DAY.isoformat() + 'T07:30:00-05:00', type='long_sleep', phases='4' * 12 + '2' * 90 + '4' * 0),
@@ -101,3 +117,96 @@ assert R2['inbed_day'] == 450 + 60 and R2['asleep_day'] == 450, (R2['inbed_day']
 FB = {b['k']: b for b in R2['bands']}
 assert FB['flow']['total'] >= B['flow']['total'], (FB['flow']['total'], B['flow']['total'])
 print('ok — the night split at midnight: in bed from the rows, asleep from Oura, a bedtime step in bed still a flow')
+
+# Caretaking is when her focus is on them (28 Oct 2026): a care task or something done with or for them is;
+# being nearby while she does her own thing is not, and their own play is theirs.
+FOCUS = NIGHT + [
+    row('🍳 lunch prep', '11:00', '11:20', person=['Pip Plum'], title='cut apples for the kids'),     # a care task: cooking and care
+    row('🍽️ lunch', '11:20', '11:50', person=['Pip Plum'], title='lunch outside'),                  # her lunch with Pip there
+    row('⚡ action', '13:00', '14:00', rhythm='Paid Work', title='the report'),                     # working while Pip plays
+    row('🎮 game', '13:00', '14:00', person=['Pip Plum'], title='Pip playing blocks'),               # Pip's own play
+    row('🚶‍♀️ walking', '15:00', '15:30', person=['Pip Plum'], title='walked to the park with Pip'),  # her words: together
+    row('📺 show', '18:00', '18:30', person=['Pip Plum'], title='a mystery with Pip'),              # the show: recreation only
+    row('📺 show', '19:00', '19:20', person=['Pip Plum'], title="Pip's show, the dog cartoon"),     # his show: both
+    row('📝 log', '16:00', '16:30', person=['Pip Plum'], title='a quiet hour',
+        details='Pip and I built a fort.\n———\n[be•do] logged'),                                    # together, in her words
+]
+KF = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in day_rings(FOCUS, DAY, L)['bands']}
+assert KF['doing'].get('family') == 20 + 30 + 30 + 20, KF['doing']     # and his show; not the mystery
+assert not KF['doing'].get('cook'), KF['doing']                       # cutting apples is quick food, not making           # the apples, the walk, the fort; not lunch, not the game
+assert KF['doing'].get('work') == 60, KF['doing']                     # the report stays work
+assert KF['being'].get('recreation') == 30 + 20, KF['being']           # both shows; his game is his own
+print('ok — caretaking is her focus on them: the apples, the walk, the fort, his show; not her lunch, the report, his game or a show together')
+
+# Four kinds of care, named for what is cared for, and making (28 Oct 2026): quick food is care for whoever it
+# fed, cooking she creates is making, and so are building and music.
+L4 = dict(L, care={'family': {'rhythms': ['Kid Club'], 'people': ['Pip']}, 'pet': {'names': ['Biscuit']},
+                   'home': {'rhythms': ['Hearth']}, 'personal': {'rhythms': ['My Health']}})
+CARE4 = NIGHT + [
+    row('🍳 lunch prep', '11:00', '11:10', title='a sandwich'),                                       # quick, for her: personal care
+    row('🧽 dishes', '11:30', '11:50'),                                                               # home care
+    row('🚶‍♀️ walking', '12:00', '12:30', title='walked Biscuit'),                                    # moving, and pet care
+    row('⚡ action', '13:00', '13:30', rhythm='Hearth', title='called the plumber'),                  # home care
+    row('⚡ action', '14:00', '14:40', rhythm='My Health', title='read my lab results'),              # personal care
+    row('🍳 dinner prep', '17:00', '17:50', title='lasagna'),                                         # long enough: making
+    row('🍳 lunch prep', '16:00', '16:15', title='baked bread from a recipe'),                         # her words: making
+    row('🪚 woodworking', '19:00', '20:00', title='a birdhouse'),                                     # making
+    row('⚡ action', '15:00', '16:00', rhythm='Kid Club', person=['Pip Plum'], title="Pip's swim class"),  # his class
+    row('🚶‍♀️ walking', '15:10', '15:50', title='walked Biscuit by the creek during his class'),        # her walk wins
+]
+K4 = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in day_rings(CARE4, DAY, L4)['bands']}
+assert K4['being'].get('personal') == 10 + 40, K4['being']
+assert K4['doing'].get('home') == 20 + 30 and K4['doing'].get('pet') == 30 + 40, K4['doing']
+assert K4['doing'].get('family') == 60, K4['doing']                    # the class and the walk both count: two lanes
+assert K4['doing'].get('cook') == 50 + 15 + 60 and not K4['doing'].get('work'), K4['doing']
+print('ok — personal, family, pet and home care, each for what it cares for; making is cooking she creates, and building')
+
+# Their day is theirs (28 Oct 2026): an event from their own calendar and their own play go on their strip,
+# never on her rainbow; what she did meanwhile is her rows.
+import base64 as _b64
+def _link(cal):
+    return 'https://www.google.com/calendar/event?eid=' + _b64.urlsafe_b64encode(
+        ('abc123_20260304T210000Z %s@g' % cal).encode()).decode().rstrip('=')
+L5 = dict(L, care={'family': {'rhythms': ['Kid Club'], 'people': ['Pip'], 'calendars': ['kidcal42@group.calendar.google.com']}})
+THEIRS = NIGHT + [
+    row('⚡ action', '16:00', '17:00', rhythm='Kid Club', person=['Pip Plum'], title='Swim class', event=_link('kidcal42')),
+    row('📝 log', '16:00', '16:20', person=['Pip Plum'], title='at swim class with Pip'),         # her 20 minutes there
+    row('🚶‍♀️ walking', '16:25', '17:00', title='a walk by the creek'),                          # what she did meanwhile
+    row('🎮 game', '19:00', '19:40', person=['Pip Plum'], title='Pip playing blocks'),              # his own play
+    row('🍽️ dinner', '17:30', '18:00', person=['Pip Plum'], title="Pip's dinner, a clean plate"),      # his own meal
+    row('⚡ action', '10:00', '10:30', rhythm='Kid Club', person=['Pip Plum'], title='Dentist with Pip',
+        event=_link('mycal')),                                                                      # her own calendar: hers
+]
+R5 = day_rings(THEIRS, DAY, L5)
+K5 = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in R5['bands']}
+assert K5['doing'].get('family') == 20 + 30, K5['doing']            # her 20 minutes and the dentist, not his hour
+assert not K5['being'].get('recreation'), K5['being']                 # his game is his
+assert [(x['who'], x['t']) for x in R5['theirs']] == [('Pip', 'Swim class'), ('Pip', "Pip's dinner, a clean plate"),
+                                                     ('Pip', 'Pip playing blocks')], R5['theirs']
+assert not K5['being'].get('eat'), K5['being']                      # his dinner is his
+print('ok — their day is theirs: his class and his game on his strip; her 20 minutes and the dentist are hers')
+
+# Two things at once draw as two lanes and both count; synergy and competing are read from her words
+# (28 Oct 2026: "it would be neat to show that on the graphic").
+ONCE = NIGHT + [
+    row('🍽️ lunch', '12:00', '12:20', title='lunch outside', details='I felt like there was a lot of synergy with that.'),
+    row('📼 video', '12:05', '12:20', title='a weather video'),
+    row('🚶‍♀️ walking', '16:00', '16:40', title='walk by the creek with Biscuit',
+        details='Walking Biscuit and a podcast is pretty competitive.'),
+    row('🎧 podcast', '16:00', '16:40', title='a podcast'),
+    row('📒 journal', '18:10', title='journal on the walk', details='This is a wonderful synergy.'),
+    row('🚶‍♀️ walking', '18:00', '18:30', title='evening walk'),
+    row('🍽️ dinner', '19:00', '19:30', title='dinner', details='Pure synergy, alone with soup.'),   # one thing: no synergy
+    row('⚡ action', '13:00', '15:00', rhythm='the system', title='the synergy reader',
+        details='what I did\n· synergy is read from what I say'),                                   # the system talking about it
+    row('📝 log', '13:00', '15:00', rhythm='Paid Work', title='the report, alongside'),
+]
+R6 = day_rings(ONCE, DAY, L4)
+B6 = {b['k']: b for b in R6['bands']}
+lanes = [(r[0], r[1], r[2], r[4], r[5]) for r in B6['being']['runs'] if r[1] == 16 * 60]
+assert lanes == [('move', 960, 1000, 0, 2), ('recreation', 960, 1000, 1, 2)], lanes
+K6 = {k['k']: k['min'] for k in B6['being']['kinds']}
+assert K6['move'] == 40 + 30 and K6['recreation'] == 15 + 40, K6     # both count, every minute of each
+S6 = [(s['a'], s['b'], s['ans']) for s in R6['synergy']]
+assert S6 == [(720, 740, 'synergizing'), (960, 1000, 'competing'), (1080, 1110, 'synergizing')], S6
+print('ok — two at once are two lanes and both count; synergy and competing from her words, never for one thing alone')

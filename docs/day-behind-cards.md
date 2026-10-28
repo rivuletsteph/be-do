@@ -314,4 +314,87 @@ every ring (asleep deeper, from Oura's timeline), drawn under everything else,
 so what she did in bed (a bedtime step, reading, the phone) shows on top of it.
 The labels are the clock's quarters: 6a, noon, 6p, and midnight named below.
 
+**Work is professional work, 27 Oct (Mon 26 Oct's day behind).** "The
+[health results] stuff isn't professional work." Every timed ⚡ action on a drive was
+drawn as work unless its drive was a care rhythm, so reading her own clinician
+notes, finishing a book with her son and a playdate all read as work.
+Then: "reading with [her son] is recreation and caretaking and a bit of homeschool
+too… [the other boy]'s visit is social and also partly homeschool for [him]." Three
+changes, the 25 Oct rule carried through (caretaking is who it is for,
+recreation is what it is): her health drives join `care.rhythms` in the
+settings, since caring for herself is caretaking; her connection and stories
+drives join `recreation.rhythms`, and an action on a recreation rhythm is
+recreation, never work; and a care person in a lived row's `person` makes it
+caretaking whatever its practice, not only a log or a drive. The homeschool
+part is the drive question, not the rainbow's: one row serving several drives
+is asked for as its own measure of synergy, not built yet.
+
+**Caretaking is focus on them, 28 Oct.** "It can be marked caretaking if it's
+me and [him], but it comes back to synergy versus competition. If I'm focusing
+on taking care of [him], that would be caretaking; if I'm working and [he's]
+playing Legos, I'm technically taking care of him but I wouldn't say that's
+caretaking in a direct sense." So a care person in `person` is no longer
+enough: a row is caretaking when it is a care task, an action she did with
+them, driving them, or her words say it was together or for them (`with X`,
+`X and I`, `for X`, or her own group words in `care.together`). Her lunch with
+the boys nearby, his game while she bathed and her work while he plays are
+not. Two things at once with him around fall back on her synergy word.
+
+**A show together is the show, 28 Oct.** "If we're watching a show together,
+the focus is on the show." With [her husband], time together is caretaking only
+when he is sick or having a problem, which is rare, so he is not on the care
+list. With [her son], a show, a movie or a game together is recreation; it is
+caretaking too only when her words say it was his (`for X`, `X's show`):
+"watching [his cartoon] with [him] is kind of more about both." One stretch
+can be both, on two bands.
+
+**Care named for what it cares for, and making, 28 Oct.** Caretaking and
+housework felt like the same word stretched too far: "I'm not tending
+[him], I'm tending the house… I'm caretaking when it comes to pets and
+[him]." From *How to Keep House While Drowning*, "care tasks": "you do them
+because you care." So the care splits by what is cared for: **personal care**
+(her own body: a shower, a bath, getting ready, reading her own health
+results; on the being side, with eating and moving), **family care** ([her
+son], and [her husband] when he is sick), **pet care** (the dogs and the cats,
+by name in `care.pet.names`) and **home care** (the house, errands, care
+tasks). Cooking stays apart because "when I cook I like to create… it's
+another level": heating things up is care for whoever it fed, and cooking
+she creates (30 minutes or more, baking, a recipe) is **making**, the band
+for anything a care task can become: building things, the herb garden,
+music with [her son]. "It points to how little making and creating I
+actually do… I want to do more creative processes." The settings' `care`
+takes the shape `{"family", "pet", "home", "personal"}`; the older
+`{"rhythms", "people"}` still reads as family.
+
+**Their day is theirs, 28 Oct.** "[He] was at gymnastics for an hour but I
+was only there for about 20 minutes and then I was driving and then I was
+walking… this might be one of those things where I get mine right and then we
+show [his] day." An event from a care person's own calendar
+(`care.family.calendars`, read from the row's event link) and their own play
+(a game or show titled with their name) leave her rainbow and go on a line of
+their own under the bars, named for them. What she did meanwhile is her own
+rows: the 20 minutes there with him, the drive, the walk with the dogs. A row
+in her own words beats a scheduled action when two kinds of care share minutes,
+and a timed work practice counts as work. "When it's miscategorizing big chunks
+of my day, it's not useful": the big chunks are the test.
+
+**Two at once, and synergy, 28 Oct.** "There needs to be a way to show
+multiple things happening at once." Inside each band, two kinds sharing
+minutes draw as side-by-side lanes for that stretch, and every kind's bar
+counts its full minutes (her 9 Oct rule: nothing is beaten out). Then: "I
+wish there was a way to show the synergy… I'm walking, I'm taking care of
+Rosa, I'm doing my journal entry, I'm getting sunshine and fresh air… it
+would be neat to show that on the graphic." Where her words read two things
+at once as synergy, a golden glow crosses the rings with ▲ outside the dial;
+competing is a dashed edge with ▼; some of each is both, with ◆. Her pick
+from ten pairs of opposites, first × and ÷ (her own "one plus one makes four"
+and "makes one"), then, the same day, ▲ ▼ ◆: "the × looks like a bad thing…
+the goal is improving ease, improving flow… up and down are appropriate, and a
+diamond when it's neutral". The read is the
+same one the entry check uses (`bedo_entry.synergy_from`): her sentence is
+quoted on a tap. A moment counts only when it speaks of now; a journal telling
+the day after it doesn't mark the stretch it sits in. "Not a lot of synergy"
+decides nothing either way: "maybe not a lot of synergy means there's a
+little bit… depends on if I was being sarcastic."
+
 **Next:** icons in place of labels; then the next card (the sociogram, or what moved).

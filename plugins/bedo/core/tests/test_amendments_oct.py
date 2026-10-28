@@ -180,6 +180,11 @@ class InTheMoment(unittest.TestCase):
         video, hips = self.pair("couldn't focus on either")
         self.assertIn('her words say competing', E.notes(hips, ctx(day_rows=[video, hips]))[-1])
         self.assertEqual(E.synergy_from('loved doing it, though so distracted')[0], 'both')
+        # 'not a lot of synergy' decides nothing either way (it may mean a little, or be dry humour);
+        # 'competitive' is her word for competing (28 Oct)
+        self.assertEqual(E.synergy_from("pretty competitive; there's not a lot of synergy there")[0], 'competing')
+        self.assertIsNone(E.synergy_from("there isn't much synergy")[0])
+        self.assertEqual(E.synergy_from('I felt like there was a lot of synergy with that')[0], 'synergizing')
 
     def test_asked_right_then_only_when_her_words_dont_say(self):
         video, hips = self.pair()
