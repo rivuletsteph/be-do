@@ -1288,7 +1288,7 @@ def main():
     plan['page'] = dict(title=chip, **myday.today_link(rows, today, local, L.get('artifact_url') or ''))
 
     DATA = dict(
-        chip=chip, card=card1, whole=whole, date=today.isoformat(), dateLabel=f'{today:%A} {today.day} {today:%B}', lead=lead, chore=chore,
+        chip=chip, weekN=wk, card=card1, whole=whole, date=today.isoformat(), dateLabel=f'{today:%A} {today.day} {today:%B}', lead=lead, chore=chore,
         word=word,
         secure=dict(state=a.secure, words=a.secure_words) if a.secure else None,
         pareto=[dict(kind=p['kind'], title=clean_title(p['row']['title']), drive=p['row']['rhythm'] or '',

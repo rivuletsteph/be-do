@@ -39,6 +39,14 @@ section{min-width:0}
 .chip{font:500 12px/1.3 var(--mono);color:var(--faint);letter-spacing:.02em;margin:0 0 8px;white-space:nowrap;overflow-x:auto}
 h1{font:600 clamp(28px,8vw,36px)/1.08 var(--serif);margin:0;text-wrap:balance}
 .lead{margin:8px 0 0;color:var(--muted);font-size:15px;max-width:60ch}
+/* the top, rolled together (28 Oct 2026, her words: the week, then the week's word; then the
+   date and the day, with the daily intention) */
+.wk{margin:0 0 6px;font:500 13px var(--mono);color:var(--muted);letter-spacing:.02em}
+.wk b{font:italic 600 18px var(--serif);color:var(--accent);letter-spacing:0;margin-left:2px}
+.wk q{display:block;margin-top:2px;font:400 12.5px var(--sans);color:var(--faint);quotes:none}
+.today-int{margin:10px 0 0;font-size:15.5px;line-height:1.4}
+.today-int .k{font:500 11px var(--mono);color:var(--faint);letter-spacing:.04em;margin-right:8px}
+.today-int.none{color:var(--faint);font-size:13.5px}
 h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .sub{margin:0 0 12px;color:var(--faint);font-size:12.5px}
 .draft{font:500 10.5px var(--mono);color:var(--accent);border:1px dashed var(--accent);border-radius:999px;padding:1px 8px;margin-left:6px}
@@ -314,21 +322,25 @@ const day = iso => { const d=new Date(iso+'T12:00:00'); return d.toLocaleDateStr
 const short = iso => { const d=new Date(iso+'T12:00:00'); return d.toLocaleDateString('en-US',{weekday:'short',day:'numeric'}).replace(',',''); };
 
 /* header */
+/* the top (28 Oct 2026, her words): the chat's name; then the week and its word; then the date
+   and the day with the day's intention. The lead line, the chore and the secure base are off the
+   heading for now (a clear day ahead "falls flat"; the secure base "too many pointy emojis") —
+   the plan still carries them. */
+const named = D.intentions.filter(Boolean);
+const wordWords = D.word&&D.word.words&&D.word.words.replace(/[.\s]+$/,'').toLowerCase()!==D.word.word.toLowerCase() ? D.word.words : '';
 page.append($(`<header>
   <p class="chip"><span class="theme" role="group" aria-label="light or dark">${['auto','light','dark'].map(v=>`<button type="button" data-t="${v}" aria-pressed="${window.bedoThemeChoice()===v}">${v==='auto'?'device':v}</button>`).join('')}</span>${esc(D.chip)}${D.draft?' <span class="draft">draft · before your intentions</span>':''}</p>
-  <h1>${esc(D.dateLabel)}${D.secure&&D.secure.state==='secure'?' <span class="sb" title="secure base">⏏️</span>':''}</h1>
-  ${D.secure&&D.secure.state!=='secure'?`<p class="sbx">⏏️ ${esc(D.secure.state)}${D.secure.words?' — '+esc(D.secure.words):''}</p>`:''}
-  <p class="lead">${esc(D.lead)}</p>
-  ${D.chore?`<p class="lead">\u{1F9FA} one chore for ${esc(D.chore.kid)} today: ${esc(D.chore.text)} \u00B7 yours to offer, once</p>`:''}</header>`));
+  <p class="wk">Week ${esc(String(D.weekN||''))}${D.word?` — <b>${esc(D.word.word)}</b>${wordWords?`<q>${esc(wordWords)}</q>`:''}`:''}</p>
+  <h1>${esc(D.dateLabel)}</h1>
+  ${named.length?named.map(v=>`<p class="today-int"><span class="k">today</span>${esc(v)}</p>`).join(''):'<p class="today-int none"><span class="k">today</span>your intention · yours to name</p>'}
+</header>`));
 
 page.querySelectorAll('.theme button').forEach(b=>b.onclick=()=>{ window.bedoTheme(b.dataset.t);
   page.querySelectorAll('.theme button').forEach(x=>x.setAttribute('aria-pressed', String(x===b))); });
 
 /* the order (8 Oct 2026, her words): my intention above the week's word, then the calendar */
 /* your intention — one slot, empty until you name it (her rule, 21 and 25 Oct 2026: ask for one; more only if she names more) */
-const named = D.intentions.filter(Boolean).length;
-page.append($(`<section><h2>your intention${named>1?'s':''}</h2><p class="sub">${named?'named by you this morning — the three below stay be•do\'s recommendation':'yours to name — it stays empty until you do'}</p>
-  <div class="slots" style="grid-template-columns:repeat(${named||1},1fr)">${(named?D.intentions.filter(Boolean):D.intentions).map((v,i)=>v?`<div class="slot" style="color:var(--ink);border-style:solid"><b style="color:var(--accent)">${i+1}</b>${esc(v)}</div>`:`<div class="slot"><b>${i+1}</b>open</div>`).join('')}</div></section>`));
+/* your intention now sits in the header, under the date (28 Oct 2026) */
 
 const glyph = st => {
   const k = {'⬜':'int','▫️':'pot','▶️':'mot','✅':'don'}[String(st||'⬜').trim()] || 'int';
@@ -408,7 +420,7 @@ if (WEEKDAY && D.pareto && D.pareto.length){
 }
 
 /* word + secure base */
-if (D.word) page.append($(`<p class="wordline">this week's word<b>${esc(D.word.word)}</b></p>`));
+/* this week's word now sits in the header, with the week (28 Oct 2026) */
 
 /* past its date — after the intentions, never folded away: each one needs the user's word
    (5 Oct 2026: up from below the task list, then placed after the intentions) */

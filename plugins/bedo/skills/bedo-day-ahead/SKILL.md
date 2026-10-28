@@ -389,7 +389,12 @@ the user. A project with no named next step is the defect.
    the next of `kid_chores` (or the builder's own list). Name it once in the
    reply, as the build prints it; she decides whether he does it, and it is
    never pushed again that day. It feeds Hero's Service on his quest.
-2. **Your intention** — one slot, in the user's words; one empty slot before
+   **The top, since 28 Oct 2026** (her words): the chat's name; then *Week 44 —
+   Connection*, the week and its word; then the date and the day, with the
+   day's intention under it. The lead line, the chore and the secure base are
+   off the heading for now (*a clear day ahead* "falls flat" late in a full day;
+   the secure base is "too many pointy emojis") — the plan still carries them.
+2. **Your intention** — in the header since 28 Oct 2026; one slot, in the user's words; one empty slot before
    they name it. More slots only when they name more. Above the week's word (8 Oct 2026, their
    words: *my daily intention above the week's intention, then the calendar*).
 3. **The next right thing** — be•do's three, their own section (28 Oct 2026,
