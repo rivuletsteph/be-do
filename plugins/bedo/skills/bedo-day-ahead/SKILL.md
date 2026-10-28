@@ -115,6 +115,8 @@ zip; the installed loader fetches the change by itself.
 - `run_day_ahead.sh` — the runner: `prep` · `cal` · `fetch` · `build`. Reads
   Airtable directly with the read-only token, so no row passes through the chat.
 - `scripts/day_ahead.py` — the reader and builder
+- `scripts/myday.py` — the my day page's two cards, where they lead and the
+  whole map, from the same read; the page's name and the day's own link
 - `scripts/bedo_cal.py` — the calendar reader: prints what to fetch from the
   Calendar connector, checks what was saved, writes `cal.json`
 - `assets/day_ahead_engine.html` — the page, nothing personal in it
@@ -128,6 +130,7 @@ zip; the installed loader fetches the change by itself.
   a machine the builder hasn't run on before.
 - `tests/test_cal.py` — drives the calendar reader and checks what it refuses.
 - `tests/test_three.py` — how be•do's three are chosen (J9).
+- `tests/test_myday.py` — the two cards, and the day's own link.
 
 The runner copies them into the working folder fresh from the version store on
 every `prep`; nothing here is used from a project copy. Three things differ by
@@ -321,14 +324,23 @@ contents never pass through the chat.
    `event_aliases` (the user's own names for a recurring thing), then shared
    words. **Today is held stricter**: a same-subject row only counts as the
    event's own if it is timed within the hour; otherwise it becomes an ask.
-6. **Publish** to the same artifact, copying the page to
-   `/mnt/user-data/outputs/` first. The link is `artifact_url` in the local
-   settings file (title The Day Ahead, favicon 👁️). One living page,
-   republished in place, pinned in the sidebar.
-7. **Save the page** to that week's Drive folder,
-   `be•do/<year>-W## <Mon D>/YYYY-MM-DD-day-ahead.html`, and read back its size
-   to confirm (how, below).
-8. **Log the step**: the ◉ 👁️ look ahead row, dawn, with the page URL as its
+6. **Publish to the day's own page** (261028_myday, her decision of 28 Oct
+   2026: *at the end of the day it just becomes the day behind, and that's
+   what's saved for the record*). Each day has one my day page, named like that
+   day's my day chat — the build prints it as `page.title` and puts it in the
+   page's `<title>` (`▶️🔆1028 💧 Wed 𖡎 W44 my day`). The build also reads
+   today's ◉ 👁️ look ahead row and prints `page.url` and `page.row`:
+   - **`page.url` set** — the day's page exists: republish to that link, in
+     place. The draft, the final, and every later piece of the day (its rows
+     and photos, the close) go to this one link.
+   - **`page.url` empty** — the first publish of the day: publish a new
+     artifact (favicon 👁️), then write its link to the look ahead row's
+     `deliverable` (`page.row`; if the row isn't written yet, write it with the
+     link in it). That row is where every later build finds the link.
+   `artifact_url` in the settings is the old single living page; it is never a
+   day's own, and the build ignores it as one. No Drive copy each time: the
+   pages are exported at the desktop (her word, 28 Oct 2026).
+7. **Log the step**: the ◉ 👁️ look ahead row, dawn, with the day's page as its
    deliverable and one `[be•do]` line naming the three, the gaps and the clashes.
 
 **Saving to Drive from the cloud** is the Drive connector's `create_file`,
@@ -402,7 +414,22 @@ the user. A project with no named next step is the defect.
    own section above (9 Oct 2026). Both calendars matched against the stream,
    with `no row yet` and `clash` tags. Each due line starts with the same
    drawn status and bolt, then its drive's emoji (the drive's name on hover).
-8. **The map** of the three along their drives.
+8. **Where they lead** — card 1, saved 4 Oct 2026: the day only. Today's
+   steps (due today, carried in from the last week, set this morning, or done
+   today) under the drive or rhythm they serve, drives first, then rhythms;
+   every step shown with her words, a red open box in front and the bolt after;
+   each drive's % progress (`done of done + open, since` its first row in the
+   read) and its line on to its date and destinations.
+9. **The whole map** — map v3, saved 5 Oct 2026: every rhythm in code order,
+   and only the drives with a step this week (the rest fold into `+N
+   resting`); the past shaded, how far each has come, the steps ahead to
+   `map_end`, today's red boxes, the curves into the destinations; tap a drive
+   or a destination to follow it. *How far you've come* reaches back as far as
+   the read does — the live week and the week before.
+   Both are built by `scripts/myday.py` from the same read, never by hand: the
+   rhythms, drives and destinations from the rhythms table (a rhythm's code
+   orders it and picks its earthy colour; `rhythm_colours` in the settings
+   can name one), the steps and the ground covered from the stream.
 
 **Kept off the page, at the read** (5 Oct 2026):
 - **Build work on the system itself** — any row on a drive named in
@@ -426,9 +453,14 @@ cadence lives on the practice, as A132 asked.
 
 The provenance line counts what each filter set aside.
 
-**Light for now** (`data-bedo="day"`, fixed; the day behind is dark), in the
-now palette (`plugins/bedo/assets/now-palette.css`), which `test_palette.py`
-holds it to. It must fit a phone: no horizontal scroll at 390 px.
+**Light or dark, as the device is** (her word, 28 Oct 2026: *I like to be able
+to view it in dark or light mode. Dark mode is good at night when I'm looking at
+it or first thing in the morning*): the page follows the device's setting, and
+the switch at the top (device · light · dark) sets it for that device. Never
+light-then-dark by the clock. Both are the now palette
+(`plugins/bedo/assets/now-palette.css`), which `test_palette.py` holds it to;
+the two cards keep their earthy colours in both. It must fit a phone: no
+horizontal scroll at 390 px (the whole map scrolls sideways inside its card).
 
 ## Saturday and Sunday have their own shape
 
@@ -452,14 +484,14 @@ Saturday, each day tagged *the peak* (the most hours on her calendar), *open*
 *away* (a stretch away; a ⬜ window like early voting is not one); **ready for
 Monday**, open work due in the next two days that isn't a calendar event's own
 row, the chat's `--pick`s first when given; past its date; **the week after**.
-No be•do's three, no task list, no map, no open by drive. In the chat, say the
+No be•do's three, no task list, no cards, no open by drive. In the chat, say the
 lead line and what's ready for Monday, not the three.
 
 **Saturday** — fun first; the calendar comes after (her words, 24 Oct). Her
 intention, today on the calendar, past its date, **when there's room:
 tending** (at most three open rows under the rhythms the settings name in
 `tending`, never under `work_parents`: past their date first, then due this
-week, then in motion), then the next two weeks. No three, no task list, no map.
+week, then in motion), then the next two weeks. No three, no task list, no cards.
 `saturday_lead` in the settings can reword the lead.
 
 The settings keys (`tending`, `sunday_morning`, `sunday_morning_until`,

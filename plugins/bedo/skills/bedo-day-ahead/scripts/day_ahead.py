@@ -32,6 +32,7 @@ for _p in (_os.path.join(_HERE, '..', '..', '..', 'core'), _HERE):
     sys.path.insert(0, _os.path.normpath(_p))
 import bedo_reader  # noqa: E402
 import bedo_drives  # noqa: E402
+import myday  # noqa: E402  the my day page's two cards (261028_myday)
 
 # The field maps are the base's, not the builder's. main() fills them from the
 # local settings file before any read; the KEYS below are the builder's own
@@ -1216,8 +1217,14 @@ def main():
             if r['target'] and a0 <= local(r['target']).date() <= b0 and local(r['target']).date() >= today + dt.timedelta(days=a.days):
                 inside.append(dict(title=clean_title(r['title']), label=fmt_day(local(r['target']).date()), away=w['title']))
 
+    # the my day page (261028_myday): card 1 and the whole map, from this same read; the
+    # page is named like the day's my day chat, and today's look ahead row says its link
+    card1, whole = myday.build(rows, latest, {r['id'] for r in open_rows}, hidden_drive, today, DRIVES, L, local,
+                               lambda r: bedo_reader.chain_key(r['key'], r['status'], r['id']))
+    plan['page'] = dict(title=chip, **myday.today_link(rows, today, local, L.get('artifact_url') or ''))
+
     DATA = dict(
-        chip=chip, date=today.isoformat(), dateLabel=f'{today:%A} {today.day} {today:%B}', lead=lead, chore=chore,
+        chip=chip, card=card1, whole=whole, date=today.isoformat(), dateLabel=f'{today:%A} {today.day} {today:%B}', lead=lead, chore=chore,
         word=word,
         secure=dict(state=a.secure, words=a.secure_words) if a.secure else None,
         pareto=[dict(kind=p['kind'], title=clean_title(p['row']['title']), drive=p['row']['rhythm'] or '',
@@ -1240,7 +1247,9 @@ def main():
                   unique=len(rows), keys=len(latest), open=len(open_rows), dropped=dropped),
     )
     tpl = open(a.template, encoding='utf-8').read()
-    html = tpl.replace('/*__DATA__*/null', json.dumps(DATA, ensure_ascii=False))
+    # a row's words may hold '</script>'; the page's script must not end there
+    html = tpl.replace('/*__DATA__*/null', json.dumps(DATA, ensure_ascii=False).replace('</', '<\\/'))
+    html = html.replace('<title>The Day Ahead</title>', f'<title>{chip}</title>', 1)  # the day's my day name
     open(a.out, 'w', encoding='utf-8').write(html)
     plan_path = a.plan_out or re.sub(r'\.html?$', '', a.out) + '.plan.json'
     open(plan_path, 'w', encoding='utf-8').write(json.dumps(plan, ensure_ascii=False, indent=1))
@@ -1250,7 +1259,8 @@ def main():
                           soon=len(soon), overdue=len(overdue), gaps=gaps, clashes=clashes,
                           hidden=dropped['hidden'], quickies=dropped['quickie'],
                           today_rows=len(plan['today_rows']), today_asks=len(plan['today_asks']),
-                          future_rows=len(plan['future_rows']), prep=len(plan['prep']), conflicts=len(plan['conflicts']), past_date=len(plan['overdue']), plan=plan_path),
+                          future_rows=len(plan['future_rows']), prep=len(plan['prep']), conflicts=len(plan['conflicts']), past_date=len(plan['overdue']),
+                          page=plan['page'], card_steps=len(card1['steps']), plan=plan_path),
                      ensure_ascii=False, indent=1))
 
 
