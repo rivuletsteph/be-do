@@ -327,10 +327,10 @@ const short = iso => { const d=new Date(iso+'T12:00:00'); return d.toLocaleDateS
    heading for now (a clear day ahead "falls flat"; the secure base "too many pointy emojis") —
    the plan still carries them. */
 const named = D.intentions.filter(Boolean);
-const wordWords = D.word&&D.word.words&&D.word.words.replace(/[.\s]+$/,'').toLowerCase()!==D.word.word.toLowerCase() ? D.word.words : '';
+/* the week's word alone, without the sentence it came from (28 Oct 2026) */
 page.append($(`<header>
   <p class="chip"><span class="theme" role="group" aria-label="light or dark">${['auto','light','dark'].map(v=>`<button type="button" data-t="${v}" aria-pressed="${window.bedoThemeChoice()===v}">${v==='auto'?'device':v}</button>`).join('')}</span>${esc(D.chip)}${D.draft?' <span class="draft">draft · before your intentions</span>':''}</p>
-  <p class="wk">Week ${esc(String(D.weekN||''))}${D.word?` — <b>${esc(D.word.word)}</b>${wordWords?`<q>${esc(wordWords)}</q>`:''}`:''}</p>
+  <p class="wk">Week ${esc(String(D.weekN||''))}${D.word?` — <b>${esc(D.word.word)}</b>`:''}</p>
   <h1>${esc(D.dateLabel)}</h1>
   ${named.length?named.map(v=>`<p class="today-int"><span class="k">today</span>${esc(v)}</p>`).join(''):'<p class="today-int none"><span class="k">today</span>your intention · yours to name</p>'}
 </header>`));
