@@ -85,7 +85,7 @@ class Stretches(unittest.TestCase):
 
     def test_a_window_chats_row_has_no_duration_and_no_drive(self):
         # 3 Oct: 4h 04m on the captures AND on the row drew 8h 13m of doing.
-        title = '▶️1003 ⏳ Sat ' + P.MARK + ' W40 🔆 my day'
+        title = '▶️🔆1003 ⏳ Sat ' + P.MARK + ' W40 my day'
         bad = ST.action_row_problems({'time_spent': 14640, 'rhythm': 'be•do'}, title)
         self.assertEqual(len(bad), 2)
         self.assertEqual(ST.action_row_problems({}, title), [])
@@ -421,12 +421,12 @@ class Remaining(unittest.TestCase):
 class Preflight(unittest.TestCase):
     def test_the_chat_name_line_is_derived(self):
         line = P.chat_name(dt.date(2026, 10, 4))
-        self.assertEqual(line, '▶️1004 ☀️ Sun ' + P.MARK + ' W41 🔆 my day')
+        self.assertEqual(line, '▶️🔆1004 ☀️ Sun ' + P.MARK + ' W41 my day')
         self.assertEqual(ord(P.MARK), 0x1684E)
         self.assertEqual(P.chat_name(dt.date(2026, 10, 4), part='c'),
-                         '▶️1004c ☀️ Sun ' + P.MARK + ' W41 🔆 my day')      # her example, 4 Oct
+                         '▶️🔆1004c ☀️ Sun ' + P.MARK + ' W41 my day')      # her example, 4 Oct
         self.assertEqual(P.chat_name(dt.date(2026, 9, 18), part='B', status='✔️'),
-                         '✔️0918b 🏆 Fri ' + P.MARK + ' W38 🔆 my day')      # lowercase, right after the date
+                         '✔️🔆0918b 🏆 Fri ' + P.MARK + ' W38 my day')      # lowercase, right after the date
         self.assertEqual(P.chat_name(dt.date(2026, 9, 18), part=1), P.chat_name(dt.date(2026, 9, 18), part='a'))
         self.assertEqual(P.chat_name(dt.date(2026, 10, 4), 'week', week=40), '▶️' + P.MARK + ' my week W40')
         self.assertNotIn('be•do', line)
@@ -483,7 +483,7 @@ class Preflight(unittest.TestCase):
         text, _ = P.report(local, {'w41 be•do': 'a'}, [row('☕ coffee', '2026-10-08 07:30')], at('2026-10-08 08:00'),
                            built=built)
         self.assertIn("yesterday's look behind · https://claude.ai/artifact/X", text)
-        self.assertIn('becomes ✔️1007 💧 Wed ' + P.MARK + ' W41 🔆 my day', text)
+        self.assertIn('becomes ✔️🔆1007 💧 Wed ' + P.MARK + ' W41 my day', text)
         week, _ = P.report(local, {'w41 be•do': 'a'}, [row('☕ coffee', '2026-10-08 07:30')],
                            at('2026-10-08 08:00'), kind='week')
         self.assertNotIn('look behind', week)
@@ -508,7 +508,7 @@ class Preflight(unittest.TestCase):
                      deliverable='https://claude.ai/artifact/LIVING', created='2026-10-27T08:01:00.000Z')
         text, _ = P.report(local, *base, built=P.built_pages([sun, draft, final]))
         self.assertIn("yesterday's look behind · https://claude.ai/artifact/LIVING", text)
-        self.assertIn('becomes ✔️1026 🌕 Mon', text)
+        self.assertIn('becomes ✔️🔆1026 🌕 Mon', text)
         text, _ = P.report(local, *base)                                   # no log rows read: says so
         self.assertIn('not checked', text)
 
@@ -547,7 +547,7 @@ class LiveRead(unittest.TestCase):
 
 # ── the dusk audit ─────────────────────────────────────────────────────────
 NOW = at('2026-10-02 22:30')
-MYDAY = {'title': '▶️1002 🏆 Fri ' + P.MARK + ' W40 🔆 my day', 'url': 'chat/aaa'}
+MYDAY = {'title': '▶️🔆1002 🏆 Fri ' + P.MARK + ' W40 my day', 'url': 'chat/aaa'}
 DRIVE = {'title': '▶️' + P.MARK + 'D6.40 a drive chat', 'url': 'chat/bbb'}
 
 

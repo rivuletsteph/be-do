@@ -36,7 +36,7 @@ def oks(found):
 
 
 class MyDay(unittest.TestCase):
-    TITLE = '✔️1024 ⏳ Sat W43 🔆 my day'
+    TITLE = '✔️🔆1024 ⏳ Sat W43 my day'
 
     def test_all_three_done_closes(self):
         self.assertEqual(oks(C.findings([close_row(), entry()], URL, self.TITLE, DAY, LOCAL)), [True] * 3)
@@ -51,12 +51,12 @@ class MyDay(unittest.TestCase):
         self.assertFalse(C.findings([r, entry()], URL, self.TITLE, DAY, LOCAL)[0][0])
 
     def test_no_entry_and_the_title_waits_for_it(self):
-        found = C.findings([close_row()], URL, '▶️1024 ⏳ Sat W43 🔆 my day', DAY, LOCAL)
+        found = C.findings([close_row()], URL, '▶️🔆1024 ⏳ Sat W43 my day', DAY, LOCAL)
         self.assertEqual(oks(found), [True, False, False])
         self.assertIn('once the entry is written', found[2][2])
 
     def test_a_window_chat_still_open_is_renamed_to_the_check(self):
-        found = C.findings([close_row(), entry()], URL, '▶️1024 ⏳ Sat W43 🔆 my day', DAY, LOCAL)
+        found = C.findings([close_row(), entry()], URL, '▶️🔆1024 ⏳ Sat W43 my day', DAY, LOCAL)
         self.assertFalse(found[2][0])
         self.assertIn('✔️', found[2][2])
 
@@ -144,7 +144,7 @@ class Objective(unittest.TestCase):
 
     def test_a_my_day_chat_is_still_its_dayqa(self):
         found = C.findings([close_row(), entry(details='what I did\n· logged the day')], URL,
-                           '✔️1024 ⏳ Sat W43 🔆 my day', DAY, LOCAL)
+                           '✔️🔆1024 ⏳ Sat W43 my day', DAY, LOCAL)
         self.assertTrue(found[0][0])
 
     def test_an_entry_problem_and_a_missing_objective_both_show(self):

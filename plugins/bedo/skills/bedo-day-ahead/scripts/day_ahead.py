@@ -1032,7 +1032,7 @@ def main():
 
     # chip — derived from the date, never copied forward
     wk = L['week_zero_number'] + (today - dt.date.fromisoformat(L['week_zero_sunday'])).days // 7
-    chip = f'▶️{today:%m%d} {DAYEMO[today.weekday()]} {DAY3[today.weekday()]} {MARK} W{wk} 🔆 my day'
+    chip = f'▶️🔆{today:%m%d} {DAYEMO[today.weekday()]} {DAY3[today.weekday()]} {MARK} W{wk} my day'
 
     # the week's word — the user's row, the user's words
     word = None

@@ -233,7 +233,7 @@ WORDS = {
 
 # ── what the canon page says these sections are ──────────────────────────
 EXPECT = {
-    'chip': f'✔️0920 ☀️ Sun {MARK} W39 \U0001F506 my day',
+    'chip': f'✔️\U0001F5060920 ☀️ Sun {MARK} W39 my day',
     'date': 'Sunday, 20 September',
     'title': WORDS['lead'],
     'story': [list(x) for x in WORDS['story']],
