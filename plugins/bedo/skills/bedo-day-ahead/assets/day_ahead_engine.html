@@ -248,6 +248,7 @@ summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-of
 .due .mv{margin:2px 0 4px;font-size:12px}
 .due .dv{margin-left:6px;font:500 10.5px var(--mono);color:var(--dest)}
 .hz{display:grid;gap:8px}
+.hzh{font:italic 400 15px var(--serif);color:var(--muted);margin:16px 0 8px}
 .hz .hc{background:var(--card);border-radius:14px;padding:12px 14px;box-shadow:inset 3px 0 0 var(--dest)}
 .hz .hh{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
 .hz .hh b{font-weight:600;font-size:1rem}
@@ -494,7 +495,11 @@ if (SUNDAY){
      calendar alone (28 Oct 2026: the next 1, 2 or 3 days need to show up more than the
      things way out) */
   const NEAR = 3, near = ahead.slice(0, NEAR), far = ahead.slice(NEAR);
-  const sec = renderDays(`the next ${near.length===1?'day':near.length+' days'}`, 'from tomorrow · both calendars, matched against the stream', near);
+  /* one section, on the horizon (28 Oct 2026, her words: on the horizon should also incorporate the
+     next 3 days … what do I need to know today about what's coming up): the next three days first,
+     then the big things further out */
+  const sec = renderDays('on the horizon', 'what to know today about what’s coming · the next three days, then the big things further out', near);
+  sec.querySelector('.keyline').before($(`<h3 class="hzh">the next ${near.length===1?'day':near.length+' days'}</h3>`));
   const fe = far.reduce((n,d)=>n+d.events.length,0);
   if (far.length) sec.append($(`<details class="later"><summary>later in the two weeks · ${fe} ${fe===1?'event':'events'} on the calendars</summary><ul>${far.filter(d=>d.events.length).map(d=>`<li><b>${esc(short(d.date))}</b>${d.events.map(e=>esc(e.title)).join(' · ')}</li>`).join('')}</ul></details>`));
   const f = further(); if (f) sec.append(f);
@@ -504,14 +509,14 @@ if (SUNDAY){
      yet, and the steps that get it ready */
   if (WEEKDAY && (D.horizon||[]).length){
     const away = d => { const n = Math.round((new Date(d+'T12:00:00')-new Date(D.date+'T12:00:00'))/864e5); return n===1?'tomorrow':n<14?`in ${n} days`:`in ${Math.round(n/7)} weeks`; };
-    const hz = $(`<section><h2>on the horizon</h2><p class="sub">what's coming that needs getting ready for · the steps that prepare it</p><div class="hz"></div></section>`);
+    const hz = $(`<div><h3 class="hzh">further out · what needs getting ready</h3><div class="hz"></div></div>`);
     D.horizon.forEach(h=>{
       const c = $(`<div class="hc"><div class="hh"><b>${h.emoji?esc(h.emoji)+' ':''}${esc(h.label)}</b>${h.date?`<span class="hd">${esc(short(h.date))} · ${away(h.date)}</span>`:'<span class="hd none">no date yet · not on the calendar</span>'}${h.drive&&h.drive!==h.label?`<span class="hv">${esc(h.drive)}</span>`:''}</div>
         ${h.steps.length?`<ul>${h.steps.map(t=>`<li><div class="tt">${glyph(t.st)}${esc(t.title)}${t.date?` <span class="hd">· ${esc(short(t.date))}</span>`:''}</div>${moveHtml(t.move, true)}</li>`).join('')}</ul>`:'<div class="empty">no steps yet · break it down in a chat</div>'}
         ${h.n>h.steps.length?`<div class="more">+${h.n-h.steps.length} more on it</div>`:''}</div>`);
       hz.querySelector('.hz').append(c);
     });
-    page.append(hz);
+    sec.append(hz);
   }
 }
 
