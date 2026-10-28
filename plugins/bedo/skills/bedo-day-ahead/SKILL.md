@@ -389,7 +389,8 @@ the user. A project with no named next step is the defect.
    edge.
    **Past its date** — every open row past its target, oldest first, never
    folded away (see `overdue` above). Empty when the morning's answers are in.
-6. **After the calendar** — what else is due within `task_horizon_days` (7),
+6. **After the calendar** — what else is due within `task_horizon_days` (7) and dated work
+   within `soon_days` (3; `0` keeps the list to today, her setting from 28 Oct 2026),
    at most `max_tasks` (10) with the three, never a row that is a calendar
    event's own and never a row past its date (it has its own section). Each card: the date on the left (`today`, or
    the weekday and day; plum once passed), the status and ⚡ **drawn, not

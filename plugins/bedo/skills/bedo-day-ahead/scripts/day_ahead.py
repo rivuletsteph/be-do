@@ -1143,7 +1143,7 @@ def main():
             continue
         t = local(r['target']).date(); n = (t - today).days
         item = dict(id=r['id'], title=clean_title(r['title']), drive=r['rhythm'] or '', date=t.isoformat(), label=fmt_day(t), st=r['status'][:2])
-        if 0 <= n <= 3:
+        if 0 <= n <= L.get('soon_days', 3):      # her word, 28 Oct 2026: today's list holds today
             soon.append(item)
         elif n < 0:
             overdue.append(dict(item, late=-n, key=r['key'], move=move(r)))
