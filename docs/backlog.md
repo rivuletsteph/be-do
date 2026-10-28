@@ -35,6 +35,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 260929_2225 | ⬜ | A row rises to a card if it has her words or a deliverable, not only by kind |
 | 261002_0620 | ⬜ | The remaining-practices page — pinned, live, tappable, ordered by minutes since wake |
 | 261002_0821 | ▫️ | A standard be•do palette — the default theme for every page |
+| 261028_orb | ▫️ | What be•do represents (her word, 28 Oct 2026, from her morning book): each spirit an orb, shining, all of them on the road to awakening, which could be like the ocean. A ground for the palette and the pages' look, and a picture to come back to; the image is in her W## photos once it lands |
 | 260926_1255 | ▫️ | Move the page builders to an Apps Script web app reading Airtable directly (after the pages settle) |
 | 260926_1045 | ▶️ | The token budget page on Apps Script — paused at step 1 of the walkthrough; step 3 opens on one decision (rewrite the builders in JavaScript, or let Apps Script only serve and file); a Drive snapshot per token window |
 | 261003_1433 | ▶️ | The daily measure checked against how the day felt; meals logged with how they were made and whether she ate with intention; the wellness wheel's role; the unmerged `claude/look-behind-dark-palette` branch — merge or let go |
