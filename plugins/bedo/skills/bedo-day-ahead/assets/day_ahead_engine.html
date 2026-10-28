@@ -334,7 +334,7 @@ page.append($(`<header>
   <p class="chip"><span class="theme" role="group" aria-label="light or dark">${['auto','light','dark'].map(v=>`<button type="button" data-t="${v}" aria-pressed="${window.bedoThemeChoice()===v}">${v==='auto'?'device':v}</button>`).join('')}</span>${esc(D.chip)}${D.draft?' <span class="draft">draft · before your intentions</span>':''}</p>
   <p class="wk">Week ${esc(String(D.weekN||''))}${D.word?` — <b>${esc(D.word.word)}</b>`:''}</p>
   <h1>${esc(D.dateLabel)}${D.word?` <span class="hw">— ${esc(D.word.word)}</span>`:''}</h1>
-  ${named.length?named.map(v=>`<p class="today-int"><span class="k">today</span>${esc(v)}</p>`).join(''):'<p class="today-int none"><span class="k">today</span>your intention · yours to name</p>'}
+  ${''/* the day's intention line is off the page (28 Oct 2026, her words: I don't need this); the plan keeps it */}
 </header>`));
 
 page.querySelectorAll('.theme button').forEach(b=>b.onclick=()=>{ window.bedoTheme(b.dataset.t);
