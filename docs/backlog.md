@@ -32,6 +32,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 260925_0747 | ⬜ | Day-ahead builder — a child's school calendar is coverage, not a clash; emit the doctype; make prep actually draft |
 | 260929_0735 | ⬜ | Build the week ahead |
 | 260929_0745 | ⬜ | Look ahead: an already-done check at the read, across keys |
+| 261028_reconcile | ⬜ | Reconcile the stream as code, at both pages (her word, 28 Oct 2026: an important step of the look ahead and the look behind is reconciling the stream). A `reconcile` check in bedo-checks: for every open row past its date (look ahead) or touched that day (look behind), read the later rows that share its key chain, its words or its event link, and print one line each — the evidence, and a proposed close (✅ with the act's time, ✖️ passed, a dedupe onto the live key) or a retarget. The chat shows the list as one numbered set, one item at a time, and writes only what she accepts. On 28 Oct the five past-date rows waited until she asked; four closed from the stream in minutes |
 | 260929_2225 | ⬜ | A row rises to a card if it has her words or a deliverable, not only by kind |
 | 261002_0620 | ⬜ | The remaining-practices page — pinned, live, tappable, ordered by minutes since wake |
 | 261002_0821 | ▫️ | A standard be•do palette — the default theme for every page |
