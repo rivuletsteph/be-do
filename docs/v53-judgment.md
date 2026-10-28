@@ -158,6 +158,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 - ✖️ dropped means **she** decided. be•do never drops a row; a dedupe is the one ✖️ it writes, named as one.
 - `queue` = deliberately dateless, hers to tick. `quickie` = small, phone-doable, already decided; be•do ticks it when an open action is written and it fits (8 Oct 2026) — the device is code's, the quickie call is judgment — she unmarks.
 - A story she names goes to stories (want), never the stream; the watching gets its stream row. Started media is held quietly. Areas of interest may be queued for a few minutes with Claude.
+- Spotify's Your Episodes holds only podcasts still ahead of her, so she keeps moving forward with intention (her rule, 28 Oct 2026). When she says one is finished or dropped, its stories row closes and the episode comes off Your Episodes in the same turn. A podcast she keeps goes in as a stories want with its Spotify link.
 - Provisions are a partial record: *the shelf doesn't show it*, never *you don't have it*. The check runs only when she asks.
 - Codes renumber every 1 January with a crosswalk; until then the next free number.
 
