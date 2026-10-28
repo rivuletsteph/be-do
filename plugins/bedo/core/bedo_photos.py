@@ -19,7 +19,8 @@ The phone names every photo by the moment it was taken, in UTC
 `W## photos` folder; at dusk `match` gives each photo row its file (written to
 `photo_links`), so a page can place the photo on its row even when she shared
 it in the chat long after she took it. A file no row links falls back to its
-time (`place`).
+time (`place`). Before that, `dedupe` finds the same photo shared twice (one
+name, one size) and names the extra copies for the Drive trash.
 
 Rows carry logical names: practice, title, person, details, photo,
 photo_checked, photo_links, and `_a` / `_b` (local start and end datetimes)
@@ -89,7 +90,9 @@ def linked(r):
 
 def files_from(listing):
     """A folder listing as [{id, name}]: a list, {"files": […]}, or a Drive
-    connector result (whose name may arrive as `title`)."""
+    connector result (whose name may arrive as `title`). A file's size and the
+    time it reached Drive ride along as `size` and `created` when the listing
+    has them (dedupe needs both)."""
     if isinstance(listing, dict):
         listing = listing.get('files') or listing.get('items') or listing.get('results') or []
     out = []
@@ -97,7 +100,55 @@ def files_from(listing):
         name = f.get('name') or f.get('title') or ''
         fid = f.get('id') or f.get('fileId') or ''
         if name and fid:
-            out.append({'id': fid, 'name': name})
+            x = {'id': fid, 'name': name}
+            size = f.get('size', f.get('fileSize'))
+            if size not in (None, ''):
+                x['size'] = int(size)
+            created = f.get('created') or f.get('createdTime')
+            if created:
+                x['created'] = created
+            out.append(x)
+    return out
+
+
+def _created(f):
+    return dt.datetime.fromisoformat(f['created'].replace('Z', '+00:00'))
+
+
+def dedupe(files, linked_ids=()):
+    """The same photo in the folder twice (28 Oct 2026: a re-upload doubles
+    the week): copies with one name and one size are one photo. The copy a
+    stream row links to is kept — every linked copy, so no link breaks — else
+    the oldest; the rest are extra. A file the listing gives no size is never
+    grouped, and a group with no link and no upload times is left alone.
+
+    Returns {'files': the listing without the extras, in its order,
+    'groups': [{name, size, keep: [files], trash: [files], why}],
+    'trash': [files], 'unsure': [groups]}. Nothing is trashed here; the chat
+    trashes `trash` with the Drive connector on her yes."""
+    linked_ids = set(linked_ids)
+    listing = files_from(files)
+    by = {}
+    for f in listing:
+        if 'size' in f:
+            by.setdefault((f['name'], f['size']), []).append(f)
+    out = {'groups': [], 'trash': [], 'unsure': []}
+    for (name, size), copies in by.items():
+        if len(copies) < 2:
+            continue
+        keep = [f for f in copies if f['id'] in linked_ids]
+        why = 'linked'
+        if not keep:
+            if not all(f.get('created') for f in copies):
+                out['unsure'].append({'name': name, 'size': size, 'copies': copies})
+                continue
+            keep, why = [min(copies, key=_created)], 'oldest'
+        trash = [f for f in copies if f not in keep]
+        out['groups'].append({'name': name, 'size': size, 'keep': keep, 'trash': trash, 'why': why})
+        out['trash'] += trash
+    gone = {f['id'] for f in out['trash']}
+    out['files'] = [f for f in listing if f['id'] not in gone]
+    out['groups'].sort(key=lambda g: g['name'])
     return out
 
 

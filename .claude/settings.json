@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "mcp__Gmail__unlabel_thread",
-      "mcp__Gmail__label_thread"
+      "mcp__Gmail__label_thread",
+      "mcp__Google_Drive__trash_file"
     ]
   }
 }
