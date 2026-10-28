@@ -280,15 +280,19 @@ def next_move(r, chain, step=None, self_name=''):
 HORIZON_DAYS = 70
 
 
-def horizon(open_rows, today, L, move):
+def horizon(open_rows, today, L, move, near=3):
+    # further out holds only what is past the next `near` days, which have their own
+    # lines above (28 Oct 2026, her words: otherwise, it's just confounding)
     out, used = [], set()
     end = today + dt.timedelta(days=HORIZON_DAYS)
+    soon = today + dt.timedelta(days=near)
     drive_days = L.get('horizon_drive_days', 14)
 
     def when(r):
         return local(r['target']).date() if r['target'] else None
 
     def steps(rows):
+        rows = [r for r in rows if not (when(r) and when(r) <= soon)]
         rows = sorted(rows, key=lambda r: (r['status'] != '▶️ in motion', when(r) or end, r['title'] or ''))
         return [dict(title=clean_title(r['title']), st=r['status'][:2], date=when(r).isoformat() if when(r) else None,
                      move=move(r)) for r in rows[:4]], len(rows)
@@ -297,16 +301,18 @@ def horizon(open_rows, today, L, move):
         if d.get('status') != 'active' or 'drive' not in (d.get('type') or '') or not t:
             continue
         day = dt.date.fromisoformat(t[:10])
-        if not (today <= day <= today + dt.timedelta(days=drive_days)):
+        if not (soon < day <= today + dt.timedelta(days=drive_days)):
             continue
         rows = [r for r in open_rows if r['rhythm'] == name]
         used |= {r['id'] for r in rows}
         st, n = steps(rows)
+        if rows and not st:
+            continue  # every step is in the next few days, shown there
         out.append(dict(label=name, emoji=d.get('emoji') or '', date=day.isoformat(), drive=name, steps=st, n=n))
     for h in L.get('horizon') or []:
         rx = re.compile(h['match'], re.I)
         rows = [r for r in open_rows if r['id'] not in used and rx.search(r['title'] or '')
-                and (when(r) is None or today < when(r) <= end)]
+                and (when(r) is None or soon < when(r) <= end)]
         if not rows:
             continue
         used |= {r['id'] for r in rows}
