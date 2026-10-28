@@ -43,6 +43,8 @@ h1{font:600 clamp(28px,8vw,36px)/1.08 var(--serif);margin:0;text-wrap:balance}
    date and the day, with the daily intention) */
 .wk{margin:0 0 6px;font:500 13px var(--mono);color:var(--muted);letter-spacing:.02em}
 .wk b{font:italic 600 18px var(--serif);color:var(--accent);letter-spacing:0;margin-left:2px}
+
+h1 .hw{font-style:italic;color:var(--accent);font-weight:500}
 .wk q{display:block;margin-top:2px;font:400 12.5px var(--sans);color:var(--faint);quotes:none}
 .today-int{margin:10px 0 0;font-size:15.5px;line-height:1.4}
 .today-int .k{font:500 11px var(--mono);color:var(--faint);letter-spacing:.04em;margin-right:8px}
@@ -331,7 +333,7 @@ const named = D.intentions.filter(Boolean);
 page.append($(`<header>
   <p class="chip"><span class="theme" role="group" aria-label="light or dark">${['auto','light','dark'].map(v=>`<button type="button" data-t="${v}" aria-pressed="${window.bedoThemeChoice()===v}">${v==='auto'?'device':v}</button>`).join('')}</span>${esc(D.chip)}${D.draft?' <span class="draft">draft · before your intentions</span>':''}</p>
   <p class="wk">Week ${esc(String(D.weekN||''))}${D.word?` — <b>${esc(D.word.word)}</b>`:''}</p>
-  <h1>${esc(D.dateLabel)}</h1>
+  <h1>${esc(D.dateLabel)}${D.word?` <span class="hw">— ${esc(D.word.word)}</span>`:''}</h1>
   ${named.length?named.map(v=>`<p class="today-int"><span class="k">today</span>${esc(v)}</p>`).join(''):'<p class="today-int none"><span class="k">today</span>your intention · yours to name</p>'}
 </header>`));
 
