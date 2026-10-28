@@ -115,7 +115,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 - The word is hers: one word, carry-over valid.
 - **The dawn intention check names the week's word and asks for one concrete place it lands today — and with whom.**
 - **One intention a day**, hers, in her words (her rule, 25 Oct 2026: three is too many). Ask for one; never draw empty slots.
-- The Pareto three are be•do's recommendation, not her intentions: from uncalendared work, deduped by subject — someone waiting · target passed · in motion · named as weighing on her. A calendar event never needs recommending.
+- The Pareto three are be•do's recommendation, not her intentions: from uncalendared work, deduped by subject. **The test is leverage on later** (her word, 28 Oct 2026): what, done now, frees bandwidth or makes the rest of the day and week flow better — it unblocks someone or something, a deadline makes it harder if it waits, or she is carrying it around. Someone waiting · target passed · in motion · named as weighing on her are signs of leverage, not the test. Enough to feel good about, never too much. A calendar event never needs recommending.
 - **An intention that is a way of being** (have fun, be present) is a feeling, not a task: scored at the action check like any intention, but no span, no attention, and the overlap and synergy checks skip it; whether it happened shows in the feelings on the day's rows (25 Oct 2026).
 - An ⬜ intention carries a *when and why* in her words, not a date, unless she gives a firm one.
 - The dusk action check scores her intentions, not the three: ✅ ✖️ ▶️ ⬜.
