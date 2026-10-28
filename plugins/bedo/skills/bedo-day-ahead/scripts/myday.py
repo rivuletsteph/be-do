@@ -55,8 +55,10 @@ def _trim(s, n):
     return s if len(s) <= n else s[:n - 3].rsplit(' ', 1)[0] + '…'
 
 
-def _links(details, deliverable):
-    out = []
+def _links(details, deliverable, chat=None):
+    """A step's way in (28 Oct 2026, her words: I want links, clear next steps, the link to
+    the chat): the chat it came from, its deliverable, the urls in its words."""
+    out = [dict(l='the chat', u=chat)] if chat else []
     if deliverable:
         out.append(dict(l='the deliverable', u=deliverable))
     for m in URL.finditer(details or ''):
@@ -69,7 +71,7 @@ def _links(details, deliverable):
 
 
 def _short(name):
-    """GLO2 — Dickinson, Jefferson, Cow & Caney → GLO2: the part before the dash, when long."""
+    """A Long Drive — the long part of its name → A Long Drive: the part before the dash, when long."""
     head = name.split(' — ')[0].strip()
     return head if len(name) > 28 and head != name else name
 
@@ -121,20 +123,23 @@ def _bucket(name, known):
     return next((p.strip() for p in name.split(',') if p.strip() in known), name)
 
 
-def build(rows, latest, open_ids, hidden, today, drives, L, local, chain_key):
+def build(rows, latest, open_ids, hidden, today, drives, L, local, chain_key, history=()):
     """rows: every row read; latest: the newest row of each chain; open_ids: the
     ids the page's read filter kept (queue, waiting, media, quickies, hidden
     drives set aside); hidden(row): the page's hidden-drive test; local(ts):
-    the local clock; chain_key(row): the chain a row belongs to."""
+    the local clock; chain_key(row): the chain a row belongs to; history: the
+    ledger's rows (ledger.py), older than the read, for the ground covered only."""
     B, order, dest = buckets(drives, L)
     day = today.isoformat()
     lday = lambda ts: local(ts).date().isoformat() if ts else None
 
     # the ground covered, from every row read: a finished ⚡ step per chain on a drive,
     # and each day a rhythm or drive was tended (lived, not planned)
-    first = min((lday(r['created']) for r in rows), default=day)
+    ids = {r['id'] for r in rows}
+    covered = list(rows) + [r for r in history if r['id'] not in ids]
+    first = min((lday(r['created']) for r in covered), default=day)
     done, tended, since = {}, {}, {}
-    for r in rows:
+    for r in covered:
         b = _bucket(r['rhythm'], B)
         if not b:
             continue
@@ -182,7 +187,8 @@ def build(rows, latest, open_ids, hidden, today, drives, L, local, chain_key):
             continue
         her, bedo = _words(r['details'])
         steps.append(dict(t=re.sub(r'^⚡\s*', '', r['title'] or '').strip(), rd=_bucket(r['rhythm'], B) or 'no drive',
-                          d=d, s=s, det=_trim(her or bedo, 200), mine=bool(her), g=ACTION))
+                          d=d, s=s, det=_trim(her or bedo, 200), mine=bool(her), g=ACTION,
+                          links=_links(r['details'], r.get('deliverable'), r.get('chat'))))
     steps.sort(key=lambda z: (z['d'], z['s'] != 'done', z['t']))
 
     # the whole map — every open ⚡ step under its drive or rhythm
@@ -197,8 +203,10 @@ def build(rows, latest, open_ids, hidden, today, drives, L, local, chain_key):
             t=re.sub(r'^⚡\s*', '', r['title'] or '').strip(), d=d, w=r['waiting'] or '',
             today=bool((d and d <= day) or (not d and lday(r['created']) == day)), mo=r['status'] == '▶️ in motion',
             add=f'20{k[:2]}-{k[2:4]}-{k[4:6]}' if re.match(r'\d{6}', k) else lday(r['created']),
-            her=_trim(her, 280), bedo=_trim(bedo, 280) if not her else '', links=_links(r['details'], r.get('deliverable')),
-            per=r['person'] or ''))
+            her=_trim(her, 280), bedo=_trim(bedo, 280) if not her else '',
+            links=_links(r['details'], r.get('deliverable'), r.get('chat')),
+            # still open with a deliverable on it: likely done, never closed (her word, 28 Oct 2026)
+            dl=bool(r.get('deliverable')), per=r['person'] or ''))
     for v in acts.values():
         v.sort(key=lambda a: (not a['today'], a['d'] is None, a['d'] or '', a['t']))
     mdrives = [dict(n=n, g=o['g'], short=o['short'], c=o['c'], date=o['date'], dest=o['dest'], parent=o['parent'],

@@ -22,7 +22,7 @@ your intentions". The three stay be•do's either way.
 Streams are listed LIVE BASE FIRST (I15). Every dump must be complete (I11):
 records returned == totalRecordCount, or the build aborts.
 """
-import argparse, html, json, re, datetime as dt, sys
+import argparse, glob, html, json, re, datetime as dt, sys
 
 # The one reader (I11, I15, I5) lives in plugins/bedo/core. The runner copies it
 # beside this file; in the repo it is three folders up. Beside wins.
@@ -50,6 +50,10 @@ QUICKIE_KEY = 'quickie'
 # The deliverable url (the doc, the site, the thread). Optional: without it, the links on
 # a card come from the calendar-event link and the urls in the row's words.
 DELIV_KEY = 'deliverable'
+# The chat a row came from (a session entry's own chat). Optional: without it, a step's
+# way in is its deliverable and the urls in its words (28 Oct 2026, her words: I want the
+# link to the chat).
+CHAT_KEY = 'chat'
 # The mentioned field: people on a plan (a plan names people here, never in person).
 MENTIONED_KEY = 'mentioned'
 HIDE = dict(drives=(), keep=())  # filled from the local settings file
@@ -253,7 +257,7 @@ def next_move(r, chain, step=None, self_name=''):
     if text:  # a link named with the step is the step's own: it goes first, out of the words
         urls += [u.rstrip('.,;:') for u in URL_RE.findall(text)]
         text = re.sub(r'\s*[(\[]?' + URL_RE.pattern + r'[)\]]?', '', text).strip(' —-·') or None
-    urls += [r.get(DELIV_KEY), r.get(LINK_KEY)]
+    urls += [r.get(CHAT_KEY), r.get(DELIV_KEY), r.get(LINK_KEY)]
     for link in reversed(chain):
         urls += [u.rstrip('.,;:') for u in URL_RE.findall(link.get('details') or '')]
     links, seen = [], set()
@@ -963,6 +967,8 @@ def install_local(L):
         F[DELIV_KEY] = fields['stream'][DELIV_KEY]
     if (fields.get('stream') or {}).get(MENTIONED_KEY):
         F[MENTIONED_KEY] = fields['stream'][MENTIONED_KEY]
+    if (fields.get('stream') or {}).get(CHAT_KEY):
+        F[CHAT_KEY] = fields['stream'][CHAT_KEY]
     HIDE.update(drives=tuple(L.get('hide_drives') or ()), keep=tuple(L.get('hide_keep') or ()))
     if 'hide_drives' not in L:  # 7 and 9 Oct: an unmerged settings file put build work on the page
         print('WARNING: local settings has no hide_drives — build work will show on the page. '
@@ -1017,6 +1023,9 @@ def main():
     ap.add_argument('--now', help='the local clock at the write, HH:MM — keys the today rows (I12)')
     ap.add_argument('--shape', choices=SHAPES,
                     help="the page's shape; by default Saturday and Sunday have their own, every other day is a weekday")
+    ap.add_argument('--history', action='append', default=[],
+                    help='the ledger of older weeks (ledger.py); by default every history/*.json beside the '
+                         'settings — only for how far each drive has come')
     ap.add_argument('--plan-out', help='where the look-ahead plan goes; default beside --out')
     a = ap.parse_args()
     L = json.load(open(a.local, encoding='utf-8'))
@@ -1027,6 +1036,8 @@ def main():
         die('local settings: ' + bad)
 
     rows, chains, latest, reads = load_stream(a.stream)
+    hist = a.history or sorted(glob.glob(_os.path.join(_os.path.dirname(_os.path.abspath(a.local)), 'history', '*.json')))
+    history = load_stream(hist)[0] if hist else []
     rhythms, nrh = load_rhythms(a.rhythms)
     open_rows, dropped = filtered_open(latest)
     cal = json.load(open(a.calendar, encoding='utf-8'))
@@ -1220,7 +1231,7 @@ def main():
     # the my day page (261028_myday): card 1 and the whole map, from this same read; the
     # page is named like the day's my day chat, and today's look ahead row says its link
     card1, whole = myday.build(rows, latest, {r['id'] for r in open_rows}, hidden_drive, today, DRIVES, L, local,
-                               lambda r: bedo_reader.chain_key(r['key'], r['status'], r['id']))
+                               lambda r: bedo_reader.chain_key(r['key'], r['status'], r['id']), history)
     plan['page'] = dict(title=chip, **myday.today_link(rows, today, local, L.get('artifact_url') or ''))
 
     DATA = dict(

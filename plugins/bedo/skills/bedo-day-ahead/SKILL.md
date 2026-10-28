@@ -115,6 +115,7 @@ zip; the installed loader fetches the change by itself.
 - `run_day_ahead.sh` — the runner: `prep` · `cal` · `fetch` · `build`. Reads
   Airtable directly with the read-only token, so no row passes through the chat.
 - `scripts/day_ahead.py` — the reader and builder
+- `scripts/ledger.py` — the ledger of older weeks, for how far each drive has come.
 - `scripts/myday.py` — the my day page's two cards, where they lead and the
   whole map, from the same read; the page's name and the day's own link
 - `scripts/bedo_cal.py` — the calendar reader: prints what to fetch from the
@@ -130,7 +131,7 @@ zip; the installed loader fetches the change by itself.
   a machine the builder hasn't run on before.
 - `tests/test_cal.py` — drives the calendar reader and checks what it refuses.
 - `tests/test_three.py` — how be•do's three are chosen (J9).
-- `tests/test_myday.py` — the two cards, and the day's own link.
+- `tests/test_myday.py` — the two cards, the ledger, and the day's own link.
 
 The runner copies them into the working folder fresh from the version store on
 every `prep`; nothing here is used from a project copy. Three things differ by
@@ -391,9 +392,13 @@ the user. A project with no named next step is the defect.
 2. **Your intention** — one slot, in the user's words; one empty slot before
    they name it. More slots only when they name more. Above the week's word (8 Oct 2026, their
    words: *my daily intention above the week's intention, then the calendar*).
-3. **be•do's three** — their own section, each card saying why it rose, and
-   the next in line beneath. Before the intentions are named this is what the
-   draft is for.
+3. **The next right thing** — be•do's three, their own section (28 Oct 2026,
+   her words: *I really just want to see what is the next right thing … sometimes
+   I like to have choices*). The first not yet done stands in front; the others
+   sit under *or, if that can't happen now*; one done today drops to the end,
+   struck through. Each card says why it rose and its way in: the chat, the
+   deliverable, the links in its words, or, plainly, *no way in yet · open a
+   chat for it*. Before the intentions are named this is what the draft is for.
 4. **This week's word.**
 5. **Today on the calendar** — every event as the calendar shows it
    (its own title and glyphs, start and end, a 🗓️ link), in the day behind's
@@ -401,7 +406,9 @@ the user. A project with no named next step is the defect.
    edge.
    **Past its date** — every open row past its target, oldest first, never
    folded away (see `overdue` above). Empty when the morning's answers are in.
-6. **After the calendar** — what else is due within `task_horizon_days` (7) and dated work
+6. **After the calendar** — not drawn on a weekday since 28 Oct 2026 (her
+   words: *these are all things I wanted to do today, but it's not all going to
+   happen*); the plan still carries `tasks`. What it held: what else is due within `task_horizon_days` (7) and dated work
    within `soon_days` (3; `0` keeps the list to today, her setting from 28 Oct 2026),
    at most `max_tasks` (10) with the three, never a row that is a calendar
    event's own and never a row past its date (it has its own section). Each card: the date on the left (`today`, or
@@ -410,26 +417,39 @@ the user. A project with no named next step is the defect.
    in motion, teal with a check when done, dashed for a potential, and a gold
    bolt — then the title in semibold, the drive's emoji and name beneath, and
    why it rose (`someone waiting`, `in motion`…) in small type.
-7. **The next two weeks, from tomorrow** — today is not repeated here; it has its
-   own section above (9 Oct 2026). Both calendars matched against the stream,
+7. **The next three days, from tomorrow** — today is not repeated here; it has its
+   own section above (9 Oct 2026). The rest of the two weeks folds into one closed
+   line, *later in the two weeks*, its calendar events only (28 Oct 2026: the
+   next 1, 2 or 3 days need to show up more than the things way out). Both calendars matched against the stream,
    with `no row yet` and `clash` tags. Each due line starts with the same
    drawn status and bolt, then its drive's emoji (the drive's name on hover).
 8. **Where they lead** — card 1, saved 4 Oct 2026: the day only. Today's
    steps (due today, carried in from the last week, set this morning, or done
    today) under the drive or rhythm they serve, drives first, then rhythms;
-   every step shown with her words, a red open box in front and the bolt after;
-   each drive's % progress (`done of done + open, since` its first row in the
-   read) and its line on to its date and destinations.
+   every step shown with her words and its way in (as in the three), a red open
+   box in front and the bolt after; each drive's % progress (`done of done +
+   open, since` its first row in the read or the ledger) and its line on to its
+   date and destinations.
 9. **The whole map** — map v3, saved 5 Oct 2026: every rhythm in code order,
-   and only the drives with a step this week (the rest fold into `+N
-   resting`); the past shaded, how far each has come, the steps ahead to
-   `map_end`, today's red boxes, the curves into the destinations; tap a drive
-   or a destination to follow it. *How far you've come* reaches back as far as
-   the read does — the live week and the week before.
+   and only the drives with a step today (28 Oct 2026; the rest fold into `+N
+   resting`); the past folded into one narrow shaded band (*since jun*), the
+   months ahead given the room, today's red boxes, the curves into the
+   destinations; tap a drive or a destination to follow it — four steps at a
+   time, each with its way in, and a step still open with a deliverable on it
+   marked *has its deliverable · done?*. *How far you've come* reaches back as
+   far as the ledger does (below).
    Both are built by `scripts/myday.py` from the same read, never by hand: the
    rhythms, drives and destinations from the rhythms table (a rhythm's code
    orders it and picks its earthy colour; `rhythm_colours` in the settings
    can name one), the steps and the ground covered from the stream.
+   **The ledger** — `history/*.json` beside the settings file (or `--history`),
+   made by `scripts/ledger.py` from older reads and the weekly CSV backups:
+   every finished step and lived row on a rhythm or drive, so a drive's % does
+   not drop to 0 when its work is older than the read (28 Oct 2026). It is the
+   person's, kept in the working folder, never in the repo; without it the
+   page reaches back only as far as the read.
+10. **Open by drive** — not drawn since 28 Oct 2026 (*redundant … overwhelming*);
+   the plan still carries `drives`.
 
 **Kept off the page, at the read** (5 Oct 2026):
 - **Build work on the system itself** — any row on a drive named in

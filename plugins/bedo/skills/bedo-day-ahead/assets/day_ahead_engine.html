@@ -103,6 +103,19 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .mv .wt{color:var(--kid);font-size:12.5px}
 .mv .wt::before{content:"⏸";color:var(--kid)}
 .pastdue .mv{margin-top:4px}
+/* the next right thing (28 Oct 2026): one card in front, the other two as the choice */
+.nrt .ecard.lead{box-shadow:inset 4px 0 0 var(--accent);padding:16px 16px}
+.nrt .ecard.lead .ttl{font-size:1.12rem}
+.nrt .or{margin:14px 0 6px;font:italic 400 15px var(--serif);color:var(--muted)}
+.nrt .ecard.don .ttl{text-decoration:line-through;text-decoration-color:var(--muted);color:var(--muted)}
+.c1 .way{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.c1 .way a,.wm .lk{font:500 11px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:2px 9px;text-decoration:none}
+.c1 .way .none,.wm .noway{font-size:12px;color:var(--past)}
+.later{margin-top:10px}
+.later summary{cursor:pointer;font-size:13px;color:var(--muted)}
+.later ul{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:2px;font-size:12.5px;color:var(--muted)}
+.later li b{font:500 11px var(--mono);color:var(--faint);display:inline-block;min-width:4.2rem}
+.wm .looks{font:500 11px var(--mono);color:var(--accent);background:var(--card2);border-radius:999px;padding:2px 9px}
 .tsec .ecard .why{font:400 13px/1.45 var(--sans);color:var(--muted);text-transform:none;letter-spacing:0}
 .tasks{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:8px;counter-reset:t var(--from)}
 .tasks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:2px 8px;counter-increment:t;font-size:14px}
@@ -308,6 +321,7 @@ const moveHtml = m => {
   const li = [m.step ? `<li><span><b style="font-weight:600">${esc(m.step)}</b>${who}</span></li>`
                      : `<li class="none"><span>no next step named yet${who}</span></li>`];
   if ((m.links||[]).length) li.push(`<li class="lk">${m.links.map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join('')}</li>`);
+  else li.push(`<li class="none"><span>no way in yet: no chat or file on it · open a chat for it</span></li>`);
   if (m.waiting) li.push(`<li class="wt"><span>waiting on ${esc(m.waiting)}</span></li>`);
   return `<ul class="mv">${li.join('')}</ul>`;
 };
@@ -335,10 +349,17 @@ if (SUNDAY && D.morning){
 
 /* be•do's three — the Pareto three (J9), their own section right under the intentions,
    in view while the user names their own (9 Oct 2026: "I'm not seeing the Pareto 3") */
+/* the next right thing (28 Oct 2026, her words: I really just want to see what is the next
+   right thing … sometimes I like to have choices). The three stay; the first one not yet done
+   stands in front, the others are the choice, and the ones done today drop to the end. */
 if (WEEKDAY && D.pareto && D.pareto.length){
-  const sec = $(`<section class="tsec"><h2>be•do's three</h2><p class="sub">what would move the ball forward most today · be•do's pick, not your intentions</p><div class="ecards"></div>${(D.next||[]).length?`<p class="nextup"><b>next in line</b> · ${D.next.map(n=>esc(n.title)).join(' · ')}</p>`:''}</section>`);
-  const box = sec.querySelector('.ecards');
-  D.pareto.forEach(p=>box.append(card(p, [p.kind, p.why].filter(Boolean).join(' · '))));
+  const isDone = p => String(p.st||'').trim().startsWith('✅');
+  const open = D.pareto.filter(p=>!isDone(p)), done = D.pareto.filter(isDone);
+  const sec = $(`<section class="tsec nrt"><h2>the next right thing</h2><p class="sub">${open.length?'one of the three for today · be•do’s pick, not your intentions':'all three done today'}</p><div class="ecards first"></div>${open.length>1?'<p class="or">or, if that can’t happen now</p>':''}<div class="ecards rest"></div></section>`);
+  const why = p => [p.kind, p.why].filter(Boolean).join(' · ');
+  if (open.length){ const c = card(open[0], why(open[0])); c.classList.add('lead'); sec.querySelector('.first').append(c); }
+  open.slice(1).forEach(p=>sec.querySelector('.rest').append(card(p, why(p))));
+  done.forEach(p=>{ const c = card(p, 'done today'); c.classList.add('don'); sec.querySelector('.rest').append(c); });
   page.append(sec);
 }
 
@@ -425,19 +446,16 @@ if (SUNDAY){
   page.append(after);
 } else {
   pastDue();
-  if (WEEKDAY){
-    /* after the calendar — the day behind's action cards: status ⚡ title, the drive underneath,
-       the date on the left (red once it has passed); the three have their own section above; never more than max_tasks in all */
-    const three = $(`<section><h2>after the calendar</h2><p class="sub">what else is due this week · at most ${D.max_tasks||10} with the three</p><div class="ecards"></div></section>`);
-    const tbox = three.querySelector('.ecards');
-    (D.tasks||[]).forEach(t=>tbox.append(card(t, t.kind==='dated'?'':t.kind)));
-    page.append(three);
-  } else {
-    cards('when there’s room: tending', 'fun first · then, if you want it, a little tending', D.tending);
-  }
-  /* the next fourteen days — from tomorrow: today has its own section above
-     (9 Oct 2026, her words: I don't need to see today on the day ahead [twice]) */
-  const sec = renderDays('the next two weeks', 'from tomorrow · both calendars, matched against the stream', ahead);
+  /* "after the calendar" is gone on a weekday (28 Oct 2026, her words: these are all things I
+     wanted to do today, but it's not all going to happen) */
+  if (!WEEKDAY) cards('when there’s room: tending', 'fun first · then, if you want it, a little tending', D.tending);
+  /* the next three days in full, from tomorrow; the rest of the two weeks folded to its
+     calendar alone (28 Oct 2026: the next 1, 2 or 3 days need to show up more than the
+     things way out) */
+  const NEAR = 3, near = ahead.slice(0, NEAR), far = ahead.slice(NEAR);
+  const sec = renderDays(`the next ${near.length===1?'day':near.length+' days'}`, 'from tomorrow · both calendars, matched against the stream', near);
+  const fe = far.reduce((n,d)=>n+d.events.length,0);
+  if (far.length) sec.append($(`<details class="later"><summary>later in the two weeks · ${fe} ${fe===1?'event':'events'} on the calendars</summary><ul>${far.filter(d=>d.events.length).map(d=>`<li><b>${esc(short(d.date))}</b>${d.events.map(e=>esc(e.title)).join(' · ')}</li>`).join('')}</ul></details>`));
   const f = further(); if (f) sec.append(f);
   page.append(sec);
 }
@@ -514,6 +532,10 @@ function whereTheyLead(box){
       if(s.s==='open'&&step) tx.append(el('span','mv-chip','moves it +'+(Math.round(1000*step)/10)+'%'));
       if(s.d<DAY) tx.append(el('div','when','carried in from '+fmt(s.d,{weekday:'short'})));
       if(s.det) tx.append(el('div','w'+(s.mine?'':' bedo'),s.det));
+      if(s.s==='open'){ const way=el('div','way');
+        (s.links||[]).forEach(l=>{ const x=el('a','',l.l+' ↗'); x.href=l.u; x.target='_blank'; x.rel='noopener'; way.append(x); });
+        if(!way.children.length) way.append(el('span','none','no way in yet · open a chat for it'));
+        tx.append(way); }
       st.append(tx); b.append(st); });
     return b;
   }
@@ -528,7 +550,7 @@ function wholeMap(box){
   const M = D.whole, DAY = M.day, YEND = M.end;
   const sec = el('section','wm');
   sec.append(el('h2','','the whole map'));
-  sec.append(el('p','sub',`Every rhythm and this week's drives: how far each has come since ${fmt(M.begin,{month:'long'})}, the steps ahead to ${fmt(YEND,{month:'long'})}, and the destinations each drive serves. A drive that feeds another sits under it. Tap a drive or a destination to follow it.`));
+  sec.append(el('p','sub',`Every rhythm and the drives with a step today: how far each has come since ${fmt(M.begin,{month:'long'})}, the steps ahead to ${fmt(YEND,{month:'long'})}, and the destinations each drive serves. Tap a drive or a destination to follow it.`));
   const card = el('div','mapcard'), sc = el('div','scroll'), svg = S('svg',{id:'wmap',role:'img','aria-label':'Rhythms and drives on a timeline, joined to their destinations'});
   sc.append(svg); card.append(sc);
   const hint = el('div','hint'), all = el('button','more'); all.type='button'; hint.append(all);
@@ -538,12 +560,18 @@ function wholeMap(box){
   box.append(sec);
 
   const WEEK=(()=>{const d=new Date(DAY+'T12:00:00Z'); d.setUTCDate(d.getUTCDate()+6); return d.toISOString().slice(0,10);})();
-  const awake=d=>d.acts.some(a=>a.today||(a.d&&a.d<=WEEK));
+  // starts on what today is about (28 Oct 2026, her words: I really only want to see the ones
+  // that relate to what I'm doing today); the rest fold into +N resting
+  const awake=d=>d.acts.some(a=>a.today);
   const byParent={}; M.drives.forEach(d=>{ (byParent[d.parent]=byParent[d.parent]||[]).push(d); });
   const destAll={}; M.drives.forEach(d=>d.dest.forEach(x=>{ (destAll[x]=destAll[x]||[]).push(d.n); }));
   let showAll=false, destUse={}, parts={}, cur=null; const opened=new Set();
   const P0 = M.begin.slice(0,8)+'01', RH=24, TOP=42, LX=8, GX=292, TX0=338, TX1=860, DX=1000, W=1290;
-  const X=d=>TX0+Math.max(0,Math.min(1,days(P0,d)/days(P0,YEND)))*(TX1-TX0), XT=X(DAY);
+  // the past folds into a narrow band, the months ahead get the room (28 Oct 2026, her words:
+  // I don't need to see July, August, September, they should be condensed)
+  const PW=78, XT=TX0+PW;
+  const X=d=>d<DAY ? TX0+Math.max(0,days(P0,d)/Math.max(1,days(P0,DAY)))*PW
+                   : XT+Math.min(1,days(DAY,d)/Math.max(1,days(DAY,YEND)))*(TX1-XT);
   const reg=(n,e)=>{ (parts[n]=parts[n]||[]).push(e); };
   const bolt=(par,x,y,c)=>{ const g=S('g',{transform:`translate(${x-4.5},${y-6})`},par); S('path',{d:BOLT,transform:'scale(.82)',fill:c},g); return g; };
   function draw(){
@@ -561,13 +589,13 @@ function wholeMap(box){
     const H=TOP+rows.length*RH+24; svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
     // the past, shaded; the months; today
     S('rect',{x:TX0,y:TOP-12,width:XT-TX0,height:H-TOP,fill:cv('--card2'),opacity:.8},svg);
-    for(const m=new Date(P0+'T12:00:00Z'); m.toISOString().slice(0,10)<=YEND; m.setUTCMonth(m.getUTCMonth()+1)){
+    T('since '+new Date(M.begin+'T12:00:00Z').toLocaleDateString('en-GB',{month:'short',timeZone:'UTC'}).toLowerCase(),{x:TX0+4,y:TOP-24,'font-family':MONO,'font-size':12,fill:cv('--muted')},svg);
+    for(const m=new Date(DAY.slice(0,8)+'01T12:00:00Z'); m.setUTCMonth(m.getUTCMonth()+1), m.toISOString().slice(0,10)<=YEND; ){
       const d=m.toISOString().slice(0,10), x=X(d);
       S('line',{x1:x,y1:TOP-14,x2:x,y2:H-10,stroke:cv('--rule'),'stroke-width':1},svg);
       T(m.toLocaleDateString('en-GB',{month:'short',timeZone:'UTC'}).toLowerCase(),{x:x+4,y:TOP-24,'font-family':MONO,'font-size':12,fill:cv('--muted')},svg); }
     S('line',{x1:XT,y1:TOP-14,x2:XT,y2:H-10,stroke:cv('--accent'),'stroke-width':1.8},svg);
     T('today',{x:XT+4,y:TOP-8,'font-family':MONO,'font-size':12,fill:cv('--accent'),'font-weight':600},svg);
-    T("how far you've come",{x:XT-6,y:TOP-8,'text-anchor':'end','font-family':MONO,'font-size':11,fill:cv('--muted')},svg);
     T('no date',{x:GX+23,y:TOP-8,'text-anchor':'middle','font-family':MONO,'font-size':12,fill:cv('--muted')},svg);
     const yOf={}; rows.forEach((r,i)=>yOf[r.n]=TOP+i*RH+RH/2);
     const dests=Object.keys(destUse).map(n=>({n,ys:destUse[n].map(d=>yOf[d])}));
@@ -612,7 +640,7 @@ function wholeMap(box){
       T(d.n,{x:DX+r+6,y:d.y+4.5,'font-size':12.5,'font-weight':n>1?600:400},g);
       if(n>1) T(n+' drives lead here',{x:DX+r+6,y:d.y+17,'font-family':MONO,'font-size':10.5,fill:cv('--muted')},g);
       g.addEventListener('click',()=>focus('dest:'+d.n)); });
-    all.textContent=showAll?"show only this week's drives":'show every drive';
+    all.textContent=showAll?"show only today's drives":'show every drive';
   }
   function focus(key){
     const els=svg.querySelectorAll('.row,path');
@@ -629,7 +657,7 @@ function wholeMap(box){
       const s=L.reduce((a,d)=>a+d.acts.length,0); focusBox.append(el('div','none',`${s} open steps across them. Every step on any of these moves you toward ${n}.`));
       L.forEach(d=>focusBox.append(drive(d,3)));
     } else { const d=M.drives.find(x=>x.n===key)||M.rhythms.find(x=>x.n===key);
-      focusBox.append(drive(d,99));
+      focusBox.append(drive(d,4));
       if(d.dest&&d.dest.length>1) focusBox.append(el('div','none',`A step here serves ${d.dest.length} destinations at once: ${d.dest.join(', ')}.`)); }
     focusBox.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
@@ -645,8 +673,10 @@ function wholeMap(box){
     body.append(top);
     const ul=el('ul','bul'), words=shortWords(a.her||a.bedo);
     if(words) ul.append(el('li',a.her?'her':'bd','💬 '+words));
-    const go=el('li','go'); (a.links||[]).forEach(l=>{ const x=el('a','lk','🔗 '+l.l+' ↗'); x.href=l.u; x.target='_blank'; x.rel='noopener'; go.append(x); });
-    if(go.children.length) ul.append(go);
+    const go=el('li','go'); (a.links||[]).forEach(l=>{ const x=el('a','lk',l.l+' ↗'); x.href=l.u; x.target='_blank'; x.rel='noopener'; go.append(x); });
+    if(!go.children.length) go.append(el('span','noway','no way in yet · open a chat for it'));
+    if(a.dl) go.append(el('span','looks','has its deliverable · done? say so and it closes'));
+    ul.append(go);
     const facts=[]; if(a.per) facts.push('👤 '+a.per); if(a.w) facts.push('⏳ waiting on '+a.w); if(a.mo) facts.push('▶️ in motion'); if(a.add) facts.push('🌱 added '+fmt(a.add));
     if(facts.length) ul.append(el('li','meta',facts.join('  ·  ')));
     body.append(ul); r.append(body); return r; }
@@ -668,7 +698,8 @@ if (WEEKDAY && (D.card || D.whole)) { page.append(cardsBox); drawCards(); docume
 
 /* open by drive — each open row under its own drive and every drive it feeds; the
    headline counts each row once (drives within drives, 9 Oct 2026) */
-if (WEEKDAY && D.drives && D.drives.tree && D.drives.tree.length) (()=>{
+/* not drawn since 28 Oct 2026 (her words: that seems redundant … overwhelming); the plan keeps it */
+if (false && WEEKDAY && D.drives && D.drives.tree && D.drives.tree.length) (()=>{
   const X = D.drives, short = d => d ? day(d) : '';
   const node = n => `<li><div class="r"><span>${esc(n.emoji)}</span><span><span class="n">${esc(n.drive)}</span> — ${n.n} open${n.children.length && n.n_own !== n.n ? ` · ${n.n_own} its own` : ''}${n.late ? ` · ${n.late} past date` : ''}${n.soon ? ` · ${n.soon} this week` : ''}</span><span class="t">${n.next ? 'next '+esc(short(n.next)) : ''}</span></div>${n.children.length ? `<ul>${n.children.map(node).join('')}</ul>` : ''}</li>`;
   page.append($(`<section><h2>open by drive</h2><p class="sub">${X.open} open on a drive${X.no_drive ? ` · ${X.no_drive} on none` : ''} · a drive that feeds another sits under it and counts in its number</p><ul class="bydrive">${X.tree.map(node).join('')}</ul></section>`));
