@@ -208,6 +208,9 @@ def her_words(row):
     return (row.get('details') or '').split(DIVIDER, 1)[0].split(BLOCK, 1)[0]
 
 
+NOT_SO = re.compile(r"(?:\b(?:not|no|never|without)|n't)\b(?:\W+\w+){0,3}\W*$")
+
+
 def synergy_from(text):
     """(answer, the words it rests on) read from what she says about two things
     at once, or (None, None). Her own word first (synergy, competing), then the
@@ -217,9 +220,13 @@ def synergy_from(text):
     found = {}
     for kind in ('her_words', 'cues'):
         for ans, cues in SY.get(kind, {}).items():
-            hit = next((c for c in cues if c in low), None)
-            if hit and ans not in found:
-                found[ans] = hit
+            for c in cues:
+                for m in re.finditer(re.escape(c), low):
+                    # 'not a lot of synergy' may mean a little, or be dry humour: it decides nothing either way
+                    # (28 Oct, the walk with Rosa); her other words do
+                    if ans == 'synergizing' and NOT_SO.search(low[max(0, m.start() - 24):m.start()]):
+                        continue
+                    found.setdefault(ans, c)
         if found:
             break
     if len(found) > 1:
