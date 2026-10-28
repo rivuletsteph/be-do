@@ -51,6 +51,9 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .word{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:14px 16px}
 .word .k{font:500 11px var(--mono);color:var(--faint);text-transform:lowercase;letter-spacing:.06em}
 .word .w{font:600 30px/1.05 var(--serif);color:var(--accent);margin:4px 0 6px}
+/* this week's word, small (28 Oct 2026, her words: it's too prominent) */
+.wordline{margin:0 0 18px;font-size:13px;color:var(--muted)}
+.wordline b{font:italic 600 15px var(--serif);color:var(--accent);margin:0 4px}
 .word q{color:var(--muted);font-size:13px;quotes:none}
 .base{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;max-width:190px}
 .base .k{font:500 11px var(--mono);color:var(--faint);letter-spacing:.06em}
@@ -227,6 +230,24 @@ summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-of
 .c1 .done .t{text-decoration:line-through;text-decoration-color:var(--muted)}
 .c1 .w{color:var(--ink);font-style:italic;font-size:.92rem;overflow-wrap:anywhere}
 .c1 .w.bedo{color:var(--muted);font-style:normal}
+/* calmer type (28 Oct 2026, her words: the font is still way too weirdly big, and a lot of text) */
+.c1{font-size:14px}
+.c1 .head .n{font-size:14.5px}
+.c1 .t{font-size:14px}
+.c1 .w{font-size:12.5px !important;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.due .mv{margin:2px 0 4px;font-size:12px}
+.due .dv{margin-left:6px;font:500 10.5px var(--mono);color:var(--dest)}
+.hz{display:grid;gap:8px}
+.hz .hc{background:var(--card);border-radius:14px;padding:12px 14px;box-shadow:inset 3px 0 0 var(--dest)}
+.hz .hh{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.hz .hh b{font-weight:600;font-size:1rem}
+.hz .hd{font:500 11px var(--mono);color:var(--accent)}
+.hz .hd.none{color:var(--past)}
+.hz .hv{font-size:.74rem;font-weight:600;color:var(--dest)}
+.hz ul{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:6px}
+.hz li>.tt{font-size:13.5px}
+.hz li .mv{grid-column:auto;font-size:12.5px;margin-top:2px}
+.hz .more,.hz .empty{font-size:12px;color:var(--past);margin-top:6px}
 .c1 .prog{display:grid;gap:3px;margin:6px 0 2px}
 .c1 .bar{position:relative;height:8px;border-radius:99px;background:var(--card2);overflow:hidden}
 .c1 .bar i{position:absolute;top:0;bottom:0;left:0;border-radius:99px}
@@ -315,8 +336,15 @@ const glyph = st => {
   return `<span class="gl" title="${nm} · action"><span class="st ${k}"></span><svg class="bolt" viewBox="0 0 11 14" aria-hidden="true"><path d="M6.6 0 0 8h4.2L3.4 14 11 5.6H6.6z"/></svg></span>`;
 };
 /* the next move (the 7 Oct amendment): the one step, who, the links, what it waits on */
-const moveHtml = m => {
+const moveHtml = (m, quiet) => {
   if (!m) return '';
+  if (quiet){
+    const li = [];
+    if (m.step) li.push(`<li><span>${esc(m.step)}</span></li>`);
+    if ((m.links||[]).length) li.push(`<li class="lk">${m.links.map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join('')}</li>`);
+    if (m.waiting) li.push(`<li class="wt"><span>waiting on ${esc(m.waiting)}</span></li>`);
+    return li.length ? `<ul class="mv">${li.join('')}</ul>` : '';
+  }
   const who = (m.who||[]).length ? ` · with ${m.who.map(esc).join(', ')}` : '';
   const li = [m.step ? `<li><span><b style="font-weight:600">${esc(m.step)}</b>${who}</span></li>`
                      : `<li class="none"><span>no next step named yet${who}</span></li>`];
@@ -349,6 +377,22 @@ if (SUNDAY && D.morning){
 
 /* be•do's three — the Pareto three (J9), their own section right under the intentions,
    in view while the user names their own (9 Oct 2026: "I'm not seeing the Pareto 3") */
+/* today on the calendar, up top (28 Oct 2026: those are the things that are not moving, and
+   what she does a lot in response to) — as the calendar shows it, in the day behind's event cards */
+(function(){
+  const d0 = D.days && D.days[0];
+  if (!d0) return;
+  const sec = $(`<section class="todaycal"><h2>today on the calendar</h2>${d0.events.length?'':'<p class="sub">nothing on the calendars today</p>'}<div class="ecards"></div></section>`);
+  const box = sec.querySelector('.ecards');
+  d0.events.forEach(e=>{
+    const at = [e.when, e.end].filter(Boolean).map(esc).join('<br>');
+    const ln = e.link?` <a class="evl" href="${esc(e.link)}" target="_blank" rel="noopener">🗓️</a>`:'';
+    const sub = [e.drive, e.who!=='you'?e.who+"'s calendar":'', e.where].filter(Boolean).map(esc).join(' · ');
+    box.append($(`<div class="ecard${e.who!=='you'?' kid':''}"><div class="at">${at}</div><div class="ttl">${esc(e.summary||e.title)}${ln}</div>${sub?`<div class="edrv">${sub}</div>`:''}</div>`));
+  });
+  page.append(sec);
+})();
+
 /* the next right thing (28 Oct 2026, her words: I really just want to see what is the next
    right thing … sometimes I like to have choices). The three stay; the first one not yet done
    stands in front, the others are the choice, and the ones done today drop to the end. */
@@ -364,24 +408,7 @@ if (WEEKDAY && D.pareto && D.pareto.length){
 }
 
 /* word + secure base */
-if (D.word) page.append($(`<section class="frame">
-  ${D.word?`<div class="word"><div class="k">this week's word</div><div class="w">${esc(D.word.word)}</div>${D.word.words&&D.word.words.replace(/[.\s]+$/,'').toLowerCase()!==D.word.word.toLowerCase()?`<q>${esc(D.word.words)}</q>`:''}</div>`:''}
-</section>`));
-
-/* today on the calendar — as the calendar shows it, in the day behind's event cards */
-(function(){
-  const d0 = D.days && D.days[0];
-  if (!d0) return;
-  const sec = $(`<section class="todaycal"><h2>today on the calendar</h2>${d0.events.length?'':'<p class="sub">nothing on the calendars today</p>'}<div class="ecards"></div></section>`);
-  const box = sec.querySelector('.ecards');
-  d0.events.forEach(e=>{
-    const at = [e.when, e.end].filter(Boolean).map(esc).join('<br>');
-    const ln = e.link?` <a class="evl" href="${esc(e.link)}" target="_blank" rel="noopener">🗓️</a>`:'';
-    const sub = [e.drive, e.who!=='you'?e.who+"'s calendar":'', e.where].filter(Boolean).map(esc).join(' · ');
-    box.append($(`<div class="ecard${e.who!=='you'?' kid':''}"><div class="at">${at}</div><div class="ttl">${esc(e.summary||e.title)}${ln}</div>${sub?`<div class="edrv">${sub}</div>`:''}</div>`));
-  });
-  page.append(sec);
-})();
+if (D.word) page.append($(`<p class="wordline">this week's word<b>${esc(D.word.word)}</b></p>`));
 
 /* past its date — after the intentions, never folded away: each one needs the user's word
    (5 Oct 2026: up from below the task list, then placed after the intentions) */
@@ -419,7 +446,7 @@ function renderDays(title, sub, ds, wk){
     d.events.forEach(e=>it.append($(`<div class="ev"><span class="tm">${esc(e.when)}</span><span>${esc(e.title)}</span>${e.who!=='you'?`<span class="who">${esc(e.who)}</span>`:''}${e.gap?'<span class="gap">no row yet</span>':''}${(e.clash||[]).map(c=>`<span class="clash">clashes with ${esc(c)}</span>`).join('')}</div>`)));
     (w ? w.notes : []).forEach(n=>it.append($(`<div class="note">${esc(n)}</div>`)));
     d.due.forEach(t=>{ t = typeof t==='string' ? {title:t} : t;
-      it.append($(`<div class="due"${t.drive?` title="${esc(t.drive)}"`:''}>${glyph(t.st)}${t.emoji?`<span class="de">${esc(t.emoji)}</span>`:''}${esc(t.title)}</div>`)); });
+      it.append($(`<div class="due"${t.drive?` title="${esc(t.drive)}"`:''}>${glyph(t.st)}${t.emoji?`<span class="de">${esc(t.emoji)}</span>`:''}${esc(t.title)}${t.drive?`<span class="dv">${esc(t.drive)}</span>`:''}${moveHtml(t.move, true)}</div>`)); });
     if (!d.events.length && !d.due.length) it.append($(`<div class="open">open</div>`));
     box.append(row); i++;
   }
@@ -458,6 +485,20 @@ if (SUNDAY){
   if (far.length) sec.append($(`<details class="later"><summary>later in the two weeks · ${fe} ${fe===1?'event':'events'} on the calendars</summary><ul>${far.filter(d=>d.events.length).map(d=>`<li><b>${esc(short(d.date))}</b>${d.events.map(e=>esc(e.title)).join(' · ')}</li>`).join('')}</ul></details>`));
   const f = further(); if (f) sec.append(f);
   page.append(sec);
+  /* on the horizon (28 Oct 2026, her words: the big events … the things I really need to prepare
+     for … here's what you need to do to prepare for those): each with its date, or plainly none
+     yet, and the steps that get it ready */
+  if (WEEKDAY && (D.horizon||[]).length){
+    const away = d => { const n = Math.round((new Date(d+'T12:00:00')-new Date(D.date+'T12:00:00'))/864e5); return n===1?'tomorrow':n<14?`in ${n} days`:`in ${Math.round(n/7)} weeks`; };
+    const hz = $(`<section><h2>on the horizon</h2><p class="sub">what's coming that needs getting ready for · the steps that prepare it</p><div class="hz"></div></section>`);
+    D.horizon.forEach(h=>{
+      const c = $(`<div class="hc"><div class="hh"><b>${h.emoji?esc(h.emoji)+' ':''}${esc(h.label)}</b>${h.date?`<span class="hd">${esc(short(h.date))} · ${away(h.date)}</span>`:'<span class="hd none">no date yet · not on the calendar</span>'}${h.drive&&h.drive!==h.label?`<span class="hv">${esc(h.drive)}</span>`:''}</div>
+        ${h.steps.length?`<ul>${h.steps.map(t=>`<li><div class="tt">${glyph(t.st)}${esc(t.title)}${t.date?` <span class="hd">· ${esc(short(t.date))}</span>`:''}</div>${moveHtml(t.move, true)}</li>`).join('')}</ul>`:'<div class="empty">no steps yet · break it down in a chat</div>'}
+        ${h.n>h.steps.length?`<div class="more">+${h.n-h.steps.length} more on it</div>`:''}</div>`);
+      hz.querySelector('.hz').append(c);
+    });
+    page.append(hz);
+  }
 }
 
 /* the my day page's two cards (261028_myday), from the same read as the rest of the page.

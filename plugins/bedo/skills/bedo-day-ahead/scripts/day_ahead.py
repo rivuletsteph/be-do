@@ -268,6 +268,55 @@ def next_move(r, chain, step=None, self_name=''):
     return dict(step=text, who=who, links=links[:3], waiting=(r.get('waiting') or '').strip() or None)
 
 
+# ---------------------------------------------------------------- on the horizon
+# 28 Oct 2026, her words: make sure the big events are showing up on the horizon, the things
+# I really need to prepare for … and say, here's what you need to do to prepare for those.
+# That's the executive functioning. Two sources, both read off the rows, never invented:
+# a drive whose own date falls within `horizon_drive_days` (14), and each `horizon` entry in
+# the settings — {label, match}: the open rows whose title matches, gathered as one thing.
+# Each carries its date (or says it has none yet) and its open steps, in motion first.
+HORIZON_DAYS = 70
+
+
+def horizon(open_rows, today, L, move):
+    out, used = [], set()
+    end = today + dt.timedelta(days=HORIZON_DAYS)
+    drive_days = L.get('horizon_drive_days', 14)
+
+    def when(r):
+        return local(r['target']).date() if r['target'] else None
+
+    def steps(rows):
+        rows = sorted(rows, key=lambda r: (r['status'] != '▶️ in motion', when(r) or end, r['title'] or ''))
+        return [dict(title=clean_title(r['title']), st=r['status'][:2], date=when(r).isoformat() if when(r) else None,
+                     move=move(r)) for r in rows[:4]], len(rows)
+    for name, d in sorted(DRIVES.items(), key=lambda x: x[1].get('target') or ''):
+        t = d.get('target')
+        if d.get('status') != 'active' or 'drive' not in (d.get('type') or '') or not t:
+            continue
+        day = dt.date.fromisoformat(t[:10])
+        if not (today <= day <= today + dt.timedelta(days=drive_days)):
+            continue
+        rows = [r for r in open_rows if r['rhythm'] == name]
+        used |= {r['id'] for r in rows}
+        st, n = steps(rows)
+        out.append(dict(label=name, emoji=d.get('emoji') or '', date=day.isoformat(), drive=name, steps=st, n=n))
+    for h in L.get('horizon') or []:
+        rx = re.compile(h['match'], re.I)
+        rows = [r for r in open_rows if r['id'] not in used and rx.search(r['title'] or '')
+                and (when(r) is None or today < when(r) <= end)]
+        if not rows:
+            continue
+        used |= {r['id'] for r in rows}
+        dates = sorted(when(r) for r in rows if when(r))
+        st, n = steps(rows)
+        drive = next((r['rhythm'] for r in rows if r['rhythm']), '')
+        out.append(dict(label=h['label'], emoji=h.get('emoji') or '', date=dates[0].isoformat() if dates else None,
+                        drive=drive, steps=st, n=n))
+    out.sort(key=lambda x: (x['date'] is None, x['date'] or ''))
+    return out
+
+
 # ---------------------------------------------------------------- pareto three
 # J9: be•do's three, from uncalendared work, deduped by subject, in the order of pull
 # someone waiting · target passed · in motion · named as weighing on the user.
@@ -492,7 +541,7 @@ def calendar(cal, rows, open_rows, today, days, L):
         if r['target']:
             d = local(r['target']).date()
             if today <= d < today + dt.timedelta(days=days):
-                due.setdefault(d, []).append(dict(title=clean_title(r['title']), drive=r['rhythm'] or '', st=r['status'][:2]))
+                due.setdefault(d, []).append(dict(id=r['id'], title=clean_title(r['title']), drive=r['rhythm'] or '', st=r['status'][:2]))
     out = []
     for i in range(days):
         d = today + dt.timedelta(days=i)
@@ -1094,10 +1143,13 @@ def main():
     standing = standing_steps(load_practices(a.practices, L), rows, today, a.days)
     for d in days:  # a standing step sits first among the day's due lines
         d['due'] = standing.get(dt.date.fromisoformat(d['date']), []) + d['due']
-    # a due line carries its drive's emoji, for context at a glance
+    # a due line carries its drive's emoji, for context at a glance, and its next step and
+    # way in (28 Oct 2026, her words: it's not clear what [it] is … what is the next step?)
     for d in days:
         for t in d['due']:
             t['emoji'] = (rhythms.get(t['drive']) or {}).get('emoji') or ''
+            if t.get('id') in by_ref:
+                t['move'] = move(by_ref[t['id']])
     # today's events carry the drive their glyph names, the way the day behind's cards do
     by_link = {e['link']: e for e in evs if e['link']}
     for it in (days[0]['events'] if days else []):
@@ -1230,6 +1282,7 @@ def main():
 
     # the my day page (261028_myday): card 1 and the whole map, from this same read; the
     # page is named like the day's my day chat, and today's look ahead row says its link
+    ahead_ = horizon(open_rows, today, L, move)
     card1, whole = myday.build(rows, latest, {r['id'] for r in open_rows}, hidden_drive, today, DRIVES, L, local,
                                lambda r: bedo_reader.chain_key(r['key'], r['status'], r['id']), history)
     plan['page'] = dict(title=chip, **myday.today_link(rows, today, local, L.get('artifact_url') or ''))
@@ -1242,7 +1295,7 @@ def main():
                      emoji=(rhythms.get(p['row']['rhythm'] or '') or {}).get('emoji') or '·', why=p['why'], st=p['row']['status'][:2],
                      date=local(p['row']['target']).date().isoformat() if p['row']['target'] else None,
                      move=move(p['row'])) for p in picks],
-        next=nxt, tasks=tasks, max_tasks=cap,
+        next=nxt, tasks=tasks, max_tasks=cap, horizon=ahead_,
         intentions=(a.intention or [None])[:3], draft=a.draft,
         drives=plan['drives'],
         map=dict(start=today.isoformat(), end=L['map_end'], lanes=lanes, dests=list(dests.values()), away=away),

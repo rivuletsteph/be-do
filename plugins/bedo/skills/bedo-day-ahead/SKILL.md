@@ -399,7 +399,10 @@ the user. A project with no named next step is the defect.
    struck through. Each card says why it rose and its way in: the chat, the
    deliverable, the links in its words, or, plainly, *no way in yet · open a
    chat for it*. Before the intentions are named this is what the draft is for.
-4. **This week's word.**
+4. **This week's word** — one small line since 28 Oct 2026 (her words: *it's
+   too prominent*). **Today on the calendar** (5, below) now sits above the next
+   right thing, right under the intention (28 Oct 2026: *those are the things
+   that are not moving … what I do a lot in response to*).
 5. **Today on the calendar** — every event as the calendar shows it
    (its own title and glyphs, start and end, a 🗓️ link), in the day behind's
    event cards, with its drive underneath. A child's calendar gets the ochre
@@ -420,9 +423,21 @@ the user. A project with no named next step is the defect.
 7. **The next three days, from tomorrow** — today is not repeated here; it has its
    own section above (9 Oct 2026). The rest of the two weeks folds into one closed
    line, *later in the two weeks*, its calendar events only (28 Oct 2026: the
-   next 1, 2 or 3 days need to show up more than the things way out). Both calendars matched against the stream,
+   next 1, 2 or 3 days need to show up more than the things way out). Each due
+   line names its drive and, when the row has them, its next step and links
+   (28 Oct 2026: *it's not clear what [it] is … what is the next step?*). Both calendars matched against the stream,
    with `no row yet` and `clash` tags. Each due line starts with the same
    drawn status and bolt, then its drive's emoji (the drive's name on hover).
+   **On the horizon** — after the days (28 Oct 2026, her words: *the big events
+   … the things I really need to prepare for … here's what you need to do to
+   prepare for those*). Each item: its date and how far off, or *no date yet ·
+   not on the calendar*; and the open steps that prepare it, in motion first,
+   four at a time, each with its step and links when the row has them; an item
+   with none says *no steps yet · break it down in a chat*. Two sources, both
+   off the rows: an active drive whose own date falls within
+   `horizon_drive_days` (14), and each `horizon` entry in the settings —
+   `{label, emoji, match}`, a pattern on open row titles, dated within ten
+   weeks or undated, gathered as one item.
 8. **Where they lead** — card 1, saved 4 Oct 2026: the day only. Today's
    steps (due today, carried in from the last week, set this morning, or done
    today) under the drive or rhythm they serve, drives first, then rhythms;
