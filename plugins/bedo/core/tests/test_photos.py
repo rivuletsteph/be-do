@@ -181,3 +181,64 @@ class Settings(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(verbosity=1)
+
+
+class Dedupe(unittest.TestCase):
+    """28 Oct 2026: a re-upload puts the week in the folder twice. One name and
+    one size is one photo: keep the copy a row links, else the oldest."""
+
+    def f(self, fid, name, size, created):
+        return {'id': fid, 'title': name, 'fileSize': str(size), 'createdTime': created}
+
+    def test_the_oldest_is_kept_when_no_row_links_either(self):
+        d = PH.dedupe([self.f('NEW', 'a.jpg', 10, '2026-10-28T10:29:00.000Z'),
+                       self.f('OLD', 'a.jpg', 10, '2026-10-26T04:23:00.000Z')])
+        g, = d['groups']
+        self.assertEqual(([x['id'] for x in g['keep']], [x['id'] for x in g['trash']], g['why']),
+                         (['OLD'], ['NEW'], 'oldest'))
+        self.assertEqual([x['id'] for x in d['files']], ['OLD'])
+
+    def test_the_linked_copy_is_kept_even_when_newer(self):
+        d = PH.dedupe([self.f('OLD', 'a.png', 10, '2026-10-26T04:23:00.000Z'),
+                       self.f('NEW', 'a.png', 10, '2026-10-28T10:29:00.000Z')], {'NEW'})
+        self.assertEqual(([x['id'] for x in d['trash']], d['groups'][0]['why']), (['OLD'], 'linked'))
+
+    def test_every_linked_copy_stays_so_no_link_breaks(self):
+        d = PH.dedupe([self.f('A', 'a.jpg', 10, '2026-10-25T15:00:00.000Z'),
+                       self.f('B', 'a.jpg', 10, '2026-10-25T18:00:00.000Z'),
+                       self.f('C', 'a.jpg', 10, '2026-10-28T10:00:00.000Z')], {'A', 'C'})
+        self.assertEqual([x['id'] for x in d['trash']], ['B'])
+
+    def test_three_copies_leave_one(self):
+        d = PH.dedupe([self.f('A', 'a.jpg', 10, '2026-10-25T15:00:00.000Z'),
+                       self.f('B', 'a.jpg', 10, '2026-10-25T18:00:00.000Z'),
+                       self.f('C', 'a.jpg', 10, '2026-10-26T04:00:00.000Z')])
+        self.assertEqual(sorted(x['id'] for x in d['trash']), ['B', 'C'])
+
+    def test_same_name_another_size_is_another_photo(self):
+        d = PH.dedupe([self.f('A', 'a.jpg', 10, '2026-10-25T15:00:00.000Z'),
+                       self.f('B', 'a.jpg', 11, '2026-10-28T10:00:00.000Z'),
+                       self.f('C', 'b.jpg', 10, '2026-10-28T10:00:00.000Z')])
+        self.assertEqual((d['groups'], len(d['files'])), ([], 3))
+
+    def test_no_size_or_no_upload_time_trashes_nothing(self):
+        d = PH.dedupe([{'id': 'A', 'name': 'a.jpg'}, {'id': 'B', 'name': 'a.jpg'},
+                       {'id': 'C', 'name': 'c.jpg', 'size': 5}, {'id': 'D', 'name': 'c.jpg', 'size': 5}])
+        self.assertEqual((d['trash'], [g['name'] for g in d['unsure']], len(d['files'])), ([], ['c.jpg'], 4))
+
+    def test_dusk_dedupes_first_and_links_the_copy_it_keeps(self):
+        z = lambda h, m=0: f'2026-10-25T{h - OFF:02d}:{m:02d}:00.000Z'  # noqa: E731
+        rows = [{'id': 'r1', 'practice': '✨ glimmer', 'title': 'sky', 'datetime': z(9, 40), 'photo': 'keeper',
+                 'status': '◉ done'}]
+        files = [self.f('NEW1234567890', pxl(9, 12), 10, '2026-10-28T10:29:00.000Z'),   # the re-upload, listed first
+                 self.f('OLD1234567890', pxl(9, 12), 10, '2026-10-26T04:23:00.000Z'),
+                 self.f('LNK1234567890', pxl(15), 20, '2026-10-28T10:29:00.000Z'),      # another day's row links it
+                 self.f('ORG1234567890', pxl(15), 20, '2026-10-26T04:23:00.000Z')]
+        now = dt.datetime(2026, 10, 26, 3, 0, tzinfo=dt.timezone.utc)
+        res = DA.audit(rows, now, OFF, day=DAY, photo_files=files, me=ME, week_links={'LNK1234567890'})
+        self.assertEqual(sorted(x['id'] for x in res['photo_trash']), ['NEW1234567890', 'ORG1234567890'])
+        self.assertEqual(res['photo_writes'], [{'id': 'r1', 'photo_links': PH.link('OLD1234567890')}])
+        self.assertEqual(len(res['findings']['photo_dupes']), 2)
+        self.assertTrue(DA.render(res, 'x').split('\n')[1].startswith('photos, first'))
+        held = DA.audit(rows, now, OFF, day=DAY, photo_files=files, me=ME)     # the week's links weren't read
+        self.assertEqual((held['photo_trash'], len(held['findings']['photo_dupes_held'])), ([], 2))

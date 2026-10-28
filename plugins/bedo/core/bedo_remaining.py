@@ -19,7 +19,9 @@ Each line is a rule a chat used to have to remember, and skipped:
   either  🌬️ evening breaths and 🌙 evening meditation are an either-or: one
         logged closes both, and the other is never asked for (8 Oct 2026)
   sun-by  🔅 morning sun by an hour after sunrise or waking, whichever is
-        later: the line names that time while the sun is still to come (8 Oct)
+        later: the line names that time while the sun is still to come (8 Oct).
+        On a cloudy morning (the weather check says so) it names her bright
+        light instead: still due, by the same time (28 Oct)
 
 Predicted order is the catalog's own `order` field, low first; a step with no
 order goes last. Nothing personal lives here: the flow's practices come from
@@ -162,6 +164,13 @@ def sun_by(day_rows, rise, loc):
     return max(rise[1], w.hour * 60 + w.minute) + FLOWS['sun_by_minutes']
 
 
+def cloudy(day_rows):
+    """True when today's 🌦️ weather check says the sky is cloudy (28 Oct 2026)."""
+    words = FACTS['cloudy']['words']
+    return any(norm(r.get('practice')) == norm('🌦️ weather check') and
+               any(w in (r.get('details') or '').lower() for w in words) for r in day_rows)
+
+
 def clock12(minutes):
     h, m = divmod(int(minutes) % 1440, 60)
     return f'{h % 12 or 12}:{m:02d}'
@@ -206,10 +215,11 @@ def holds_open(steps, day_rows, flow):
             and (want is None or norm(s['practice']) in want)]
 
 
-def render(flow, steps, day_rows, due=None):
+def render(flow, steps, day_rows, due=None, light=None):
     """ONE line in a code box: the flow's glyph, n of N, the core still to do
     by name, then also: and the other steps as their glyphs. `due` is the
-    sun-by time (minutes after midnight), named on 🔅 morning sun."""
+    sun-by time (minutes after midnight), named on 🔅 morning sun; `light` is
+    her bright light on a cloudy morning, named in its place."""
     done, total, core, rest = split(steps, day_rows, flow)
     glyph = FLOWS['phase'][flow].split(' ')[0]
     if not core and not rest:
@@ -217,7 +227,11 @@ def render(flow, steps, day_rows, due=None):
     sun = {norm(p) for p in FLOWS['after_sunrise']}
 
     def by(p, text):
-        return f'{text} by {clock12(due)}' if due is not None and norm(p) in sun else text
+        if norm(p) not in sun:
+            return text
+        if light:
+            text = f'{p.split(" ")[0]} {light}'
+        return f'{text} by {clock12(due)}' if due is not None else text
     parts = [f'{glyph} {done} of {total}'] + [by(p, p) for p in core]
     if rest:
         parts.append('also: ' + ' '.join(by(p, p.split(' ')[0]) for p in rest))
@@ -265,7 +279,7 @@ def main(argv=None):
     if not flow:
         print('no flow open')
         return
-    gate, due = {}, None
+    gate, due, light = {}, None, None
     if flow == 'dawn':
         rise = sunrise(every, L)
         if not rise and a.live:                      # the weather check often comes after the sun
@@ -275,8 +289,10 @@ def main(argv=None):
                 if rise:
                     break
         gate, due = sun_gate(rows, rise, L), sun_by(rows, rise, L)
+        if cloudy(rows):
+            light = L.get('cloudy_light') or FACTS['cloudy']['light']
     steps = flow_steps(cat, flow, a.next, gate)
-    print(spoken(flow, steps, rows) if a.voice else render(flow, steps, rows, due))
+    print(spoken(flow, steps, rows) if a.voice else render(flow, steps, rows, due, light))
 
 
 if __name__ == '__main__':

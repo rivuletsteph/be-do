@@ -38,7 +38,7 @@ def row(**kw):
 
 
 def ctx(**kw):
-    return FL.Context(local=LOCAL, **kw)
+    return FL.Context(**dict({'local': LOCAL}, **kw))
 
 
 def probs(r, c=None):
@@ -144,28 +144,21 @@ class Appointment(unittest.TestCase):
         self.assertFalse([p for p in probs(past) if 'calendar' in p])
 
 
-class Weather(unittest.TestCase):
-    """26 Oct 2026: when weather takes away direct sun, a sun practice is 🌥️ weather."""
+class Cloudy(unittest.TestCase):
+    """28 Oct 2026: a cloudy morning is still due — her bright light meets it."""
 
     def test_a_cloudy_sun_is_never_skipped(self):
         r = row(practice='🔅 morning sun', status=SKIP, details='clouds came in before I got out', device='🚫 none')
-        out = probs(r)
-        self.assertTrue(any('that is 🌥️ weather' in p for p in out), out)
+        out = probs(r, ctx(local=dict(LOCAL, cloudy_light='mirror light')))
+        self.assertTrue(any('the mirror light meets it' in p for p in out), out)
 
-    def test_until_the_base_carries_the_choice_the_row_is_held(self):
-        r = row(practice='🔅 morning sun', status=F['weather_status']['status'], device='🚫 none')
-        out = probs(r)
-        self.assertEqual(F['weather_status']['in_base'], False)
-        self.assertTrue(any('hold this row' in p for p in out), out)
-        self.assertFalse([p for p in out if 'eight choices' in p])
-
-    def test_weather_is_only_for_a_sun_practice(self):
-        r = row(practice='☕ coffee', status=F['weather_status']['status'])
-        self.assertTrue(any('for a sun practice' in p for p in probs(r)))
+    def test_the_old_weather_status_is_not_a_choice(self):
+        r = row(practice='🔅 morning sun', status='🌥️ weather', device='🚫 none')
+        self.assertTrue(any('not one of the eight choices' in p for p in probs(r)))
 
     def test_a_plain_skip_stays_a_skip(self):
         self.assertFalse([p for p in probs(row(practice='🔅 morning sun', status=SKIP, device='🚫 none'))
-                          if 'weather' in p])
+                          if 'cloudy' in p])
 
 
 class InTheMoment(unittest.TestCase):

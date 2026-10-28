@@ -144,3 +144,14 @@ def read_catalog(air, local):
     when it lists practices_fields (as a connector read is), else by name."""
     base, table = local['bases']['practices']
     return air.dump(base, table, by_id=bool(local.get('practices_fields')))
+
+
+def read_week_links(air, local, day, names=None):
+    """The week's stream rows whose photo links are filled, from the base whose
+    week holds that day: what the photo dedupe keeps (28 Oct 2026)."""
+    from bedo_entry import week_number
+    names = names or air.bases()
+    want = local.get('weekly_name', 'w{n} be•do').format(n=week_number(day))
+    base = names.get(want) or die(f'no base named {want}')
+    f = local['stream_fields'].get('photo_links') or die('facts_local stream_fields has no photo_links id')
+    return air.dump(base, local['stream_table'], formula=f'LEN({{{f}}}&"")>0', by_id=True)
