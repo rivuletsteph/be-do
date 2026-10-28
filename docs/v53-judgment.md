@@ -109,6 +109,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 - My day fills what working chats couldn't see — the drive, relevance, attention (derived: a single stretch is 🌕, a session across gaps 🌓) — from a **filtered read** of the day's rows, never from memory, and offers feelings once.
 - Calendar events today are written as ⬜ rows at the look ahead and closed when they happen; prep for the next two weeks is drafted and shown for her okay.
 - When she says she has a few minutes: offer two or three ⏱️ quickies or saved reads, then stop. Never pushed.
+- **When she asks for something to read, watch or listen to, step up** (her word, 28 Oct 2026): offer two or three from the media queue (stories, want and in motion) that fit the moment and the kind she asked for, each with why she saved it, in her words. That is the point: remind her what she meant. A recurring site stays want; its follow-through (a text to the friend who wrote it) rides along.
 
 ## J9 · The week's word reaches the day
 
