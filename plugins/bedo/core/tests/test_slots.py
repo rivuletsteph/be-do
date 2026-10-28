@@ -342,6 +342,15 @@ class Remaining(unittest.TestCase):
         done = day + [row('🔅 morning sun', '2026-10-08 08:20', status=DONE_LOG)]
         self.assertNotIn('by 8:31', RL.render('dawn', RL.flow_steps(CAT, 'dawn'), done, due))
 
+    def test_a_cloudy_morning_names_her_light(self):
+        # 28 Oct 2026: I think I need to use other blue light in the AM if it's cloudy
+        day = [row('😶 wake', '2026-10-28 06:10', status=DONE_LOG),
+               row('🌦️ weather check', '2026-10-28 06:30', details='sunrise 7:47 am · overcast, 58°')]
+        self.assertTrue(RL.cloudy(day))
+        line = RL.render('dawn', RL.flow_steps(CAT, 'dawn'), day, 8 * 60 + 47, 'mirror light')
+        self.assertIn('🔅 mirror light by 8:47', line)                      # still due, by the same time
+        self.assertFalse(RL.cloudy([row('🌦️ weather check', '2026-10-28 06:30', details='sunrise 7:47 am · clear')]))
+
     def test_her_predicted_order(self):
         def st(name, t, order):
             return dict(step(name, 'dawn', order), typical_time=t)

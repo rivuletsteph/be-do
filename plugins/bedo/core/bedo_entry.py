@@ -51,8 +51,8 @@ From the amendments of 6 to 26 Oct 2026:
           area; passive rest (a show, a movie) is never a doing element (24 Oct)
   appointment  an appointment still ahead carries its calendar event link: it
           goes on her calendar, not just in the stream (6 Oct)
-  weather  a sun practice the weather took is 🌥️ weather, never ⨂ skipped;
-          until the base carries that choice the row is held (26 Oct)
+  cloudy  a cloudy morning keeps morning sun due: the bright light meets it,
+          so it is never ⨂ skipped for the weather (28 Oct)
   in the moment  a row that shares minutes with another: synergy or competition
           is read from what she says about it; when her words don't say, it is
           asked right then, once — never a day late, when she has forgotten
@@ -145,8 +145,7 @@ def chat_day_problem(row, chat_day, utc_offset_hours):
 
 
 PARTIAL = FACTS['attention'][1]
-NOT_LIVED = set(FACTS['status']['plans']) | {FACTS['status']['actions'][4], FACTS['status']['logs'][2],
-                                             FACTS['weather_status']['status']}
+NOT_LIVED = set(FACTS['status']['plans']) | {FACTS['status']['actions'][4], FACTS['status']['logs'][2]}
 NOT_ACTIVITY = {bedo_fill.word(p) for p in RULES['not_activities']}
 
 
@@ -258,7 +257,7 @@ BD = FACTS['being_doing']
 BEING = set(FACTS['wellness']['be'])
 DOING = set(FACTS['wellness']['do'])
 AP = FACTS['appointments']
-WS = FACTS['weather_status']
+CL = FACTS['cloudy']
 SKIPPED = FACTS['status']['logs'][2]
 
 
@@ -308,22 +307,17 @@ def appointment_problems(row, now=None):
             '(the calendar named, read back) and put its link on this row']
 
 
-def weather_problems(row):
-    """26 Oct 2026: a sun practice the weather took is neither done nor missed."""
-    st, p = row.get('status'), bedo_fill.word(row.get('practice'))
-    sun = p in {bedo_fill.word(x) for x in WS['practices']}
-    out = []
-    if st == WS['status']:
-        if not sun:
-            out.append(f'status: {WS["status"]} is for a sun practice the weather took, not {row.get("practice")!r}')
-        elif not WS['in_base']:
-            out.append(f'status: {WS["status"]} is not a choice in the base yet — hers to add in the status field; '
-                       'hold this row until it is, and never write it as ⨂ skipped')
-    elif sun and st == SKIPPED and any(w in (row.get('details') or '').lower() + (row.get('title') or '').lower()
-                                       for w in WS['words']):
-        out.append(f'status: the weather took the sun — that is {WS["status"]}, neither done nor missed, not ⨂ skipped'
-                   + ('' if WS['in_base'] else '; the choice is hers to add, so hold the row until it is there'))
-    return out
+def cloudy_problems(row, fill=None):
+    """28 Oct 2026: a cloudy morning is still due — the bright light meets it."""
+    p = bedo_fill.word(row.get('practice'))
+    if p not in {bedo_fill.word(x) for x in CL['practices']} or row.get('status') != SKIPPED:
+        return []
+    text = (row.get('details') or '').lower() + ' ' + (row.get('title') or '').lower()
+    if not any(w in text for w in CL['words']):
+        return []
+    light = ((fill.local if fill else {}) or {}).get('cloudy_light') or CL['light']
+    return [f'status: a cloudy morning is still due — the {light} meets it: log it ◉ done with the light in her '
+            'words, never ⨂ skipped for the weather']
 
 
 def span_problems(row, utc_offset_hours=None):
@@ -353,7 +347,7 @@ def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•
     if nd:
         out.append(nd)
     st, key = row.get('status'), (row.get('key') or '').strip()
-    if st not in ALL_STATUSES and st != WS['status']:
+    if st not in ALL_STATUSES:
         out.append(f'status: {st!r} is not one of the eight choices (I4)')
     for f, ok in CHOICES.items():
         v = row.get(f)
@@ -395,7 +389,7 @@ def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•
     out += bucket_problems(row, fill)
     out += being_doing_problems(row, fill)
     out += appointment_problems(row, now)
-    out += weather_problems(row)
+    out += cloudy_problems(row, fill)
     if row.get('status') in PLANS and [p for p in (row.get('person') or '').split(',')
                                          if p.strip() and p.strip() != self_name]:
         out.append(f'person: {row.get("status")} is a plan — the people go in mentioned until it happens')

@@ -194,12 +194,11 @@
   "words": ["appointment", "appt", "massage", "dentist", "doctor", "haircut", "vet ", "therapy", "checkup", "check-up", "physical", "orthodont", "dermatolog"],
   "booking_words": ["book", "make", "set up", "schedule", "remind", "call", "ask", "find"]
  },
- "weather_status": {
-  "_about": "26 Oct 2026, her words: the goal with morning sun is to actually have direct exposure, so when it's a weather issue there needs to be a different category. A weather-blocked sun practice is 🌥️ weather, neither done nor missed. The choice is hers to add in the stream's status field; until it is there (in_base false) such a row is held, never written as skipped. Flip in_base once the base carries it.",
-  "status": "🌥️ weather",
-  "in_base": false,
-  "practices": ["morning sun", "evening sun"],
-  "words": ["cloud", "overcast", "rain", "storm", "weather", "fog", "no sun"]
+ "cloudy": {
+  "_about": "28 Oct 2026, her words: the weather excuse isn't great … I think I need to use other blue light in the AM if it's cloudy. I already have a good blue light: my mirror, very bright, very natural colored. Replaces the 26 Oct weather status. A cloudy morning keeps 🔅 morning sun due by the same sun-by time, and the bright light is how it's met: logged ◉ done with the light in her words, never ⨂ skipped for the weather. The light's name is hers, facts_local cloudy_light.",
+  "practices": ["morning sun"],
+  "light": "bright light",
+  "words": ["cloud", "overcast", "rain", "storm", "fog", "drizzle", "no sun"]
  },
  "entry_rules": {
   "_about": "The 9 Oct amendment, rules 2 and 6, and the 8 Oct one that every row carries a practice. A row's datetime and end fall on one local day and span at most max_span_hours; closing an old chain row sets its datetime to the act, never a multi-day span from its first date. A night's sleep is the one row that crosses midnight. person is for people she was with or in direct contact with; a plan (▫️ ⬜) names them in mentioned until it happens.",

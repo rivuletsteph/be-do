@@ -76,7 +76,6 @@ DIVIDERS = ('———', '---', '——')
 BULLET = re.compile(r'^\s*[-•*✓•]\s+(.+?)\s*$')
 _ST = bedo_reader.FACTS['status']
 NOT_LIVED = set(_ST['plans']) | {_ST['actions'][4], _ST['logs'][2]}    # ▫️ ⬜ ✖️ ⨂: never happened
-NOT_LIVED.add(bedo_reader.FACTS['weather_status']['status'])          # 🌥️ the weather took it: neither done nor missed (26 Oct)
 # Movement counts no matter what else is happening (9 Oct 2026, rule 7): these are
 # Moving whatever the settings' map says, and Moving wins the minute on the pie
 MOVEMENT = {practice_word(p) for p in bedo_reader.FACTS['dayqa']['movement_practices']}
@@ -468,7 +467,7 @@ def main():
         typical = (read_dump(a.typical) or {}).get('practices', {})
 
     self_name = L['self_person']
-    noscore = set(L.get('noscore_statuses') or []) | {bedo_reader.FACTS['weather_status']['status']}   # 🌥️ neither done nor missed
+    noscore = set(L.get('noscore_statuses') or [])
     done_st = set(L.get('done_statuses') or [])
     zero_pr = {norm(x) for x in (L.get('zero_practices') or [])}
     zero_grp = {norm(x) for x in (L.get('zero_practice_groups') or [])}
