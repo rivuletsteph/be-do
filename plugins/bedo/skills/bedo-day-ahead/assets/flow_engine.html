@@ -19,11 +19,6 @@ main{max-width:1120px;margin:0 auto;padding:22px 16px 60px}
 h1{font:600 clamp(26px,6vw,34px)/1.1 var(--serif);margin:0}
 h1 .w{font-style:italic;color:var(--accent);font-weight:500}
 .sub{color:var(--muted);font-size:13.5px;margin:8px 0 14px;max-width:72ch}
-.bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 6px}
-.seg{display:inline-flex;gap:4px;border:1px solid var(--rule);border-radius:999px;padding:3px}
-.seg button{font:500 12.5px var(--mono);border:0;background:none;color:var(--muted);padding:5px 12px;border-radius:999px;cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--accent);color:var(--card)}
-.lean button[aria-pressed="true"]{background:var(--dest);color:var(--card)}
 .leannote{font-size:12.5px;color:var(--muted);margin:0 0 14px}
 .leannote b{color:var(--ink);font-weight:600}
 .card{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:10px 8px}
@@ -61,7 +56,7 @@ h1 .w{font-style:italic;color:var(--accent);font-weight:500}
 .int .holds b{font-weight:600}
 .int .how{font-size:12px;color:var(--muted);margin:2px 0 10px}
 .int .fill{display:flex;align-items:center;gap:10px;margin:0 0 10px}
-.int .fill .bar{flex:1;height:10px;border-radius:5px;background:var(--rule);overflow:hidden;margin:0}
+.int .fill .bar{display:block;flex:1;height:10px;border-radius:5px;background:var(--rule);overflow:hidden;margin:0}
 .int .fill .bar i{display:block;height:100%;background:var(--accent);border-radius:5px;transition:width .2s}
 .int .fill .bar i.over{background:var(--dest)}
 .int .fill span{font:500 12px var(--mono);color:var(--muted);white-space:nowrap}
@@ -90,7 +85,7 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
 .rv .how .r b{display:block;font-weight:600;padding-left:15px;position:relative}
 .rv .how .r b::before{content:"";position:absolute;left:0;top:.45em;width:9px;height:9px;border-radius:50%;background:var(--c)}
 .rv .how .r small{display:block;color:var(--muted);font-size:11.5px;font-weight:400}
-.rv .how .bar{height:8px;border-radius:4px;background:var(--rule);overflow:hidden}
+.rv .how .bar{display:block;height:8px;border-radius:4px;background:var(--rule);overflow:hidden}
 .rv .how .bar i{display:block;height:100%;background:var(--c);border-radius:4px}
 .rv .how .v{font:500 12.5px var(--mono);text-align:right}
 .rv .how .r.off{opacity:.55}
@@ -104,10 +99,6 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
 <h1 id="h1"></h1>
 <p class="sub">How things flow. Each rhythm is something to tend, resting on a balanced wellness wheel, the foundation; the drives grow out of the rhythms and flow on to what they lead to. Draft for your reaction.</p>
 <section class="rv" id="rv"></section>
-<div class="bar">
-  <div class="seg lean" role="group" aria-label="how today leans, to overrule be•do's choice"><button data-l="tend">tending day</button><button data-l="bal">balanced</button><button data-l="grow">growing day</button></div>
-  <div class="seg win" role="group" aria-label="window"><button data-w="0">today</button><button data-w="6">this week</button><button data-w="30">this month</button></div>
-</div>
 <p class="leannote" id="leannote"></p>
 <section class="int" id="int"></section>
 <div class="blocks" id="blocks"></div>
@@ -143,7 +134,9 @@ const LEAN = {tend:{rh:4, dr:0}, bal:{rh:1, dr:1}, grow:{rh:'due', dr:4}};
    readiness and general sense of how caught up I am, how I'm feeling). Read off the day, never guessed:
    the morning Oura readiness (80 and up leans to growing, under 70 to tending), the secure base (knocked
    back leans to tending), and how caught up she is (three or more tending things past their date leans
-   to tending). How she's feeling joins this once the morning carries it. The switch overrules, for today. */
+   to tending). How she's feeling joins this once the morning carries it.
+   No switch and no week or month view (29 Oct 2026, her words): just today, and the next right step
+   made very clear — what is actionable. */
 /* the morning card chooses first (29 Oct 2026): optimal leans to growing, good to balanced, pay attention
    to tending; a knocked-back secure base still pulls to tending. Without the card, the readiness rule below. */
 const BF = D.baseflow||{parts:[],missing:[]};
@@ -163,7 +156,8 @@ function chooseLean(){
   return {lean: s>=1?'grow':s<=-1?'tend':'bal', why};
 }
 const CHOSEN = chooseLean();
-let lean = CHOSEN.lean, win=0, cur=null, part={};
+const lean = CHOSEN.lean, win = 0;
+let cur=null, part={};
 const note = {tend:'a tending day · taking care of things first; the drives rest',
               bal:'balanced · one step to tend on each rhythm, one to grow on each drive',
               grow:'a growing day · tending kept to what is due today; the drives open up'};
@@ -192,12 +186,8 @@ function shape(){
 }
 function stepLine(a){ return `<p class="st">${a.done?'✅ ':'→ '}${esc(a.t)}</p><div class="why">${a.done?'<span>done today</span>':whyOf(a).map(w=>`<span>${esc(w)}</span>`).join('')}${(a.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l)} ↗</a>`).join('')}</div>`; }
 function lists(blocks){
-  const when=win?win===6?'this week':'this month':'today';
-  const mine = lean===CHOSEN.lean;
-  document.getElementById('leannote').innerHTML = (mine
-    ? `<b>be•do chose ${lean==='grow'?'a growing day':lean==='tend'?'a tending day':'balanced'}</b> · ${esc(CHOSEN.why.join(' · '))}`
-    : `<b>you chose ${lean==='grow'?'a growing day':lean==='tend'?'a tending day':'balanced'}</b> · be•do had ${CHOSEN.lean==='grow'?'a growing day':CHOSEN.lean==='tend'?'a tending day':'balanced'}`)
-    + `<br>${note[lean]} · ${when}`;
+  const when='today';
+  document.getElementById('leannote').innerHTML = `<b>be•do chose ${lean==='grow'?'a growing day':lean==='tend'?'a tending day':'balanced'}</b> · ${esc(CHOSEN.why.join(' · '))}<br>${note[lean]}`;
   document.getElementById('blocks').innerHTML=blocks.map(b=>{
     const R=b.R, tendHtml = b.loose ? '' :
       (b.done.length||b.shown.length ? `<p class="k">tend</p>${b.done.map(a=>stepLine(a)).join('')}${b.shown.map(a=>stepLine(a)).join('')}${b.open.length>b.shown.length?`<p class="st more">+${b.open.length-b.shown.length} more to tend</p>`:''}`
@@ -360,16 +350,12 @@ function intention(blocks){
     +`<p class="how">${hm(Math.round(H.free*60))} free · ${H.whole} h less ${cal}${H.full?' · a full day':''} · base flow ${BFV??'not in'}${BFV!=null?', '+st:''} → ${part}</p>`
     +`<div class="fill"><span class="bar"><i class="${sum>goal?'over':''}" style="width:${goal?Math.min(100,100*sum/goal):sum?100:0}%"></i></span><span>${sum?hm(sum):'nothing yet'} of about ${hm(goal)}${sum>goal?' · a little more than the day holds':''}</span></div>`
     +(offer.length?`<ul>${offer.map((s,i)=>`<li><button class="pk" data-i="${i}" style="--dc:${col(s.c)}" aria-pressed="${picked.has(s.a.t)}"><span class="rk">${picked.has(s.a.t)?'✓':i+1}</span>${esc(s.a.t)}<small>${s.k==='tend'?'tend':'grow'} · ${esc(s.on.trim())}</small></button><button class="sz${mySize[s.a.t]?' set':''}" data-i="${i}" title="tap to change the size">${mySize[s.a.t]?SZN[mySize[s.a.t]]:'~'+SZN[s.a.sz||60]+' · guess'}</button></li>`).join('')}</ul>`
-      :'<p class="how">no steps in this window</p>')
+      :'<p class="how">nothing actionable today</p>')
     +`<p class="k2">tap a step to intend it · tap its size to set it (15 min · 1 h · half day) · sizes marked guess are be•do's</p>`;
   el.querySelectorAll('.pk').forEach(b=>b.onclick=()=>{ const t=offer[+b.dataset.i].a.t; picked.has(t)?picked.delete(t):picked.add(t); store(PK,[...picked]); intention(blocks); });
   el.querySelectorAll('.sz').forEach(b=>b.onclick=()=>{ const a=offer[+b.dataset.i].a, now=size(a); mySize[a.t]=SZ[(SZ.indexOf(now)+1)%SZ.length]; store(SK,mySize); intention(blocks); });
 }
 function draw(){ card(); const b=shape(); lists(b); intention(b); flow(b); }
-const setPressed=(sel,attr,val)=>document.querySelectorAll(sel+' button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset[attr]===String(val))));
-document.querySelectorAll('.lean button').forEach(b=>b.onclick=()=>{ lean=b.dataset.l; setPressed('.lean','l',lean); draw(); });
-document.querySelectorAll('.win button').forEach(b=>b.onclick=()=>{ win=+b.dataset.w; setPressed('.win','w',win); draw(); });
-setPressed('.lean','l',lean); setPressed('.win','w',win);
 document.addEventListener('bedo-theme',draw);
 draw();
 </script>
