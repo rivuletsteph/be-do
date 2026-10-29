@@ -14,7 +14,7 @@ page:
               wheel was shared) and buffer (what is past its date), each 0–100, in
               equal parts. Tap a morning to see how its number was made.
   the lean    be•do chooses a tending day, balanced, or a growing day from base flow
-              (and a knocked-back secure base); the switch overrules it.
+              (and a knocked-back secure base). Today only, no switch.
   the blocks  each rhythm, its tending first, then the drives that grow out of it,
               each drive with its goal, its easiest next step first.
   the flow    steps → drives → rhythms → a balanced wellness wheel, the foundation;

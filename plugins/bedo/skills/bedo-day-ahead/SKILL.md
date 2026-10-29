@@ -525,7 +525,8 @@ the my day page.
    read is left out and said so.
 2. **The lean** — be•do chooses: base flow *optimal* (85+) → a growing day, *good* (70–84)
    → balanced, *pay attention* → a tending day; a knocked-back secure base pulls to tending.
-   The page says why; the switch overrules it for the day.
+   The page says why. No switch, and no week or month view: just today and the next
+   right step, what is actionable (her words, 29 Oct 2026).
 3. **The rhythms, with their drives** — one block per rhythm, resting on ☸️ a balanced
    wellness wheel, the foundation (her words): *tend* first, then *grow*, each drive with
    its goal in her words. Each list runs from the easiest next step, read from the row (its
@@ -533,7 +534,7 @@ the my day page.
    A tending day shows every tending step and rests the drives; balanced, the easiest one each (no stars, her words); a
    growing day, tending only what's due today and up to four steps a drive.
 4. **The flow** — steps → drives → rhythms → the wheel, each drive dotted on to its
-   destinations; today / this week / this month (the next 7 and 31 days). Done today is
+   destinations, for today. Done today is
    drawn done, with each drive's % moved today.
 5. **The intention** — after the lean, how much the day holds, in one line (*about 3 hours
    you could give to steps today*): the hours a day could give to steps (`step_day_hours`,
