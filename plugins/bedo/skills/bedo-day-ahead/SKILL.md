@@ -528,9 +528,9 @@ the my day page.
    The page says why; the switch overrules it for the day.
 3. **The rhythms, with their drives** — one block per rhythm, resting on ☸️ a balanced
    wellness wheel, the foundation (her words): *tend* first, then *grow*, each drive with
-   its goal in her words. A ★ marks the easiest next step on each, read from the row (its
+   its goal in her words. Each list runs from the easiest next step, read from the row (its
    deliverable on it, in motion, a way in, today) — steps record no effort.
-   A tending day shows every tending step and rests the drives; balanced, one ★ each; a
+   A tending day shows every tending step and rests the drives; balanced, the easiest one each (no stars, her words); a
    growing day, tending only what's due today and up to four steps a drive.
 4. **The flow** — steps → drives → rhythms → the wheel, each drive dotted on to its
    destinations; today / this week / this month (the next 7 and 31 days). Done today is

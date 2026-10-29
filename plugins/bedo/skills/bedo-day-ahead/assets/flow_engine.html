@@ -113,7 +113,7 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
 <div class="blocks" id="blocks"></div>
 <div class="card"><div class="scroll"><svg id="flow" role="img" aria-label="Steps flowing into drives, rhythms, the wellness wheel and destinations"></svg></div>
 <div class="sum" id="sum"></div>
-<p class="hint">★ the easiest next step on each rhythm or drive · tap anything on the flow to follow it · tap again to see all</p></div>
+<p class="hint">each list runs from the easiest next step · tap anything on the flow to follow it · tap again to see all</p></div>
 <div class="focus" id="focus" hidden></div>
 </main>
 <script>/*BFJS*/</script>
@@ -135,7 +135,7 @@ document.getElementById('h1').innerHTML=esc(D.label)+(D.word?` <span class="w">�
    there is the growing, the pushing, the drive — different actions, and some days I may want to do the
    min of one and the max of the other, so the system needs to be responsive to that).
    tending day: every tending step; each drive rests to one line.
-   balanced: the ★ step on each rhythm and each drive.
+   balanced: the easiest next step on each rhythm and each drive (no stars, her words 29 Oct 2026).
    growing day: tending only where something is due today; each drive opens to its next few steps.
    It starts from the morning's secure base: knocked back leans to tending. */
 const LEAN = {tend:{rh:4, dr:0}, bal:{rh:1, dr:1}, grow:{rh:'due', dr:4}};
@@ -190,7 +190,7 @@ function shape(){
   if(loose.length) blocks.push({R:{n:'',short:'drives with no rhythm yet',g:'',c:'clay'}, shown:[], open:[], done:[], drives:loose, loose:true});
   return blocks;
 }
-function stepLine(a, star){ return `<p class="st">${a.done?'✅ ':star&&a.pick?'★ ':'→ '}${esc(a.t)}</p><div class="why">${a.done?'<span>done today</span>':whyOf(a).map(w=>`<span>${esc(w)}</span>`).join('')}${(a.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l)} ↗</a>`).join('')}</div>`; }
+function stepLine(a){ return `<p class="st">${a.done?'✅ ':'→ '}${esc(a.t)}</p><div class="why">${a.done?'<span>done today</span>':whyOf(a).map(w=>`<span>${esc(w)}</span>`).join('')}${(a.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l)} ↗</a>`).join('')}</div>`; }
 function lists(blocks){
   const when=win?win===6?'this week':'this month':'today';
   const mine = lean===CHOSEN.lean;
@@ -200,10 +200,10 @@ function lists(blocks){
     + `<br>${note[lean]} · ${when}`;
   document.getElementById('blocks').innerHTML=blocks.map(b=>{
     const R=b.R, tendHtml = b.loose ? '' :
-      (b.done.length||b.shown.length ? `<p class="k">tend</p>${b.done.map(a=>stepLine(a)).join('')}${b.shown.map(a=>stepLine(a,true)).join('')}${b.open.length>b.shown.length?`<p class="st more">+${b.open.length-b.shown.length} more to tend</p>`:''}`
+      (b.done.length||b.shown.length ? `<p class="k">tend</p>${b.done.map(a=>stepLine(a)).join('')}${b.shown.map(a=>stepLine(a)).join('')}${b.open.length>b.shown.length?`<p class="st more">+${b.open.length-b.shown.length} more to tend</p>`:''}`
        : b.open.length ? `<p class="rest">${b.open.length} to tend, resting ${when}</p>` : '');
     const drv=b.drives.map(x=>{ const g=D.goals[x.d.n]||'';
-      const body = x.shown.length||x.done.length ? `${x.done.map(a=>stepLine(a)).join('')}${x.shown.map(a=>stepLine(a,true)).join('')}${x.open.length>x.shown.length?`<p class="st more">+${x.open.length-x.shown.length} more on it</p>`:''}`
+      const body = x.shown.length||x.done.length ? `${x.done.map(a=>stepLine(a)).join('')}${x.shown.map(a=>stepLine(a)).join('')}${x.open.length>x.shown.length?`<p class="st more">+${x.open.length-x.shown.length} more on it</p>`:''}`
         : `<p class="rest">resting ${when} · ${x.open.length} ${x.open.length===1?'step':'steps'} waiting</p>`;
       return `<div class="dr" style="--dc2:${col(x.d.c)}"><div class="dn">${esc((x.d.g||'')+' '+(x.d.short||x.d.n))}</div>${g&&(x.shown.length||lean!=='tend')?`<div class="gl">${esc(g)}</div>`:''}${body}</div>`; }).join('');
     return `<section class="rb" style="--dc:${col(R.c)}"><h2>${esc((R.g||'')+' '+(R.short||R.n))}${b.loose?'':'<span class="to">→ ☸️ the wellness wheel</span>'}</h2>${tendHtml}${drv?`${b.loose?'':'<p class="k">grow</p>'}${drv}`:''}</section>`;
@@ -266,7 +266,7 @@ function flow(blocks){
     if(s.a.done){ S('rect',{x:X0,y:s.y-7,width:13,height:13,rx:3,fill:cv('--accent')},n); S('path',{d:`M${X0+3.5},${s.y} l2.5,2.8 l4,-5.5`,fill:'none',stroke:cv('--card'),'stroke-width':2},n); }
     else if(s.a.today) S('rect',{x:X0,y:s.y-7,width:13,height:13,rx:3,fill:cv('--card'),stroke:cv('--accent'),'stroke-width':2},n);
     else S('path',{d:'M6.6 0 0 8h4.2L3.4 14 11 5.6H6.6z',transform:`translate(${X0+1},${s.y-7})`,fill:cv('--bolt')},n);
-    const t=T((s.a.pick?'★ ':'')+cut(s.a.t,s.a.pick?38:40),{x:X0+22,y:s.y+4.5,'font-size':12.5,fill:s.a.done?cv('--muted'):cv('--ink')},n);
+    const t=T(cut(s.a.t,40),{x:X0+22,y:s.y+4.5,'font-size':12.5,fill:s.a.done?cv('--muted'):cv('--ink')},n);
     if(s.a.done) t.setAttribute('text-decoration','line-through');
     n.addEventListener('click',()=>focus(k,{title:s.a.t, list:[s.a]})); });
   const nt=rows.filter(r=>r.to==='r'&&!r.a.done).length, ng=rows.filter(r=>r.to==='d'&&!r.a.done).length, nd=rows.filter(r=>r.a.done).length;
@@ -277,7 +277,7 @@ function focus(k,info){
   if(cur===k){ cur=null; svg.querySelectorAll('.dim').forEach(e=>e.classList.remove('dim')); box.hidden=true; return; }
   cur=k; const on=new Set(part[k]||[]);
   svg.querySelectorAll('path,g.n').forEach(e=>e.classList.toggle('dim',!on.has(e)));
-  box.innerHTML=`<h3>${esc(info.title)}</h3><ul>${info.list.map(a=>`<li>${a.done?'✅ ':a.pick?'★ ':''}${esc(a.t)}${a.done?'<span class="when">done today</span>':a.today?'<span class="when">today</span>':a.d?`<span class="when">${esc(fmt(a.d))}</span>`:''}${(a.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l)} ↗</a>`).join('')}</li>`).join('')}</ul>`;
+  box.innerHTML=`<h3>${esc(info.title)}</h3><ul>${info.list.map(a=>`<li>${a.done?'✅ ':''}${esc(a.t)}${a.done?'<span class="when">done today</span>':a.today?'<span class="when">today</span>':a.d?`<span class="when">${esc(fmt(a.d))}</span>`:''}${(a.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l)} ↗</a>`).join('')}</li>`).join('')}</ul>`;
   box.hidden=false;
 }
 /* base flow as water through the week (29 Oct 2026, her words): each morning the river is as wide as
@@ -330,7 +330,7 @@ function card(){
 }
 /* the intention step (29 Oct 2026): after the lean, how much the day holds — today's free hours off the
    calendar, scaled by base flow (optimal aims for most of it, good a comfortable share, pay attention a
-   little) — and she fills it from the ★ steps, offered in the lean's order. Steps record no size yet:
+   little) — and she fills it from the easiest next steps, ranked from the highest priority. Steps record no size yet:
    be•do guesses 15 min, 1 h or half a day off the words and says so; a tap on the size sets hers. Her picks
    and sizes stay in this browser for now. */
 const H = D.holds, SZ=[15,60,240], SZN={15:'15 min',60:'1 h',240:'half day'};
@@ -360,7 +360,7 @@ function intention(blocks){
     +`<p class="how">${hm(Math.round(H.free*60))} free · ${H.whole} h less ${cal}${H.full?' · a full day':''} · base flow ${BFV??'not in'}${BFV!=null?', '+st:''} → ${part}</p>`
     +`<div class="fill"><span class="bar"><i class="${sum>goal?'over':''}" style="width:${goal?Math.min(100,100*sum/goal):sum?100:0}%"></i></span><span>${sum?hm(sum):'nothing yet'} of about ${hm(goal)}${sum>goal?' · a little more than the day holds':''}</span></div>`
     +(offer.length?`<ul>${offer.map((s,i)=>`<li><button class="pk" data-i="${i}" style="--dc:${col(s.c)}" aria-pressed="${picked.has(s.a.t)}"><span class="rk">${picked.has(s.a.t)?'✓':i+1}</span>${esc(s.a.t)}<small>${s.k==='tend'?'tend':'grow'} · ${esc(s.on.trim())}</small></button><button class="sz${mySize[s.a.t]?' set':''}" data-i="${i}" title="tap to change the size">${mySize[s.a.t]?SZN[mySize[s.a.t]]:'~'+SZN[s.a.sz||60]+' · guess'}</button></li>`).join('')}</ul>`
-      :'<p class="how">no ★ steps in this window</p>')
+      :'<p class="how">no steps in this window</p>')
     +`<p class="k2">tap a step to intend it · tap its size to set it (15 min · 1 h · half day) · sizes marked guess are be•do's</p>`;
   el.querySelectorAll('.pk').forEach(b=>b.onclick=()=>{ const t=offer[+b.dataset.i].a.t; picked.has(t)?picked.delete(t):picked.add(t); store(PK,[...picked]); intention(blocks); });
   el.querySelectorAll('.sz').forEach(b=>b.onclick=()=>{ const a=offer[+b.dataset.i].a, now=size(a); mySize[a.t]=SZ[(SZ.indexOf(now)+1)%SZ.length]; store(SK,mySize); intention(blocks); });

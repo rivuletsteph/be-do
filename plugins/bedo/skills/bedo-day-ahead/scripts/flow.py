@@ -16,11 +16,11 @@ page:
   the lean    be•do chooses a tending day, balanced, or a growing day from base flow
               (and a knocked-back secure base); the switch overrules it.
   the blocks  each rhythm, its tending first, then the drives that grow out of it,
-              each drive with its goal; a ★ on the easiest next step of each.
+              each drive with its goal, its easiest next step first.
   the flow    steps → drives → rhythms → a balanced wellness wheel, the foundation;
               each drive also on to the destinations it serves.
   intention   after the lean: how much the day holds (today's free hours off the
-              calendar, scaled by base flow), filled from the ★ steps she taps, in
+              calendar, scaled by base flow), filled from the easiest next steps she taps, in
               the lean's order. Steps record no size yet; be•do guesses one, said so.
 
     python3 flow.py --day-ahead DAY-day-ahead.html --local day_ahead_local.json \
