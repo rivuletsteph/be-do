@@ -50,7 +50,8 @@
       "event": "",
       "quickie": "",
       "deliverable": "",
-      "mentioned": ""
+      "mentioned": "",
+      "chat": ""
     },
     "rhythms": {
       "name": "",
@@ -69,5 +70,13 @@
       "active": "",
       "cadence": ""
     }
-  }
+  },
+  "horizon": [
+    {
+      "label": "a trip not yet booked",
+      "emoji": "",
+      "match": "trip"
+    }
+  ],
+  "horizon_drive_days": 14
 }

@@ -115,6 +115,9 @@ zip; the installed loader fetches the change by itself.
 - `run_day_ahead.sh` — the runner: `prep` · `cal` · `fetch` · `build`. Reads
   Airtable directly with the read-only token, so no row passes through the chat.
 - `scripts/day_ahead.py` — the reader and builder
+- `scripts/ledger.py` — the ledger of older weeks, for how far each drive has come.
+- `scripts/myday.py` — the my day page's two cards, where they lead and the
+  whole map, from the same read; the page's name and the day's own link
 - `scripts/bedo_cal.py` — the calendar reader: prints what to fetch from the
   Calendar connector, checks what was saved, writes `cal.json`
 - `assets/day_ahead_engine.html` — the page, nothing personal in it
@@ -128,6 +131,7 @@ zip; the installed loader fetches the change by itself.
   a machine the builder hasn't run on before.
 - `tests/test_cal.py` — drives the calendar reader and checks what it refuses.
 - `tests/test_three.py` — how be•do's three are chosen (J9).
+- `tests/test_myday.py` — the two cards, the ledger, and the day's own link.
 
 The runner copies them into the working folder fresh from the version store on
 every `prep`; nothing here is used from a project copy. Three things differ by
@@ -321,14 +325,23 @@ contents never pass through the chat.
    `event_aliases` (the user's own names for a recurring thing), then shared
    words. **Today is held stricter**: a same-subject row only counts as the
    event's own if it is timed within the hour; otherwise it becomes an ask.
-6. **Publish** to the same artifact, copying the page to
-   `/mnt/user-data/outputs/` first. The link is `artifact_url` in the local
-   settings file (title The Day Ahead, favicon 👁️). One living page,
-   republished in place, pinned in the sidebar.
-7. **Save the page** to that week's Drive folder,
-   `be•do/<year>-W## <Mon D>/YYYY-MM-DD-day-ahead.html`, and read back its size
-   to confirm (how, below).
-8. **Log the step**: the ◉ 👁️ look ahead row, dawn, with the page URL as its
+6. **Publish to the day's own page** (261028_myday, her decision of 28 Oct
+   2026: *at the end of the day it just becomes the day behind, and that's
+   what's saved for the record*). Each day has one my day page, named like that
+   day's my day chat — the build prints it as `page.title` and puts it in the
+   page's `<title>` (`▶️🔆1028 💧 Wed 𖡎 W44 my day`). The build also reads
+   today's ◉ 👁️ look ahead row and prints `page.url` and `page.row`:
+   - **`page.url` set** — the day's page exists: republish to that link, in
+     place. The draft, the final, and every later piece of the day (its rows
+     and photos, the close) go to this one link.
+   - **`page.url` empty** — the first publish of the day: publish a new
+     artifact (favicon 👁️), then write its link to the look ahead row's
+     `deliverable` (`page.row`; if the row isn't written yet, write it with the
+     link in it). That row is where every later build finds the link.
+   `artifact_url` in the settings is the old single living page; it is never a
+   day's own, and the build ignores it as one. No Drive copy each time: the
+   pages are exported at the desktop (her word, 28 Oct 2026).
+7. **Log the step**: the ◉ 👁️ look ahead row, dawn, with the day's page as its
    deliverable and one `[be•do]` line naming the three, the gaps and the clashes.
 
 **Saving to Drive from the cloud** is the Drive connector's `create_file`,
@@ -376,20 +389,34 @@ the user. A project with no named next step is the defect.
    the next of `kid_chores` (or the builder's own list). Name it once in the
    reply, as the build prints it; she decides whether he does it, and it is
    never pushed again that day. It feeds Hero's Service on his quest.
-2. **Your intention** — one slot, in the user's words; one empty slot before
+   **The top, since 28 Oct 2026** (her words): the chat's name; then *Week 44 —
+   Connection*, the week and its word; then the date and the day, with the
+   day's intention under it. The lead line, the chore and the secure base are
+   off the heading for now (*a clear day ahead* "falls flat" late in a full day;
+   the secure base is "too many pointy emojis") — the plan still carries them.
+2. **Your intention** — in the header since 28 Oct 2026; one slot, in the user's words; one empty slot before
    they name it. More slots only when they name more. Above the week's word (8 Oct 2026, their
    words: *my daily intention above the week's intention, then the calendar*).
-3. **be•do's three** — their own section, each card saying why it rose, and
-   the next in line beneath. Before the intentions are named this is what the
-   draft is for.
-4. **This week's word.**
+3. **The next right thing** — be•do's three, their own section (28 Oct 2026,
+   her words: *I really just want to see what is the next right thing … sometimes
+   I like to have choices*). The first not yet done stands in front; the others
+   sit under *or, if that can't happen now*; one done today drops to the end,
+   struck through. Each card says why it rose and its way in: the chat, the
+   deliverable, the links in its words, or, plainly, *no way in yet · open a
+   chat for it*. Before the intentions are named this is what the draft is for.
+4. **This week's word** — one small line since 28 Oct 2026 (her words: *it's
+   too prominent*). **Today on the calendar** (5, below) now sits above the next
+   right thing, right under the intention (28 Oct 2026: *those are the things
+   that are not moving … what I do a lot in response to*).
 5. **Today on the calendar** — every event as the calendar shows it
    (its own title and glyphs, start and end, a 🗓️ link), in the day behind's
    event cards, with its drive underneath. A child's calendar gets the ochre
    edge.
    **Past its date** — every open row past its target, oldest first, never
    folded away (see `overdue` above). Empty when the morning's answers are in.
-6. **After the calendar** — what else is due within `task_horizon_days` (7) and dated work
+6. **After the calendar** — not drawn on a weekday since 28 Oct 2026 (her
+   words: *these are all things I wanted to do today, but it's not all going to
+   happen*); the plan still carries `tasks`. What it held: what else is due within `task_horizon_days` (7) and dated work
    within `soon_days` (3; `0` keeps the list to today, her setting from 28 Oct 2026),
    at most `max_tasks` (10) with the three, never a row that is a calendar
    event's own and never a row past its date (it has its own section). Each card: the date on the left (`today`, or
@@ -398,11 +425,51 @@ the user. A project with no named next step is the defect.
    in motion, teal with a check when done, dashed for a potential, and a gold
    bolt — then the title in semibold, the drive's emoji and name beneath, and
    why it rose (`someone waiting`, `in motion`…) in small type.
-7. **The next two weeks, from tomorrow** — today is not repeated here; it has its
-   own section above (9 Oct 2026). Both calendars matched against the stream,
+7. **The next three days, from tomorrow** — today is not repeated here; it has its
+   own section above (9 Oct 2026). The rest of the two weeks folds into one closed
+   line, *later in the two weeks*, its calendar events only (28 Oct 2026: the
+   next 1, 2 or 3 days need to show up more than the things way out). Each due
+   line names its drive and, when the row has them, its next step and links
+   (28 Oct 2026: *it's not clear what [it] is … what is the next step?*). Both calendars matched against the stream,
    with `no row yet` and `clash` tags. Each due line starts with the same
    drawn status and bolt, then its drive's emoji (the drive's name on hover).
-8. **The map** of the three along their drives.
+   **On the horizon** — after the days (28 Oct 2026, her words: *the big events
+   … the things I really need to prepare for … here's what you need to do to
+   prepare for those*). Each item: its date and how far off, or *no date yet ·
+   not on the calendar*; and the open steps that prepare it, in motion first,
+   four at a time, each with its step and links when the row has them; an item
+   with none says *no steps yet · break it down in a chat*. Two sources, both
+   off the rows: an active drive whose own date falls within
+   `horizon_drive_days` (14), and each `horizon` entry in the settings —
+   `{label, emoji, match}`, a pattern on open row titles, dated within ten
+   weeks or undated, gathered as one item.
+8. **Where they lead** — card 1, saved 4 Oct 2026: the day only. Today's
+   steps (due today, carried in from the last week, set this morning, or done
+   today) under the drive or rhythm they serve, drives first, then rhythms;
+   every step shown with her words and its way in (as in the three), a red open
+   box in front and the bolt after; each drive's % progress (`done of done +
+   open, since` its first row in the read or the ledger) and its line on to its
+   date and destinations.
+9. **The whole map** — map v3, saved 5 Oct 2026: every rhythm in code order,
+   and only the drives with a step today (28 Oct 2026; the rest fold into `+N
+   resting`); the past folded into one narrow shaded band (*since jun*), the
+   months ahead given the room, today's red boxes, the curves into the
+   destinations; tap a drive or a destination to follow it — four steps at a
+   time, each with its way in, and a step still open with a deliverable on it
+   marked *has its deliverable · done?*. *How far you've come* reaches back as
+   far as the ledger does (below).
+   Both are built by `scripts/myday.py` from the same read, never by hand: the
+   rhythms, drives and destinations from the rhythms table (a rhythm's code
+   orders it and picks its earthy colour; `rhythm_colours` in the settings
+   can name one), the steps and the ground covered from the stream.
+   **The ledger** — `history/*.json` beside the settings file (or `--history`),
+   made by `scripts/ledger.py` from older reads and the weekly CSV backups:
+   every finished step and lived row on a rhythm or drive, so a drive's % does
+   not drop to 0 when its work is older than the read (28 Oct 2026). It is the
+   person's, kept in the working folder, never in the repo; without it the
+   page reaches back only as far as the read.
+10. **Open by drive** — not drawn since 28 Oct 2026 (*redundant … overwhelming*);
+   the plan still carries `drives`.
 
 **Kept off the page, at the read** (5 Oct 2026):
 - **Build work on the system itself** — any row on a drive named in
@@ -426,9 +493,14 @@ cadence lives on the practice, as A132 asked.
 
 The provenance line counts what each filter set aside.
 
-**Light for now** (`data-bedo="day"`, fixed; the day behind is dark), in the
-now palette (`plugins/bedo/assets/now-palette.css`), which `test_palette.py`
-holds it to. It must fit a phone: no horizontal scroll at 390 px.
+**Light or dark, as the device is** (her word, 28 Oct 2026: *I like to be able
+to view it in dark or light mode. Dark mode is good at night when I'm looking at
+it or first thing in the morning*): the page follows the device's setting, and
+the switch at the top (device · light · dark) sets it for that device. Never
+light-then-dark by the clock. Both are the now palette
+(`plugins/bedo/assets/now-palette.css`), which `test_palette.py` holds it to;
+the two cards keep their earthy colours in both. It must fit a phone: no
+horizontal scroll at 390 px (the whole map scrolls sideways inside its card).
 
 ## Saturday and Sunday have their own shape
 
@@ -452,14 +524,14 @@ Saturday, each day tagged *the peak* (the most hours on her calendar), *open*
 *away* (a stretch away; a ⬜ window like early voting is not one); **ready for
 Monday**, open work due in the next two days that isn't a calendar event's own
 row, the chat's `--pick`s first when given; past its date; **the week after**.
-No be•do's three, no task list, no map, no open by drive. In the chat, say the
+No be•do's three, no task list, no cards, no open by drive. In the chat, say the
 lead line and what's ready for Monday, not the three.
 
 **Saturday** — fun first; the calendar comes after (her words, 24 Oct). Her
 intention, today on the calendar, past its date, **when there's room:
 tending** (at most three open rows under the rhythms the settings name in
 `tending`, never under `work_parents`: past their date first, then due this
-week, then in motion), then the next two weeks. No three, no task list, no map.
+week, then in motion), then the next two weeks. No three, no task list, no cards.
 `saturday_lead` in the settings can reword the lead.
 
 The settings keys (`tending`, `sunday_morning`, `sunday_morning_until`,
