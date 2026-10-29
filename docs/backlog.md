@@ -67,6 +67,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | 260929_0740 | ⬜ | Pre-commit check — refuse any commit carrying a credential or a personal file |
 | 261001_1323 | ⬜ | Guardrails for a work-log entry versus a stream entry — and a skill for it |
 | 261006_inb_c | ⬜ | The remaining list renders every reply while a flow is open, unasked — it was dropped several replies running |
+| 261029_rem | ⬜ | The remaining list names every practice in words, never a bare glyph, and orders them all by her predicted order (each practice's `typical time`), with no separate `also:` tail. Her words, 29 Oct 2026: what is the thought cloud? I already forgot what that means, so don't do that. Just write the remaining morning practices in the order I typically do them, or that you predict I'm going to do them |
 | 261006_inb_d | ⬜ | The intention check isn't asked again once she's said she isn't ready |
 | 261006_inb_e | ⬜ | Preflight and the remaining list in a plain chat: make the compact-form rules impossible to get wrong (the first try passed the whole catalog and the wrong total) |
 | 261006_inb_f | ⬜ | Say in the checks skill what to search for when `list_records_for_table` won't load — it stalled preflight for several tries |
