@@ -131,6 +131,9 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .c1 .way a,.wm .lk{font:500 11px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:2px 9px;text-decoration:none}
 .c1 .way .none,.wm .noway{font-size:12px;color:var(--past)}
 .later{margin-top:10px}
+.loose summary{cursor:pointer;font-size:12px;color:var(--faint);padding-left:52px}
+.loose .due{opacity:.75}
+.evmv .mv{margin:0 0 4px 52px;font-size:12px}
 .later summary{cursor:pointer;font-size:13px;color:var(--muted)}
 .later ul{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:2px;font-size:12.5px;color:var(--muted)}
 .later li b{font:500 11px var(--mono);color:var(--faint);display:inline-block;min-width:4.2rem}
@@ -445,7 +448,7 @@ function pastDue(){
 
 /* the days, as the calendar and the stream show them; `wk` carries the Sunday read of each day
    (the peak, the open days, the clashes) when the page has one */
-function renderDays(title, sub, ds, wk){
+function renderDays(title, sub, ds, wk, quiet){
   const nGap = ds.reduce((n,d)=>n+d.events.filter(e=>e.gap).length,0);
   const nClash = ds.reduce((n,d)=>n+d.events.filter(e=>(e.clash||[]).length).length,0);
   const sec = $(`<section><h2>${esc(title)}</h2><p class="sub">${esc(sub)}</p>
@@ -465,10 +468,27 @@ function renderDays(title, sub, ds, wk){
     const row = $(`<div class="day${d.today?' today':''}${d.bands.length?' band':''}"><div class="dl">${d.today?'today<br>':''}${esc(short(d.date))}</div><div class="items"></div></div>`);
     const it = row.querySelector('.items');
     if (w && w.tags.length) it.append($(`<div class="tags">${w.tags.map(t=>`<span class="wtag ${t}">${t==='peak'?`the peak · ${w.hours} h`:t}</span>`).join('')}</div>`));
-    d.events.forEach(e=>it.append($(`<div class="ev"><span class="tm">${esc(e.when)}</span><span>${esc(e.title)}</span>${e.who!=='you'?`<span class="who">${esc(e.who)}</span>`:''}${e.gap?'<span class="gap">no row yet</span>':''}${(e.clash||[]).map(c=>`<span class="clash">clashes with ${esc(c)}</span>`).join('')}</div>`)));
+    /* quiet: a row whose calendar link is one of the day's events is that event — its step and its
+       other links go under the event, and it is not listed again as a due line (28 Oct 2026) */
+    const own = new Map();
+    if (quiet) d.due.forEach(t=>{ if (typeof t!=='object' || !t.move) return;
+      const e = d.events.find(e=>e.link && (t.move.links||[]).some(l=>l.url===e.link)); if (e) own.set(t, e); });
+    d.events.forEach(e=>{
+      const rows = [...own].filter(([,x])=>x===e).map(([t])=>t);
+      const extra = rows.map(t=>moveHtml(Object.assign({}, t.move, {links:(t.move.links||[]).filter(l=>l.url!==e.link)}), true)).join('');
+      it.append($(`<div class="ev"><span class="tm">${esc(e.when)}</span><span>${esc(e.title)}</span>${e.who!=='you'?`<span class="who">${esc(e.who)}</span>`:''}${e.gap?'<span class="gap">no row yet</span>':''}${(e.clash||[]).map(c=>`<span class="clash">clashes with ${esc(c)}</span>`).join('')}</div>`));
+      if (extra) it.append($(`<div class="evmv">${extra}</div>`)); });
     (w ? w.notes : []).forEach(n=>it.append($(`<div class="note">${esc(n)}</div>`)));
-    d.due.forEach(t=>{ t = typeof t==='string' ? {title:t} : t;
+    /* quiet (the next three days, 28 Oct 2026, her words: too many things on there that aren't
+       really worked out): a step shows when it has its next step or a link; the rest fold into
+       one line for the day, opened when she wants to work through them */
+    const loose = [];
+    d.due.forEach(t=>{ if (own.has(t)) return; t = typeof t==='string' ? {title:t} : t;
+      // a row that is only a calendar event's (no step, no link but the event's) is the calendar's line
+      if (quiet && t.move && !t.move.step && (t.move.links||[]).length && t.move.links.every(l=>l.label==='calendar event')) return;
+      if (quiet && !(t.move && (t.move.step || (t.move.links||[]).length))) { loose.push(t); return; }
       it.append($(`<div class="due"${t.drive?` title="${esc(t.drive)}"`:''}>${glyph(t.st)}${t.emoji?`<span class="de">${esc(t.emoji)}</span>`:''}${esc(t.title)}${t.drive?`<span class="dv">${esc(t.drive)}</span>`:''}${moveHtml(t.move, true)}</div>`)); });
+    if (loose.length) it.append($(`<details class="loose"><summary>${loose.length} more not worked out yet</summary>${loose.map(t=>`<div class="due">${glyph(t.st)}${t.emoji?`<span class="de">${esc(t.emoji)}</span>`:''}${esc(t.title)}</div>`).join('')}</details>`));
     if (!d.events.length && !d.due.length) it.append($(`<div class="open">open</div>`));
     box.append(row); i++;
   }
@@ -505,8 +525,8 @@ if (SUNDAY){
   /* one section, on the horizon (28 Oct 2026, her words: on the horizon should also incorporate the
      next 3 days … what do I need to know today about what's coming up): the next three days first,
      then the big things further out */
-  const sec = renderDays('on the horizon', 'what to know today about what’s coming · the next three days, then the big things further out', near);
-  sec.querySelector('.keyline').before($(`<h3 class="hzh">the next ${near.length===1?'day':near.length+' days'}</h3>`));
+  const sec = renderDays('on the horizon', 'what to know today about what’s coming · the next three days, then the big things further out', near, null, true);
+  sec.querySelector('.keyline').replaceWith($(`<h3 class="hzh">the next ${near.length===1?'day':near.length+' days'}</h3>`));
   const fe = far.reduce((n,d)=>n+d.events.length,0);
   if (far.length) sec.append($(`<details class="later"><summary>later in the two weeks · ${fe} ${fe===1?'event':'events'} on the calendars</summary><ul>${far.filter(d=>d.events.length).map(d=>`<li><b>${esc(short(d.date))}</b>${d.events.map(e=>esc(e.title)).join(' · ')}</li>`).join('')}</ul></details>`));
   const f = further(); if (f) sec.append(f);
