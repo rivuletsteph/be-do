@@ -116,6 +116,8 @@ zip; the installed loader fetches the change by itself.
   Airtable directly with the read-only token, so no row passes through the chat.
 - `scripts/day_ahead.py` — the reader and builder
 - `scripts/ledger.py` — the ledger of older weeks, for how far each drive has come.
+- `scripts/flow.py` and `assets/flow_engine.html` — how things flow: base flow, the day's lean,
+  the rhythms with their drives, and the flow (below, *How things flow*).
 - `scripts/myday.py` — the my day page's two cards, where they lead and the
   whole map, from the same read; the page's name and the day's own link
 - `scripts/bedo_cal.py` — the calendar reader: prints what to fetch from the
@@ -132,6 +134,7 @@ zip; the installed loader fetches the change by itself.
 - `tests/test_cal.py` — drives the calendar reader and checks what it refuses.
 - `tests/test_three.py` — how be•do's three are chosen (J9).
 - `tests/test_myday.py` — the two cards, the ledger, and the day's own link.
+- `tests/test_flow.py` — base flow's balance and buffer, and a drive's goal in her words.
 
 The runner copies them into the working folder fresh from the version store on
 every `prep`; nothing here is used from a project copy. Three things differ by
@@ -501,6 +504,37 @@ light-then-dark by the clock. Both are the now palette
 (`plugins/bedo/assets/now-palette.css`), which `test_palette.py` holds it to;
 the two cards keep their earthy colours in both. It must fit a phone: no
 horizontal scroll at 390 px (the whole map scrolls sideways inside its card).
+
+## How things flow (29 Oct 2026, her latest and greatest)
+
+Her words: the whole map should become *how things flow*, and be more of the basis;
+tending and growing are different actions, and some days want the minimum of one and
+the most of the other; and *choose for me, based on my readiness and how caught up I am*.
+`scripts/flow.py` builds it from the built day-ahead page, the reads beside the settings,
+and the week's day behinds (`--behind`, a folder). It is its own page for now, beside
+the my day page.
+
+1. **Base flow** — the morning card, drawn as water through the last seven mornings. Three
+   parts, 0–100, in equal shares: **body** (that morning's readiness, the
+   `readiness_practice` row, default *morning oura*), **balance** (how evenly the day
+   before's wheel was shared: 100 when its eight are equal), **buffer** (her word: the
+   space between her and what's due — every open step already past its date that morning,
+   tending 1.5 and growing 1, 100 less 6 a point; queued, waiting, quickies, an event's own
+   row and hidden build work set aside). The river is as wide as each morning's base flow,
+   its strands as wide as their shares; tap a morning to see its sum. A part that can't be
+   read is left out and said so.
+2. **The lean** — be•do chooses: base flow *optimal* (85+) → a growing day, *good* (70–84)
+   → balanced, *pay attention* → a tending day; a knocked-back secure base pulls to tending.
+   The page says why; the switch overrules it for the day.
+3. **The rhythms, with their drives** — one block per rhythm, resting on ☸️ a balanced
+   wellness wheel, the foundation (her words): *tend* first, then *grow*, each drive with
+   its goal in her words. A ★ marks the easiest next step on each, read from the row (its
+   deliverable on it, in motion, a way in, today) — steps record no effort.
+   A tending day shows every tending step and rests the drives; balanced, one ★ each; a
+   growing day, tending only what's due today and up to four steps a drive.
+4. **The flow** — steps → drives → rhythms → the wheel, each drive dotted on to its
+   destinations; today / this week / this month (the next 7 and 31 days). Done today is
+   drawn done, with each drive's % moved today.
 
 ## Saturday and Sunday have their own shape
 

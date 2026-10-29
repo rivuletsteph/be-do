@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>(function(){var h=document.documentElement,m=window.matchMedia&&matchMedia("(prefers-color-scheme: dark)");
+function s(){h.setAttribute("data-bedo",m&&m.matches?"night":"day");document.dispatchEvent(new Event("bedo-theme"))}
+s(); if(m&&m.addEventListener) m.addEventListener("change",s);})()</script>
+<title>How Things Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/*ROOT*/
+/*NIGHT*/
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.5 var(--sans)}
+main{max-width:1120px;margin:0 auto;padding:22px 16px 60px}
+.chip{font:500 12px var(--mono);color:var(--faint);margin:0 0 6px}
+h1{font:600 clamp(26px,6vw,34px)/1.1 var(--serif);margin:0}
+h1 .w{font-style:italic;color:var(--accent);font-weight:500}
+.sub{color:var(--muted);font-size:13.5px;margin:8px 0 14px;max-width:72ch}
+.bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:0 0 6px}
+.seg{display:inline-flex;gap:4px;border:1px solid var(--rule);border-radius:999px;padding:3px}
+.seg button{font:500 12.5px var(--mono);border:0;background:none;color:var(--muted);padding:5px 12px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--card)}
+.lean button[aria-pressed="true"]{background:var(--dest);color:var(--card)}
+.leannote{font-size:12.5px;color:var(--muted);margin:0 0 14px}
+.leannote b{color:var(--ink);font-weight:600}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:10px 8px}
+.scroll{overflow-x:auto}
+#flow{display:block;min-width:860px;width:100%;height:auto}
+.n{cursor:pointer}
+.dim{opacity:.13;transition:opacity .2s}
+.sum{display:flex;flex-wrap:wrap;gap:6px 16px;margin:12px 4px 0;font-size:13px;color:var(--muted)}
+.sum b{color:var(--ink)}
+.hint{font:400 12px var(--mono);color:var(--faint);margin:10px 4px 0}
+.blocks{display:grid;gap:12px;margin:0 0 16px}
+.rb{background:var(--card);border:1px solid var(--rule);border-left:4px solid var(--dc);border-radius:14px;padding:12px 14px}
+.rb h2{margin:0;font-size:15.5px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.rb h2 .to{font:400 11px var(--mono);color:var(--faint)}
+.k{font:500 10.5px var(--mono);letter-spacing:.04em;color:var(--muted);text-transform:lowercase;margin:8px 0 2px}
+.st{font-size:14px;margin:2px 0 0}
+.st.more{font-size:13px;color:var(--muted)}
+.why{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.why span{font:500 10.5px var(--mono);color:var(--muted);background:var(--card2);border-radius:999px;padding:1px 8px}
+.why a{font:500 10.5px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:1px 8px;text-decoration:none}
+.dr{margin:10px 0 0 6px;padding:2px 0 2px 12px;border-left:2px solid var(--dc2)}
+.dr .dn{font-weight:600;font-size:13.5px}
+.dr .gl{font-size:12px;color:var(--muted);font-style:italic}
+.rest{font-size:12.5px;color:var(--faint);margin:4px 0 0}
+.focus{margin-top:12px;background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:12px 14px}
+.focus[hidden]{display:none}
+.focus h3{margin:0 0 6px;font-size:15px}
+.focus ul{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.focus li{font-size:13.5px}
+.focus a{font:500 11px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:2px 9px;text-decoration:none;margin-left:6px}
+.focus .when{font:500 11px var(--mono);color:var(--accent);margin-left:6px}
+/*BFCSS*/
+.bfw{--line:var(--rule);--text:var(--ink);--soft:var(--muted);margin:0 0 14px}
+html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:#E08A7F}
+.bfw .bf-card{font-family:var(--sans)}
+.bfmiss{font-size:12px;color:var(--faint);margin:6px 2px 0}
+.rv{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:14px 14px 12px}
+.rv h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0}
+.rv .s{font-size:12.5px;color:var(--muted);margin:2px 0 8px}
+.rv svg{display:block;width:100%;height:auto}
+.rv .day{cursor:pointer}
+.rv .how{display:grid;gap:6px;margin-top:10px;font-size:13px}
+.rv .how .r{display:grid;grid-template-columns:minmax(9rem,15rem) minmax(0,1fr) 2.6rem;gap:10px;align-items:center}
+.rv .how .r b{display:block;font-weight:600;padding-left:15px;position:relative}
+.rv .how .r b::before{content:"";position:absolute;left:0;top:.45em;width:9px;height:9px;border-radius:50%;background:var(--c)}
+.rv .how .r small{display:block;color:var(--muted);font-size:11.5px;font-weight:400}
+.rv .how .bar{height:8px;border-radius:4px;background:var(--rule);overflow:hidden}
+.rv .how .bar i{display:block;height:100%;background:var(--c);border-radius:4px}
+.rv .how .v{font:500 12.5px var(--mono);text-align:right}
+.rv .how .r.off{opacity:.55}
+.rv .sumline{font:500 12.5px var(--mono);color:var(--ink);border-top:1px solid var(--rule);padding-top:8px;margin-top:4px}
+.rv .sumline span{color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+<p class="chip" id="chip"></p>
+<h1 id="h1"></h1>
+<p class="sub">How things flow. Each rhythm is something to tend, resting on a balanced wellness wheel, the foundation; the drives grow out of the rhythms and flow on to what they lead to. Draft for your reaction.</p>
+<section class="rv" id="rv"></section>
+<div class="bar">
+  <div class="seg lean" role="group" aria-label="how today leans, to overrule be•do's choice"><button data-l="tend">tending day</button><button data-l="bal">balanced</button><button data-l="grow">growing day</button></div>
+  <div class="seg win" role="group" aria-label="window"><button data-w="0">today</button><button data-w="6">this week</button><button data-w="30">this month</button></div>
+</div>
+<p class="leannote" id="leannote"></p>
+<div class="blocks" id="blocks"></div>
+<div class="card"><div class="scroll"><svg id="flow" role="img" aria-label="Steps flowing into drives, rhythms, the wellness wheel and destinations"></svg></div>
+<div class="sum" id="sum"></div>
+<p class="hint">★ the easiest next step on each rhythm or drive · tap anything on the flow to follow it · tap again to see all</p></div>
+<div class="focus" id="focus" hidden></div>
+</main>
+<script>/*BFJS*/</script>
+<script>
+const D = /*DATA*/;
+const NS='http://www.w3.org/2000/svg', cv=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const col=c=>cv('--c-'+(c||'clay'));
+const S=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.append(e);return e;};
+const T=(s,a,p)=>{const e=S('text',Object.assign({'font-family':'IBM Plex Sans, sans-serif','font-size':13,fill:cv('--ink')},a),p);e.textContent=s;return e;};
+const MONO='IBM Plex Mono, monospace';
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const plus=(a,b)=>{const d=new Date(a+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+b);return d.toISOString().slice(0,10);};
+const fmt=s=>new Date(s+'T12:00:00Z').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'});
+const cut=(s,n)=>s.length>n?s.slice(0,n-1).replace(/\s\S*$/,'')+'…':s;
+document.getElementById('chip').textContent=D.chip;
+document.getElementById('h1').innerHTML=esc(D.label)+(D.word?` <span class="w">— ${esc(D.word)}</span>`:'');
+
+/* how today leans (29 Oct 2026, her words: there is the tending, the taking care of things, and then
+   there is the growing, the pushing, the drive — different actions, and some days I may want to do the
+   min of one and the max of the other, so the system needs to be responsive to that).
+   tending day: every tending step; each drive rests to one line.
+   balanced: the ★ step on each rhythm and each drive.
+   growing day: tending only where something is due today; each drive opens to its next few steps.
+   It starts from the morning's secure base: knocked back leans to tending. */
+const LEAN = {tend:{rh:4, dr:0}, bal:{rh:1, dr:1}, grow:{rh:'due', dr:4}};
+/* be•do chooses the lean (29 Oct 2026, her words: I'd rather that you could choose for me based on my
+   readiness and general sense of how caught up I am, how I'm feeling). Read off the day, never guessed:
+   the morning Oura readiness (80 and up leans to growing, under 70 to tending), the secure base (knocked
+   back leans to tending), and how caught up she is (three or more tending things past their date leans
+   to tending). How she's feeling joins this once the morning carries it. The switch overrules, for today. */
+/* the morning card chooses first (29 Oct 2026): optimal leans to growing, good to balanced, pay attention
+   to tending; a knocked-back secure base still pulls to tending. Without the card, the readiness rule below. */
+const BF = D.baseflow||{parts:[],missing:[]};
+const BFV = BF.parts.length ? BedoBaseFlow.score(BF.parts) : null;
+function chooseLean(){
+  if(BFV!=null){ const st=BedoBaseFlow.state(BFV), why=[`the morning card ${BFV}, ${st}`];
+    let l = st==='optimal'?'grow':st==='good'?'bal':'tend';
+    if(D.secure && D.secure!=='secure'){ l='tend'; why.push('knocked back this morning'); } else if(D.secure) why.push('secure base');
+    return {lean:l, why}; }
+  const R=D.ready||{}, why=[]; let s=0;
+  if(R.readiness!=null){ if(R.readiness>=80){ s+=1; why.push(`readiness ${R.readiness}`); } else if(R.readiness<70){ s-=1; why.push(`readiness ${R.readiness}, low`); } else why.push(`readiness ${R.readiness}`); }
+  else why.push('no readiness yet this morning');
+  if(D.secure && D.secure!=='secure'){ s-=2; why.push('knocked back this morning'); } else if(D.secure) why.push('secure base');
+  if((R.late_tend||0)>=3){ s-=1; why.push(`${R.late_tend} tending things past their date`); }
+  else if(R.late_tend) why.push(`${R.late_tend} tending ${R.late_tend===1?'thing':'things'} a little behind`);
+  else why.push('caught up on tending');
+  return {lean: s>=1?'grow':s<=-1?'tend':'bal', why};
+}
+const CHOSEN = chooseLean();
+let lean = CHOSEN.lean, win=0, cur=null, part={};
+const note = {tend:'a tending day · taking care of things first; the drives rest',
+              bal:'balanced · one step to tend on each rhythm, one to grow on each drive',
+              grow:'a growing day · tending kept to what is due today; the drives open up'};
+
+function ease(a){ return (a.dl?4:0)+(a.mo?3:0)+((a.links||[]).length?2:0)+(a.today?1:0); }
+function whyOf(a){ const w=[]; if(a.dl) w.push('its deliverable is on it · done?'); if(a.mo) w.push('already in motion');
+  if((a.links||[]).length) w.push('its chat or file is linked'); if(a.today) w.push('today'); else if(a.d) w.push(fmt(a.d)); return w; }
+const byEase=(a,b)=>ease(b)-ease(a)||(a.d||'9').localeCompare(b.d||'9');
+
+// the shape: each rhythm, its own steps to tend, and the drives under it (a drive whose rhythm is unknown sits apart)
+function shape(){
+  const end=plus(D.day,win), inWin=a=>a.today||(a.d&&a.d<=end);
+  const doneBy={}; (D.done||[]).forEach(x=>{ (doneBy[x.rd]=doneBy[x.rd]||[]).push({t:x.t,done:true,today:true}); });
+  const L=LEAN[lean];
+  const keep=(acts,n)=>{ const open=acts.filter(a=>!a.done).sort(byEase); open.forEach(a=>a.pick=false); if(open[0]) open[0].pick=true;
+    const shown = n==='due' ? open.filter(a=>a.today).slice(0,2) : open.slice(0,n);
+    return {shown, open}; };
+  const known=new Set(D.order);
+  const blocks=D.order.map(r=>{ const R=D.rhythms.find(x=>x.n===r); if(!R) return null;
+    const tend=keep(R.acts.filter(inWin), L.rh);
+    const drives=D.drives.filter(d=>d.parent===r).map(d=>({d, ...keep(d.acts.filter(inWin), L.dr), done:doneBy[d.n]||[]})).filter(x=>x.open.length||x.done.length);
+    return {R, ...tend, done:doneBy[R.n]||[], drives}; }).filter(b=>b&&(b.open.length||b.drives.length||b.done.length));
+  const loose=D.drives.filter(d=>!known.has(d.parent)).map(d=>({d, ...keep(d.acts.filter(inWin), L.dr), done:doneBy[d.n]||[]})).filter(x=>x.open.length||x.done.length);
+  if(loose.length) blocks.push({R:{n:'',short:'drives with no rhythm yet',g:'',c:'clay'}, shown:[], open:[], done:[], drives:loose, loose:true});
+  return blocks;
+}
+function stepLine(a, star){ return `<p class="st">${a.done?'✅ ':star&&a.pick?'★ ':'→ '}${esc(a.t)}</p><div class="why">${a.done?'<span>done today</span>':whyOf(a).map(w=>`<span>${esc(w)}</span>`).join('')}${(a.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l)} ↗</a>`).join('')}</div>`; }
+function lists(blocks){
+  const when=win?win===6?'this week':'this month':'today';
+  const mine = lean===CHOSEN.lean;
+  document.getElementById('leannote').innerHTML = (mine
+    ? `<b>be•do chose ${lean==='grow'?'a growing day':lean==='tend'?'a tending day':'balanced'}</b> · ${esc(CHOSEN.why.join(' · '))}`
+    : `<b>you chose ${lean==='grow'?'a growing day':lean==='tend'?'a tending day':'balanced'}</b> · be•do had ${CHOSEN.lean==='grow'?'a growing day':CHOSEN.lean==='tend'?'a tending day':'balanced'}`)
+    + `<br>${note[lean]} · ${when}`;
+  document.getElementById('blocks').innerHTML=blocks.map(b=>{
+    const R=b.R, tendHtml = b.loose ? '' :
+      (b.done.length||b.shown.length ? `<p class="k">tend</p>${b.done.map(a=>stepLine(a)).join('')}${b.shown.map(a=>stepLine(a,true)).join('')}${b.open.length>b.shown.length?`<p class="st more">+${b.open.length-b.shown.length} more to tend</p>`:''}`
+       : b.open.length ? `<p class="rest">${b.open.length} to tend, resting ${when}</p>` : '');
+    const drv=b.drives.map(x=>{ const g=D.goals[x.d.n]||'';
+      const body = x.shown.length||x.done.length ? `${x.done.map(a=>stepLine(a)).join('')}${x.shown.map(a=>stepLine(a,true)).join('')}${x.open.length>x.shown.length?`<p class="st more">+${x.open.length-x.shown.length} more on it</p>`:''}`
+        : `<p class="rest">resting ${when} · ${x.open.length} ${x.open.length===1?'step':'steps'} waiting</p>`;
+      return `<div class="dr" style="--dc2:${col(x.d.c)}"><div class="dn">${esc((x.d.g||'')+' '+(x.d.short||x.d.n))}</div>${g&&(x.shown.length||lean!=='tend')?`<div class="gl">${esc(g)}</div>`:''}${body}</div>`; }).join('');
+    return `<section class="rb" style="--dc:${col(R.c)}"><h2>${esc((R.g||'')+' '+(R.short||R.n))}${b.loose?'':'<span class="to">→ ☸️ the wellness wheel</span>'}</h2>${tendHtml}${drv?`${b.loose?'':'<p class="k">grow</p>'}${drv}`:''}</section>`;
+  }).join('');
+}
+
+// the flow: steps → drives → rhythms → the wheel; each drive also on to its destinations
+function flow(blocks){
+  const svg=document.getElementById('flow'); svg.textContent=''; cur=null; part={}; document.getElementById('focus').hidden=true;
+  const ROW=24, TOP=34, GAP=12, X0=12, XS=330, XD=500, XR=680, XO=860;
+  const reg=(k,e)=>{(part[k]=part[k]||[]).push(e);};
+  const rows=[], drs=[], rhs=[];
+  let y=TOP;
+  blocks.forEach(b=>{ const y0=y, R=b.R;
+    const own=[...b.done,...b.shown].map(a=>({a,to:'r'}));
+    own.forEach(s=>{ s.y=y+ROW/2; rows.push({...s,b}); y+=ROW; });
+    b.drives.forEach(x=>{ const dy0=y; const acts=[...x.done,...x.shown]; acts.forEach(a=>{ rows.push({a,to:'d',x,b,y:y+ROW/2}); y+=ROW; });
+      if(!acts.length){ y+=ROW*.75; } x.y0=dy0; x.y1=y; x.ym=(dy0+y)/2; drs.push({x,b}); });
+    b.y0=y0; b.y1=y; b.ym=(y0+y)/2; if(!b.loose) rhs.push(b); y+=GAP; });
+  const dests={}; drs.forEach(({x})=>x.d.dest.forEach(n=>{ (dests[n]=dests[n]||[]).push(x); }));
+  const H=Math.max(y, TOP+60+Object.keys(dests).length*34)+10; svg.setAttribute('viewBox',`0 0 1000 ${H}`);
+  [['steps',X0,'start'],['drives',XD+10,'start'],['rhythms',XR+10,'start'],['what they rest on · where they lead',XO,'start']].forEach(([t,x,a])=>T(t,{x,y:20,'font-family':MONO,'font-size':11,fill:cv('--muted'),'text-anchor':a},svg));
+  const G={b:S('g',{},svg),n:S('g',{},svg)};
+  // the wheel, the foundation, at the top of the last column; the destinations under it
+  const wheelY=TOP+6, wH=Math.max(26,rhs.length*10);
+  const wn=S('g',{class:'n'},G.n); reg('wheel',wn);
+  S('rect',{x:XO,y:wheelY,width:10,height:wH,rx:4,fill:cv('--accent')},wn);
+  T('☸️ a balanced wellness wheel',{x:XO+16,y:wheelY+wH/2+3,'font-size':13,'font-weight':600},wn);
+  T('the foundation',{x:XO+16,y:wheelY+wH/2+17,'font-family':MONO,'font-size':10,fill:cv('--muted')},wn);
+  wn.addEventListener('click',()=>focus('wheel',{title:'☸️ a balanced wellness wheel — the foundation', list:rows.filter(r=>r.to==='r').map(r=>r.a)}));
+  const dn=Object.keys(dests).map(n=>({n,ym:dests[n].reduce((s,x)=>s+x.ym,0)/dests[n].length})).sort((a,b)=>a.ym-b.ym);
+  let oy=wheelY+wH+40; dn.forEach(o=>{ o.y=Math.max(oy,o.ym-10); oy=o.y+34; });
+  const dY={}; dn.forEach(o=>dY[o.n]=o.y+10);
+  // rhythms → wheel
+  rhs.forEach(b=>{ const c=col(b.R.c), k='r:'+b.R.n;
+    const p=S('path',{d:`M${XR+10},${b.ym} C${XR+90},${b.ym} ${XO-90},${wheelY+wH/2} ${XO},${wheelY+wH/2}`,fill:'none',stroke:c,'stroke-width':5,opacity:.35},G.b); reg(k,p); reg('wheel',p);
+    const n=S('g',{class:'n'},G.n); reg(k,n);
+    S('rect',{x:XR,y:b.y0,width:10,height:Math.max(12,b.y1-b.y0),rx:4,fill:c},n);
+    T(cut((b.R.g||'')+' '+(b.R.short||b.R.n),20),{x:XR+16,y:b.ym+4,'font-size':12.5,'font-weight':600},n);
+    n.addEventListener('click',()=>focus(k,{title:(b.R.g||'')+' '+b.R.n, list:rows.filter(r=>r.b===b).map(r=>r.a)})); });
+  // drives → their rhythm, and on to their destinations
+  drs.forEach(({x,b})=>{ const c=col(x.d.c), k='d:'+x.d.n;
+    if(!b.loose){ const p=S('path',{d:`M${XD+10},${x.ym} C${XD+80},${x.ym} ${XR-80},${b.ym} ${XR},${b.ym}`,fill:'none',stroke:c,'stroke-width':3,opacity:.4},G.b); reg(k,p); reg('r:'+b.R.n,p); }
+    x.d.dest.forEach(n=>{ if(dY[n]==null) return; const p=S('path',{d:`M${XD+10},${x.ym} C${XD+200},${x.ym} ${XO-160},${dY[n]} ${XO},${dY[n]}`,fill:'none',stroke:c,'stroke-width':2,opacity:.28,'stroke-dasharray':'2 4'},G.b); reg(k,p); reg('o:'+n,p); });
+    const n=S('g',{class:'n'},G.n); reg(k,n); if(!b.loose) reg('r:'+b.R.n,n);
+    S('rect',{x:XD,y:x.y0,width:8,height:Math.max(10,x.y1-x.y0),rx:3,fill:c,opacity:x.shown.length||x.done.length?1:.4},n);
+    const P=x.d.prog||{}, tot=(P.done||0)+(P.open||0), nd=x.done.length;
+    T(cut((x.d.g||'')+' '+(x.d.short||x.d.n),20),{x:XD+14,y:x.ym-(tot?1:-4),'font-size':12.5},n);
+    if(tot) T(nd?`${Math.round(100*Math.max(0,P.done-nd)/tot)}% → ${Math.round(100*P.done/tot)}% today`:`${Math.round(100*P.done/tot)}%`,{x:XD+14,y:x.ym+12,'font-family':MONO,'font-size':10.5,fill:cv('--muted')},n);
+    n.addEventListener('click',()=>focus(k,{title:(x.d.g||'')+' '+x.d.n, list:x.open.concat(x.done)})); });
+  dn.forEach(o=>{ const n=S('g',{class:'n'},G.n), k='o:'+o.n; reg(k,n);
+    S('rect',{x:XO,y:o.y,width:10,height:20,rx:4,fill:cv('--dest')},n);
+    T(((D.dest[o.n]||'')+' '+cut(o.n,22)).trim(),{x:XO+16,y:o.y+14,'font-size':12.5},n);
+    n.addEventListener('click',()=>focus(k,{title:(D.dest[o.n]||'')+' '+o.n, list:dests[o.n].flatMap(x=>x.open)})); });
+  // the steps
+  rows.forEach((s,i)=>{ const k='s'+i, b=s.b, tx=s.to==='r'?XR:XD, ty=s.to==='r'?b.ym:s.x.ym, c=col((s.to==='r'?b.R:s.x.d).c);
+    const p=S('path',{d:`M${XS},${s.y} C${XS+(tx-XS)*.45},${s.y} ${tx-(tx-XS)*.45},${ty} ${tx},${ty}`,fill:'none',stroke:c,'stroke-width':s.a.done?5:3,opacity:s.a.done?.9:.45,'stroke-dasharray':s.a.done?'0':'5 4'},G.b);
+    reg(k,p); reg(s.to==='r'?'r:'+b.R.n:'d:'+s.x.d.n,p); if(s.to==='r') reg('wheel',p);
+    const n=S('g',{class:'n'},G.n); reg(k,n); reg(s.to==='r'?'r:'+b.R.n:'d:'+s.x.d.n,n);
+    if(s.a.done){ S('rect',{x:X0,y:s.y-7,width:13,height:13,rx:3,fill:cv('--accent')},n); S('path',{d:`M${X0+3.5},${s.y} l2.5,2.8 l4,-5.5`,fill:'none',stroke:cv('--card'),'stroke-width':2},n); }
+    else if(s.a.today) S('rect',{x:X0,y:s.y-7,width:13,height:13,rx:3,fill:cv('--card'),stroke:cv('--accent'),'stroke-width':2},n);
+    else S('path',{d:'M6.6 0 0 8h4.2L3.4 14 11 5.6H6.6z',transform:`translate(${X0+1},${s.y-7})`,fill:cv('--bolt')},n);
+    const t=T((s.a.pick?'★ ':'')+cut(s.a.t,s.a.pick?38:40),{x:X0+22,y:s.y+4.5,'font-size':12.5,fill:s.a.done?cv('--muted'):cv('--ink')},n);
+    if(s.a.done) t.setAttribute('text-decoration','line-through');
+    n.addEventListener('click',()=>focus(k,{title:s.a.t, list:[s.a]})); });
+  const nt=rows.filter(r=>r.to==='r'&&!r.a.done).length, ng=rows.filter(r=>r.to==='d'&&!r.a.done).length, nd=rows.filter(r=>r.a.done).length;
+  document.getElementById('sum').innerHTML=`${nd?`<span><b>${nd}</b> done today</span>`:''}<span><b>${nt}</b> to tend</span><span><b>${ng}</b> to grow</span><span><b>${drs.filter(({x})=>x.shown.length).length}</b> drives moving · ${drs.filter(({x})=>!x.shown.length&&!x.done.length).length} resting</span>`;
+}
+function focus(k,info){
+  const svg=document.getElementById('flow'), box=document.getElementById('focus');
+  if(cur===k){ cur=null; svg.querySelectorAll('.dim').forEach(e=>e.classList.remove('dim')); box.hidden=true; return; }
+  cur=k; const on=new Set(part[k]||[]);
+  svg.querySelectorAll('path,g.n').forEach(e=>e.classList.toggle('dim',!on.has(e)));
+  box.innerHTML=`<h3>${esc(info.title)}</h3><ul>${info.list.map(a=>`<li>${a.done?'✅ ':a.pick?'★ ':''}${esc(a.t)}${a.done?'<span class="when">done today</span>':a.today?'<span class="when">today</span>':a.d?`<span class="when">${esc(fmt(a.d))}</span>`:''}${(a.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l)} ↗</a>`).join('')}</li>`).join('')}</ul>`;
+  box.hidden=false;
+}
+/* base flow as water through the week (29 Oct 2026, her words): each morning the river is as wide as
+   that morning's base flow, its three strands as wide as their shares (body teal, balance ochre,
+   buffer brick — her word for it, 29 Oct 2026); a part that couldn't be read leaves its strand dry, dotted. The river runs into
+   this morning's number. Tap a morning to see how its number was made. */
+const BFC={body:'#4F8A8B',balance:'#D4A055',effectiveness:'#BE5B50'}, BFN={body:'#8CC3C3',balance:'#E3BB77',effectiveness:'#E08A7F'};
+const bfc=k=>(document.documentElement.getAttribute('data-bedo')==='night'?BFN:BFC)[k];
+const KEYS=['body','balance','effectiveness'];
+let rvSel=null;
+function dayFlow(w){ const have=KEYS.filter(k=>w[k]!=null); return have.length?Math.round(have.reduce((a,k)=>a+w[k],0)/have.length):null; }
+function card(){
+  const wk=(BF.week||[]).slice(); const el=document.getElementById('rv'); if(!wk.length){ el.innerHTML=''; return; }
+  wk.forEach(w=>w.v=dayFlow(w)); const sel=rvSel==null?wk.length-1:rvSel, w=wk[sel];
+  const VW=1000, VH=190, X0=40, X1=760, MID=86;
+  // the river's width follows the morning's base flow, from a trickle at 40 to full at 100, so a dip shows
+  const xs=wk.map((_,i)=>X0+i*(X1-X0)/(wk.length-1));
+  // the strands, stacked about the middle line; each morning's total width is its base flow
+  const span=v=>Math.max(8,(v-40)*2.2), width=(w,k)=>{ if(w[k]==null||w.v==null) return 0; const have=KEYS.filter(j=>w[j]!=null);
+    return span(w.v)*w[k]/have.reduce((a,j)=>a+w[j],0); };
+  const tops=wk.map(w=>MID-KEYS.reduce((a,k)=>a+width(w,k),0)/2);
+  let svg=`<svg viewBox="0 0 ${VW} ${VH}" role="img" aria-label="base flow through the last seven mornings">`;
+  const smooth=pts=>{ let d=`M${pts[0][0]},${pts[0][1]}`; for(let i=0;i<pts.length-1;i++){ const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+      d+=` C${(p1[0]+(p2[0]-p0[0])/6).toFixed(1)},${(p1[1]+(p2[1]-p0[1])/6).toFixed(1)} ${(p2[0]-(p3[0]-p1[0])/6).toFixed(1)},${(p2[1]-(p3[1]-p1[1])/6).toFixed(1)} ${p2[0]},${p2[1].toFixed(1)}`; } return d; };
+  let acc=tops.slice();
+  KEYS.forEach(k=>{ const top=acc.map((y,i)=>[xs[i],y]), bot=acc.map((y,i)=>[xs[i],y+width(wk[i],k)]);
+    const back=bot.slice().reverse(); let d=smooth(top)+' L'+back[0][0]+','+back[0][1].toFixed(1)+smooth(back).slice(smooth(back).indexOf(' C'))+' Z';
+    svg+=`<path d="${d}" fill="${bfc(k)}" opacity=".78"/>`;
+    wk.forEach((x,i)=>{ if(x[k]==null) svg+=`<line x1="${xs[i]-14}" y1="${acc[i]}" x2="${xs[i]+14}" y2="${acc[i]}" stroke="${bfc(k)}" stroke-width="2" stroke-dasharray="2 3"/>`; });
+    acc=acc.map((y,i)=>y+width(wk[i],k)); });
+  // the river runs into this morning's number
+  const last=wk.length-1, ty=MID, tx=X1;
+  svg+=`<path d="M${tx},${tops[last]} C${tx+60},${tops[last]} ${880-70},${ty-46} ${880},${ty-46} L880,${ty+46} C${880-70},${ty+46} ${tx+60},${acc[last]} ${tx},${acc[last]} Z" fill="var(--rule)" opacity=".5"/>`;
+  svg+=`<circle cx="905" cy="${ty}" r="46" fill="var(--card)" stroke="var(--accent)" stroke-width="3"/><text x="905" y="${ty+10}" text-anchor="middle" font-family="Spectral, serif" font-weight="600" font-size="30" fill="var(--ink)">${wk[last].v??'—'}</text>`;
+  svg+=`<text x="905" y="${ty+66}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--muted)">this morning · ${wk[last].v!=null?BedoBaseFlow.state(wk[last].v):''}</text>`;
+  // the mornings
+  wk.forEach((x,i)=>{ const on=i===sel;
+    svg+=`<g class="day" data-i="${i}"><rect x="${xs[i]-40}" y="0" width="80" height="${VH}" fill="transparent"/>`
+      +`<line x1="${xs[i]}" y1="18" x2="${xs[i]}" y2="150" stroke="${on?'var(--accent)':'var(--rule)'}" stroke-width="${on?1.6:1}" stroke-dasharray="${on?'0':'2 4'}"/>`
+      +`<text x="${xs[i]}" y="170" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12.5" font-weight="${on?600:400}" fill="${on?'var(--ink)':'var(--muted)'}">${x.label} ${x.v??'—'}</text></g>`; });
+  svg+='</svg>';
+  // how it was made, for the chosen morning
+  const note={body:`Oura readiness ${w.label} morning`, balance:`how evenly ${w.yday}'s wheel was shared`, effectiveness:w.late?(w.late[0]+w.late[1]?`${w.late[0]+w.late[1]} past their date that morning: ${w.late[0]} tending ×1.5, ${w.late[1]} growing · 100 − 6 × ${(1.5*w.late[0]+w.late[1]).toFixed(1).replace(/\.0$/,'')}`:'nothing past its date that morning'):'not read'};
+  const have=KEYS.filter(k=>w[k]!=null);
+  const NAME={body:'body',balance:'balance',effectiveness:'buffer'};  // her word, 29 Oct 2026
+  const how=KEYS.map(k=>`<div class="r${w[k]==null?' off':''}" style="--c:${bfc(k)}"><b>${NAME[k]}<small>${esc(note[k])}</small></b><span class="bar"><i style="width:${w[k]??0}%"></i></span><span class="v">${w[k]??'—'}</span></div>`).join('');
+  const sumline = have.length ? `${have.length>1?'(':''}${have.map(k=>w[k]).join(' + ')}${have.length>1?')':''} <span>÷ ${have.length}</span> = ${w.v} <span>· ${BedoBaseFlow.state(w.v)} (85+ optimal · 70–84 good · under 70 pay attention)${have.length<3?' · '+(3-have.length)+' part not in yet':''}</span>` : 'nothing to read yet';
+  el.innerHTML=`<h2>base flow</h2><p class="s">the steady supply going into the day · the river is each morning's base flow through the last week · tap a morning to see how it was made</p>${svg}<div class="how"><div style="font:500 11px var(--mono);color:var(--muted)">${sel===last?'this morning':esc(w.label+' morning')}</div>${how}<div class="sumline">${sumline}</div></div>`;
+  el.querySelectorAll('.day').forEach(g=>g.addEventListener('click',()=>{ const i=+g.dataset.i; rvSel = (i===wk.length-1)?null:(rvSel===i?null:i); card(); }));
+}
+function draw(){ card(); const b=shape(); lists(b); flow(b); }
+const setPressed=(sel,attr,val)=>document.querySelectorAll(sel+' button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset[attr]===String(val))));
+document.querySelectorAll('.lean button').forEach(b=>b.onclick=()=>{ lean=b.dataset.l; setPressed('.lean','l',lean); draw(); });
+document.querySelectorAll('.win button').forEach(b=>b.onclick=()=>{ win=+b.dataset.w; setPressed('.win','w',win); draw(); });
+setPressed('.lean','l',lean); setPressed('.win','w',win);
+document.addEventListener('bedo-theme',draw);
+draw();
+</script>
+</body>
+</html>
