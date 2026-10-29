@@ -117,7 +117,13 @@ h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 4px}
 .mv .wt::before{content:"⏸";color:var(--kid)}
 .pastdue .mv{margin-top:4px}
 /* the next right thing (28 Oct 2026): one card in front, the other two as the choice */
-.nrt .ecard.lead{box-shadow:inset 4px 0 0 var(--accent);padding:16px 16px}
+.nrt .ecard.lead{box-shadow:inset 4px 0 0 var(--dc,var(--accent));padding:16px 16px}
+/* one drive across the three: its colour on the card, on its block in where they lead, and lit on a tap */
+.nrt .ecard.tap{cursor:pointer;box-shadow:inset 4px 0 0 var(--dc,var(--rule))}
+.nrt .ecard.lit{outline:2px solid var(--dc,var(--accent));outline-offset:2px}
+.c1 .drv{border-left:3px solid var(--dc,transparent);padding-left:10px;margin-left:-13px;border-radius:2px}
+.c1 .drv .head{cursor:pointer}
+.c1 .drv.lit{background:color-mix(in srgb,var(--dc) 10%,transparent)}
 .nrt .ecard.lead .ttl{font-size:1.12rem}
 .nrt .or{margin:14px 0 6px;font:italic 400 15px var(--serif);color:var(--muted)}
 .nrt .ecard.don .ttl{text-decoration:line-through;text-decoration-color:var(--muted);color:var(--muted)}
@@ -416,9 +422,10 @@ if (WEEKDAY && D.pareto && D.pareto.length){
   const open = D.pareto.filter(p=>!isDone(p)), done = D.pareto.filter(isDone);
   const sec = $(`<section class="tsec nrt"><h2>the next right thing</h2><p class="sub">${open.length?'one of the three for today · be•do’s pick, not your intentions':'all three done today'}</p><div class="ecards first"></div>${open.length>1?'<p class="or">or, if that can’t happen now</p>':''}<div class="ecards rest"></div></section>`);
   const why = p => [p.kind, p.why].filter(Boolean).join(' · ');
-  if (open.length){ const c = card(open[0], why(open[0])); c.classList.add('lead'); sec.querySelector('.first').append(c); }
-  open.slice(1).forEach(p=>sec.querySelector('.rest').append(card(p, why(p))));
-  done.forEach(p=>{ const c = card(p, 'done today'); c.classList.add('don'); sec.querySelector('.rest').append(c); });
+  const tag = (c,p) => { c.dataset.d = p.drive||''; return c; };
+  if (open.length){ const c = tag(card(open[0], why(open[0])), open[0]); c.classList.add('lead'); sec.querySelector('.first').append(c); }
+  open.slice(1).forEach(p=>sec.querySelector('.rest').append(tag(card(p, why(p)), p)));
+  done.forEach(p=>{ const c = tag(card(p, 'done today'), p); c.classList.add('don'); sec.querySelector('.rest').append(c); });
   page.append(sec);
 }
 
@@ -572,7 +579,7 @@ function whereTheyLead(box){
   }
   function block(rd){
     const B=C.drives[rd]||{g:'',k:'loose',c:'clay'}, L=by[rd], todo=L.filter(s=>s.s==='open').length;
-    const b=el('div','drv'), h=el('div','head');
+    const b=el('div','drv'), h=el('div','head'); b.dataset.d=rd; b.style.setProperty('--dc', col(B.c));
     h.append(el('span','n',(B.g?B.g+' ':'')+(B.short||rd))); b.append(h);
     const P=C.prog[rd]; let step=0;
     if(P&&B.k==='drive'&&P.done+P.open>0){
@@ -702,7 +709,8 @@ function wholeMap(box){
       g.addEventListener('click',()=>focus('dest:'+d.n)); });
     all.textContent=showAll?"show only today's drives":'show every drive';
   }
-  function focus(key){
+  window.bedoMapFocus = key => { if (cur!==key && (parts[key]||[]).length) focus(key, true); };
+  function focus(key, quiet){
     const els=svg.querySelectorAll('.row,path');
     if(cur===key){ cur=null; els.forEach(e=>e.classList.remove('dim','on')); focusBox.hidden=true; return; }
     cur=key;
@@ -719,7 +727,7 @@ function wholeMap(box){
     } else { const d=M.drives.find(x=>x.n===key)||M.rhythms.find(x=>x.n===key);
       focusBox.append(drive(d,4));
       if(d.dest&&d.dest.length>1) focusBox.append(el('div','none',`A step here serves ${d.dest.length} destinations at once: ${d.dest.join(', ')}.`)); }
-    focusBox.scrollIntoView({behavior:'smooth',block:'nearest'});
+    if(!quiet) focusBox.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
   function shortWords(s){
     // her words, trimmed to the first sentence or two so the step stays light
@@ -753,7 +761,30 @@ function wholeMap(box){
 }
 
 const cardsBox = el('div','cards');
-function drawCards(){ cardsBox.textContent=''; if (D.card) whereTheyLead(cardsBox); if (D.whole) wholeMap(cardsBox); }
+let litDrive = null;
+function light(d, go){
+  litDrive = d;
+  document.querySelectorAll('.lit').forEach(e=>e.classList.remove('lit'));
+  if (!d) return;
+  document.querySelectorAll('[data-d]').forEach(e=>{ if (e.dataset.d===d) e.classList.add('lit'); });
+  if (window.bedoMapFocus) window.bedoMapFocus(d);
+  const blk = [...document.querySelectorAll('.c1 .drv')].find(e=>e.dataset.d===d);
+  if (go && blk) blk.scrollIntoView({behavior:'smooth', block:'center'});
+}
+function linkThree(){
+  const C = D.card || {drives:{}};
+  document.querySelectorAll('.nrt .ecard[data-d]').forEach(c=>{
+    const B = C.drives[c.dataset.d];
+    if (B) c.style.setProperty('--dc', col(B.c));
+    c.classList.add('tap');
+    c.onclick = ev => { if (ev.target.closest('a')) return; light(litDrive===c.dataset.d ? null : c.dataset.d, true); };
+  });
+  document.querySelectorAll('.c1 .drv').forEach(b=>{
+    b.querySelector('.head').onclick = () => light(litDrive===b.dataset.d ? null : b.dataset.d, false);
+  });
+  if (litDrive) light(litDrive, false);
+}
+function drawCards(){ cardsBox.textContent=''; if (D.card) whereTheyLead(cardsBox); if (D.whole) wholeMap(cardsBox); linkThree(); }
 if (WEEKDAY && (D.card || D.whole)) { page.append(cardsBox); drawCards(); document.addEventListener('bedo-theme', drawCards); }
 
 /* open by drive — each open row under its own drive and every drive it feeds; the
