@@ -55,6 +55,26 @@ h1 .w{font-style:italic;color:var(--accent);font-weight:500}
 .focus li{font-size:13.5px}
 .focus a{font:500 11px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:2px 9px;text-decoration:none;margin-left:6px}
 .focus .when{font:500 11px var(--mono);color:var(--accent);margin-left:6px}
+.int{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:12px 14px;margin:0 0 14px}
+.int h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0}
+.int .holds{font-size:15px;margin:4px 0 0}
+.int .holds b{font-weight:600}
+.int .how{font-size:12px;color:var(--muted);margin:2px 0 10px}
+.int .fill{display:flex;align-items:center;gap:10px;margin:0 0 10px}
+.int .fill .bar{flex:1;height:10px;border-radius:5px;background:var(--rule);overflow:hidden;margin:0}
+.int .fill .bar i{display:block;height:100%;background:var(--accent);border-radius:5px;transition:width .2s}
+.int .fill .bar i.over{background:var(--dest)}
+.int .fill span{font:500 12px var(--mono);color:var(--muted);white-space:nowrap}
+.int ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.int li{display:flex;gap:8px;align-items:flex-start}
+.int .pk{flex:1;text-align:left;font:14px/1.4 var(--sans);color:var(--ink);background:none;border:1px solid var(--rule);border-left:4px solid var(--dc);border-radius:10px;padding:6px 10px;cursor:pointer}
+.int .pk[aria-pressed="true"]{background:var(--card2);border-color:var(--accent);border-left-color:var(--dc)}
+.int .pk .rk{display:inline-block;min-width:1.6em;font:600 12px var(--mono);color:var(--muted)}
+.int .pk[aria-pressed="true"] .rk{color:var(--accent)}
+.int .pk small{display:block;font:500 10.5px var(--mono);color:var(--muted)}
+.int .sz{font:500 11px var(--mono);color:var(--muted);background:var(--card2);border:1px dashed var(--rule);border-radius:999px;padding:4px 9px;cursor:pointer;white-space:nowrap;margin-top:4px}
+.int .sz.set{border-style:solid;color:var(--ink)}
+.int .k2{font:400 11.5px var(--mono);color:var(--faint);margin:8px 0 0}
 /*BFCSS*/
 .bfw{--line:var(--rule);--text:var(--ink);--soft:var(--muted);margin:0 0 14px}
 html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:#E08A7F}
@@ -89,10 +109,11 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
   <div class="seg win" role="group" aria-label="window"><button data-w="0">today</button><button data-w="6">this week</button><button data-w="30">this month</button></div>
 </div>
 <p class="leannote" id="leannote"></p>
+<section class="int" id="int"></section>
 <div class="blocks" id="blocks"></div>
 <div class="card"><div class="scroll"><svg id="flow" role="img" aria-label="Steps flowing into drives, rhythms, the wellness wheel and destinations"></svg></div>
 <div class="sum" id="sum"></div>
-<p class="hint">★ the easiest next step on each rhythm or drive · tap anything on the flow to follow it · tap again to see all</p></div>
+<p class="hint">each list runs from the easiest next step · tap anything on the flow to follow it · tap again to see all</p></div>
 <div class="focus" id="focus" hidden></div>
 </main>
 <script>/*BFJS*/</script>
@@ -114,7 +135,7 @@ document.getElementById('h1').innerHTML=esc(D.label)+(D.word?` <span class="w">�
    there is the growing, the pushing, the drive — different actions, and some days I may want to do the
    min of one and the max of the other, so the system needs to be responsive to that).
    tending day: every tending step; each drive rests to one line.
-   balanced: the ★ step on each rhythm and each drive.
+   balanced: the easiest next step on each rhythm and each drive (no stars, her words 29 Oct 2026).
    growing day: tending only where something is due today; each drive opens to its next few steps.
    It starts from the morning's secure base: knocked back leans to tending. */
 const LEAN = {tend:{rh:4, dr:0}, bal:{rh:1, dr:1}, grow:{rh:'due', dr:4}};
@@ -169,7 +190,7 @@ function shape(){
   if(loose.length) blocks.push({R:{n:'',short:'drives with no rhythm yet',g:'',c:'clay'}, shown:[], open:[], done:[], drives:loose, loose:true});
   return blocks;
 }
-function stepLine(a, star){ return `<p class="st">${a.done?'✅ ':star&&a.pick?'★ ':'→ '}${esc(a.t)}</p><div class="why">${a.done?'<span>done today</span>':whyOf(a).map(w=>`<span>${esc(w)}</span>`).join('')}${(a.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l)} ↗</a>`).join('')}</div>`; }
+function stepLine(a){ return `<p class="st">${a.done?'✅ ':'→ '}${esc(a.t)}</p><div class="why">${a.done?'<span>done today</span>':whyOf(a).map(w=>`<span>${esc(w)}</span>`).join('')}${(a.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l)} ↗</a>`).join('')}</div>`; }
 function lists(blocks){
   const when=win?win===6?'this week':'this month':'today';
   const mine = lean===CHOSEN.lean;
@@ -179,10 +200,10 @@ function lists(blocks){
     + `<br>${note[lean]} · ${when}`;
   document.getElementById('blocks').innerHTML=blocks.map(b=>{
     const R=b.R, tendHtml = b.loose ? '' :
-      (b.done.length||b.shown.length ? `<p class="k">tend</p>${b.done.map(a=>stepLine(a)).join('')}${b.shown.map(a=>stepLine(a,true)).join('')}${b.open.length>b.shown.length?`<p class="st more">+${b.open.length-b.shown.length} more to tend</p>`:''}`
+      (b.done.length||b.shown.length ? `<p class="k">tend</p>${b.done.map(a=>stepLine(a)).join('')}${b.shown.map(a=>stepLine(a)).join('')}${b.open.length>b.shown.length?`<p class="st more">+${b.open.length-b.shown.length} more to tend</p>`:''}`
        : b.open.length ? `<p class="rest">${b.open.length} to tend, resting ${when}</p>` : '');
     const drv=b.drives.map(x=>{ const g=D.goals[x.d.n]||'';
-      const body = x.shown.length||x.done.length ? `${x.done.map(a=>stepLine(a)).join('')}${x.shown.map(a=>stepLine(a,true)).join('')}${x.open.length>x.shown.length?`<p class="st more">+${x.open.length-x.shown.length} more on it</p>`:''}`
+      const body = x.shown.length||x.done.length ? `${x.done.map(a=>stepLine(a)).join('')}${x.shown.map(a=>stepLine(a)).join('')}${x.open.length>x.shown.length?`<p class="st more">+${x.open.length-x.shown.length} more on it</p>`:''}`
         : `<p class="rest">resting ${when} · ${x.open.length} ${x.open.length===1?'step':'steps'} waiting</p>`;
       return `<div class="dr" style="--dc2:${col(x.d.c)}"><div class="dn">${esc((x.d.g||'')+' '+(x.d.short||x.d.n))}</div>${g&&(x.shown.length||lean!=='tend')?`<div class="gl">${esc(g)}</div>`:''}${body}</div>`; }).join('');
     return `<section class="rb" style="--dc:${col(R.c)}"><h2>${esc((R.g||'')+' '+(R.short||R.n))}${b.loose?'':'<span class="to">→ ☸️ the wellness wheel</span>'}</h2>${tendHtml}${drv?`${b.loose?'':'<p class="k">grow</p>'}${drv}`:''}</section>`;
@@ -245,7 +266,7 @@ function flow(blocks){
     if(s.a.done){ S('rect',{x:X0,y:s.y-7,width:13,height:13,rx:3,fill:cv('--accent')},n); S('path',{d:`M${X0+3.5},${s.y} l2.5,2.8 l4,-5.5`,fill:'none',stroke:cv('--card'),'stroke-width':2},n); }
     else if(s.a.today) S('rect',{x:X0,y:s.y-7,width:13,height:13,rx:3,fill:cv('--card'),stroke:cv('--accent'),'stroke-width':2},n);
     else S('path',{d:'M6.6 0 0 8h4.2L3.4 14 11 5.6H6.6z',transform:`translate(${X0+1},${s.y-7})`,fill:cv('--bolt')},n);
-    const t=T((s.a.pick?'★ ':'')+cut(s.a.t,s.a.pick?38:40),{x:X0+22,y:s.y+4.5,'font-size':12.5,fill:s.a.done?cv('--muted'):cv('--ink')},n);
+    const t=T(cut(s.a.t,40),{x:X0+22,y:s.y+4.5,'font-size':12.5,fill:s.a.done?cv('--muted'):cv('--ink')},n);
     if(s.a.done) t.setAttribute('text-decoration','line-through');
     n.addEventListener('click',()=>focus(k,{title:s.a.t, list:[s.a]})); });
   const nt=rows.filter(r=>r.to==='r'&&!r.a.done).length, ng=rows.filter(r=>r.to==='d'&&!r.a.done).length, nd=rows.filter(r=>r.a.done).length;
@@ -256,7 +277,7 @@ function focus(k,info){
   if(cur===k){ cur=null; svg.querySelectorAll('.dim').forEach(e=>e.classList.remove('dim')); box.hidden=true; return; }
   cur=k; const on=new Set(part[k]||[]);
   svg.querySelectorAll('path,g.n').forEach(e=>e.classList.toggle('dim',!on.has(e)));
-  box.innerHTML=`<h3>${esc(info.title)}</h3><ul>${info.list.map(a=>`<li>${a.done?'✅ ':a.pick?'★ ':''}${esc(a.t)}${a.done?'<span class="when">done today</span>':a.today?'<span class="when">today</span>':a.d?`<span class="when">${esc(fmt(a.d))}</span>`:''}${(a.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l)} ↗</a>`).join('')}</li>`).join('')}</ul>`;
+  box.innerHTML=`<h3>${esc(info.title)}</h3><ul>${info.list.map(a=>`<li>${a.done?'✅ ':''}${esc(a.t)}${a.done?'<span class="when">done today</span>':a.today?'<span class="when">today</span>':a.d?`<span class="when">${esc(fmt(a.d))}</span>`:''}${(a.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l)} ↗</a>`).join('')}</li>`).join('')}</ul>`;
   box.hidden=false;
 }
 /* base flow as water through the week (29 Oct 2026, her words): each morning the river is as wide as
@@ -307,7 +328,44 @@ function card(){
   el.innerHTML=`<h2>base flow</h2><p class="s">the steady supply going into the day · the river is each morning's base flow through the last week · tap a morning to see how it was made</p>${svg}<div class="how"><div style="font:500 11px var(--mono);color:var(--muted)">${sel===last?'this morning':esc(w.label+' morning')}</div>${how}<div class="sumline">${sumline}</div></div>`;
   el.querySelectorAll('.day').forEach(g=>g.addEventListener('click',()=>{ const i=+g.dataset.i; rvSel = (i===wk.length-1)?null:(rvSel===i?null:i); card(); }));
 }
-function draw(){ card(); const b=shape(); lists(b); flow(b); }
+/* the intention step (29 Oct 2026): after the lean, how much the day holds — today's free hours off the
+   calendar, scaled by base flow (optimal aims for most of it, good a comfortable share, pay attention a
+   little) — and she fills it from the easiest next steps, ranked from the highest priority. Steps record no size yet:
+   be•do guesses 15 min, 1 h or half a day off the words and says so; a tap on the size sets hers. Her picks
+   and sizes stay in this browser for now. */
+const H = D.holds, SZ=[15,60,240], SZN={15:'15 min',60:'1 h',240:'half day'};
+const store=(k,v)=>{ try{ if(v===undefined) return JSON.parse(localStorage.getItem(k)||'null'); localStorage.setItem(k,JSON.stringify(v)); }catch(e){ return null; } };
+const PK='bedo-flow-int-'+D.day, SK='bedo-flow-size';
+let picked=new Set(store(PK)||[]), mySize=store(SK)||{};
+const hm=m=>m<60?`${m} min`:`${Math.floor(m/60)} h${m%60?' '+m%60:''}`;
+const half=h=>{ const r=Math.round(h*2)/2; return r===1?'1 hour':r<1?'half an hour':`${String(r).replace('.5','½')} hours`; };
+function stars(blocks){
+  const mix=[];
+  blocks.forEach(b=>{ const t=b.loose?null:b.open.find(a=>a.pick); if(t) mix.push({a:t,c:b.R.c,on:(b.R.g||'')+' '+(b.R.short||b.R.n),k:'tend'});
+    b.drives.forEach(x=>{ const g=x.open.find(a=>a.pick); if(g) mix.push({a:g,c:x.d.c,on:(x.d.g||'')+' '+(x.d.short||x.d.n),k:'grow'}); }); });
+  /* ranked from the highest priority, no stars (29 Oct 2026, her words): the lean's own kind first, then
+     what is past its date, then due today, then the easiest way in, then the soonest date */
+  const pri=s=>(s.k===(lean==='tend'?'tend':lean==='grow'?'grow':'')?100:0)+(s.a.d&&s.a.d<D.day?8:s.a.today?6:0)+ease(s.a);
+  return mix.sort((x,y)=>pri(y)-pri(x)||(x.a.d||'9').localeCompare(y.a.d||'9'));
+}
+function intention(blocks){
+  const el=document.getElementById('int'); if(!H){ el.innerHTML=''; return; }
+  const st=BFV!=null?BedoBaseFlow.state(BFV):'good', share=(H.share||{})[st]||.5;
+  const goal=Math.round(H.free*share*60/15)*15, offer=stars(blocks);
+  const size=a=>mySize[a.t]||a.sz||60, chosen=offer.filter(s=>picked.has(s.a.t)), sum=chosen.reduce((m,s)=>m+size(s.a),0);
+  const cal=H.booked?`${hm(Math.round(H.booked*60))} on your calendar${H.travel?` and ${hm(Math.round(H.travel*60))} to get there`:''}`:'nothing on your calendar';
+  const part={optimal:'most of it',good:'a comfortable share','pay attention':'a little'}[st];
+  el.innerHTML=`<h2>intention</h2>`
+    +`<p class="holds">${goal?`about <b>${half(goal/60)}</b> you could give to steps today`:'no free time to give to steps today'}</p>`
+    +`<p class="how">${hm(Math.round(H.free*60))} free · ${H.whole} h less ${cal}${H.full?' · a full day':''} · base flow ${BFV??'not in'}${BFV!=null?', '+st:''} → ${part}</p>`
+    +`<div class="fill"><span class="bar"><i class="${sum>goal?'over':''}" style="width:${goal?Math.min(100,100*sum/goal):sum?100:0}%"></i></span><span>${sum?hm(sum):'nothing yet'} of about ${hm(goal)}${sum>goal?' · a little more than the day holds':''}</span></div>`
+    +(offer.length?`<ul>${offer.map((s,i)=>`<li><button class="pk" data-i="${i}" style="--dc:${col(s.c)}" aria-pressed="${picked.has(s.a.t)}"><span class="rk">${picked.has(s.a.t)?'✓':i+1}</span>${esc(s.a.t)}<small>${s.k==='tend'?'tend':'grow'} · ${esc(s.on.trim())}</small></button><button class="sz${mySize[s.a.t]?' set':''}" data-i="${i}" title="tap to change the size">${mySize[s.a.t]?SZN[mySize[s.a.t]]:'~'+SZN[s.a.sz||60]+' · guess'}</button></li>`).join('')}</ul>`
+      :'<p class="how">no steps in this window</p>')
+    +`<p class="k2">tap a step to intend it · tap its size to set it (15 min · 1 h · half day) · sizes marked guess are be•do's</p>`;
+  el.querySelectorAll('.pk').forEach(b=>b.onclick=()=>{ const t=offer[+b.dataset.i].a.t; picked.has(t)?picked.delete(t):picked.add(t); store(PK,[...picked]); intention(blocks); });
+  el.querySelectorAll('.sz').forEach(b=>b.onclick=()=>{ const a=offer[+b.dataset.i].a, now=size(a); mySize[a.t]=SZ[(SZ.indexOf(now)+1)%SZ.length]; store(SK,mySize); intention(blocks); });
+}
+function draw(){ card(); const b=shape(); lists(b); intention(b); flow(b); }
 const setPressed=(sel,attr,val)=>document.querySelectorAll(sel+' button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset[attr]===String(val))));
 document.querySelectorAll('.lean button').forEach(b=>b.onclick=()=>{ lean=b.dataset.l; setPressed('.lean','l',lean); draw(); });
 document.querySelectorAll('.win button').forEach(b=>b.onclick=()=>{ win=+b.dataset.w; setPressed('.win','w',win); draw(); });

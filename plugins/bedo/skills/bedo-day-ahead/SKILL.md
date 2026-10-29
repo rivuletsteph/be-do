@@ -134,7 +134,7 @@ zip; the installed loader fetches the change by itself.
 - `tests/test_cal.py` — drives the calendar reader and checks what it refuses.
 - `tests/test_three.py` — how be•do's three are chosen (J9).
 - `tests/test_myday.py` — the two cards, the ledger, and the day's own link.
-- `tests/test_flow.py` — base flow's balance and buffer, and a drive's goal in her words.
+- `tests/test_flow.py` — base flow's balance and buffer, a drive's goal in her words, the hours the day holds and a step's guessed size.
 
 The runner copies them into the working folder fresh from the version store on
 every `prep`; nothing here is used from a project copy. Three things differ by
@@ -528,13 +528,26 @@ the my day page.
    The page says why; the switch overrules it for the day.
 3. **The rhythms, with their drives** — one block per rhythm, resting on ☸️ a balanced
    wellness wheel, the foundation (her words): *tend* first, then *grow*, each drive with
-   its goal in her words. A ★ marks the easiest next step on each, read from the row (its
+   its goal in her words. Each list runs from the easiest next step, read from the row (its
    deliverable on it, in motion, a way in, today) — steps record no effort.
-   A tending day shows every tending step and rests the drives; balanced, one ★ each; a
+   A tending day shows every tending step and rests the drives; balanced, the easiest one each (no stars, her words); a
    growing day, tending only what's due today and up to four steps a drive.
 4. **The flow** — steps → drives → rhythms → the wheel, each drive dotted on to its
    destinations; today / this week / this month (the next 7 and 31 days). Done today is
    drawn done, with each drive's % moved today.
+5. **The intention** — after the lean, how much the day holds, in one line (*about 3 hours
+   you could give to steps today*): the hours a day could give to steps (`step_day_hours`,
+   default 8) less her own timed events today on the page's calendar, and
+   `travel_buffer_min` for each one at a place (`full_day_hours` booked says *a full day*);
+   then base flow scales it — *optimal* aims for most of it (¾), *good* a comfortable share
+   (½), *pay attention* a little (¼). She taps the steps she intends — the easiest next
+   step on each rhythm and drive, numbered from the highest priority, no stars (her
+   words): the lean's own kind first (tending on a tending day, the drives on a growing
+   day), then past its date, due today, the easiest way in, the soonest date — and a bar
+   fills as she picks. Steps record no size: be•do guesses
+   15 min, 1 h or half a day off the step's words and marks it *guess*; a tap on the size
+   sets hers. Her picks and sizes stay in that browser for now — a size field on the
+   stream is hers to add, not be•do's.
 
 ## Saturday and Sunday have their own shape
 
