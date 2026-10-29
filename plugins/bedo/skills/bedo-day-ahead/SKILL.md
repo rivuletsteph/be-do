@@ -134,7 +134,7 @@ zip; the installed loader fetches the change by itself.
 - `tests/test_cal.py` — drives the calendar reader and checks what it refuses.
 - `tests/test_three.py` — how be•do's three are chosen (J9).
 - `tests/test_myday.py` — the two cards, the ledger, and the day's own link.
-- `tests/test_flow.py` — base flow's balance and buffer, and a drive's goal in her words.
+- `tests/test_flow.py` — base flow's balance and buffer, a drive's goal in her words, the hours the day holds and a step's guessed size.
 
 The runner copies them into the working folder fresh from the version store on
 every `prep`; nothing here is used from a project copy. Three things differ by
@@ -535,6 +535,17 @@ the my day page.
 4. **The flow** — steps → drives → rhythms → the wheel, each drive dotted on to its
    destinations; today / this week / this month (the next 7 and 31 days). Done today is
    drawn done, with each drive's % moved today.
+5. **The intention** — after the lean, how much the day holds, in one line (*about 3 hours
+   you could give to steps today*): the hours a day could give to steps (`step_day_hours`,
+   default 8) less her own timed events today on the page's calendar, and
+   `travel_buffer_min` for each one at a place (`full_day_hours` booked says *a full day*);
+   then base flow scales it — *optimal* aims for most of it (¾), *good* a comfortable share
+   (½), *pay attention* a little (¼). She taps the ★ steps she intends, offered in the
+   lean's order (a tending day offers tending first, a growing day the drives, balanced
+   rhythm by rhythm), and a bar fills as she picks. Steps record no size: be•do guesses
+   15 min, 1 h or half a day off the step's words and marks it *guess*; a tap on the size
+   sets hers. Her picks and sizes stay in that browser for now — a size field on the
+   stream is hers to add, not be•do's.
 
 ## Saturday and Sunday have their own shape
 

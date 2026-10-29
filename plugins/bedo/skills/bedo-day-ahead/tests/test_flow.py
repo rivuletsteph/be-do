@@ -51,7 +51,25 @@ def main():
     assert (b['tend'], b['grow']) == (1, 2), b
     assert b['value'] == round(100 - 6 * (1.5 * 1 + 2)), b
     assert flow.buffer_on(dt.date(2026, 3, 1), rows, F, {'Rhythm One'}, {'Build Work'}, local)['value'] == 100
-    print('ok — balance is evenness, a goal is her first sentence, buffer counts what is late that morning')
+
+    # how much the day holds: her own timed events today, plus the travel buffer for one at a place
+    day = dict(date='2026-03-04', events=[
+        dict(who='you', when='10:30a', end='11:30a', sort='2026-03-04T10:30:00', where=''),
+        dict(who='you', when='3p', end='4:30p', sort='2026-03-04T15:00:00', where='The Library'),
+        dict(who='Kid', when='9a', end='3p', sort='2026-03-04T09:00:00', where=''),        # someone else's
+        dict(who='you', when='', end='', sort='2026-03-04T00:00:00', where=''),            # all day
+        dict(who='you', when='ends 9a', end='9a', sort='2026-03-03T20:00:00', where=''),   # carried in
+    ])
+    h = flow.day_holds(day, dict(travel_buffer_min=30, full_day_hours=4))
+    assert (h['events'], h['booked'], h['travel'], h['free'], h['full']) == (2, 2.5, 0.5, 5.0, False), h
+    assert flow.day_holds(day, dict(step_day_hours=2))['free'] == 0
+    assert flow.clock(dt.date(2026, 3, 4), '12p').hour == 12 and flow.clock(dt.date(2026, 3, 4), '12:15a').hour == 0
+    # a step's size, guessed off its words
+    assert flow.size_guess('Call the plumber about the leak') == 15
+    assert flow.size_guess('Draft the methods chapter') == 240
+    assert flow.size_guess('Walk the dog') == 60
+    print('ok — balance is evenness, a goal is her first sentence, buffer counts what is late that morning, '
+          'the day holds her free hours, a size is a guess off the words')
 
 
 if __name__ == '__main__':

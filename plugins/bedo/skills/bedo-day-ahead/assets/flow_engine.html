@@ -55,6 +55,24 @@ h1 .w{font-style:italic;color:var(--accent);font-weight:500}
 .focus li{font-size:13.5px}
 .focus a{font:500 11px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:2px 9px;text-decoration:none;margin-left:6px}
 .focus .when{font:500 11px var(--mono);color:var(--accent);margin-left:6px}
+.int{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:12px 14px;margin:0 0 14px}
+.int h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0}
+.int .holds{font-size:15px;margin:4px 0 0}
+.int .holds b{font-weight:600}
+.int .how{font-size:12px;color:var(--muted);margin:2px 0 10px}
+.int .fill{display:flex;align-items:center;gap:10px;margin:0 0 10px}
+.int .fill .bar{flex:1;height:10px;border-radius:5px;background:var(--rule);overflow:hidden;margin:0}
+.int .fill .bar i{display:block;height:100%;background:var(--accent);border-radius:5px;transition:width .2s}
+.int .fill .bar i.over{background:var(--dest)}
+.int .fill span{font:500 12px var(--mono);color:var(--muted);white-space:nowrap}
+.int ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.int li{display:flex;gap:8px;align-items:flex-start}
+.int .pk{flex:1;text-align:left;font:14px/1.4 var(--sans);color:var(--ink);background:none;border:1px solid var(--rule);border-left:4px solid var(--dc);border-radius:10px;padding:6px 10px;cursor:pointer}
+.int .pk[aria-pressed="true"]{background:var(--card2);border-color:var(--accent);border-left-color:var(--dc)}
+.int .pk small{display:block;font:500 10.5px var(--mono);color:var(--muted)}
+.int .sz{font:500 11px var(--mono);color:var(--muted);background:var(--card2);border:1px dashed var(--rule);border-radius:999px;padding:4px 9px;cursor:pointer;white-space:nowrap;margin-top:4px}
+.int .sz.set{border-style:solid;color:var(--ink)}
+.int .k2{font:400 11.5px var(--mono);color:var(--faint);margin:8px 0 0}
 /*BFCSS*/
 .bfw{--line:var(--rule);--text:var(--ink);--soft:var(--muted);margin:0 0 14px}
 html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:#E08A7F}
@@ -89,6 +107,7 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
   <div class="seg win" role="group" aria-label="window"><button data-w="0">today</button><button data-w="6">this week</button><button data-w="30">this month</button></div>
 </div>
 <p class="leannote" id="leannote"></p>
+<section class="int" id="int"></section>
 <div class="blocks" id="blocks"></div>
 <div class="card"><div class="scroll"><svg id="flow" role="img" aria-label="Steps flowing into drives, rhythms, the wellness wheel and destinations"></svg></div>
 <div class="sum" id="sum"></div>
@@ -307,7 +326,41 @@ function card(){
   el.innerHTML=`<h2>base flow</h2><p class="s">the steady supply going into the day · the river is each morning's base flow through the last week · tap a morning to see how it was made</p>${svg}<div class="how"><div style="font:500 11px var(--mono);color:var(--muted)">${sel===last?'this morning':esc(w.label+' morning')}</div>${how}<div class="sumline">${sumline}</div></div>`;
   el.querySelectorAll('.day').forEach(g=>g.addEventListener('click',()=>{ const i=+g.dataset.i; rvSel = (i===wk.length-1)?null:(rvSel===i?null:i); card(); }));
 }
-function draw(){ card(); const b=shape(); lists(b); flow(b); }
+/* the intention step (29 Oct 2026): after the lean, how much the day holds — today's free hours off the
+   calendar, scaled by base flow (optimal aims for most of it, good a comfortable share, pay attention a
+   little) — and she fills it from the ★ steps, offered in the lean's order. Steps record no size yet:
+   be•do guesses 15 min, 1 h or half a day off the words and says so; a tap on the size sets hers. Her picks
+   and sizes stay in this browser for now. */
+const H = D.holds, SZ=[15,60,240], SZN={15:'15 min',60:'1 h',240:'half day'};
+const store=(k,v)=>{ try{ if(v===undefined) return JSON.parse(localStorage.getItem(k)||'null'); localStorage.setItem(k,JSON.stringify(v)); }catch(e){ return null; } };
+const PK='bedo-flow-int-'+D.day, SK='bedo-flow-size';
+let picked=new Set(store(PK)||[]), mySize=store(SK)||{};
+const hm=m=>m<60?`${m} min`:`${Math.floor(m/60)} h${m%60?' '+m%60:''}`;
+const half=h=>{ const r=Math.round(h*2)/2; return r===1?'1 hour':r<1?'half an hour':`${String(r).replace('.5','½')} hours`; };
+function stars(blocks){
+  const tend=[], grow=[], mix=[];
+  blocks.forEach(b=>{ const t=b.loose?null:b.open.find(a=>a.pick); if(t){ const s={a:t,c:b.R.c,on:(b.R.g||'')+' '+(b.R.short||b.R.n),k:'tend'}; tend.push(s); mix.push(s); }
+    b.drives.forEach(x=>{ const g=x.open.find(a=>a.pick); if(g){ const s={a:g,c:x.d.c,on:(x.d.g||'')+' '+(x.d.short||x.d.n),k:'grow'}; grow.push(s); mix.push(s); } }); });
+  return lean==='tend'?tend.concat(grow):lean==='grow'?grow.concat(tend):mix;
+}
+function intention(blocks){
+  const el=document.getElementById('int'); if(!H){ el.innerHTML=''; return; }
+  const st=BFV!=null?BedoBaseFlow.state(BFV):'good', share=(H.share||{})[st]||.5;
+  const goal=Math.round(H.free*share*60/15)*15, offer=stars(blocks);
+  const size=a=>mySize[a.t]||a.sz||60, chosen=offer.filter(s=>picked.has(s.a.t)), sum=chosen.reduce((m,s)=>m+size(s.a),0);
+  const cal=H.booked?`${hm(Math.round(H.booked*60))} on your calendar${H.travel?` and ${hm(Math.round(H.travel*60))} to get there`:''}`:'nothing on your calendar';
+  const part={optimal:'most of it',good:'a comfortable share','pay attention':'a little'}[st];
+  el.innerHTML=`<h2>intention</h2>`
+    +`<p class="holds">${goal?`about <b>${half(goal/60)}</b> you could give to steps today`:'no free time to give to steps today'}</p>`
+    +`<p class="how">${hm(Math.round(H.free*60))} free · ${H.whole} h less ${cal}${H.full?' · a full day':''} · base flow ${BFV??'not in'}${BFV!=null?', '+st:''} → ${part}</p>`
+    +`<div class="fill"><span class="bar"><i class="${sum>goal?'over':''}" style="width:${goal?Math.min(100,100*sum/goal):sum?100:0}%"></i></span><span>${sum?hm(sum):'nothing yet'} of about ${hm(goal)}${sum>goal?' · a little more than the day holds':''}</span></div>`
+    +(offer.length?`<ul>${offer.map((s,i)=>`<li><button class="pk" data-i="${i}" style="--dc:${col(s.c)}" aria-pressed="${picked.has(s.a.t)}">${picked.has(s.a.t)?'✓ ':'★ '}${esc(s.a.t)}<small>${s.k==='tend'?'tend':'grow'} · ${esc(s.on.trim())}</small></button><button class="sz${mySize[s.a.t]?' set':''}" data-i="${i}" title="tap to change the size">${mySize[s.a.t]?SZN[mySize[s.a.t]]:'~'+SZN[s.a.sz||60]+' · guess'}</button></li>`).join('')}</ul>`
+      :'<p class="how">no ★ steps in this window</p>')
+    +`<p class="k2">tap a step to intend it · tap its size to set it (15 min · 1 h · half day) · sizes marked guess are be•do's</p>`;
+  el.querySelectorAll('.pk').forEach(b=>b.onclick=()=>{ const t=offer[+b.dataset.i].a.t; picked.has(t)?picked.delete(t):picked.add(t); store(PK,[...picked]); intention(blocks); });
+  el.querySelectorAll('.sz').forEach(b=>b.onclick=()=>{ const a=offer[+b.dataset.i].a, now=size(a); mySize[a.t]=SZ[(SZ.indexOf(now)+1)%SZ.length]; store(SK,mySize); intention(blocks); });
+}
+function draw(){ card(); const b=shape(); lists(b); intention(b); flow(b); }
 const setPressed=(sel,attr,val)=>document.querySelectorAll(sel+' button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset[attr]===String(val))));
 document.querySelectorAll('.lean button').forEach(b=>b.onclick=()=>{ lean=b.dataset.l; setPressed('.lean','l',lean); draw(); });
 document.querySelectorAll('.win button').forEach(b=>b.onclick=()=>{ win=+b.dataset.w; setPressed('.win','w',win); draw(); });
