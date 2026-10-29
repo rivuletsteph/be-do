@@ -540,9 +540,11 @@ the my day page.
    default 8) less her own timed events today on the page's calendar, and
    `travel_buffer_min` for each one at a place (`full_day_hours` booked says *a full day*);
    then base flow scales it — *optimal* aims for most of it (¾), *good* a comfortable share
-   (½), *pay attention* a little (¼). She taps the ★ steps she intends, offered in the
-   lean's order (a tending day offers tending first, a growing day the drives, balanced
-   rhythm by rhythm), and a bar fills as she picks. Steps record no size: be•do guesses
+   (½), *pay attention* a little (¼). She taps the steps she intends — the easiest next
+   step on each rhythm and drive, numbered from the highest priority, no stars (her
+   words): the lean's own kind first (tending on a tending day, the drives on a growing
+   day), then past its date, due today, the easiest way in, the soonest date — and a bar
+   fills as she picks. Steps record no size: be•do guesses
    15 min, 1 h or half a day off the step's words and marks it *guess*; a tap on the size
    sets hers. Her picks and sizes stay in that browser for now — a size field on the
    stream is hers to add, not be•do's.

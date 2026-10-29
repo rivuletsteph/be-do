@@ -69,6 +69,8 @@ h1 .w{font-style:italic;color:var(--accent);font-weight:500}
 .int li{display:flex;gap:8px;align-items:flex-start}
 .int .pk{flex:1;text-align:left;font:14px/1.4 var(--sans);color:var(--ink);background:none;border:1px solid var(--rule);border-left:4px solid var(--dc);border-radius:10px;padding:6px 10px;cursor:pointer}
 .int .pk[aria-pressed="true"]{background:var(--card2);border-color:var(--accent);border-left-color:var(--dc)}
+.int .pk .rk{display:inline-block;min-width:1.6em;font:600 12px var(--mono);color:var(--muted)}
+.int .pk[aria-pressed="true"] .rk{color:var(--accent)}
 .int .pk small{display:block;font:500 10.5px var(--mono);color:var(--muted)}
 .int .sz{font:500 11px var(--mono);color:var(--muted);background:var(--card2);border:1px dashed var(--rule);border-radius:999px;padding:4px 9px;cursor:pointer;white-space:nowrap;margin-top:4px}
 .int .sz.set{border-style:solid;color:var(--ink)}
@@ -338,10 +340,13 @@ let picked=new Set(store(PK)||[]), mySize=store(SK)||{};
 const hm=m=>m<60?`${m} min`:`${Math.floor(m/60)} h${m%60?' '+m%60:''}`;
 const half=h=>{ const r=Math.round(h*2)/2; return r===1?'1 hour':r<1?'half an hour':`${String(r).replace('.5','½')} hours`; };
 function stars(blocks){
-  const tend=[], grow=[], mix=[];
-  blocks.forEach(b=>{ const t=b.loose?null:b.open.find(a=>a.pick); if(t){ const s={a:t,c:b.R.c,on:(b.R.g||'')+' '+(b.R.short||b.R.n),k:'tend'}; tend.push(s); mix.push(s); }
-    b.drives.forEach(x=>{ const g=x.open.find(a=>a.pick); if(g){ const s={a:g,c:x.d.c,on:(x.d.g||'')+' '+(x.d.short||x.d.n),k:'grow'}; grow.push(s); mix.push(s); } }); });
-  return lean==='tend'?tend.concat(grow):lean==='grow'?grow.concat(tend):mix;
+  const mix=[];
+  blocks.forEach(b=>{ const t=b.loose?null:b.open.find(a=>a.pick); if(t) mix.push({a:t,c:b.R.c,on:(b.R.g||'')+' '+(b.R.short||b.R.n),k:'tend'});
+    b.drives.forEach(x=>{ const g=x.open.find(a=>a.pick); if(g) mix.push({a:g,c:x.d.c,on:(x.d.g||'')+' '+(x.d.short||x.d.n),k:'grow'}); }); });
+  /* ranked from the highest priority, no stars (29 Oct 2026, her words): the lean's own kind first, then
+     what is past its date, then due today, then the easiest way in, then the soonest date */
+  const pri=s=>(s.k===(lean==='tend'?'tend':lean==='grow'?'grow':'')?100:0)+(s.a.d&&s.a.d<D.day?8:s.a.today?6:0)+ease(s.a);
+  return mix.sort((x,y)=>pri(y)-pri(x)||(x.a.d||'9').localeCompare(y.a.d||'9'));
 }
 function intention(blocks){
   const el=document.getElementById('int'); if(!H){ el.innerHTML=''; return; }
@@ -354,7 +359,7 @@ function intention(blocks){
     +`<p class="holds">${goal?`about <b>${half(goal/60)}</b> you could give to steps today`:'no free time to give to steps today'}</p>`
     +`<p class="how">${hm(Math.round(H.free*60))} free · ${H.whole} h less ${cal}${H.full?' · a full day':''} · base flow ${BFV??'not in'}${BFV!=null?', '+st:''} → ${part}</p>`
     +`<div class="fill"><span class="bar"><i class="${sum>goal?'over':''}" style="width:${goal?Math.min(100,100*sum/goal):sum?100:0}%"></i></span><span>${sum?hm(sum):'nothing yet'} of about ${hm(goal)}${sum>goal?' · a little more than the day holds':''}</span></div>`
-    +(offer.length?`<ul>${offer.map((s,i)=>`<li><button class="pk" data-i="${i}" style="--dc:${col(s.c)}" aria-pressed="${picked.has(s.a.t)}">${picked.has(s.a.t)?'✓ ':'★ '}${esc(s.a.t)}<small>${s.k==='tend'?'tend':'grow'} · ${esc(s.on.trim())}</small></button><button class="sz${mySize[s.a.t]?' set':''}" data-i="${i}" title="tap to change the size">${mySize[s.a.t]?SZN[mySize[s.a.t]]:'~'+SZN[s.a.sz||60]+' · guess'}</button></li>`).join('')}</ul>`
+    +(offer.length?`<ul>${offer.map((s,i)=>`<li><button class="pk" data-i="${i}" style="--dc:${col(s.c)}" aria-pressed="${picked.has(s.a.t)}"><span class="rk">${picked.has(s.a.t)?'✓':i+1}</span>${esc(s.a.t)}<small>${s.k==='tend'?'tend':'grow'} · ${esc(s.on.trim())}</small></button><button class="sz${mySize[s.a.t]?' set':''}" data-i="${i}" title="tap to change the size">${mySize[s.a.t]?SZN[mySize[s.a.t]]:'~'+SZN[s.a.sz||60]+' · guess'}</button></li>`).join('')}</ul>`
       :'<p class="how">no ★ steps in this window</p>')
     +`<p class="k2">tap a step to intend it · tap its size to set it (15 min · 1 h · half day) · sizes marked guess are be•do's</p>`;
   el.querySelectorAll('.pk').forEach(b=>b.onclick=()=>{ const t=offer[+b.dataset.i].a.t; picked.has(t)?picked.delete(t):picked.add(t); store(PK,[...picked]); intention(blocks); });
