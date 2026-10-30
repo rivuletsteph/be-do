@@ -32,10 +32,13 @@ def main():
     for name, path in ENGINES.items():
         html = open(path, encoding='utf-8').read()
         modes = {'day': block_vars(html, ':root{'), 'night': block_vars(html, 'html[data-bedo="night"]')}
-        # for now the day ahead is light and the day behind dark (3 Oct 2026)
-        want_mode = {'day behind': '"night"', 'day ahead': '"day"'}[name]
-        if 'data-bedo' not in html or f':{want_mode})' not in html.replace(' ', ''):
-            fails.append(f'{name}: not fixed to its mode ({want_mode})')
+        # the day behind is dark (3 Oct 2026); the day ahead follows the device and has a switch
+        # (her word, 28 Oct 2026: "I like to be able to view it in dark or light mode")
+        if name == 'day behind':
+            if 'data-bedo' not in html or ':"night")' not in html.replace(' ', ''):
+                fails.append(f'{name}: not fixed to its mode ("night")')
+        elif not all(k in html for k in ('data-bedo', 'prefers-color-scheme', 'bedoTheme', 'class="theme"')):
+            fails.append(f'{name}: does not follow the device with a light/dark switch')
         for mode, have in modes.items():
             for mine, theirs in {**shared, **per[name]}.items():
                 if mine == 'card' and mode == 'night':

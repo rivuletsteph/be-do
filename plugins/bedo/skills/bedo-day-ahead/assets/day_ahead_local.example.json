@@ -13,6 +13,7 @@
   "sunday_morning_until": "12:00",
   "saturday_lead": "",
   "full_day_hours": 4,
+  "step_day_hours": 8,
   "full_day_events": 4,
   "travel_buffer_min": 45,
   "stay_hours": 12,
@@ -50,7 +51,8 @@
       "event": "",
       "quickie": "",
       "deliverable": "",
-      "mentioned": ""
+      "mentioned": "",
+      "chat": ""
     },
     "rhythms": {
       "name": "",
@@ -69,5 +71,13 @@
       "active": "",
       "cadence": ""
     }
-  }
+  },
+  "horizon": [
+    {
+      "label": "a trip not yet booked",
+      "emoji": "",
+      "match": "trip"
+    }
+  ],
+  "horizon_drive_days": 14
 }
