@@ -48,6 +48,12 @@ the QA's own work, done before her list is shown, never asked of her:
   painted   a stretch a row covers that the day page draws as nothing, being
             or doing (the rainbow's own rules, day_rings): give the row a
             practice or a drive the page reads
+  reconcile reconciling the stream (her word, 28 Oct 2026): every step still
+            open that a row of the day shows done — the same key, the same
+            event, or its own words — is proposed closed at that row's time,
+            the row named as the evidence. On 30 Oct three steps stayed open
+            for days that the stream had already closed (a book finished
+            Monday, notes posted Thursday, the data checked Tuesday)
 
     python3 bedo_dayqa.py --live --date 2026-10-09 [--json]
     python3 bedo_dayqa.py --day day.json [--catalog practices.json] [--rhythms rhythms.json]
@@ -73,7 +79,7 @@ NOTES = {FL.word(p) for p in Q['note_practices']}
 LOCATION = FL.word(FACTS['practice']['location'])
 NAMES = ('datetime', 'end', 'time_spent', 'status', 'title', 'details', 'practice', 'person',
          'mentioned', 'wellness', 'device', 'rhythm', 'photo', 'key', 'attention',
-         'calendar_event', 'photo_checked', 'photo_links')
+         'calendar_event', 'photo_checked', 'photo_links', 'target')
 
 
 def _z(t):
@@ -234,6 +240,80 @@ def photos(rows, files, off, day, me=''):
     return [todo('photos', f'{len(m["unlogged"])} photo(s) from the day no row explains'
                  + (f', {len(shots)} of them screenshots (a Timeline screenshot holds the day\'s places and drives)'
                     if shots else '') + f': read each and write what it shows — {names}', [f['file'] for f in shots + rest])]
+
+
+OPEN_ST = tuple(FACTS['status']['actions'][1:3])                            # ⬜ intention, ▶️ in motion: not a potential
+DONE_ST = (FACTS['status']['actions'][3], FACTS['status']['logs'][1])          # ✅ done, ◉ done
+DONE_WORDS = re.compile(Q.get('done_words') or r'\b(finished|done|sent|posted|shared|submitted|completed|closed|filed|'
+                        r'booked|paid|cancel+ed|checked|verified|replied|emailed|built)\b', re.I)
+STOP = set(Q.get('reconcile_stop') or ())
+NOT_EVIDENCE = {FL.word(p) for p in Q.get('reconcile_not_evidence') or ()}
+COMMON = Q.get('reconcile_common') or 4      # a word in this many titles names nothing in particular ('Johnny')
+
+
+def _sig(t):
+    """A title's own words: four letters or more, the plural dropped, the common ones left out."""
+    ws = {re.sub(r"(?:'s|s)$", '', w) for w in re.findall(r"[a-z][a-z']{3,}", (t or '').lower())}
+    return {w for w in ws if len(w) >= 4 and w not in STOP}
+
+
+def _shared(a, b):
+    """Words two titles share, a short form counting for its long one ('precip', 'precipitation')."""
+    out = set()
+    for x in a:
+        for y in b:
+            if x == y or (min(len(x), len(y)) >= 5 and (x.startswith(y) or y.startswith(x))):
+                out.add(min(x, y, key=len))
+    return out
+
+
+def reconcile(rows, opens, off):
+    """Reconciling the stream (28 Oct 2026, her word): an open step a row of the
+    day shows done is proposed closed at that row's time, the row named."""
+    def evidence(r):     # something finished: a closed action or event, or a row saying it was done
+        if not r.get('datetime') or FL.word(r.get('practice')) in NOT_EVIDENCE:
+            return False
+        if r.get('status') == DONE_ST[0]:
+            return True
+        return r.get('status') in (DONE_ST[1], FACTS['status']['ad_hoc']) and bool(DONE_WORDS.search(r.get('title') or ''))
+    lived = [r for r in rows if evidence(r)]
+    df = collections.Counter(w for r in list(opens) + list(rows) for w in _sig(r.get('title')))
+    rare = lambda ws: {w for w in ws if df[w] < COMMON}
+    out, seen = [], set()
+    for o in opens:
+        if o.get('status') not in OPEN_ST or o.get('id') in seen:
+            continue
+        seen.add(o.get('id'))
+        made = utc(o['datetime']) if o.get('datetime') else None
+        ahead = utc(o['target']) if o.get('target') else None
+        mine = rare(_sig(o.get('title')))
+        best = None
+        for r in lived:
+            if r.get('id') == o.get('id'):
+                continue
+            t = utc(r.get('end') or r['datetime'])
+            if made and t < made:
+                continue
+            if o.get('key') and (r.get('key') or '').split(' ')[0] == o['key'] and r.get('status') == DONE_ST[0]:
+                why, rank = 'the same key', 0
+            elif o.get('calendar_event') and r.get('calendar_event') and o['calendar_event'] == r['calendar_event']:
+                why, rank = 'the same event', 1
+            else:
+                both = _shared(mine, rare(_sig(r.get('title'))))
+                if len(both) < 2 or (ahead and t < ahead - dt.timedelta(days=1)):
+                    continue                  # words alone don't close a step still days from its date
+                why, rank = 'its words: ' + ', '.join(sorted(both)), 2
+            if best is None or (rank, -t.timestamp()) < (best[2], -best[1].timestamp()):
+                best = (r, t, rank, why)
+        if best:
+            r, t, _, why = best
+            key = f' ({r["key"]})' if r.get('key') else ''
+            line = (f'close “{_t(o)}” ✅ at {_clock(t, off)} — “{_t(r)}”{key}, {why}')
+            out.append(fill('reconcile', line, SRC['stream'],
+                            patch={'id': o['id'], 'fields': {'status': DONE_ST[0], 'end': _z(t)},
+                                   'week': o.get('_week')},
+                            note=f'[be•do] Closed from the stream: “{_t(r)}”{key}, {_clock(t, off)} — {why}.'))
+    return out
 
 
 def painted(rows, day, L, lb=None):
@@ -616,14 +696,15 @@ def gate(rows, off):
 
 
 def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=None, history=(),
-        events=None, files=None, lb=None):
+        events=None, files=None, lb=None, opens=None):
     ctx = ctx or FL.Context(day_rows=rows, local=local)
     cal_practice = next((n for n in catalog_names if FL.word(n) == 'calendar event'), '🗓️ calendar event')
     theirs = tuple(((lb or {}).get('care') or {}).get('family', {}).get('calendars') or ())
     first = (calendar(rows, events_from(events), off, cal_practice, theirs) if events is not None else []) \
         + journals(rows, off) \
         + (photos(rows, files, off, day, (local.get('people') or {}).get('self') or '') if files is not None else []) \
-        + painted(rows, day, local, lb)
+        + painted(rows, day, local, lb) \
+        + (reconcile(rows, opens, off) if opens else [])
     items = first + (meals(rows, off, (local.get('people') or {}).values())
              + movement(rows, off, day, local, catalog_names, typical)
              + people(rows, index, (local.get('people') or {}).get('self'))
@@ -636,7 +717,7 @@ def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=N
     # ate, moved and who she was with, one item each; the bookkeeping — device,
     # wellness, partial attention — one item per kind, accepted at once. Then the
     # few questions, wrong data first; a stretch with no clue is counted, never asked.
-    order = ['calendar', 'meals', 'movement', 'people', 'gaps', 'synergy', 'overlaps', 'plans', 'device', 'spans']
+    order = ['reconcile', 'calendar', 'meals', 'movement', 'people', 'gaps', 'synergy', 'overlaps', 'plans', 'device', 'spans']
     rank = lambda i: order.index(i['check']) if i['check'] in order else len(order)
     fills = [i for i in items if i['kind'] == 'fill']
     batched = []
@@ -743,6 +824,8 @@ def main(argv=None):
     ap.add_argument('--calendar', action='append', default=[],
                     help="a list_events result for one of her calendars for the day, saved as it came (once per calendar)")
     ap.add_argument('--photos', help="the week's W## photos folder listing, as saved for the dusk audit")
+    ap.add_argument('--open', action='append', default=[],
+                    help="a week's stream read, for the steps still open (--live reads this week and last)")
     ap.add_argument('--look-behind-local', dest='lbl', help='the page settings, for the painted check (--live reads them)')
     ap.add_argument('--date', help='YYYY-MM-DD, default today')
     ap.add_argument('--json', action='store_true')
@@ -782,6 +865,13 @@ def main(argv=None):
         names_ = air.bases()
         if prev in names_ and not a.history:
             hist += as_rows(complete(air.dump(names_[prev], L['stream_table'], by_id=True), prev), fields)
+        # the steps still open, this week's copy first (the split carries an open row into the new week)
+        st = L['stream_fields']['status']
+        cond = 'OR(' + ', '.join(f"{{{st}}}='{x}'" for x in OPEN_ST) + ')'
+        this = L.get('weekly_name', 'w{n} be•do').format(n=week_number(day))
+        opens = [dict(r, _week=this) for r in as_rows(complete(air.dump(names_[this], L['stream_table'], formula=cond,
+                                                                          by_id=True), this), fields)]
+        opens += [dict(r, _week=prev) for r in hist if r.get('status') in OPEN_ST]
     elif a.day:
         src = a.day
         cat = complete(a.catalog, 'catalog') if a.catalog else None
@@ -789,6 +879,8 @@ def main(argv=None):
         con = complete(a.connections, 'connections') if a.connections else None
     else:
         sys.exit('give --live, or --day')
+    if not a.live:
+        opens = [dict(r, _week=f) for f in a.open for r in as_rows(complete(f, f), fields)] or None
     for h in a.history:
         hist += as_rows(complete(h, h), fields)
     rows = on_day(as_rows(complete(src, 'day'), fields), day, L)
@@ -798,7 +890,7 @@ def main(argv=None):
                      day_rows=rows, history=hist, local=L)
     names = list(FL.catalog_wellness(cat, L)) if cat else []
     items = run(rows, day, off, L, ctx, connections_index(con, L) if con else None, names,
-                catalog_typical(cat, L) if cat else None, hist, events, files, lb)
+                catalog_typical(cat, L) if cat else None, hist, events, files, lb, opens)
     now_local = now + dt.timedelta(hours=offset_hours(L, now))
     if a.json:
         print(json.dumps({'day': day.isoformat(), 'items': items,

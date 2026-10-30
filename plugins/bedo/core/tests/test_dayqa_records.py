@@ -93,5 +93,29 @@ class Painted(unittest.TestCase):
         self.assertIn('at the office', items[0]['line'])
 
 
+
+class Reconcile(unittest.TestCase):
+    """Reconciling the stream (28 and 30 Oct 2026): an open step the day shows done."""
+    def test_a_step_the_day_shows_done_is_closed_at_that_rows_time(self):
+        book = row(title="finish reading Maslow's hierarchy of needs", status='⬜ intention', key='261020_1732',
+                   datetime=z(8) .replace('2026-10-08', '2026-10-01'))
+        same_key = row(title='call the clinic', status='⬜ intention', key='261005_0900', datetime=z(7).replace('2026-10-08', '2026-10-05'))
+        untouched = row(title='tidy the garage', status='⬜ intention', datetime=z(7).replace('2026-10-08', '2026-10-02'))
+        day = [row(title='📗 finished Understanding Maslow and the Hierarchy of Needs', status='◉ done', datetime=z(6, 51)),
+               row(title='⚡ Called the clinic back', status='✅ done', key='261005_0900', datetime=z(10), end=z(10, 10)),
+               row(title='📝 thinking about the garage', status='● log', datetime=z(12))]          # a note, not done
+        items = Q.reconcile(day, [book, same_key, untouched], OFF)
+        got = {i['patch']['id']: i['patch']['fields'] for i in items}
+        self.assertEqual(got[book['id']], {'status': '✅ done', 'end': z(6, 51)})
+        self.assertEqual(got[same_key['id']], {'status': '✅ done', 'end': z(10, 10)})
+        self.assertNotIn(untouched['id'], got)
+        self.assertIn('the same key', next(i['line'] for i in items if i['patch']['id'] == same_key['id']))
+
+    def test_a_row_from_before_the_step_was_made_is_not_its_evidence(self):
+        step = row(title='verify the hourly precipitation data', status='⬜ intention', datetime=z(15))
+        earlier = row(title='hourly precipitation data checked', status='✅ done', datetime=z(9), end=z(9, 30))
+        self.assertEqual(Q.reconcile([earlier], [step], OFF), [])
+
+
 if __name__ == '__main__':
     unittest.main()
