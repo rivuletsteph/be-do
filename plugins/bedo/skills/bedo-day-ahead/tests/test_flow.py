@@ -52,6 +52,19 @@ def main():
     assert b['value'] == round(100 - 6 * (1.5 * 1 + 2)), b
     assert flow.buffer_on(dt.date(2026, 3, 1), rows, F, {'Rhythm One'}, {'Build Work'}, local)['value'] == 100
 
+    # balance from the stream, when no day behind carries the wheel (30 Oct 2026)
+    W = dict(F, wellness='wl')
+    zero = dt.timedelta(0)
+    day_rows = [row('R', None, status='● log', end='2026-03-04T10:00:00Z', wh='2026-03-04T09:00:00Z', wl='🤸‍♀️ body'),
+                row('R', None, status='● log', wh='2026-03-04T11:00:00Z', wl='🧠 mind'),           # a moment weighs one
+                row('R', None, status='⬜ intention', wh='2026-03-04T12:00:00Z', wl='🔥 fire'),    # a plan: not lived
+                row('R', None, status='● log', end='2026-03-04T08:00:00Z', wh='2026-03-04T00:00:00Z',
+                    wl='🤸‍♀️ body', pr='😴 sleep'),                                                  # sleep scores nothing
+                row('R', None, status='● log', wh='2026-03-05T09:00:00Z', wl='🌊 water')]          # another day
+    d = flow.wheel_of(dt.date(2026, 3, 4), day_rows, W, zero)
+    assert (d['body'], d['mind'], d['fire'], d['water']) == (10.0, 1.0, 0.0, 0.0), d
+    assert flow.wheel_of(dt.date(2026, 3, 4), day_rows, F, zero) is None                       # no wellness field
+
     # how much the day holds: her own timed events today, plus the travel buffer for one at a place
     day = dict(date='2026-03-04', events=[
         dict(who='you', when='10:30a', end='11:30a', sort='2026-03-04T10:30:00', where=''),

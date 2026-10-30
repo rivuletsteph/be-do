@@ -38,6 +38,7 @@ INFO_RX = re.compile(P['info_pattern'])
 FOOD_KEEPER_RX = re.compile(P['food_keeper_pattern'], re.I)
 FROM_PHOTO = re.compile(r'[Ff]rom (?:her|the same) photo')
 NAME = re.compile(P['phone_name'], re.I)
+SCREEN = re.compile(P.get('screen_name') or r'^Screenshot_(\d{8})-(\d{6}).*\.(jpe?g|png)$', re.I)
 LINK_ID = re.compile(r'/d/([\w-]{10,})|[?&]id=([\w-]{10,})')
 MAX_SPAN = dt.timedelta(hours=FACTS['entry_rules']['max_span_hours'])
 
@@ -50,9 +51,16 @@ def word(practice):
 def taken(name, off):
     """Local capture time from the phone's file name, or None."""
     m = NAME.match(name or '')
-    if not m:
-        return None
-    return dt.datetime.strptime(m.group(1) + m.group(2), '%Y%m%d%H%M%S') + dt.timedelta(hours=off)
+    if m:
+        return dt.datetime.strptime(m.group(1) + m.group(2), '%Y%m%d%H%M%S') + dt.timedelta(hours=off)
+    m = SCREEN.match(name or '')      # a screenshot is named in her own clock, not UTC (30 Oct 2026)
+    if m:
+        return dt.datetime.strptime(m.group(1) + m.group(2), '%Y%m%d%H%M%S')
+    return None
+
+
+def is_screenshot(name):
+    return bool(SCREEN.match(name or ''))
 
 
 def has_photo(r):

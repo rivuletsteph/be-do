@@ -208,7 +208,12 @@
  },
  "dayqa": {
   "_about": "run_checks.sh dayqa DATE: meals, gaps, movement, people and device in one list. Every fill is ESTIMATED FROM CONTEXT and names its source; the dusk close shows it, writes only what she accepts, and carries the marker line in its [be•do] block. The look behind will not build a day whose rows don't carry the marker.",
-  "sources": {"photo": "photo time", "oura": "Oura", "timeline": "Timeline", "message": "message time", "rule": "your stated rule", "usual": "your usual, from your past weeks", "words": "your words about it"},
+  "sources": {"photo": "photo time", "oura": "Oura", "timeline": "Timeline", "message": "message time", "rule": "your stated rule", "usual": "your usual, from your past weeks", "words": "your words about it", "calendar": "your calendar", "stream": "the stream"},
+  "reconcile_not_evidence": ["action check", "intention check", "gratitude", "highlight", "glimmer", "quest", "evening breaths", "evening blessing", "dream record", "journal", "insight", "look behind", "look ahead", "dawn flow close", "dusk flow close", "weather check", "map check", "morning oura", "evening oura", "clear gmail inbox", "news"],
+  "reconcile_common": 4,
+  "reconcile_stop": ["with", "from", "that", "this", "today", "tonight", "tomorrow", "about", "into", "your", "their", "them", "just", "some", "something", "thing", "send", "sent", "make", "made", "back", "over", "more", "next", "week", "after", "before", "what", "when", "then", "also", "have", "still", "done", "finish", "finished"],
+  "calendar_done_marks": ["✔️", "✔", "✅"],
+  "journal_read_mark": "Pulled out",
   "marker": "dayqa shown",
   "movement_words": ["walk", "walked", "walking", "bike", "biked", "biking", "bicycle", "cycled", "cycling", "rode my bike", "yoga", "hike", "hiked", "swim", "swam", "barre"],
   "about_movement_words": "Only words that mean movement whatever the sentence: 'run' and 'running' read as running the checks on 6 Oct.",
@@ -293,6 +298,7 @@
   "day_strip_max": 5,
   "drive_host": "drive.google.com",
   "drive_path": "/file/d/{id}/view",
+  "screen_name": "^Screenshot_(\\d{8})-(\\d{6}).*\\.(jpe?g|png)$",
   "phone_name": "^PXL_(\\d{8})_(\\d{6})\\d*.*\\.(jpe?g|png)$"
  }
 }
