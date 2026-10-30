@@ -248,7 +248,7 @@ DONE_WORDS = re.compile(Q.get('done_words') or r'\b(finished|done|sent|posted|sh
                         r'booked|paid|cancel+ed|checked|verified|replied|emailed|built)\b', re.I)
 STOP = set(Q.get('reconcile_stop') or ())
 NOT_EVIDENCE = {FL.word(p) for p in Q.get('reconcile_not_evidence') or ()}
-COMMON = Q.get('reconcile_common') or 4      # a word in this many titles names nothing in particular ('Johnny')
+COMMON = Q.get('reconcile_common') or 4      # a word in this many titles names nothing in particular (a name)
 
 
 def _sig(t):
@@ -271,7 +271,8 @@ def reconcile(rows, opens, off):
     """Reconciling the stream (28 Oct 2026, her word): an open step a row of the
     day shows done is proposed closed at that row's time, the row named."""
     def evidence(r):     # something finished: a closed action or event, or a row saying it was done
-        if not r.get('datetime') or FL.word(r.get('practice')) in NOT_EVIDENCE:
+        pw = FL.word(r.get('practice'))
+        if not r.get('datetime') or pw in NOT_EVIDENCE or pw.split(' ')[-1] in NOT_EVIDENCE:   # someone's quest, his highlight
             return False
         if r.get('status') == DONE_ST[0]:
             return True
