@@ -203,6 +203,7 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
     PRI = {'work': 0, 'family': 1, 'pet': 2, 'home': 3, 'system': 4}   # a be•do session beside the school run is still the school run
 
     OWN = [False] * 1440   # a care minute held by her own row (what she did), not a scheduled action
+    HERS = [False] * 1440  # a work minute from her own row (a voice journal on a drive), not a session running beside her
     WK = [set() for _ in range(1440)]   # every kind of doing at each minute: two things at once both count (9 Oct)
     lived = []                          # (a, b, row) for the synergy read
 
@@ -301,6 +302,9 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
                 (parts or b - a >= dt.timedelta(minutes=10)):     # a work practice with its time counts too (28 Oct)
             for pa, pb in pieces:
                 paint('work', 'system' if rh == system else 'work', pa, pb, t)
+                if pr != 'action':
+                    for m in range(max(0, mins(pa)), min(1440, mins(pb))):
+                        HERS[m] = True
         d = (r.get('device') or '').lower()
         if 'laptop' in d or 'desktop' in d or 'tv' in d or pr in TV:
             for pa, pb in (parts or [(a, bb)]):
@@ -321,7 +325,8 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
     for m in range(1440):
         if A['eat'][m]:
             A['move'][m] = None                                   # sitting to eat is not moving
-        if A['drive'][m] or A['eat'][m] or A['move'][m] or asleep[m]:
+        if (A['drive'][m] and not HERS[m]) or A['eat'][m] or A['move'][m] or asleep[m]:
+            # a session running while she drove is the system's; her own journal on the drive is hers (30 Oct)
             if A['work'][m] in ('work', 'system'):
                 A['work'][m] = None                               # her doing, not the system's
             WK[m] -= {'work', 'system'}
