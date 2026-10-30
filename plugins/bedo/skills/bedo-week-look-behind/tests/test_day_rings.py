@@ -47,6 +47,7 @@ ROWS = [
     row('🚗 driving', '15:00', '15:30', person=['Pip Plum'], title='school run'),
     row('📺 show', '20:00', '20:30', device='📺 tv', title='a mystery'),
     row('🚿 shower', '21:00', '21:20'),                                    # caring for herself
+    row('✈️ flight', '18:00', '19:00', title='home from Denver'),          # carried: travel, being
     row('🌄 dusk flow close', '23:30'),                                    # logged asleep: not a flow
     row('😴 sleep', '23:00', '+07:00'),                                     # tonight
     row('⚡ action', '13:00', '14:00', rhythm='Paid Work', status='⬜ intention'),   # never happened
@@ -64,6 +65,8 @@ assert K['being']['move'] == 60 - 15, K['being']                     # the walk 
 assert K['being']['recreation'] == 30 + 60, K['being']              # the show and the trampoline park
 assert K['doing']['work'] == 30, K['doing']                          # 9:00-9:30 only; the drive took the rest
 assert K['doing']['family'] == 30 + 60, K['doing']                    # the school run, the trampoline park
+assert K['doing']['drive'] == 30 + 30, K['doing']                     # at the wheel: to the shop, the school run
+assert K['being']['travel'] == 60, K['being']                         # on the plane: carried, not driving
 assert K['being']['personal'] == 20, K['being']                       # the shower: personal care
 assert B['screen']['total'] == 60 + 30, B['screen']                  # the laptop hour and the show
 assert 'dusk' not in R['win'] and R['win']['dawn'] == [480, 485], R['win']
