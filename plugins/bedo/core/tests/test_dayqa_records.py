@@ -34,7 +34,7 @@ def row(**kw):
 def event(summary, h0, h1, eid='abc', cal='my events'):
     return {'summary': cal, 'events': [{
         'summary': summary, 'id': eid, 'status': 'confirmed',
-        'htmlLink': f'https://www.google.com/calendar/event?eid={eid}XYZ',
+        'htmlLink': f'https://calendar.example.invalid/event?eid={eid}XYZ',
         'start': {'dateTime': f'{DAY}T{h0:02d}:00:00-05:00'}, 'end': {'dateTime': f'{DAY}T{h1:02d}:00:00-05:00'}}]}
 
 
@@ -53,7 +53,7 @@ class Calendar(unittest.TestCase):
         self.assertEqual(items[0]['patch'], {'id': r['id'], 'fields': {'calendar_event': items[0]['patch']['fields']['calendar_event']}})
 
     def test_linked_open_and_theirs_are_left(self):
-        linked = row(title='x', calendar_event='https://www.google.com/calendar/event?eid=abcXYZ')
+        linked = row(title='x', calendar_event='https://calendar.example.invalid/event?eid=abcXYZ')
         self.assertEqual(Q.calendar([linked], Q.events_from(event('✔️ River', 10, 11)), OFF, 'c'), [])
         self.assertEqual(Q.calendar([], Q.events_from(event('⬜ River', 10, 11)), OFF, 'c'), [])
         his = Q.events_from(event('✔️ Grandparents', 8, 15, cal='family123@group.calendar.google.com'))
