@@ -577,8 +577,10 @@ const rainbow = RB => {
       (goal ? `<b style="left:${100 * goal / MAXB}%" title="goal ${hm(goal)}"></b>` : "") + `</span>` +
       `<span class="bv">${v ? hm(v) : "—"}${goal ? `<small>of ${hm(goal)}</small>` : ""}</span></div>`; };
   const NB = 2 + B.being.kinds.length, ND = NB + B.doing.kinds.length;   // the rows: in bed, flows, being, doing, screen
-  const bars = head("sleep · midnight to midnight") + bar(rowsData[0]) + ((RB.asleep_day != null ? RB.asleep_day : RB.asleep) ? bar(["Asleep", "asleep", RB.asleep_day != null ? RB.asleep_day : RB.asleep, "asleep"]) : "") + head("being", B.being.total) + rowsData.slice(1, NB).map(bar).join("") +
-    head("doing", B.doing.total) + rowsData.slice(NB, ND).map(bar).join("") + bar(rowsData[ND]);
+  // driving and travel only on a day that had them (30 Oct: "I don't need to see traveling if there's no traveling")
+  const WHEN = new Set(["drive", "travel"]), had = r => r[2] || !WHEN.has(r[1]);
+  const bars = head("sleep · midnight to midnight") + bar(rowsData[0]) + ((RB.asleep_day != null ? RB.asleep_day : RB.asleep) ? bar(["Asleep", "asleep", RB.asleep_day != null ? RB.asleep_day : RB.asleep, "asleep"]) : "") + head("being", B.being.total) + rowsData.slice(1, NB).filter(had).map(bar).join("") +
+    head("doing", B.doing.total) + rowsData.slice(NB, ND).filter(had).map(bar).join("") + bar(rowsData[ND]);
   // tap areas go underneath: a real piece always wins a tap on itself, and a tap on empty space
   // goes to the nearest small piece (the tracks let taps through)
   g = hits.sort((x, y) => y[0] - x[0]).map(h => h[1]).join("") + g;
