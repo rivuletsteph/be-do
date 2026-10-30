@@ -33,6 +33,22 @@ build a day whose rows don't carry it.
             that; competing, try them apart. A pair she answered in past weeks
             is proposed with that answer. Anything new is one optional question
 
+What the day's own records hold (30 Oct 2026, her words at Thursday's day
+behind: I want those things built into the QA, so they're already in the
+stream when it gets built). These come first, and the four marked `do` are
+the QA's own work, done before her list is shown, never asked of her:
+  calendar  every event on her calendars that she marked done (✔️) gets its
+            own row, its times as the calendar has them now (she corrects the
+            calendar to what happened); a row already about it gets the link
+  journal   a journal whose [be•do] block has no `Pulled out:` line was never
+            read through: read it now for what it names with a time, a place
+            or a person (a meeting she sat in, what she worked on meanwhile)
+  photos    a photo or screenshot from the day no row explains, Timeline
+            screenshots above all: read it and write what it shows
+  painted   a stretch a row covers that the day page draws as nothing, being
+            or doing (the rainbow's own rules, day_rings): give the row a
+            practice or a drive the page reads
+
     python3 bedo_dayqa.py --live --date 2026-10-09 [--json]
     python3 bedo_dayqa.py --day day.json [--catalog practices.json] [--rhythms rhythms.json]
                           [--connections connections.json] [--history w40.json …] --date 2026-10-09
@@ -56,7 +72,8 @@ MOVE = {FL.word(p) for p in Q['movement_practices']}
 NOTES = {FL.word(p) for p in Q['note_practices']}
 LOCATION = FL.word(FACTS['practice']['location'])
 NAMES = ('datetime', 'end', 'time_spent', 'status', 'title', 'details', 'practice', 'person',
-         'mentioned', 'wellness', 'device', 'rhythm', 'photo', 'key', 'attention')
+         'mentioned', 'wellness', 'device', 'rhythm', 'photo', 'key', 'attention',
+         'calendar_event', 'photo_checked', 'photo_links')
 
 
 def _z(t):
@@ -97,6 +114,175 @@ def fill(check, line, source, patch=None, new=None, note=None):
 
 def ask(check, line):
     return {'check': check, 'kind': 'ask', 'line': line}
+
+
+def todo(check, line, rows=()):
+    """The QA's own work, done before her list is shown (30 Oct 2026)."""
+    return {'check': check, 'kind': 'do', 'line': line, 'rows': list(rows)}
+
+
+# ── what the day's own records hold (30 Oct 2026) ───────────────────────
+DONE_MARKS = tuple(Q.get('calendar_done_marks') or ('✔️', '✔', '✅'))
+READ_MARK = Q.get('journal_read_mark') or 'Pulled out'
+JOURNAL = 'journal'
+EID = re.compile(r'[?&]eid=([\w-]+)')
+
+
+def _event_link(e):
+    return e.get('htmlLink') or ''
+
+
+def _event_at(x):
+    v = (x or {}).get('dateTime')
+    return utc(v).astimezone(dt.timezone.utc) if v else None
+
+
+def _same_event(link, e):
+    """A row's event link names this event (its eid, or its id inside the eid)."""
+    if not link:
+        return False
+    m, mine = EID.search(link), EID.search(_event_link(e))
+    if m and mine and m.group(1).rstrip('=') == mine.group(1).rstrip('='):
+        return True
+    return bool(e.get('id')) and e['id'] in link
+
+
+def _words(s):
+    return {w for w in re.findall(r'[a-z]{4,}', (s or '').lower())}
+
+
+def _bare(summary):
+    t = summary or ''
+    for m in DONE_MARKS + ('⬜',):
+        t = t.replace(m, '')
+    return t.strip()
+
+
+def events_from(listing):
+    """The day's events from one or more list_events results saved as they came
+    ({"events": […]}, or a list), each keeping the calendar it came from."""
+    out = []
+    for x in listing if isinstance(listing, list) and listing and isinstance(listing[0], dict) \
+            and 'events' in listing[0] else [listing]:
+        evs = x.get('events') if isinstance(x, dict) else x
+        cal = x.get('summary') if isinstance(x, dict) else None
+        for e in evs or []:
+            out.append(dict(e, _calendar=e.get('calendarId') or cal))
+    return out
+
+
+def calendar(rows, events, off, practice, theirs=()):
+    """Every event she marked done gets its row (30 Oct 2026: it seems to leave
+    off my meeting calendar items that I just adjusted to more accurately match
+    what happened). Her son's calendar is his day, not hers."""
+    out = []
+    lived = [r for r in rows if r.get('status') not in NOT_LIVED and r.get('datetime')]
+    for e in events:
+        a, b = _event_at(e.get('start')), _event_at(e.get('end'))
+        s = e.get('summary') or ''
+        if not a or not b or e.get('status') == 'cancelled' or not s.startswith(DONE_MARKS):
+            continue
+        if any(t and t in (e.get('_calendar') or '') + ' ' + (e.get('organizer') or {}).get('email', '')
+               for t in theirs):
+            continue
+        if any(_same_event(r.get('calendar_event'), e) for r in rows):
+            continue
+        t = _bare(s)
+        when = f'{_clock(a, off)}–{_clock(b, off)}'
+        about = [r for r in lived if utc(r['datetime']) < b and utc(r.get('end') or r['datetime']) >= a
+                 and _words(t) & _words(r.get('title'))]
+        if about:
+            r = about[0]
+            out.append(fill('calendar', f'“{_t(r)}” is your calendar\'s {t} ({when}): link it', SRC['calendar'],
+                            patch={'id': r['id'], 'fields': {'calendar_event': _event_link(e)}}))
+            continue
+        out.append(fill('calendar', f'{t} {when}, from your calendar', SRC['calendar'], new={
+            'datetime': _z(a), 'end': _z(b), 'status': FACTS['status']['actions'][3], 'practice': practice,
+            'title': t, 'calendar_event': _event_link(e),
+            'details': f'{DIVIDER}\n[be•do] From her calendar, as she marked it done: {s}, {when}.'}))
+    return out
+
+
+def journals(rows, off):
+    """A journal read through when it came in carries `Pulled out:` in its block."""
+    out = []
+    for r in rows:
+        if FL.word(r.get('practice')) != JOURNAL or r.get('status') in NOT_LIVED:
+            continue
+        block = (r.get('details') or '').split(DIVIDER, 1)[-1]
+        if READ_MARK.lower() not in block.lower():
+            out.append(todo('journal', f'the journal at {_clock(utc(r["datetime"]), off)} (“{_t(r)}”) was never read '
+                            'through: pull out what it names with a time, a place or a person as rows, and what she '
+                            f'was doing meanwhile, then write `{READ_MARK}:` in its block', [r.get('id')]))
+    return out
+
+
+def photos(rows, files, off, day, me=''):
+    """A photo or screenshot from the day no row explains is read, not left as a
+    clue (30 Oct 2026: especially the timeline)."""
+    import bedo_photos as PH
+    def loc(s):
+        return (utc(s) + dt.timedelta(hours=off)).replace(tzinfo=None) if s else None
+    lived = [dict(r, _a=loc(r.get('datetime')), _b=loc(r.get('end'))) for r in rows if r.get('datetime')]
+    listing = [x for x in PH.files_from(files) if (PH.taken(x['name'], off) or dt.datetime.min).date() == day]
+    m = PH.match(lived, listing, off, me)
+    if not m['unlogged']:
+        return []
+    shots = [f for f in m['unlogged'] if PH.is_screenshot(f['name'])]
+    rest = [f for f in m['unlogged'] if f not in shots]
+    names = ', '.join(f'{f["name"]} ({f["taken"]:%H:%M})' for f in shots + rest)
+    return [todo('photos', f'{len(m["unlogged"])} photo(s) from the day no row explains'
+                 + (f', {len(shots)} of them screenshots (a Timeline screenshot holds the day\'s places and drives)'
+                    if shots else '') + f': read each and write what it shows — {names}', [f['file'] for f in shots + rest])]
+
+
+def painted(rows, day, L, lb=None):
+    """Stretches a row covers that the day page draws as neither being nor doing,
+    by the page's own rules (30 Oct 2026: how it would be categorized for the
+    graphic). Needs day_rings beside the core; without it, says so once."""
+    try:
+        from day_rings import day_rings
+    except ImportError:
+        return [{'check': 'painted', 'kind': 'count', 'line': 'painted: not checked (day_rings is not beside the core)'}]
+    R2 = {**L, **{k: v for k, v in (lb or {}).items() if k in ('care', 'recreation', 'system_rhythm', 'day_goals')}}
+    rr = [dict(r, when=r.get('datetime'), event=r.get('calendar_event'), spent=r.get('time_spent')) for r in rows]
+    R = day_rings(rr, day, R2, frozenset(), NOT_LIVED)
+    cov = [False] * 1440
+    for b in R['bands']:
+        if b['k'] in ('being', 'doing'):
+            for run in b['runs']:
+                for m in range(run[1], run[2]):
+                    cov[m] = True
+    for k, a, b in R['night']:
+        for m in range(a, b):
+            cov[m] = True
+    off = offset_hours(L, dt.datetime.combine(day, dt.time(12), dt.timezone.utc))
+    s0 = dt.datetime.combine(day, dt.time(0))
+    def local(ts):
+        return (utc(ts) + dt.timedelta(hours=off)).replace(tzinfo=None)
+    spans = []
+    for r in rows:
+        if r.get('status') in NOT_LIVED or not r.get('datetime') or not r.get('end'):
+            continue
+        a, b = local(r['datetime']), local(r['end'])
+        if b > a and b - a <= dt.timedelta(hours=14):
+            spans.append((max(0, int((a - s0).total_seconds() // 60)), min(1440, int((b - s0).total_seconds() // 60)), r))
+    out, m = [], 0
+    need = Q['gap_minutes']
+    while m < 1440:
+        if cov[m] or not any(a <= m < b for a, b, _ in spans):
+            m += 1
+            continue
+        g = m
+        while m < 1440 and not cov[m] and any(a <= m < b for a, b, _ in spans):
+            m += 1
+        if m - g >= need:
+            who = [r for a, b, r in spans if a < m and b > g]
+            hm = lambda x: f'{x // 60 % 12 or 12}:{x % 60:02d}{"a" if x < 720 else "p"}'
+            out.append(todo('painted', f'{hm(g)}–{hm(m)} ({m - g} min) draws as nothing on the day page: '
+                            + '; '.join(f'“{_t(r)}”' for r in who[:3])
+                            + ' — give it the practice or drive that says what it was', [r.get('id') for r in who]))
+    return out
 
 
 # ── the five checks ─────────────────────────────────────────────────────
@@ -161,8 +347,8 @@ def _gap_fill(g, t, mins, off, at, inside, before, after, ctx):
 def gaps(rows, off, proposed=(), ctx=None):
     """Last, so the spans the other checks propose already cover their minutes."""
     lived = [r for r in rows if r.get('status') not in NOT_LIVED and r.get('datetime')]
-    ends = {i['patch']['id']: i['patch']['fields']['end'] for i in proposed
-            if i.get('patch') and 'end' in i['patch']['fields']}
+    ends = {i['patch']['id']: i['patch']['fields']['end'] for i in proposed   # a synergy note patches no fields
+            if i.get('patch') and 'end' in (i['patch'].get('fields') or {})}
     spanned = [dict(r, end=ends.get(r.get('id'), r.get('end'))) for r in lived]
     spanned += [i['new'] for i in proposed if i.get('new') and i['new'].get('end')]
     covers = [(utc(r['datetime']), utc(r['end'])) for r in spanned
@@ -429,9 +615,16 @@ def gate(rows, off):
     return (len(lack), len(lived)), long_
 
 
-def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=None, history=()):
+def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=None, history=(),
+        events=None, files=None, lb=None):
     ctx = ctx or FL.Context(day_rows=rows, local=local)
-    items = (meals(rows, off, (local.get('people') or {}).values())
+    cal_practice = next((n for n in catalog_names if FL.word(n) == 'calendar event'), '🗓️ calendar event')
+    theirs = tuple(((lb or {}).get('care') or {}).get('family', {}).get('calendars') or ())
+    first = (calendar(rows, events_from(events), off, cal_practice, theirs) if events is not None else []) \
+        + journals(rows, off) \
+        + (photos(rows, files, off, day, (local.get('people') or {}).get('self') or '') if files is not None else []) \
+        + painted(rows, day, local, lb)
+    items = first + (meals(rows, off, (local.get('people') or {}).values())
              + movement(rows, off, day, local, catalog_names, typical)
              + people(rows, index, (local.get('people') or {}).get('self'))
              + device(rows, ctx)
@@ -443,7 +636,7 @@ def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=N
     # ate, moved and who she was with, one item each; the bookkeeping — device,
     # wellness, partial attention — one item per kind, accepted at once. Then the
     # few questions, wrong data first; a stretch with no clue is counted, never asked.
-    order = ['meals', 'movement', 'people', 'gaps', 'synergy', 'overlaps', 'plans', 'device', 'spans']
+    order = ['calendar', 'meals', 'movement', 'people', 'gaps', 'synergy', 'overlaps', 'plans', 'device', 'spans']
     rank = lambda i: order.index(i['check']) if i['check'] in order else len(order)
     fills = [i for i in items if i['kind'] == 'fill']
     batched = []
@@ -468,7 +661,8 @@ def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=N
                     'or leave them: ' + '; '.join(i['line'].split('“', 1)[-1].split('”')[0][:40] for i in nodev[:4])
                     + (' …' if len(nodev) > 4 else '')}]
     asks.sort(key=lambda i: -('spans' == i['check']))
-    items = (sorted(fills + batched, key=rank) + asks + [i for i in items if i['kind'] == 'open']
+    items = ([i for i in items if i['kind'] == 'do'] + sorted(fills + batched, key=rank) + asks
+             + [i for i in items if i['kind'] == 'open']
              + [i for i in items if i['kind'] in ('notice', 'count')])
     for i, it in enumerate(i for i in items if i['kind'] in ('fill', 'ask')):
         it['n'] = i + 1
@@ -481,7 +675,12 @@ def render(items, day, rows, off, now_local=None):
     asks = [i for i in items if i['kind'] == 'ask']
     open_ = [i for i in items if i['kind'] == 'open']
     seen = [i for i in items if i['kind'] == 'notice']
-    lines = [f'dayqa · {day:%a %d %b} — {len(fills)} to accept' + (f', {len(asks)} if you want' if asks else '')]
+    todo_ = [i for i in items if i['kind'] == 'do']
+    lines = []
+    if todo_:
+        lines.append(f'first, for the QA itself — {len(todo_)} to do before her list is shown, then run dayqa again:')
+        lines += [f'  · {i["check"]} · {i["line"]}' for i in todo_]
+    lines.append(f'dayqa · {day:%a %d %b} — {len(fills)} to accept' + (f', {len(asks)} if you want' if asks else ''))
     for i in fills:
         lines.append(f'  {i["n"]}. {i["check"]} · {i["line"]} · {EST} · source: {i["source"]}')
     if asks:
@@ -541,10 +740,26 @@ def main(argv=None):
     ap.add_argument('--day', help="a complete read of the day's rows")
     ap.add_argument('--catalog'), ap.add_argument('--rhythms'), ap.add_argument('--connections')
     ap.add_argument('--history', action='append', default=[], help="other weeks' streams, for the ASK hints")
+    ap.add_argument('--calendar', action='append', default=[],
+                    help="a list_events result for one of her calendars for the day, saved as it came (once per calendar)")
+    ap.add_argument('--photos', help="the week's W## photos folder listing, as saved for the dusk audit")
+    ap.add_argument('--look-behind-local', dest='lbl', help='the page settings, for the painted check (--live reads them)')
     ap.add_argument('--date', help='YYYY-MM-DD, default today')
     ap.add_argument('--json', action='store_true')
     a = ap.parse_args(argv)
     L = load_local()
+    lb = json.load(open(a.lbl, encoding='utf-8')) if a.lbl else None
+    if lb is None and a.live:
+        try:
+            from bedo_settings import fetch
+            lb, _ = fetch('look_behind_local')
+        except Exception:
+            lb = None
+    if lb and not (L.get('stream_fields') or {}).get('photo_links'):
+        got = (lb.get('fields') or {}).get('stream') or {}
+        L.setdefault('stream_fields', {}).update({k: got[k] for k in ('photo_links', 'photo_checked') if got.get(k)})
+    events = [json.load(open(f, encoding='utf-8')) for f in a.calendar] if a.calendar else None
+    files = json.load(open(a.photos, encoding='utf-8')) if a.photos else None
     now = dt.datetime.now(dt.timezone.utc)
     day = dt.date.fromisoformat(a.date) if a.date else (now + dt.timedelta(hours=offset_hours(L, now))).date()
     sf = L.get('stream_fields', {})
@@ -583,7 +798,7 @@ def main(argv=None):
                      day_rows=rows, history=hist, local=L)
     names = list(FL.catalog_wellness(cat, L)) if cat else []
     items = run(rows, day, off, L, ctx, connections_index(con, L) if con else None, names,
-                catalog_typical(cat, L) if cat else None, hist)
+                catalog_typical(cat, L) if cat else None, hist, events, files, lb)
     now_local = now + dt.timedelta(hours=offset_hours(L, now))
     if a.json:
         print(json.dumps({'day': day.isoformat(), 'items': items,
