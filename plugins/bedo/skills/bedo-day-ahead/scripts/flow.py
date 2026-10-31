@@ -182,7 +182,7 @@ def schedule_of(today, rows, day_page, F, off, hidden):
     """Today as a calendar (31 Oct 2026, her words: I want it to look like how the schedule looks in Google
     calendar, and the whole list of things I said I wanted to do this afternoon — those are my intentions).
     Every calendar event today, and every step targeted at a time today (open, or done today), each at its
-    time; a step holds 30 minutes unless it carries its own end. An event's own row is the event, not twice."""
+    time; a step holds be•do's guess at its size (at most two hours) unless it carries its own end. An event's own row is the event, not twice."""
     to = lambda ts: dt.datetime.fromisoformat(ts.replace('Z', '+00:00')) + off
     hm = lambda t: t.strftime('%H:%M')
     items, links, own = [], set(), set()
@@ -216,8 +216,10 @@ def schedule_of(today, rows, day_page, F, off, hidden):
         if F.get('quickie') and c.get(F['quickie']) and st != '✅ done':
             continue
         end = c.get(F['end'])
-        b = to(end) if end and st == '✅ done' and to(end) > a and to(end) - a <= dt.timedelta(hours=6) else a + dt.timedelta(minutes=30)
-        items.append(dict(k='step', t=re.sub(r'^⚡\s*', '', title), a=hm(a), b=hm(b), drive=rh, done=st == '✅ done'))
+        t = re.sub(r'^⚡\s*', '', title)
+        real = end and to(end) > a and to(end) - a <= dt.timedelta(hours=6)
+        b = to(end) if real else a + dt.timedelta(minutes=min(size_guess(t), 120))
+        items.append(dict(k='step', t=t, a=hm(a), b=hm(b), drive=rh, done=st == '✅ done', sized=not real))
     return sorted(items, key=lambda x: (x['a'], x['k'] != 'event'))
 
 

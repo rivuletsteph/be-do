@@ -102,6 +102,11 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
 .cal .ev.done{opacity:.55}.cal .ev.done b{text-decoration:line-through}
 .cal .ev b{font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cal .ev.event b{-webkit-line-clamp:3}.cal .ev i{display:block;font:500 10.5px var(--mono);font-style:normal;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cal .ev a{color:inherit;text-decoration:none}
+.cal .band{position:absolute;left:3px;right:3px;border-radius:10px;border-left:4px solid var(--dc);background:color-mix(in srgb,var(--dc) 12%,transparent);z-index:0}
+.cal .band span{position:absolute;right:8px;top:4px;font:600 11px var(--sans);color:var(--muted);text-align:right;max-width:55%}
+.cal .ev{z-index:1}
+.cal .band a{color:inherit;text-decoration:none}
+.cal .ev .was{color:var(--accent)}
 .cal .now{position:absolute;left:-5px;right:0;border-top:2px solid var(--c-clay,#c0392b);z-index:3}
 .cal .now:before{content:"";position:absolute;left:-1px;top:-6px;width:10px;height:10px;border-radius:50%;background:var(--c-clay,#c0392b)}
 </style>
@@ -378,18 +383,25 @@ function today(){
   if(!S.length && !I.length){ el.innerHTML=''; return; }
   const min=t=>{const [h,m]=t.split(':').map(Number); return h*60+m;};
   const now=new Date(), nowM=now.toLocaleDateString('en-CA')===D.day?now.getHours()*60+now.getMinutes():null; /* the device's own clock, where she is */
-  const its=S.map(x=>({...x,s:min(x.a),e:Math.max(min(x.b),min(x.a)+30)}));
-  const h0=Math.max(0,Math.floor(Math.min(...its.map(x=>x.s),nowM??1e9)/60)), h1=Math.min(24,Math.ceil(Math.max(...its.map(x=>x.e),(nowM??0)+30)/60));
+  /* doable (31 Oct 2026, her words: I don't like seeing two things on one time slot, that makes no sense —
+     think about what is realistic). A long event (two hours or more, the party) is the ground the steps sit
+     on, drawn behind them; every other event and step is laid end to end in time order, nothing open before
+     the clock (she can't go back), each at its own time or as soon as the one before it ends. */
+  const all=S.map(x=>({...x,s:min(x.a),e:Math.max(min(x.b),min(x.a)+15)}));
+  const bands=all.filter(x=>x.k==='event'&&x.e-x.s>=120), its=all.filter(x=>!bands.includes(x)).sort((x,y)=>x.s-y.s);
+  let at=0; its.forEach(x=>{ const d=x.e-x.s, want=x.s;
+    if(!x.done){ x.s=Math.max(x.s,at,x.k==='step'&&nowM!=null?Math.ceil(nowM/15)*15:0); x.e=x.s+d; }
+    x.moved=x.s!==want?want:null; at=Math.max(at,x.e); });
+  const h0=Math.max(0,Math.floor(Math.min(...all.map(x=>x.s),...its.map(x=>x.s),nowM??1e9)/60)), h1=Math.min(24,Math.ceil(Math.max(...all.map(x=>x.e),...its.map(x=>x.e),(nowM??0)+30)/60));
   const PX=100, y=m=>(m-h0*60)*PX/60;
   /* overlaps side by side, as the calendar does */
-  const cols=[]; its.forEach(x=>{ let c=0; while(cols[c]&&cols[c]>x.s) c++; cols[c]=x.e; x.col=c; });
-  its.forEach(x=>{ x.n=1+Math.max(...its.filter(o=>o.s<x.e&&o.e>x.s).map(o=>o.col)); });
   const dc=n=>{ const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===n); return col(d&&d.c); };
   const lab=h=>`${h%12||12} ${h<12||h===24?'AM':'PM'}`, tm=m=>`${Math.floor(m/60)%12||12}:${String(m%60).padStart(2,'0')}`;
   let g='';
   for(let h=h0;h<=h1;h++) g+=`<div class="hr" style="top:${y(h*60)}px"><span>${lab(h)}</span></div>`;
-  its.forEach(x=>{ const w=100/x.n, inner=`<b>${x.done?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}${x.k==='event'?'–'+tm(x.e):''}${x.drive?' · '+esc(x.drive):''}</i>`;
-    g+=`<div class="ev ${x.k}${x.done?' done':''}" style="--dc:${dc(x.drive)};top:${y(x.s)+1}px;height:${Math.max(46,y(x.e)-y(x.s)-2)}px;left:calc(${x.col*w}% + 3px);width:calc(${w}% - 6px)">${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${inner}</a>`:inner}</div>`; });
+  bands.forEach(x=>{ g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"><span>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)}<br>${tm(x.s)}–${tm(x.e)}</span></div>`; });
+  its.forEach(x=>{ const inner=`<b>${x.done?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.sized&&!x.done?' · about':''}${x.moved!=null?` · <span class="was">planned ${tm(x.moved)}</span>`:''}${x.drive?' · '+esc(x.drive):''}</i>`;
+    g+=`<div class="ev ${x.k}${x.done?' done':''}" style="--dc:${dc(x.drive)};top:${y(x.s)+1}px;height:${Math.max(46,y(x.e)-y(x.s)-2)}px;left:3px;width:${bands.some(b=>b.s<x.e&&b.e>x.s)?'58%':'calc(100% - 6px)'}">${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${inner}</a>`:inner}</div>`; });
   if(nowM!=null&&nowM>=h0*60&&nowM<=h1*60) g+=`<div class="now" style="top:${y(nowM)}px"></div>`;
   el.innerHTML=(I.length?`<p class="say"><small>your intention</small>${I.map(esc).join('<br>')}</p>`:'')
     +(its.length?`<div class="cal" style="height:${y(h1*60)}px">${g}</div>`:'');
