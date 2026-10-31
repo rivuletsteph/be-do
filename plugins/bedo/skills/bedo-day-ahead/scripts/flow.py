@@ -178,6 +178,49 @@ def buffer_on(morning, rows, F, rhythm_names, hidden, local):
     return dict(value=max(0, round(100 - BUF_PER * (BUF_TEND * tend + BUF_GROW * grow))), tend=tend, grow=grow)
 
 
+def schedule_of(today, rows, day_page, F, off, hidden):
+    """Today as a calendar (31 Oct 2026, her words: I want it to look like how the schedule looks in Google
+    calendar, and the whole list of things I said I wanted to do this afternoon — those are my intentions).
+    Every calendar event today, and every step targeted at a time today (open, or done today), each at its
+    time; a step holds 30 minutes unless it carries its own end. An event's own row is the event, not twice."""
+    to = lambda ts: dt.datetime.fromisoformat(ts.replace('Z', '+00:00')) + off
+    hm = lambda t: t.strftime('%H:%M')
+    items, links, own = [], set(), set()
+    for e in (day_page or {}).get('events') or []:
+        try:
+            a = dt.datetime.fromisoformat(e['sort'])
+        except (KeyError, ValueError):
+            continue
+        if a.date() != today or not e.get('when'):
+            continue
+        b = clock(today, e.get('end')) or a + dt.timedelta(hours=1)
+        summ = e.get('summary') or ''
+        items.append(dict(k='event', t=e.get('title') or summ, a=hm(a), b=hm(b), drive=e.get('drive'), who=e.get('who'),
+                          done=summ.startswith('✅'), link=e.get('link')))
+        if e.get('link'):
+            links.add(e['link'].split('&')[0])
+        if e.get('match'):
+            own.add(e['match'])
+    for r in rows:
+        c = r['cellValuesByFieldId']
+        tg, st = c.get(F['target']), c.get(F['status']) or ''
+        st = st.get('name') if isinstance(st, dict) else st
+        if not tg or st not in OPEN + ('✅ done',):
+            continue
+        a = to(tg)
+        rh = (c.get(F['rhythm']) or '').strip()
+        title = (c.get(F['title']) or '').strip()
+        ev = (c.get(F['event']) or '') if F.get('event') else ''
+        if a.date() != today or rh in hidden or title in own or (ev and ev.split('&')[0] in links):
+            continue
+        if F.get('quickie') and c.get(F['quickie']) and st != '✅ done':
+            continue
+        end = c.get(F['end'])
+        b = to(end) if end and st == '✅ done' and to(end) > a and to(end) - a <= dt.timedelta(hours=6) else a + dt.timedelta(minutes=30)
+        items.append(dict(k='step', t=re.sub(r'^⚡\s*', '', title), a=hm(a), b=hm(b), drive=rh, done=st == '✅ done'))
+    return sorted(items, key=lambda x: (x['a'], x['k'] != 'event'))
+
+
 def sized(acts):
     """Each step with be•do's guess at its size (sz, minutes), marked a guess (szg)."""
     return [dict(a, sz=size_guess(a.get('t')), szg=True) for a in acts]
@@ -199,6 +242,8 @@ def build(D, rows, rhythms_read, L, behind_dir):
                 secure=(D.get('secure') or {}).get('state'))
     today_page = next((x for x in D.get('days') or [] if x.get('date') == W['day']), None)
     data['holds'] = day_holds(today_page, L) if today_page else None
+    data['intentions'] = [x for x in (D.get('intentions') or []) if x]
+    data['schedule'] = schedule_of(today, rows, today_page, F, off, set(L.get('hide_drives') or []))
     data['goals'] = {c.get(RF['name']): first_sentence(c.get(RF['goal'])) for c in
                      (r['cellValuesByFieldId'] for r in rhythms_read) if c.get(RF['goal'])}
     # body: each morning's readiness, from the readiness practice's row ("readiness 81")
