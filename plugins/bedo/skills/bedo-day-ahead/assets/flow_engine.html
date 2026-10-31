@@ -107,6 +107,19 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
 .cal .ev{z-index:1}
 .cal .band a{color:inherit;text-decoration:none}
 .cal .ev .was{color:var(--accent)}
+.cal .ev{background:color-mix(in srgb,var(--fill) 55%,var(--card));border-left-color:var(--edge)}
+.cal .ev.lived{opacity:.92;padding:1px 6px;font-size:11.5px}
+.cal .ev.lived b{-webkit-line-clamp:1;font-weight:500}
+.cal .ev.lived i{display:none}
+.cal .ev.lived.tall i{display:block}
+.cal .ev.done b{text-decoration:none}
+.cal .ev.step{border:1.5px dashed var(--edge);border-left:4px solid var(--edge);background:color-mix(in srgb,var(--fill) 28%,var(--card))}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin:0 0 10px;font-size:11.5px;color:var(--muted)}
+.legend b{font:600 10.5px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-right:-4px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:11px;height:11px;border-radius:3px;background:var(--fill);border:1.5px solid var(--edge)}
+.td{--k-flow:#DDD5C9;--k-flow-d:#8C8174;--k-eat:#86C2A4;--k-eat-d:#3F8A68;--k-move:#B4C987;--k-move-d:#6E8A35;--k-personal:#C3B6E2;--k-personal-d:#6B5BA0;--k-recreation:#9FC4E2;--k-recreation-d:#4A7FAE;--k-travel:#A8D3C9;--k-travel-d:#3E7F74;--k-work:#C9805F;--k-work-d:#8E4A2C;--k-family:#E3A4A8;--k-family-d:#B05E66;--k-pet:#EBB9CB;--k-pet-d:#A85C7A;--k-home:#DDB4A2;--k-home-d:#96604A;--k-cook:#EEB672;--k-cook-d:#B07A2A;--k-drive:#A9B7C2;--k-drive-d:#56697A;--k-system:#DCC89C;--k-system-d:#9C8455;--k-moment:#F2C14E;--k-moment-d:#B8860B}
+html[data-bedo="night"] .td{--k-flow-d:#BDB3A6;--k-eat-d:#C4E6D4;--k-move-d:#DCE8BC;--k-personal-d:#DED6F4;--k-recreation-d:#CFE2F2;--k-travel-d:#CDEAE4;--k-work-d:#F0C6B2;--k-family-d:#F5D0D2;--k-pet-d:#F6D3E0;--k-home-d:#F0D6CA;--k-cook-d:#F7D9AE;--k-drive-d:#D3DEE7;--k-system-d:#EEE2C6;--k-moment-d:#F2C14E}
 .cal .now{position:absolute;left:-5px;right:0;border-top:2px solid var(--c-clay,#c0392b);z-index:3}
 .cal .now:before{content:"";position:absolute;left:-1px;top:-6px;width:10px;height:10px;border-radius:50%;background:var(--c-clay,#c0392b)}
 </style>
@@ -387,24 +400,37 @@ function today(){
      think about what is realistic). A long event (two hours or more, the party) is the ground the steps sit
      on, drawn behind them; every other event and step is laid end to end in time order, nothing open before
      the clock (she can't go back), each at its own time or as soon as the one before it ends. */
-  const all=S.map(x=>({...x,s:min(x.a),e:Math.max(min(x.b),min(x.a)+15)}));
-  const bands=all.filter(x=>x.k==='event'&&x.e-x.s>=120), its=all.filter(x=>!bands.includes(x)).sort((x,y)=>x.s-y.s);
+  const all=S.map(x=>({...x,s:min(x.a),e:Math.max(min(x.b),min(x.a)+(x.k==='lived'?10:15))}));
+  const bands=all.filter(x=>x.k==='event'&&x.e-x.s>=120);
+  /* what she has done stays where it happened; what's ahead is laid end to end from the clock */
+  const past=all.filter(x=>x.k==='lived').sort((x,y)=>x.s-y.s);
+  const its=all.filter(x=>x.k!=='lived'&&!bands.includes(x)).sort((x,y)=>x.s-y.s);
   let at=0; its.forEach(x=>{ const d=x.e-x.s, want=x.s;
     if(!x.done){ x.s=Math.max(x.s,at,x.k==='step'&&nowM!=null?Math.ceil(nowM/15)*15:0); x.e=x.s+d; }
     x.moved=x.s!==want?want:null; at=Math.max(at,x.e); });
   const h0=Math.max(0,Math.floor(Math.min(...all.map(x=>x.s),...its.map(x=>x.s),nowM??1e9)/60)), h1=Math.min(24,Math.ceil(Math.max(...all.map(x=>x.e),...its.map(x=>x.e),(nowM??0)+30)/60));
-  const PX=100, y=m=>(m-h0*60)*PX/60;
-  /* overlaps side by side, as the calendar does */
+  const PX=72, y=m=>(m-h0*60)*PX/60, MINH=20, minOf=px=>px*60/PX;
+  /* the past as it was: two things at once sit side by side, as the calendar does */
+  const cols=[]; past.forEach(x=>{ x.de=Math.max(x.e,x.s+minOf(MINH+2)); let c=0; while(cols[c]&&cols[c]>x.s) c++; cols[c]=x.de; x.col=c; });
+  past.forEach(x=>{ x.n=1+Math.max(...past.filter(o=>o.s<x.de&&o.de>x.s).map(o=>o.col)); });
   const dc=n=>{ const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===n); return col(d&&d.c); };
+  const kv=c=>`--fill:var(--k-${c||'flow'});--edge:var(--k-${c||'flow'}-d);--dc:var(--k-${c||'flow'}-d)`;
   const lab=h=>`${h%12||12} ${h<12||h===24?'AM':'PM'}`, tm=m=>`${Math.floor(m/60)%12||12}:${String(m%60).padStart(2,'0')}`;
   let g='';
   for(let h=h0;h<=h1;h++) g+=`<div class="hr" style="top:${y(h*60)}px"><span>${lab(h)}</span></div>`;
   bands.forEach(x=>{ g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"><span>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)}<br>${tm(x.s)}–${tm(x.e)}</span></div>`; });
+  past.forEach(x=>{ const w=100/x.n, h=Math.max(MINH,y(x.e)-y(x.s)-1);
+    g+=`<div class="ev lived${h>=40?' tall':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kv(x.cat)};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}</i></div>`; });
   its.forEach(x=>{ const inner=`<b>${x.done?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.sized&&!x.done?' · about':''}${x.moved!=null?` · <span class="was">planned ${tm(x.moved)}</span>`:''}${x.drive?' · '+esc(x.drive):''}</i>`;
-    g+=`<div class="ev ${x.k}${x.done?' done':''}" style="--dc:${dc(x.drive)};top:${y(x.s)+1}px;height:${Math.max(46,y(x.e)-y(x.s)-2)}px;left:3px;width:${bands.some(b=>b.s<x.e&&b.e>x.s)?'58%':'calc(100% - 6px)'}">${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${inner}</a>`:inner}</div>`; });
+    g+=`<div class="ev ${x.k}${x.done?' done':''}" style="${kv(x.cat)};top:${y(x.s)+1}px;height:${Math.max(46,y(x.e)-y(x.s)-2)}px;left:3px;width:${bands.some(b=>b.s<x.e&&b.e>x.s)?'58%':'calc(100% - 6px)'}">${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${inner}</a>`:inner}</div>`; });
+  /* the day behind's own words for the categories, being then doing, only those on the day */
+  const NAMES={eat:'eating and drinking',move:'moving',personal:'personal care',recreation:'recreation',travel:'travel',
+    work:'professional work',family:'family care',pet:'pet care',home:'home care',cook:'making',drive:'driving',system:'be•do',flow:'dawn and dusk',moment:'moments'};
+  const on=new Set(all.map(x=>x.cat)), grp=(t,ks)=>{ const h=ks.filter(k=>on.has(k)); return h.length?`<b>${t}</b>`+h.map(k=>`<span style="${kv(k)}"><i></i>${NAMES[k]}</span>`).join(''):''; };
+  const legend=`<div class="legend">${grp('being',['eat','move','personal','recreation','travel'])}${grp('doing',['work','family','pet','home','cook','drive','system'])}${grp('',['flow','moment'])}</div>`;
   if(nowM!=null&&nowM>=h0*60&&nowM<=h1*60) g+=`<div class="now" style="top:${y(nowM)}px"></div>`;
   el.innerHTML=(I.length?`<p class="say"><small>your intention</small>${I.map(esc).join('<br>')}</p>`:'')
-    +(its.length?`<div class="cal" style="height:${y(h1*60)}px">${g}</div>`:'');
+    +(all.length?legend+`<div class="cal" style="height:${y(h1*60)}px">${g}</div>`:'');
 }
 function draw(){ today(); card(); const b=shape(); lists(b); intention(b); flow(b); }
 document.addEventListener('bedo-theme',draw);
