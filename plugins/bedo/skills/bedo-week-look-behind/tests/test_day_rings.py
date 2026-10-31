@@ -163,9 +163,16 @@ CARE4 = NIGHT + [
 K4 = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in day_rings(CARE4, DAY, L4)['bands']}
 assert K4['being'].get('personal') == 10 + 40, K4['being']
 assert K4['doing'].get('home') == 20 + 30 and K4['doing'].get('pet') == 30 + 40, K4['doing']
-assert K4['doing'].get('family') == 60, K4['doing']                    # the class and the walk both count: two lanes
+assert K4['doing'].get('family') == 60 + 50, K4['doing']               # the class and the walk both count: two lanes; dinner prep is care (31 Oct)
 assert K4['doing'].get('cook') == 50 + 15 + 60 and not K4['doing'].get('work'), K4['doing']
 print('ok — personal, family, pet and home care, each for what it cares for; making is cooking she creates, and building')
+
+# Dinner prep is care, never professional work (31 Oct 2026, her words: dinner prep is not professional work,
+# that is a care task) — even when the row carries a rhythm, which used to paint it as work.
+CARE5 = NIGHT + [row('🍳 dinner prep', '17:22', '17:52', rhythm='Health & Body', person=['Ollie Plum'], title='made the sides for dinner')]
+K5 = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in day_rings(CARE5, DAY, L4)['bands']}
+assert not K5['doing'].get('work') and K5['doing'].get('family') == 30, K5['doing']
+print('ok — dinner prep is care: never professional work, even on a rhythm')
 
 # Their day is theirs (28 Oct 2026): an event from their own calendar and their own play go on their strip,
 # never on her rainbow; what she did meanwhile is her rows.

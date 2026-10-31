@@ -286,7 +286,10 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         cues = SHARED_SHOW if pr in TV or pr == 'game' else TOGETHER   # a show together is the show, unless it was for them
         together = any(c.format(w=w.lower()) in said for w in with_care for c in cues) or (
             with_care and cues is TOGETHER and any(c in said for c in care_together))
-        is_family = any(x in rh for x in care_rh) or (span and (
+        # cooking a meal for the family is care, never professional work (31 Oct 2026, her words: dinner
+        # prep is not professional work, that is a care task)
+        cook_care = pr in COOK and span and (bool(who) or 'dinner' in pr or 'dinner' in t.lower() or 'family' in said)
+        is_family = cook_care or any(x in rh for x in care_rh) or (span and (
             (with_care and (pr in ('action', 'driving') or together)) or (pr == 'driving' and any(w in t for w in care_who))))
         is_pet = any(x in rh for x in pet_rh) or bool(span and pet_rx and pet_rx.search(
             (r.get('title') or '') + ' ' + (r.get('details') or '').split('———')[0] + ' ' + ' '.join(who)))
@@ -298,7 +301,7 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         elif care_kind and span:
             for pa, pb in pieces:
                 paint('work', care_kind, pa, pb, t, own=pr != 'action')
-        elif rh and span and (pr == 'action' or pr not in flows) and not on_rec and \
+        elif rh and span and (pr == 'action' or pr not in flows) and not on_rec and pr not in COOK and \
                 (parts or b - a >= dt.timedelta(minutes=10)):     # a work practice with its time counts too (28 Oct)
             for pa, pb in pieces:
                 paint('work', 'system' if rh == system else 'work', pa, pb, t)
