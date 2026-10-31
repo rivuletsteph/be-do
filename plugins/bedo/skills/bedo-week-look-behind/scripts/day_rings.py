@@ -69,7 +69,7 @@ FAMILY_CHORES = ('after dinner', 'after supper', 'kitchen', 'set the table', 'se
 # (`care.community.words`, such as the group of children she helps with)
 # voting is community care too, even when it is also fun (31 Oct 2026, her words: it was fun but it was also community)
 COMMUNITY = ('hosting', 'we hosted', 'hosted the', 'potluck at our house', 'party at our house', 'community care',
-             'voted', 'voting', 'ballot')
+             'voted', 'ballot', 'to vote')   # the act itself: 'home from voting' is not
 PERSONAL = {'shower', 'bath', 'evening hygiene', 'getting ready', 'skincare'}            # personal care: her own body
 TRAVEL = {'riding', 'ride', 'flight', 'flying', 'travel', 'train', 'bus'}   # carried, not at the wheel (30 Oct)
 HOME = {'clean', 'laundry', 'laundry move', 'care task', 'dishes', 'tidy', 'errand'}       # home care: care tasks
