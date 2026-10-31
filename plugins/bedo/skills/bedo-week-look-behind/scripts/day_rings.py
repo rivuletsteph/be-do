@@ -67,7 +67,9 @@ FAMILY_CHORES = ('after dinner', 'after supper', 'kitchen', 'set the table', 'se
 # community care: caring for people beyond the family she's responsible for (31 Oct 2026, her words: hosting a
 # party is more community care); her own words or the row's title say so, and the settings can add her own
 # (`care.community.words`, such as the group of children she helps with)
-COMMUNITY = ('hosting', 'we hosted', 'hosted the', 'potluck at our house', 'party at our house', 'community care')
+# voting is community care too, even when it is also fun (31 Oct 2026, her words: it was fun but it was also community)
+COMMUNITY = ('hosting', 'we hosted', 'hosted the', 'potluck at our house', 'party at our house', 'community care',
+             'voted', 'voting', 'ballot')
 PERSONAL = {'shower', 'bath', 'evening hygiene', 'getting ready', 'skincare'}            # personal care: her own body
 TRAVEL = {'riding', 'ride', 'flight', 'flying', 'travel', 'train', 'bus'}   # carried, not at the wheel (30 Oct)
 HOME = {'clean', 'laundry', 'laundry move', 'care task', 'dishes', 'tidy', 'errand'}       # home care: care tasks
