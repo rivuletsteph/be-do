@@ -181,13 +181,15 @@ CARE6 = NIGHT + [
     row('🧽 clean', '10:00', '10:20', title='the bathroom'),                                          # still home care
     row('⚡ action', '16:00', '19:00', rhythm='Kid Club', title='hosting the Halloween potluck at our house'),   # community care
     row('🚶‍♀️ walking', '11:00', '11:30', title='walk with the forest school kids'),                    # moving, and community care
+    row('🍳 dinner prep', '17:00', '17:30', person=['Ollie Plum'], title='made the sides — baked potato, carrots'),   # family care, not making
+    row('⚡ action', '13:00', '13:30', rhythm='Paid Work', title='Tidy the house — the bathrooms'),       # home care, not work
     row('📝 log', '20:00', '22:00', rhythm='Fun', person=['Moss Quill'], title="the Quills' party"),     # social recreation
 ]
 L6 = dict(L4, recreation={'rhythms': ['Fun']}, care=dict(L4['care'], community={'words': ['forest school kids']}))
 K6 = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in day_rings(CARE6, DAY, L6)['bands']}
-assert K6['doing'].get('home') == 20, K6['doing']
+assert K6['doing'].get('home') == 20 + 30 and not K6['doing'].get('work') and not K6['doing'].get('cook'), K6['doing']
 assert K6['doing'].get('community') == 30 + 180, K6['doing']           # the walk, and the hosting: her words win over the rhythm
-assert K6['doing'].get('family') == 30, K6['doing']                    # the kitchen after dinner
+assert K6['doing'].get('family') == 30 + 30, K6['doing']               # the kitchen after dinner, and the sides
 assert K6['being'].get('social') == 120, K6['being']
 print('ok — the kitchen after dinner is family care, the school kids are community care, a party is social recreation')
 

@@ -53,7 +53,8 @@ MAKE = {'cooking', 'baking', 'woodworking', 'building', 'gardening', 'crafting',
         'making music', 'guitar', 'piano', 'jam'}                                    # making, always (28 Oct)
 # making is cooking she creates, by her words, never by its length (31 Oct 2026, replacing the 28 Oct 30-minute rule:
 # "there wasn't anything particularly creative about the dinner I made yesterday, so I would just call that family care")
-MADE = ('baked', 'recipe', 'from scratch', 'tried a new', 'experiment')   # her words: she made something
+MADE = ('i baked', 'we baked', 'baked bread', 'baked a ', 'baked some', 'recipe', 'from scratch', 'tried a new',
+        'experiment')   # her words: she made something (not 'baked potato', a side dish, 31 Oct)
 EAT = {'breakfast', 'lunch', 'dinner', 'snack', 'brunch', 'dessert', 'coffee', 'smoothie', 'evening tea',
        'tea', 'morning water', 'water', 'other consumable', 'drink'}
 MOVE = {'morning movement', 'walking', 'hip exercises', 'strength training', 'barre', 'cycling', 'rowing',
@@ -70,6 +71,7 @@ COMMUNITY = ('hosting', 'we hosted', 'hosted the', 'potluck at our house', 'part
 PERSONAL = {'shower', 'bath', 'evening hygiene', 'getting ready', 'skincare'}            # personal care: her own body
 TRAVEL = {'riding', 'ride', 'flight', 'flying', 'travel', 'train', 'bus'}   # carried, not at the wheel (30 Oct)
 HOME = {'clean', 'laundry', 'laundry move', 'care task', 'dishes', 'tidy', 'errand'}       # home care: care tasks
+HOME_WORDS = ('tidy', 'tidied', 'clean the', 'cleaned the', 'vacuum', 'laundry', 'dishes', 'bathrooms')  # an action that was house care (31 Oct)
 TV = {'show', 'movie', 'video'}
 SCREENISH = {'action', 'log', 'text', 'ai chat', 'video call', 'phone', 'usage check', 'calendar event',
              'look ahead', 'look behind', 'intention check', 'journal', 'insight'}
@@ -310,7 +312,8 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
             (r.get('title') or '') + ' ' + (r.get('details') or '').split('———')[0] + ' ' + ' '.join(who)))
         care_kind = ('community' if is_community else       # her words for it win over the rhythm it was filed under
                      'family' if is_family or (quick and (with_care or together)) else 'pet' if is_pet else
-                     'home' if pr in HOME or any(x in rh for x in home_rh) else None)
+                     'home' if pr in HOME or any(x in rh for x in home_rh) or (pr == 'action' and any(w in t.lower() for w in HOME_WORDS))
+                     else None)
         if span and (pr in PERSONAL or (quick and not care_kind) or (not care_kind and pr == 'action'
                                                                      and any(x in rh for x in personal_rh))):
             paint('personal', 'personal', a, b, t)                # personal care: her own body, her own quick food
