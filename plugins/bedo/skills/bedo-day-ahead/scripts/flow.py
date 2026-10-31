@@ -266,7 +266,7 @@ def kind_of(c, F, flows, C):
     return 'flow'
 
 
-def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None):
+def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None, picks=None):
     """Today as a calendar (31 Oct 2026, her words: I want it to look like how the schedule looks in Google
     calendar, and the whole list of things I said I wanted to do this afternoon — those are my intentions;
     and take into account all the work I've done so far today). What she has done today, each row at its own
@@ -312,9 +312,16 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
             if F.get('quickie') and c.get(F['quickie']):
                 continue
             a = to(tg)
-            b = a + dt.timedelta(minutes=min(size_guess(t), 120))
-            items.append(dict(k='step', t=t, a=hm(a), b=hm(b), drive=rh, done=False, sized=True,
-                              cat=kind_of(c, F, flows, C)))
+            # a size on the row wins (31 Oct 2026, her words: a lot of those things aren't going to take an
+            # hour; the bike ride with Rosa will probably take 20 minutes): a `size: 20 min` line in its words
+            # or the [be•do] block, `guess` on that line when it is be•do's; else be•do's guess off the words
+            m = re.search(r'(?im)^.*?\bsize:\s*(\d+)\s*min\b(.*)$', c.get(F['details']) or '')
+            mins_ = int(m.group(1)) if m else min(size_guess(t), 120)
+            b = a + dt.timedelta(minutes=mins_)
+            why = (picks or {}).get(r['id']) or (picks or {}).get(c.get(F['key']) or '')
+            items.append(dict(k='step', t=t, a=hm(a), b=hm(b), drive=rh, done=False,
+                              sized=not m or 'guess' in m.group(0).lower(),
+                              cat=kind_of(c, F, flows, C), pick=why is not None, why=why or None))
             continue
         if st in NOT_LIVED or not c.get(F['when']):            # skipped, dropped, a potential
             continue
@@ -350,7 +357,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
     data['holds'] = day_holds(today_page, L) if today_page else None
     data['intentions'] = [x for x in (D.get('intentions') or []) if x]
     data['schedule'] = schedule_of(today, rows, today_page, F, off, set(L.get('hide_drives') or []),
-                                   L.get('_flows') or frozenset(), care_settings(L))
+                                   L.get('_flows') or frozenset(), care_settings(L), L.get('_picks'))
     data['goals'] = {c.get(RF['name']): first_sentence(c.get(RF['goal'])) for c in
                      (r['cellValuesByFieldId'] for r in rhythms_read) if c.get(RF['goal'])}
     # body: each morning's readiness, from the readiness practice's row ("readiness 81")
@@ -390,6 +397,8 @@ def main():
     ap.add_argument('--local', required=True)
     ap.add_argument('--behind')
     ap.add_argument('--out', required=True)
+    ap.add_argument('--pick', action='append', default=[],
+                    help='"<row key or record id>::<why>" — be•do\'s three for today, starred on the calendar')
     a = ap.parse_args()
     L = json.load(open(a.local, encoding='utf-8'))
     h, D = page_data(a.day_ahead)
@@ -400,6 +409,7 @@ def main():
             if r['id'] not in seen:
                 seen.add(r['id']); rows.append(r)
     rhythms_read = json.load(open(os.path.join(dd, 'rhythms.json'), encoding='utf-8'))['records']
+    L['_picks'] = dict((p.split('::', 1) + [''])[:2] for p in a.pick)
     data = build(D, rows, rhythms_read, L, a.behind)
     root = re.search(r':root\{[^}]*--c-moss[^}]*\}', h).group(0)
     night = re.search(r'html\[data-bedo="night"\]\{[^}]*\}', h).group(0)
