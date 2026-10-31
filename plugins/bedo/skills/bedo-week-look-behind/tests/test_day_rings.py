@@ -154,7 +154,7 @@ CARE4 = NIGHT + [
     row('🚶‍♀️ walking', '12:00', '12:30', title='walked Biscuit'),                                    # moving, and pet care
     row('⚡ action', '13:00', '13:30', rhythm='Hearth', title='called the plumber'),                  # home care
     row('⚡ action', '14:00', '14:40', rhythm='My Health', title='read my lab results'),              # personal care
-    row('🍳 dinner prep', '17:00', '17:50', title='lasagna'),                                         # long enough: making
+    row('🍳 dinner prep', '17:00', '17:50', title='lasagna'),                                         # a routine dinner: family care (31 Oct)
     row('🍳 lunch prep', '16:00', '16:15', title='baked bread from a recipe'),                         # her words: making
     row('🪚 woodworking', '19:00', '20:00', title='a birdhouse'),                                     # making
     row('⚡ action', '15:00', '16:00', rhythm='Kid Club', person=['Pip Plum'], title="Pip's swim class"),  # his class
@@ -164,7 +164,7 @@ K4 = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in day_rings(CARE4, D
 assert K4['being'].get('personal') == 10 + 40, K4['being']
 assert K4['doing'].get('home') == 20 + 30 and K4['doing'].get('pet') == 30 + 40, K4['doing']
 assert K4['doing'].get('family') == 60 + 50, K4['doing']               # the class and the walk both count: two lanes; dinner prep is care (31 Oct)
-assert K4['doing'].get('cook') == 50 + 15 + 60 and not K4['doing'].get('work'), K4['doing']
+assert K4['doing'].get('cook') == 15 + 60 and not K4['doing'].get('work'), K4['doing']   # making is creative, not long (31 Oct)
 print('ok — personal, family, pet and home care, each for what it cares for; making is cooking she creates, and building')
 
 # Dinner prep is care, never professional work (31 Oct 2026, her words: dinner prep is not professional work,
@@ -173,6 +173,23 @@ CARE5 = NIGHT + [row('🍳 dinner prep', '17:22', '17:52', rhythm='My Health', p
 K5 = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in day_rings(CARE5, DAY, L4)['bands']}
 assert not K5['doing'].get('work') and K5['doing'].get('family') == 30, K5['doing']
 print('ok — dinner prep is care: never professional work, even on a rhythm')
+
+# The kinds of care, settled with her 31 Oct 2026: the kitchen after a family meal is family care; caring for people
+# beyond the family is community care; time with people beyond the family, like a party, is social recreation.
+CARE6 = NIGHT + [
+    row('🧽 clean', '19:10', '19:40', title='the dishes after dinner'),                                # family care
+    row('🧽 clean', '10:00', '10:20', title='the bathroom'),                                          # still home care
+    row('⚡ action', '16:00', '19:00', rhythm='Kid Club', title='hosting the Halloween potluck at our house'),   # community care
+    row('🚶‍♀️ walking', '11:00', '11:30', title='walk with the forest school kids'),                    # moving, and community care
+    row('📝 log', '20:00', '22:00', rhythm='Fun', person=['Moss Quill'], title="the Quills' party"),     # social recreation
+]
+L6 = dict(L4, recreation={'rhythms': ['Fun']}, care=dict(L4['care'], community={'words': ['forest school kids']}))
+K6 = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in day_rings(CARE6, DAY, L6)['bands']}
+assert K6['doing'].get('home') == 20, K6['doing']
+assert K6['doing'].get('community') == 30 + 180, K6['doing']           # the walk, and the hosting: her words win over the rhythm
+assert K6['doing'].get('family') == 30, K6['doing']                    # the kitchen after dinner
+assert K6['being'].get('social') == 120, K6['being']
+print('ok — the kitchen after dinner is family care, the school kids are community care, a party is social recreation')
 
 # Their day is theirs (28 Oct 2026): an event from their own calendar and their own play go on their strip,
 # never on her rainbow; what she did meanwhile is her rows.
