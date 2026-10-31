@@ -51,18 +51,29 @@ SLEEP = {'sleep', 'nap'}
 COOK = {'dinner prep', 'meal prep', 'cooking', 'lunch prep', 'breakfast prep', 'baking'}
 MAKE = {'cooking', 'baking', 'woodworking', 'building', 'gardening', 'crafting', 'sewing', 'making',
         'making music', 'guitar', 'piano', 'jam'}                                    # making, always (28 Oct)
-MAKING_MIN = 30             # prep this long or longer is cooking she makes (her meals rule: a straightforward dinner)
-MADE = ('baked', 'recipe', 'from scratch', 'tried a new', 'experiment')   # her words: she made something
+# making is cooking she creates, by her words, never by its length (31 Oct 2026, replacing the 28 Oct 30-minute rule:
+# "there wasn't anything particularly creative about the dinner I made yesterday, so I would just call that family care")
+MADE = ('i baked', 'we baked', 'baked bread', 'baked a ', 'baked some', 'recipe', 'from scratch', 'tried a new',
+        'experiment')   # her words: she made something (not 'baked potato', a side dish, 31 Oct)
 EAT = {'breakfast', 'lunch', 'dinner', 'snack', 'brunch', 'dessert', 'coffee', 'smoothie', 'evening tea',
        'tea', 'morning water', 'water', 'other consumable', 'drink'}
 MOVE = {'morning movement', 'walking', 'hip exercises', 'strength training', 'barre', 'cycling', 'rowing',
         'yoga', 'squat', 'sun salutations', 'morning sun', 'evening sun', 'exercise', 'stretch'}
 RECREATION = {'book', 'reading', 'audiobook', 'podcast', 'show', 'movie', 'video', 'game', 'glimmer', 'play', 'social',
               'song', 'music', 'puzzle', 'outing', 'fresh air', 'video call'}
-CARE_KINDS = {'family', 'pet', 'home'}
+CARE_KINDS = {'family', 'community', 'pet', 'home'}
+# the required tasks of taking care of the family: the meal, setting the table, the kitchen after (31 Oct 2026)
+FAMILY_CHORES = ('after dinner', 'after supper', 'kitchen', 'set the table', 'setting the table', 'family dinner')
+# community care: caring for people beyond the family she's responsible for (31 Oct 2026, her words: hosting a
+# party is more community care); her own words or the row's title say so, and the settings can add her own
+# (`care.community.words`, such as the group of children she helps with)
+# voting is community care too, even when it is also fun (31 Oct 2026, her words: it was fun but it was also community)
+COMMUNITY = ('hosting', 'we hosted', 'hosted the', 'potluck at our house', 'party at our house', 'community care',
+             'voted', 'ballot', 'to vote')   # the act itself: 'home from voting' is not
 PERSONAL = {'shower', 'bath', 'evening hygiene', 'getting ready', 'skincare'}            # personal care: her own body
 TRAVEL = {'riding', 'ride', 'flight', 'flying', 'travel', 'train', 'bus'}   # carried, not at the wheel (30 Oct)
 HOME = {'clean', 'laundry', 'laundry move', 'care task', 'dishes', 'tidy', 'errand'}       # home care: care tasks
+HOME_WORDS = ('tidy', 'tidied', 'clean the', 'cleaned the', 'vacuum', 'laundry', 'dishes', 'bathrooms')  # an action that was house care (31 Oct)
 TV = {'show', 'movie', 'video'}
 SCREENISH = {'action', 'log', 'text', 'ai chat', 'video call', 'phone', 'usage check', 'calendar event',
              'look ahead', 'look behind', 'intention check', 'journal', 'insight'}
@@ -75,8 +86,9 @@ AT_THE_MOMENT = {'highlight'}  # a flow step whose row sits at the moment's own 
 
 BANDS = [('flow', 'Flows', [('flow', 'dawn and dusk')]),
          ('being', 'Being', [('eat', 'eating and drinking'), ('move', 'moving'), ('personal', 'personal care'),
-                             ('recreation', 'recreation'), ('travel', 'travel')]),
-         ('doing', 'Doing', [('work', 'professional work'), ('family', 'family care'), ('pet', 'pet care'),
+                             ('recreation', 'recreation'), ('social', 'social recreation'), ('travel', 'travel')]),
+         ('doing', 'Doing', [('work', 'professional work'), ('family', 'family care'), ('community', 'community care'),
+                             ('pet', 'pet care'),
                              ('home', 'home care'), ('cook', 'making'), ('drive', 'driving'), ('system', 'be•do')]),
          ('screen', 'On a screen', [('screen', 'on a screen')])]
 
@@ -183,6 +195,7 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
     pet_rx = re.compile(r'\b(?:%s)\b' % '|'.join(map(re.escape, (care.get('pet') or {}).get('names') or ()))) \
         if (care.get('pet') or {}).get('names') else None   # a name as she writes it: Buddy the dog, not 'my buddy'
     home_rh = tuple((care.get('home') or {}).get('rhythms') or ())
+    community_words = tuple(w.lower() for w in (care.get('community') or {}).get('words') or ())
     personal_rh = tuple((care.get('personal') or {}).get('rhythms') or ())
     their_cals = tuple(c.split('@')[0] for c in fam.get('calendars') or ())   # their own calendars: their day, not hers
     theirs = []
@@ -200,7 +213,7 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
     seen_titles = {}                          # (array, minute) → [(kind, title)]: what a tap names
     WIN = {'dawn': [], 'dusk': []}
     nights, moments = [], []
-    PRI = {'work': 0, 'family': 1, 'pet': 2, 'home': 3, 'system': 4}   # a be•do session beside the school run is still the school run
+    PRI = {'work': 0, 'family': 1, 'community': 1.5, 'pet': 2, 'home': 3, 'system': 4}   # a be•do session beside the school run is still the school run
 
     OWN = [False] * 1440   # a care minute held by her own row (what she did), not a scheduled action
     HERS = [False] * 1440  # a work minute from her own row (a voice journal on a drive), not a session running beside her
@@ -259,8 +272,7 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
                                asleep=asleep_min(r.get('details')), ra=mins(a), rb=mins(b)))
         said = ((r.get('title') or '') + ' ' + (r.get('details') or '').split('———')[0]).lower()
         # making is cooking she creates, and any making (28 Oct); quick food is care for whoever it fed
-        quick = pr in COOK and pr not in MAKE and not (span and b - a >= dt.timedelta(minutes=MAKING_MIN)) and \
-            not any(w in said for w in MADE)
+        quick = pr in COOK and pr not in MAKE and not any(w in said for w in MADE)
         if (pr in COOK or pr in MAKE) and not quick:
             paint('cook', 'cook', a, bb, t)
         if pr in EAT:
@@ -270,7 +282,12 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         rh, who = (r.get('rhythm') or ''), names(r.get('person'))
         on_rec = any(x in rh for x in rec_rh)       # an action on a recreation rhythm too: it was lived, not worked (27 Oct)
         if span and (pr in RECREATION or on_rec):
-            paint('recreation', 'recreation', a, b, t)
+            # social recreation: time with other people for its own sake, like a party someone else threw (31 Oct 2026)
+            # beyond the family she cares for: time with her son is family time, a party with friends is social
+            # (and a playmate's visit is his play, with her caring for him); a party is social either way
+            others = [n for n in who if not any(w in n for w in care_who)]
+            social = pr == 'social' or 'party' in said or (bool(others) and len(others) == len(who))
+            paint('recreation', 'social' if social else 'recreation', a, b, t)
         if (pr in flows and pr not in AT_THE_MOMENT) or pr in FLOW_CLOSES:
             paint('flow', 'flow', a, bb, t)
             WIN['dawn' if a.hour < 15 else 'dusk'].append(a)
@@ -286,19 +303,26 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         cues = SHARED_SHOW if pr in TV or pr == 'game' else TOGETHER   # a show together is the show, unless it was for them
         together = any(c.format(w=w.lower()) in said for w in with_care for c in cues) or (
             with_care and cues is TOGETHER and any(c in said for c in care_together))
-        is_family = any(x in rh for x in care_rh) or (span and (
+        # cooking a meal for the family is care, never professional work (31 Oct 2026, her words: dinner
+        # prep is not professional work, that is a care task)
+        cook_care = quick and span and (bool(who) or 'dinner' in pr or 'dinner' in t.lower() or 'family' in said)
+        chore_care = pr in HOME and span and any(w in said for w in FAMILY_CHORES)   # the kitchen after a family meal
+        is_community = span and any(w in said for w in COMMUNITY + community_words)
+        is_family = cook_care or chore_care or any(x in rh for x in care_rh) or (span and (
             (with_care and (pr in ('action', 'driving') or together)) or (pr == 'driving' and any(w in t for w in care_who))))
         is_pet = any(x in rh for x in pet_rh) or bool(span and pet_rx and pet_rx.search(
             (r.get('title') or '') + ' ' + (r.get('details') or '').split('———')[0] + ' ' + ' '.join(who)))
-        care_kind = ('family' if is_family or (quick and (with_care or together)) else 'pet' if is_pet else
-                     'home' if pr in HOME or any(x in rh for x in home_rh) else None)
+        care_kind = ('community' if is_community else       # her words for it win over the rhythm it was filed under
+                     'family' if is_family or (quick and (with_care or together)) else 'pet' if is_pet else
+                     'home' if pr in HOME or any(x in rh for x in home_rh) or (pr == 'action' and any(w in t.lower() for w in HOME_WORDS))
+                     else None)
         if span and (pr in PERSONAL or (quick and not care_kind) or (not care_kind and pr == 'action'
                                                                      and any(x in rh for x in personal_rh))):
             paint('personal', 'personal', a, b, t)                # personal care: her own body, her own quick food
         elif care_kind and span:
             for pa, pb in pieces:
                 paint('work', care_kind, pa, pb, t, own=pr != 'action')
-        elif rh and span and (pr == 'action' or pr not in flows) and not on_rec and \
+        elif rh and span and (pr == 'action' or pr not in flows) and not on_rec and pr not in COOK and \
                 (parts or b - a >= dt.timedelta(minutes=10)):     # a work practice with its time counts too (28 Oct)
             for pa, pb in pieces:
                 paint('work', 'system' if rh == system else 'work', pa, pb, t)
