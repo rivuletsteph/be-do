@@ -169,7 +169,7 @@ print('ok — personal, family, pet and home care, each for what it cares for; m
 
 # Dinner prep is care, never professional work (31 Oct 2026, her words: dinner prep is not professional work,
 # that is a care task) — even when the row carries a rhythm, which used to paint it as work.
-CARE5 = NIGHT + [row('🍳 dinner prep', '17:22', '17:52', rhythm='Health & Body', person=['Ollie Plum'], title='made the sides for dinner')]
+CARE5 = NIGHT + [row('🍳 dinner prep', '17:22', '17:52', rhythm='My Health', person=['Ollie Plum'], title='made the sides for dinner')]
 K5 = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in day_rings(CARE5, DAY, L4)['bands']}
 assert not K5['doing'].get('work') and K5['doing'].get('family') == 30, K5['doing']
 print('ok — dinner prep is care: never professional work, even on a rhythm')
