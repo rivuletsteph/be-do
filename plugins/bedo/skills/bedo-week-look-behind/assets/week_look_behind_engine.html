@@ -502,7 +502,7 @@ const rainbow = RB => {
   const clip = ([k, a, b, t, i, n]) => [k, Math.max(a, 0), Math.min(b, 1440), t || [], i || 0, n || 1];
   const B = Object.fromEntries(RB.bands.map(b => [b.k, b]));
   const NAME = {flow: "a flow", eat: "eating and drinking", move: "moving", recreation: "recreation", work: "professional work",
-    care: "caretaking", family: "family care", pet: "pet care", home: "home care", personal: "personal care",
+    care: "caretaking", family: "family care", community: "community care", social: "social recreation", pet: "pet care", home: "home care", personal: "personal care",
     cook: "making", drive: "driving", travel: "travel", system: "be•do", screen: "on a screen"};
   const R0 = 30, FW = 10, W = 62, GAP = 4;
   const RAD = {flow: [R0, R0 + FW]}; RAD.being = [RAD.flow[1] + 2, RAD.flow[1] + 2 + W]; RAD.doing = [RAD.being[1] + GAP, RAD.being[1] + GAP + W];
