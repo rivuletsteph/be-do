@@ -7,7 +7,7 @@
 #   bash run_checks.sh remaining [--flow dawn|dusk] [--voice]
 #   bash run_checks.sh dusk      [--date YYYY-MM-DD] [--chats chats.json] [--photos folder.json [--links week.json]] [--write]
 #   bash run_checks.sh meals     [--date YYYY-MM-DD] [--json]   # each meal's prep and eating, placed from context
-#   bash run_checks.sh dayqa     YYYY-MM-DD [--json]  # meals, gaps, movement, people, device: one list to accept
+#   bash run_checks.sh dayqa     YYYY-MM-DD [--calendar day.json …] [--photos folder.json] [--json]  # the day's records read, then one list to accept
 #   bash run_checks.sh entry     row.json [--base "w41 be•do"] [--chat MMDD] [--catalog practices.json] [--rhythms rhythms.json] [--day today.json]
 #                                # MMDD: a my day chat's date, from its title; the catalog and rhythms let it deduce
 #                                # wellness and know a flow step; the day's rows let it see two things at once
@@ -55,6 +55,8 @@ fetch_core() {
     rm -rf "$T/be-do-main"; git clone -q --depth 1 https://github.com/rivuletsteph/be-do "$T/be-do-main"
   fi
   rm -rf "$W/core"; cp -r "$T/be-do-main/plugins/bedo/core" "$W/core"
+  # dayqa's painted check reads the day page's own rules (30 Oct 2026); they import only the core
+  cp "$T/be-do-main/plugins/bedo/skills/bedo-week-look-behind/scripts/day_rings.py" "$W/core/" 2>/dev/null || true
   cp "$T/be-do-main/docs/v53-judgment.md" "$W/core/judgment.md" 2>/dev/null || true
   rm -rf "$T"
 }

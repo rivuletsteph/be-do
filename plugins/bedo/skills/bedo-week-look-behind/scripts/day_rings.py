@@ -61,6 +61,7 @@ RECREATION = {'book', 'reading', 'audiobook', 'podcast', 'show', 'movie', 'video
               'song', 'music', 'puzzle', 'outing', 'fresh air', 'video call'}
 CARE_KINDS = {'family', 'pet', 'home'}
 PERSONAL = {'shower', 'bath', 'evening hygiene', 'getting ready', 'skincare'}            # personal care: her own body
+TRAVEL = {'riding', 'ride', 'flight', 'flying', 'travel', 'train', 'bus'}   # carried, not at the wheel (30 Oct)
 HOME = {'clean', 'laundry', 'laundry move', 'care task', 'dishes', 'tidy', 'errand'}       # home care: care tasks
 TV = {'show', 'movie', 'video'}
 SCREENISH = {'action', 'log', 'text', 'ai chat', 'video call', 'phone', 'usage check', 'calendar event',
@@ -74,9 +75,9 @@ AT_THE_MOMENT = {'highlight'}  # a flow step whose row sits at the moment's own 
 
 BANDS = [('flow', 'Flows', [('flow', 'dawn and dusk')]),
          ('being', 'Being', [('eat', 'eating and drinking'), ('move', 'moving'), ('personal', 'personal care'),
-                             ('recreation', 'recreation')]),
+                             ('recreation', 'recreation'), ('travel', 'travel')]),
          ('doing', 'Doing', [('work', 'professional work'), ('family', 'family care'), ('pet', 'pet care'),
-                             ('home', 'home care'), ('cook', 'making'), ('system', 'be•do')]),
+                             ('home', 'home care'), ('cook', 'making'), ('drive', 'driving'), ('system', 'be•do')]),
          ('screen', 'On a screen', [('screen', 'on a screen')])]
 
 
@@ -195,13 +196,14 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
     def mins(t):
         return int((t - s0).total_seconds() // 60)
 
-    A = {k: [None] * 1440 for k in ('flow', 'eat', 'move', 'personal', 'recreation', 'work', 'cook', 'screen', 'drive')}
+    A = {k: [None] * 1440 for k in ('flow', 'eat', 'move', 'personal', 'recreation', 'work', 'cook', 'screen', 'drive', 'travel')}
     seen_titles = {}                          # (array, minute) → [(kind, title)]: what a tap names
     WIN = {'dawn': [], 'dusk': []}
     nights, moments = [], []
     PRI = {'work': 0, 'family': 1, 'pet': 2, 'home': 3, 'system': 4}   # a be•do session beside the school run is still the school run
 
     OWN = [False] * 1440   # a care minute held by her own row (what she did), not a scheduled action
+    HERS = [False] * 1440  # a work minute from her own row (a voice journal on a drive), not a session running beside her
     WK = [set() for _ in range(1440)]   # every kind of doing at each minute: two things at once both count (9 Oct)
     lived = []                          # (a, b, row) for the synergy read
 
@@ -272,8 +274,12 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         if (pr in flows and pr not in AT_THE_MOMENT) or pr in FLOW_CLOSES:
             paint('flow', 'flow', a, bb, t)
             WIN['dawn' if a.hour < 15 else 'dusk'].append(a)
+        # travel (30 Oct, her words: driving is more active and traveling more passive): at the wheel is
+        # doing, carried in a car or on a plane is being
         if pr == 'driving' and span:
-            paint('drive', 'drive', a, b)
+            paint('drive', 'drive', a, b, t)
+        if pr in TRAVEL and span:
+            paint('travel', 'travel', a, b, t)
         # caretaking is when her focus is on them (28 Oct): an action she did with a care person, driving them,
         # or her words saying it was together or for them. Being nearby while she does her own thing is not.
         with_care = [w for w in care_who if any(w in n for n in who)]
@@ -296,6 +302,9 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
                 (parts or b - a >= dt.timedelta(minutes=10)):     # a work practice with its time counts too (28 Oct)
             for pa, pb in pieces:
                 paint('work', 'system' if rh == system else 'work', pa, pb, t)
+                if pr != 'action':
+                    for m in range(max(0, mins(pa)), min(1440, mins(pb))):
+                        HERS[m] = True
         d = (r.get('device') or '').lower()
         if 'laptop' in d or 'desktop' in d or 'tv' in d or pr in TV:
             for pa, pb in (parts or [(a, bb)]):
@@ -316,7 +325,8 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
     for m in range(1440):
         if A['eat'][m]:
             A['move'][m] = None                                   # sitting to eat is not moving
-        if A['drive'][m] or A['eat'][m] or A['move'][m] or asleep[m]:
+        if (A['drive'][m] and not HERS[m]) or A['eat'][m] or A['move'][m] or asleep[m]:
+            # a session running while she drove is the system's; her own journal on the drive is hers (30 Oct)
             if A['work'][m] in ('work', 'system'):
                 A['work'][m] = None                               # her doing, not the system's
             WK[m] -= {'work', 'system'}
@@ -336,10 +346,11 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
     # each band holds every kind at each minute, in the band's own order; two at once draw as two lanes (28 Oct)
     order = {k: [kk for kk, _ in kinds] for k, _, kinds in BANDS}
     sets = {'flow': [{A['flow'][m]} - {None} for m in range(1440)],
-            'being': [{A['eat'][m], A['move'][m], A['personal'][m], A['recreation'][m]} - {None} for m in range(1440)],
-            'doing': [WK[m] | ({A['cook'][m]} - {None}) for m in range(1440)],
+            'being': [{A['eat'][m], A['move'][m], A['personal'][m], A['recreation'][m], A['travel'][m]} - {None}
+                      for m in range(1440)],
+            'doing': [WK[m] | ({A['cook'][m], A['drive'][m]} - {None}) for m in range(1440)],
             'screen': [{A['screen'][m]} - {None} for m in range(1440)]}
-    sources = {'flow': ('flow',), 'being': ('eat', 'move', 'personal', 'recreation'), 'doing': ('work', 'cook'), 'screen': ('screen',)}
+    sources = {'flow': ('flow',), 'being': ('eat', 'move', 'personal', 'recreation', 'travel'), 'doing': ('work', 'cook', 'drive'), 'screen': ('screen',)}
 
     def runs(band):
         key = [tuple(k for k in order[band] if k in s) for s in sets[band]] + [()]

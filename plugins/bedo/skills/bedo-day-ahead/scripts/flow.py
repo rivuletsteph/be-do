@@ -26,8 +26,11 @@ page:
     python3 flow.py --day-ahead DAY-day-ahead.html --local day_ahead_local.json \
         [--behind DIR] --out DAY-flow.html
 
-`--behind` is a folder of day behinds (YYYY-MM-DD-day-behind.html); without it,
-balance is left out and said so. The stream and rhythms reads are data/ beside the
+`--behind` is a folder of day behinds (YYYY-MM-DD-day-behind.html), read first when
+one carries the wheel. The day page that replaced the canon on 25 Oct carries no wheel,
+so balance is read from the stream itself (30 Oct 2026): the day's lived rows by their
+wellness element (`fields.stream.wellness`); without that field it is left out and
+said so. The stream and rhythms reads are data/ beside the
 settings file, as the runner leaves them.
 """
 import argparse, datetime as dt, glob, json, math, os, re, sys
@@ -59,6 +62,36 @@ def evenness(domains):
         return None
     ps = [v / tot for v in domains.values() if v > 0]
     return round(100 * -sum(x * math.log(x) for x in ps) / math.log(max(len(domains), 2)))
+
+
+WHEEL = ('heart', 'mind', 'body', 'spirit', 'water', 'air', 'earth', 'fire')
+NOT_LIVED = ('▫️potential', '⬜ intention', '⨂ skipped', '✖️ dropped')
+RESTING = ('sleep', 'nap')                  # sleep scores nothing on the wheel (the canon's zero_practices)
+DIVISOR = 6                                 # a real span weighs its minutes over six, as the canon does
+
+
+def wheel_of(day, rows, F, off):
+    """The day's wheel from its own rows (30 Oct 2026): each lived row under its wellness
+    element, a real span weighing its minutes over six and a moment weighing one (the canon
+    weighs a moment by its practice's effort band, which this read doesn't carry)."""
+    if not F.get('wellness'):
+        return None
+    dom = {k: 0.0 for k in WHEEL}
+    to = lambda ts: dt.datetime.fromisoformat(ts.replace('Z', '+00:00')) + off
+    for r in rows:
+        c = r['cellValuesByFieldId']
+        w, st = c.get(F['wellness']), c.get(F['status']) or ''
+        w = (w.get('name') if isinstance(w, dict) else w) or ''
+        k = next((x for x in WHEEL if w.lower().endswith(x)), None)
+        when = c.get(F['when'])
+        if not k or not when or st in NOT_LIVED or to(when).date() != day:
+            continue
+        if any(x in (c.get(F['practice']) or '').lower() for x in RESTING):
+            continue
+        end = c.get(F['end'])
+        mins = (to(end) - to(when)).total_seconds() / 60 if end else 0
+        dom[k] += mins / DIVISOR if 0 < mins <= 12 * 60 else 1.0
+    return {k: round(v, 1) for k, v in dom.items()}
 
 
 def first_sentence(goal):
@@ -184,8 +217,11 @@ def build(D, rows, rhythms_read, L, behind_dir):
         y = m - dt.timedelta(days=1)
         w = dict(day=m.isoformat(), label=m.strftime('%a'), yday=y.strftime('%A'), body=ready.get(m), balance=None)
         bp = os.path.join(behind_dir, f'{y.isoformat()}-day-behind.html') if behind_dir else ''
-        if bp and os.path.exists(bp):
+        if bp and os.path.exists(bp) and 'balance' in page_data(bp)[1]:
             w['balance'] = evenness(page_data(bp)[1]['balance']['domains'])
+        else:
+            dom = wheel_of(y, rows, F, off)
+            w['balance'] = evenness(dom) if dom else None
         b = buffer_on(m, rows, F, rhythm_names, hidden, local)
         w['effectiveness'], w['late'] = b['value'], [b['tend'], b['grow']]
         week.append(w)
