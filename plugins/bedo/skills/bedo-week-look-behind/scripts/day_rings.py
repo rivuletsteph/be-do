@@ -70,7 +70,8 @@ FAMILY_CHORES = ('after dinner', 'after supper', 'kitchen', 'set the table', 'se
 # voting is community care too, even when it is also fun (31 Oct 2026, her words: it was fun but it was also community)
 COMMUNITY = ('hosting', 'we hosted', 'hosted the', 'potluck at our house', 'party at our house', 'community care',
              'voted', 'ballot', 'to vote')   # the act itself: 'home from voting' is not
-PERSONAL = {'shower', 'bath', 'evening hygiene', 'getting ready', 'skincare'}            # personal care: her own body
+PERSONAL = {'shower', 'bath', 'evening hygiene', 'hygiene', 'getting ready', 'skincare'}  # personal care: her own body
+# (🫧 hygiene too: "personal care and my evening routine" drew as professional work, 1 Nov 2026)
 TRAVEL = {'riding', 'ride', 'flight', 'flying', 'travel', 'train', 'bus'}   # carried, not at the wheel (30 Oct)
 HOME = {'clean', 'laundry', 'laundry move', 'care task', 'dishes', 'tidy', 'errand'}       # home care: care tasks
 HOME_WORDS = ('tidy', 'tidied', 'clean the', 'cleaned the', 'vacuum', 'laundry', 'dishes', 'bathrooms')  # an action that was house care (31 Oct)
@@ -81,6 +82,11 @@ TOGETHER = ('with {w}', '{w} and i ', '{w} and me', 'for {w}', 'me and {w}')   #
 NOW = re.compile(r"\b(?:i'm|i am|right now|it's|this is)\b")       # a moment speaking of now, not telling the day
 SHARED_SHOW = ('for {w}', "{w}'s show", "{w}'s pick")                          # a show or game: caretaking only when it was theirs
 MOMENTS = {'highlight', 'glimmer', 'gratitude', 'insight', 'milestone', 'journal'}
+CONTACT = {'text', 'phone', 'video call'}
+# balance, the original card (1 Nov 2026, her pick: the original design, in plain minutes): each row's wellness kind
+# takes its minutes, being on one side and doing on the other, doing split into tending and growing
+BEING4, DOING4 = ('heart', 'mind', 'body', 'spirit'), ('water', 'air', 'earth', 'fire')
+WELL_ALIAS = {'wind': 'air'}   # reaching someone at a distance: named on the who card, not timed
 FLOW_CLOSES = {'dawn flow close', 'dusk flow close'}
 AT_THE_MOMENT = {'highlight'}  # a flow step whose row sits at the moment's own time, not when the step was done
 
@@ -197,9 +203,16 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
     home_rh = tuple((care.get('home') or {}).get('rhythms') or ())
     community_words = tuple(w.lower() for w in (care.get('community') or {}).get('words') or ())
     personal_rh = tuple((care.get('personal') or {}).get('rhythms') or ())
+    # shared care: rows on these rhythms are two kinds of care at once, half and half (1 Nov 2026, her words:
+    # the prep and the party were both family and community care, so they should be half and half)
+    shared_rh = tuple((care.get('shared') or {}).get('rhythms') or ())
+    shared_kinds = tuple((care.get('shared') or {}).get('kinds') or ('family', 'community'))
     their_cals = tuple(c.split('@')[0] for c in fam.get('calendars') or ())   # their own calendars: their day, not hers
     theirs = []
     rec_rh = tuple((L.get('recreation') or {}).get('rhythms') or ())
+    # who was there is a mark on the stretch, not a kind of time (1 Nov 2026, her pick: how I spent my time is what I
+    # did; who I was with goes on the stretch). `household` names the family; anyone else on a lived row is "with others"
+    household = tuple(L.get('household') or ())
     system = L.get('system_rhythm') or 'be•do'
     shared = (bedo_reader.FACTS.get('garden') or {}).get('shared_pattern')
 
@@ -218,6 +231,17 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
     OWN = [False] * 1440   # a care minute held by her own row (what she did), not a scheduled action
     HERS = [False] * 1440  # a work minute from her own row (a voice journal on a drive), not a session running beside her
     WK = [set() for _ in range(1440)]   # every kind of doing at each minute: two things at once both count (9 Oct)
+    SHARED = [False] * 1440             # a minute of shared care: its kinds count half each, not whole each
+    WITH = [set() for _ in range(1440)]  # who outside the family was there, minute by minute
+    SEEN = {}                            # each name's place as she wrote it on the row, for the order she reads them in
+    FAMW = [set() for _ in range(1440)]  # who in the family was there, minute by minute
+    contacts = []                        # texts and calls: who she reached, at a distance
+    ENERGY = {k: set() for k in BEING4 + DOING4}   # the minutes each kind held: a minute counts once per kind
+    GROW = {k: set() for k in DOING4}               # the doing minutes on a drive: growing; the rest is tending
+    growing_rh = set(L.get('_growing') or ())
+    ENERGY_ROWS = {k: {} for k in BEING4 + DOING4}
+    zero_pr = {low(x) for x in (L.get('zero_practices') or ())}
+    mentioned = []                       # people named in the day's rows, whether or not they were there
     lived = []                          # (a, b, row) for the synergy read
 
     def paint(arr, kind, a, b, t=None, own=False):
@@ -267,6 +291,26 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         if s0 <= a < e0 and (pr in MOMENTS or (shared and re.search(shared, pr))):
             moments.append(dict(m=mins(a), g=(r.get('practice') or '·').split()[0], t=t, p=pr,
                                 d=int((b - a).total_seconds() // 60) if span else 0))
+        # the wheel: the row's wellness kind, its minutes (a moment counts five), never sleep or his own rows
+        wl = (r.get('wellness') or {}).get('name') if isinstance(r.get('wellness'), dict) else r.get('wellness')
+        wk = WELL_ALIAS.get(str(wl or '').split()[-1].lower(), str(wl or '').split()[-1].lower()) if wl else ''
+        if wk in ENERGY and pr not in SLEEP and pr not in zero_pr and not pr.startswith(tuple(w.lower() + "'s" for w in care_who)) \
+                and not any(t == w or t.startswith(w + ' ') for w in care_who):      # 'his name — his reading' is his own row
+            if span:
+                ms = range(max(mins(a), 0), min(mins(b), 1440))
+            else:
+                ms = range(mins(a), min(mins(a) + TICK, 1440)) if s0 <= a < e0 else range(0)
+            if len(ms):
+                ENERGY[wk].update(ms)
+                if wk in GROW and (r.get('rhythm') or '') in growing_rh:
+                    GROW[wk].update(ms)
+                ENERGY_ROWS[wk][t] = ENERGY_ROWS[wk].get(t, 0) + len(ms)
+        if pr in CONTACT and s0 <= a < e0:
+            contacts.append(dict(m=mins(a), t=t, who=names(r.get('person'))))
+        if s0 <= a < e0:
+            for n in names(r.get('mentioned')):
+                if n not in mentioned:
+                    mentioned.append(n)
         if pr in SLEEP and span:
             nights.append(dict(a=max(0, mins(a)), b=min(1440, mins(b)), inbed=int((b - a).total_seconds() // 60),
                                asleep=asleep_min(r.get('details')), ra=mins(a), rb=mins(b)))
@@ -282,12 +326,24 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         rh, who = (r.get('rhythm') or ''), names(r.get('person'))
         on_rec = any(x in rh for x in rec_rh)       # an action on a recreation rhythm too: it was lived, not worked (27 Oct)
         if span and (pr in RECREATION or on_rec):
-            # social recreation: time with other people for its own sake, like a party someone else threw (31 Oct 2026)
-            # beyond the family she cares for: time with her son is family time, a party with friends is social
-            # (and a playmate's visit is his play, with her caring for him); a party is social either way
-            others = [n for n in who if not any(w in n for w in care_who)]
-            social = pr == 'social' or 'party' in said or (bool(others) and len(others) == len(who))
-            paint('recreation', 'social' if social else 'recreation', a, b, t)
+            if household:                     # who was there is a mark (1 Nov 2026), so time with others is recreation
+                paint('recreation', 'recreation', a, b, t)
+            else:
+                # social recreation: time with other people for its own sake, like a party someone else threw (31 Oct
+                # 2026) beyond the family she cares for: time with her son is family time, a party with friends is
+                # social (and a playmate's visit is his play, with her caring for him); a party is social either way
+                others = [n for n in who if not any(w in n for w in care_who)]
+                social = pr == 'social' or 'party' in said or (bool(others) and len(others) == len(who))
+                paint('recreation', 'social' if social else 'recreation', a, b, t)
+        if span and household and pr not in SLEEP:
+            outside = [n for n in who if not any(w in n for w in household)]
+            for n in outside:
+                SEEN.setdefault(n, len(SEEN))
+            inside = [n for n in who if n not in outside]
+            for m in range(max(0, mins(a)), min(1440, mins(b))):
+                FAMW[m].update(inside)
+            for m in range(max(0, mins(a)), min(1440, mins(b))):
+                WITH[m].update(outside)
         if (pr in flows and pr not in AT_THE_MOMENT) or pr in FLOW_CLOSES:
             paint('flow', 'flow', a, bb, t)
             WIN['dawn' if a.hour < 15 else 'dusk'].append(a)
@@ -307,17 +363,27 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         # prep is not professional work, that is a care task)
         cook_care = quick and span and (bool(who) or 'dinner' in pr or 'dinner' in t.lower() or 'family' in said)
         chore_care = pr in HOME and span and any(w in said for w in FAMILY_CHORES)   # the kitchen after a family meal
-        is_community = span and any(w in said for w in COMMUNITY + community_words)
+        # a be•do session that talks about care is still be•do work: its notes never make it care (1 Nov 2026:
+        # a session settling the care kinds drew as two hours of community care, from "voting is community care"
+        # in its notes, then as pet care, from "Rosa and Buddy the whole time at Greenhouse")
+        by_words = rh != system
+        is_community = span and by_words and any(w in said for w in COMMUNITY + community_words)
         is_family = cook_care or chore_care or any(x in rh for x in care_rh) or (span and (
             (with_care and (pr in ('action', 'driving') or together)) or (pr == 'driving' and any(w in t for w in care_who))))
-        is_pet = any(x in rh for x in pet_rh) or bool(span and pet_rx and pet_rx.search(
+        is_pet = any(x in rh for x in pet_rh) or bool(span and by_words and pet_rx and pet_rx.search(
             (r.get('title') or '') + ' ' + (r.get('details') or '').split('———')[0] + ' ' + ' '.join(who)))
         care_kind = ('community' if is_community else       # her words for it win over the rhythm it was filed under
                      'family' if is_family or (quick and (with_care or together)) else 'pet' if is_pet else
                      'home' if pr in HOME or any(x in rh for x in home_rh) or (pr == 'action' and any(w in t.lower() for w in HOME_WORDS))
                      else None)
-        if span and (pr in PERSONAL or (quick and not care_kind) or (not care_kind and pr == 'action'
-                                                                     and any(x in rh for x in personal_rh))):
+        if span and shared_rh and any(x in rh for x in shared_rh) and pr not in PERSONAL:
+            for pa, pb in pieces:                                 # both kinds, two lanes, half each in the totals
+                for k in shared_kinds:
+                    paint('work', k, pa, pb, t, own=pr != 'action')
+                for m in range(max(0, mins(pa)), min(1440, mins(pb))):
+                    SHARED[m] = True
+        elif span and (pr in PERSONAL or (quick and not care_kind) or (not care_kind and pr == 'action'
+                                                                       and any(x in rh for x in personal_rh))):
             paint('personal', 'personal', a, b, t)                # personal care: her own body, her own quick food
         elif care_kind and span:
             for pa, pb in pieces:
@@ -367,13 +433,35 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
                 b -= 1
             win[k] = [a, b]
 
+    # care, grouped (1 Nov 2026, her words: splitting up all these different kinds of care is too many decisions;
+    # group all of the care tasks and name them): with `care.grouped`, family, community, pet and home care draw
+    # and count as one kind, 'care', each minute once, and the kinds that happened are named under it
+    grouped = bool(care.get('grouped'))
+
+    def group(kinds):
+        out = []
+        for kk, nn in kinds:
+            if kk not in CARE_KINDS:
+                out.append((kk, nn))
+            elif ('care', 'care') not in out:
+                out.append(('care', 'care'))
+        return out
+    bands_def = [(k, n, group(kinds) if grouped and k == 'doing' else
+                  [x for x in kinds if not (household and x[0] == 'social')]) for k, n, kinds in BANDS]   # who: a mark
+
     # each band holds every kind at each minute, in the band's own order; two at once draw as two lanes (28 Oct)
-    order = {k: [kk for kk, _ in kinds] for k, _, kinds in BANDS}
+    order = {k: [kk for kk, _ in kinds] for k, _, kinds in bands_def}
     sets = {'flow': [{A['flow'][m]} - {None} for m in range(1440)],
             'being': [{A['eat'][m], A['move'][m], A['personal'][m], A['recreation'][m], A['travel'][m]} - {None}
                       for m in range(1440)],
             'doing': [WK[m] | ({A['cook'][m], A['drive'][m]} - {None}) for m in range(1440)],
             'screen': [{A['screen'][m]} - {None} for m in range(1440)]}
+    care_of = []                              # the kinds of care that happened, most minutes first, for the name line
+    if grouped:
+        care_of = sorted(([kk, sum(1 for s in sets['doing'] if kk in s)] for kk, _ in BANDS[2][2] if kk in CARE_KINDS),
+                         key=lambda x: -x[1])
+        care_of = [x for x in care_of if x[1]]
+        sets['doing'] = [(s - CARE_KINDS) | ({'care'} if s & CARE_KINDS else set()) for s in sets['doing']]
     sources = {'flow': ('flow',), 'being': ('eat', 'move', 'personal', 'recreation', 'travel'), 'doing': ('work', 'cook', 'drive'), 'screen': ('screen',)}
 
     def runs(band):
@@ -387,7 +475,7 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         for run in out:                       # what the chunk was: its own kind's rows, in order
             for m in range(run[1], run[2]):
                 for k, t in (y for s in sources[band] for y in seen_titles.get((s, m), [])):
-                    if k == run[0] and t not in run[3]:
+                    if (k == run[0] or (run[0] == 'care' and k in CARE_KINDS)) and t not in run[3]:
                         run[3].append(t)
             run[3] = run[3][:4]
         return out
@@ -396,10 +484,16 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
     evening = next((n for n in nights if n['a'] >= 900), None)
     wake = morning['b'] if morning else (min(m for m, s in enumerate(asleep) if not s) if not all(asleep) else 420)
     bands = []
-    for k, n, kinds in BANDS:
+    for k, n, kinds in bands_def:
         ss = sets[k]
+        def weight(m, kk, s):                 # a shared-care minute holding all its kinds: half to each (1 Nov)
+            if k == 'doing' and SHARED[m] and kk in shared_kinds and set(shared_kinds) <= s:
+                return 1 / len(shared_kinds)
+            return 1
         bands.append(dict(k=k, n=n, total=sum(1 for s in ss if s), runs=runs(k),
-                          kinds=[dict(k=kk, n=nn, min=sum(1 for s in ss if kk in s)) for kk, nn in kinds]))
+                          kinds=[dict(k=kk, n=nn, min=round(sum(weight(m, kk, s) for m, s in enumerate(ss) if kk in s)),
+                                      **({'of': care_of} if kk == 'care' else {}))
+                                 for kk, nn in kinds]))
     # synergy, as her words say it: a stretch where two things at once helped each other, or got in each
     # other's way (28 Oct: "it would be neat to show that on the graphic")
     synergy, at_once = [], [sum(len(sets[k][m]) for k in ('being', 'doing')) for m in range(1440)]
@@ -437,9 +531,75 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
             continue
         synergy.append(dict(a=i, b=j, ans=ans, t=title(r.get('title')), cue=cue, said=line.strip()[:220]))
     goals = dict(L.get('day_goals') or {})        # minutes a day she aims for, by part: {"inbed": 480, "move": 120}
+    # with others: each stretch of a quarter hour or more with someone outside the family, and who (1 Nov 2026)
+    with_others, m = [], 0
+    while m < 1440:
+        if WITH[m] and not asleep[m]:
+            i, who_all = m, set()
+            while m < 1440 and WITH[m] and not asleep[m]:
+                who_all |= WITH[m]
+                m += 1
+            if m - i >= 15:
+                firsts = []
+                for n in sorted(who_all, key=lambda n: (min(k for k in range(i, m) if n in WITH[k]), SEEN.get(n, 0))):
+                    f = re.sub(r'^[^\w]+', '', n).split()[0] if re.sub(r'^[^\w]+', '', n) else n
+                    if f not in firsts:
+                        firsts.append(f)
+                with_others.append(dict(a=i, b=m, who=firsts))
+        else:
+            m += 1
+    # who I was with (1 Nov 2026, her pick): every waking minute is alone (the dogs count as alone), family, or social
+    # (anyone outside the family there, family or not), and the people by name and circle, with their minutes
+    who_card = None
+    if household:
+        bed_m = evening['a'] if evening else 1440
+        awake = [m for m in range(wake, bed_m) if not asleep[m]]
+        circles = L.get('_circles') or {}
+        def clean_name(n):
+            return re.sub(r'^[^\w]+', '', n).strip()
+        # social splits by who: work when everyone outside the family there is from her Work circle (1 Nov 2026)
+        def social_kind(ws):
+            cs = [circles.get(clean_name(n)) or circles.get(n) for n in ws]
+            return 'work' if cs and all(c == 'Work' for c in cs) else 'social'
+        kind = {m: social_kind(WITH[m]) if WITH[m] else 'family' if FAMW[m] else 'alone' for m in awake}
+        strip, prev = [], None
+        for m in awake:
+            if strip and prev == m - 1 and strip[-1][0] == kind[m]:
+                strip[-1][2] = m + 1
+            else:
+                strip.append([kind[m], m, m + 1])
+            prev = m
+        mins_of = {}
+        for m in awake:
+            for n in WITH[m] | FAMW[m]:
+                mins_of[n] = mins_of.get(n, 0) + 1
+        people = [dict(n=clean_name(n), min=v,
+                       circle=circles.get(clean_name(n)) or circles.get(n) or ('Family' if any(h in n for h in household) else ''))
+                  for n, v in sorted(mins_of.items(), key=lambda x: (-x[1], SEEN.get(x[0], 0)))]
+        # a text or a call names its person on the row, or in its title by a name from connections
+        known = sorted((k for k in circles if ' ' in k), key=len, reverse=True)
+        reach = []
+        for c in sorted(contacts, key=lambda x: x['m']):
+            ws = [clean_name(n) for n in c['who']] or [k for k in known if k.lower() in c['t'].lower()][:1]
+            reach.append(dict(m=c['m'], t=c['t'], who=ws, circle=next((circles.get(w) for w in ws if circles.get(w)), '')))
+        # mentioned but not there: one quiet line, never a chip on everyone (1 Nov 2026)
+        there = {clean_name(n).split()[0].lower() for n in mins_of} | {w.lower() for c in reach for w in c['who']}
+        named = [clean_name(n) for n in mentioned]
+        named = [n for i, n in enumerate(named) if n and n not in named[:i] and n.split()[0].lower() not in there
+                 and n.lower() not in there]
+        who_card = dict(alone=sum(1 for m in awake if kind[m] == 'alone'),
+                        family=sum(1 for m in awake if kind[m] == 'family'),
+                        social=sum(1 for m in awake if kind[m] == 'social'),
+                        work=sum(1 for m in awake if kind[m] == 'work'), strip=strip, people=people,
+                        contacts=reach, mentioned=named, circle_order=list(L.get('circle_order') or []))
+    be_min, do_min = sum(len(ENERGY[k]) for k in BEING4), sum(len(ENERGY[k]) for k in DOING4)
+    grow_min = sum(len(GROW[k]) for k in DOING4)
+    energy = dict(min={k: len(v) for k, v in ENERGY.items()}, be=be_min, tending=do_min - grow_min, growing=grow_min,
+                  rows={k: [x for x, _ in sorted(v.items(), key=lambda kv: -kv[1])[:3]]
+                                    for k, v in ENERGY_ROWS.items()})
     return dict(wake=wake, bed=evening['a'] if evening else None, inbed=morning['inbed'] if morning else None,
                 asleep=morning['asleep'] if morning else None, night=night['runs'],
                 inbed_day=night['inbed'], asleep_day=night['asleep'], asleep_from=night['source'],
                 ideal_bed=goals.get('inbed') or IDEAL_BED, span=SPAN, bands=bands, win=win, goals=goals,
                 moments=sorted(moments, key=lambda x: x['m']), theirs=sorted(theirs, key=lambda x: x['a']),
-                synergy=synergy)
+                synergy=synergy, with_others=with_others, who=who_card, energy=energy)

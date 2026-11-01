@@ -144,6 +144,7 @@ details.fw[open] .v::after{content:" · hide"}
 .mv{display:grid;gap:14px;margin:10px 0 0}
 .mv .dh{display:flex;align-items:baseline;gap:8px;margin:0;font-size:.95rem}
 .mv .dh .n{font-weight:600}
+.mv .dh .fin{font:600 .72rem var(--sans);color:var(--rb-move-d);white-space:nowrap}
 .mv .dh .m{font:400 .72rem var(--mono);color:var(--muted);margin-left:auto;white-space:nowrap}
 .mv ul{list-style:none;margin:4px 0 0;padding:0 0 0 1.9rem;display:grid;gap:3px}
 .mv li{font-size:.86rem;line-height:1.4;color:var(--soft)}
@@ -166,6 +167,33 @@ details.fw[open] .v::after{content:" · hide"}
 .rb .bh span{font:500 .72rem var(--mono);letter-spacing:0;text-transform:none;margin-left:6px}
 .rb .br{display:grid;grid-template-columns:6.2rem minmax(0,1fr) 4.8rem;align-items:center;gap:10px}
 .rb .bn{font-size:.84rem;color:var(--soft);line-height:1.2}
+.rb .bn small{display:block;font-size:.7rem;color:var(--muted);margin-top:1px}
+.rb .who{margin:22px 0 4px}.rb .wstrip{position:relative;height:16px;border-radius:8px;background:var(--rb-doing-t);overflow:hidden;margin:6px 0 2px}
+.rb .wstrip i{position:absolute;top:0;bottom:0}.rb .wends{display:flex;justify-content:space-between;margin:0 0 8px;font:400 .68rem var(--mono);color:var(--muted)}
+:root{--who-alone:#A9CFCB;--who-alone-d:#4F8A8B;--who-family:#E8C48A;--who-family-d:#B98A2E;--who-social:#E3A097;--who-social-d:#BE5B50;--who-work:#C77267;--who-work-d:#A04A40}
+.rb .w-alone{background:var(--who-alone);border-color:var(--who-alone-d)}.rb .w-family{background:var(--who-family);border-color:var(--who-family-d)}
+.rb .w-social{background:var(--who-social);border-color:var(--who-social-d)}.rb .w-work{background:var(--who-work);border-color:var(--who-work-d)}
+.rb .who .bt i{border-width:1.5px;border-style:solid}
+.rb .wp{margin:6px 0 0;font-size:.84rem;line-height:1.45;color:var(--soft)}.rb .wp small{font:400 .7rem var(--mono);color:var(--muted)}
+.rb .wc{display:block;font:600 .68rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.rb .circles{display:grid;gap:10px;margin-top:12px}.rb .circ{background:var(--tint,rgba(255,255,255,.5));border-radius:14px;padding:12px 14px}
+.rb .circl{margin:0 0 8px;font:600 .68rem var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.rb .circp{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.rb .pchip{display:inline-flex;align-items:baseline;gap:7px;border:1.5px solid var(--cc);border-radius:999px;padding:4px 12px;font-weight:600;line-height:1.2;color:var(--ink)}
+.rb .pchip small{font:500 .68rem var(--mono);color:var(--muted)}.rb .pchip.far{border-style:dashed;font-weight:500;font-size:.85rem}
+.rb .wment{margin:10px 0 0;font-size:.8rem;color:var(--muted);line-height:1.45}
+.rb .energy{margin:26px 0 4px}.rb .ewheel{width:100%;max-width:400px;height:auto;display:block;margin:4px auto 10px}
+.rb .elegend{display:grid;gap:6px;padding-left:6px}.rb .epair{border-left:3px solid;padding:2px 0 2px 10px;display:grid;gap:3px}
+.rb .erow{display:grid;grid-template-columns:18px 52px 1fr auto;gap:8px;align-items:baseline;font-size:.8rem}
+.rb .erow svg{width:15px!important;height:15px!important;display:block}.rb .enm{font-weight:700}.rb .edf{color:var(--soft);line-height:1.35}.rb .ev{font:500 .78rem var(--mono);color:var(--ink);white-space:nowrap}
+.rb .enote{margin:10px 0 0;font-size:.76rem;color:var(--muted);line-height:1.45}
+.rb .vline{margin:2px 0 10px;font:700 1.06rem/1.35 var(--sans);color:var(--ink);text-wrap:balance}
+.rb .emore summary{cursor:pointer;font-size:.82rem;font-weight:600;color:var(--link);padding:4px 0}
+.rb .balbar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:8px 0 6px}.rb .balbar span{display:block;height:100%}
+.rb .ballab{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin:0;font:600 .86rem var(--sans)}
+.rb .ballab i{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 3px 0 8px}.rb .ballab b{font-weight:800}
+.rb .with{margin:10px 0 4px}.rb .with p{margin:0 0 4px;font-size:.84rem;line-height:1.35;color:var(--soft)}
+.rb .with .wt{display:block;font:500 .72rem var(--mono);color:var(--muted);text-transform:none}
 .rb .bt{position:relative;height:14px;border-radius:7px;background:var(--tint)}
 .rb .bt i{position:absolute;left:0;top:0;bottom:0;border-radius:7px;border:1.5px solid;min-width:3px}
 .rb .bt b{position:absolute;top:-4px;bottom:-4px;width:2.5px;margin-left:-1px;border-radius:2px;background:var(--ink)}
@@ -502,7 +530,7 @@ const rainbow = RB => {
   const clip = ([k, a, b, t, i, n]) => [k, Math.max(a, 0), Math.min(b, 1440), t || [], i || 0, n || 1];
   const B = Object.fromEntries(RB.bands.map(b => [b.k, b]));
   const NAME = {flow: "a flow", eat: "eating and drinking", move: "moving", recreation: "recreation", work: "professional work",
-    care: "caretaking", family: "family care", community: "community care", social: "social recreation", pet: "pet care", home: "home care", personal: "personal care",
+    care: "care", family: "family care", community: "community care", social: "social recreation", pet: "pet care", home: "home care", personal: "personal care",
     cook: "making", drive: "driving", travel: "travel", system: "be•do", screen: "on a screen"};
   const R0 = 30, FW = 10, W = 62, GAP = 4;
   const RAD = {flow: [R0, R0 + FW]}; RAD.being = [RAD.flow[1] + 2, RAD.flow[1] + 2 + W]; RAD.doing = [RAD.being[1] + GAP, RAD.being[1] + GAP + W];
@@ -564,15 +592,18 @@ const rainbow = RB => {
     g += `<text x="${x}" y="${y + 5}" text-anchor="middle" style="font:500 15px var(--mono);fill:var(--muted)">${t}</text>`; });
   // the totals as bars on one scale, each in its part's colour, a goal marked where she has set one
   // (24 Oct 2026: bars at the bottom with the totals, and the goal for each day)
-  const GO = RB.goals || {}, SHORT = {eat: "Eating", move: "Moving", personal: "Personal care", recreation: "Recreation", work: "Work",
-    care: "Caretaking", family: "Family care", pet: "Pet care", home: "Home care", cook: "Making", drive: "Driving", travel: "Travel", system: "be•do"};
+  // care, grouped (1 Nov 2026): one bar, the kinds that happened named under it; every kind has a name on its bar
+  const GO = RB.goals || {}, SHORT = {eat: "Eating", move: "Moving", personal: "Personal care", recreation: "Recreation", social: "Social",
+    work: "Work", care: "Care", family: "Family care", community: "Community care", pet: "Pet care", home: "Home care", cook: "Making",
+    drive: "Driving", travel: "Travel", system: "be•do"};
   const rowsData = [["In bed", "sleep", (RB.inbed_day != null ? RB.inbed_day : RB.inbed) || 0, "inbed"], ["Flow steps", "flow", B.flow.total, "flow"],
-    ...B.being.kinds.map(x => [SHORT[x.k], x.k, x.min, x.k]), ...B.doing.kinds.map(x => [SHORT[x.k], x.k, x.min, x.k]),
+    ...B.being.kinds.map(x => [SHORT[x.k], x.k, x.min, x.k]),
+    ...B.doing.kinds.map(x => [SHORT[x.k], x.k, x.min, x.k, (x.of || []).map(o => o[0]).join(" · ")]),
     ["On a screen", "screen", B.screen.total, "screen"]];
   const MAXB = Math.max(60, ...rowsData.map(r => r[2]), ...rowsData.map(r => GO[r[3]] || 0));
   const head = (t, n) => `<p class="bh">${t}${n != null ? ` <span>${hm(n)}</span>` : ""}</p>`;
-  const bar = ([n, k, v, gk]) => { const goal = GO[gk], col = k === "sleep" ? "sleep" : k === "asleep" ? "sleep-deep" : k;
-    return `<div class="br"><span class="bn">${esc(n)}</span><span class="bt">` +
+  const bar = ([n, k, v, gk, sub]) => { const goal = GO[gk], col = k === "sleep" ? "sleep" : k === "asleep" ? "sleep-deep" : k;
+    return `<div class="br"><span class="bn">${esc(n)}${sub ? `<small>${esc(sub)}</small>` : ""}</span><span class="bt">` +
       `<i style="width:${100 * v / MAXB}%;background:var(--rb-${col});border-color:var(--rb-${k === "asleep" ? "sleep" : col}-d)"></i>` +
       (goal ? `<b style="left:${100 * goal / MAXB}%" title="goal ${hm(goal)}"></b>` : "") + `</span>` +
       `<span class="bv">${v ? hm(v) : "—"}${goal ? `<small>of ${hm(goal)}</small>` : ""}</span></div>`; };
@@ -585,9 +616,138 @@ const rainbow = RB => {
   // goes to the nearest small piece (the tracks let taps through)
   g = hits.sort((x, y) => y[0] - x[0]).map(h => h[1]).join("") + g;
   rainbow.tips = tips;
-  return `<svg id="rbdial" viewBox="-80 -48 560 516" role="img" aria-label="The day, midnight to midnight, as concentric rings">${g}</svg>` +
+  return `<p class="bh">how I spent my time</p><p class="vline">${esc(timeLine(B))}</p><svg id="rbdial" viewBox="-80 -48 560 516" role="img" aria-label="The day, midnight to midnight, as concentric rings">${g}</svg>` +
     `<div class="tip" id="rbtip" aria-live="polite">Up at ${clock2(WAKE)}${RB.bed != null ? `, in bed at ${clock2(BED)}` : ""}. Tap a piece of the rainbow or a moment around it.</div>` +
-    `<div class="bars">${bars}</div>` + theirDay(RB.theirs || []);
+    (RB.who ? "" : withOthers(RB.with_others || [])) + `<div class="bars">${bars}</div>` + theirDay(RB.theirs || []) +
+    (RB.who ? whoCard(RB.who, WAKE, BED) : "") + (RB.energy ? energyCard(RB.energy) : "");
+};
+// who was there is a mark on the stretch, not a kind of time (1 Nov 2026): each stretch with people outside the family
+const withOthers = W => W.length ? `<div class="with">${W.map(w => `<p><span class="wt">with others · ${clock2(w.a)}–${clock2(w.b)}</span>` +
+  `<span class="ww">${esc(w.who.join(", "))}</span></p>`).join("")}</div>` : "";
+// where my energy went (1 Nov 2026, her pick): the original wheel (13 Sep build), each mirrored pair one line through
+// the centre, being to the left and doing to the right; being kinds are what filled her, doing kinds what drained her
+// the eight in one family with the rest of the card (1 Nov 2026, her pick): each pair shares a muted hue, being the
+// deeper shade and doing the lighter: sage for body and earth, teal for heart and water, dusty plum for mind and air,
+// ochre gold for spirit and fire
+const EDOM = {
+  heart: {c: "#3E7C7D", d: "#2A5A5B", a: 247.5, f: "connection · love · care", w: "connection"},
+  water: {c: "#93C3C1", d: "#4F8A8B", a: 67.5, f: "connecting · advocacy · community", w: "connecting"},
+  mind: {c: "#7A6191", d: "#564369", a: 292.5, f: "thinking · planning · learning", w: "thinking"},
+  air: {c: "#C3AFD3", d: "#8C74A3", a: 112.5, f: "systems · technical · digital", w: "systems"},
+  body: {c: "#5D8A66", d: "#41644A", a: 202.5, f: "health · movement · rest", w: "health and movement"},
+  earth: {c: "#AFCAA6", d: "#6F9A6A", a: 22.5, f: "tending · maintaining · admin", w: "tending"},
+  spirit: {c: "#B7832F", d: "#87601F", a: 337.5, f: "meaning · values · joy", w: "meaning"},
+  fire: {c: "#E6BE78", d: "#C29440", a: 157.5, f: "creating · transforming · play", w: "creating"}};
+// one plain sentence on top of each view, written from the numbers (1 Nov 2026, her pick from the mockup)
+const hmn = m => hm(m).replace(/ /g, "\u00a0");
+const DONAME = {care: "care", system: "be•do", work: "work", cook: "making", drive: "driving", family: "family care",
+  community: "community care", pet: "pet care", home: "home care"};
+const timeLine = B => {
+  const dk = B.doing.kinds.filter(k => k.min).sort((a, b) => b.min - a.min);
+  if (!dk.length) return "";
+  const mv = (B.being.kinds.find(k => k.k === "move") || {}).min || 0, rest = [];
+  if (dk[1]) rest.push(`${hmn(dk[1].min)} of ${DONAME[dk[1].k] || dk[1].k}`);
+  if (mv) rest.push(`${hmn(mv)} moving`);
+  return `Mostly ${DONAME[dk[0].k] || dk[0].k}: ${hmn(dk[0].min)} of it${rest.length ? ", with " + rest.join(" and ") : ""}.`;
+};
+const whoLine = W => {
+  const fr = W.people.filter(p => p.circle !== "Family" && p.circle !== "Work").map(p => p.n.split(" ")[0]), parts = [];
+  const names = fr.length > 2 ? `${fr.slice(0, 2).join(", ")} and ${fr.length - 2} others` : fr.join(" and ") || "friends";
+  if (W.social) parts.push(`${hmn(W.social)} with ${names}`);
+  if (W.work) parts.push(`${hmn(W.work)} with work people`);
+  if (W.family) parts.push(`${hmn(W.family)} with family`);
+  if (W.alone) parts.push(`${hmn(W.alone)} alone`);
+  return parts.length ? parts.join(", ").replace(/^./, c => c.toUpperCase()) + "." : "";
+};
+const balLine = (M, be, doing) => {
+  const ks = Object.keys(EDOM).sort((x, y) => (M[y] || 0) - (M[x] || 0)), tot = Object.values(M).reduce((a, b) => a + b, 0) || 1;
+  const two = ((M[ks[1]] || 0) - (M[ks[2]] || 0)) / tot >= 0.03;     // name the second only when it stands clear of the third
+  const led = two ? `${ks[0][0].toUpperCase() + ks[0].slice(1)} and ${ks[1]} led: ${EDOM[ks[0]].w} and ${EDOM[ks[1]].w}.`
+    : `${ks[0][0].toUpperCase() + ks[0].slice(1)} led: ${EDOM[ks[0]].w}.`;
+  const tilt = doing > be ? ` More doing than being, ${doing} to ${be}.` : be > doing ? ` More being than doing, ${be} to ${doing}.` : " Being and doing even.";
+  return led + tilt;
+};
+const EICON = {
+  heart: `<path d="M10 17.2 3.4 10.8A3.9 3.9 0 0 1 10 5.6a3.9 3.9 0 0 1 6.6 5.2Z"/>`,
+  water: `<path d="M2 8.5c2-2.2 4-2.2 6 0s4 2.2 6 0 3-1.4 4-1M2 13.5c2-2.2 4-2.2 6 0s4 2.2 6 0 3-1.4 4-1" fill="none" stroke-width="2.2" stroke-linecap="round"/>`,
+  mind: `<path d="M10 3.2c-1.6-1-3.8-.3-4.3 1.5-2 .1-3 2.2-2.1 3.8-1.2 1.3-.8 3.6 1 4.2.1 2 2.2 3.1 3.9 2.2.6.9 1.5 1.3 1.5 1.3s.9-.4 1.5-1.3c1.7.9 3.8-.2 3.9-2.2 1.8-.6 2.2-2.9 1-4.2.9-1.6-.1-3.7-2.1-3.8C13.8 2.9 11.6 2.2 10 3.2Z"/><path d="M10 3.4v12.8" fill="none" stroke-width="1.2"/>`,
+  air: `<path d="M2 7.5h9.5a2.5 2.5 0 1 0-2.4-3.2M2 11h13.5a2.5 2.5 0 1 1-2.4 3.2M2 14.5h6" fill="none" stroke-width="2.2" stroke-linecap="round"/>`,
+  body: `<circle cx="10" cy="3.8" r="2.2"/><path d="M4 7.8 10 9l6-1.2M10 9v3.6M10 12.6 6.2 17.4M10 12.6l3.8 4.8" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`,
+  earth: `<circle cx="10" cy="10" r="7.4"/><path d="M2.8 10h14.4M10 2.6c-2.6 2.2-2.6 12.6 0 14.8M10 2.6c2.6 2.2 2.6 12.6 0 14.8" fill="none" stroke-width="1.1"/>`,
+  spirit: `<path d="M10 1.8 11.9 8.1 18.2 10 11.9 11.9 10 18.2 8.1 11.9 1.8 10 8.1 8.1Z"/>`,
+  fire: `<path d="M10 18.2c-3.6 0-6-2.4-6-5.6 0-2.6 1.7-4.2 3-5.8.2 1.4.9 2.4 1.8 2.8C8.4 6.4 9.9 3.8 12.2 1.8c-.2 2.6.8 4.2 2 5.8 1 1.4 1.8 2.9 1.8 5 0 3.2-2.4 5.6-6 5.6Z"/>`};
+const energyCard = E => {
+  // balance, the original card (13 Sep and 25 Sep 2026), in plain minutes (1 Nov 2026, her pick): BE and DO, doing
+  // split into tending and growing, then the wheel and its legend as they were
+  const M = E.min || {}, tot = Object.values(M).reduce((a, b) => a + b, 0);
+  if (!tot) return "";
+  const all = (E.be || 0) + (E.tending || 0) + (E.growing || 0) || 1;
+  const parts = [E.be || 0, E.tending || 0, E.growing || 0].map(v => v / all * 100), fl = parts.map(Math.floor);
+  let left = 100 - fl.reduce((a, b) => a + b, 0);
+  parts.map((v, i) => [v - fl[i], i]).sort((a, b) => b[0] - a[0]).slice(0, left).forEach(([, i]) => fl[i]++);
+  const [pb, pt, pg] = fl;
+  const bar = `<div class="balbar"><span style="width:${pb}%;background:#4F8A8B"></span><span style="width:${pt}%;background:#D4A055"></span>` +
+    `<span style="width:${pg}%;background:#BE5B50"></span></div><p class="ballab"><span style="color:#3E6E6F">BE <b>${pb}</b></span>` +
+    `<span style="color:#A04A40">DO <b>${pt + pg}</b> <i style="background:#D4A055"></i>tending <b>${pt}</b> <i style="background:#BE5B50"></i>growing <b>${pg}</b></span></p>`;
+  const cx = 150, cy = 130, w = 13, shMax = Math.max(...Object.values(M)) / tot, TOP = Math.max(0.3, Math.ceil(shMax * 10) / 10);
+  const R0 = 12, RO = 98, rOf = sh => R0 + (RO - R0) * Math.min(sh, TOP * 1.12) / TOP;
+  const wpt = (deg, r) => { const t = deg * Math.PI / 180; return [(cx + r * Math.sin(t)).toFixed(1), (cy - r * Math.cos(t)).toFixed(1)]; };
+  const pct = k => Math.round((M[k] || 0) / tot * 100);
+  const tip = k => `${k} · ${pct(k)}% · ${hm(M[k] || 0)}${(E.rows[k] || []).length ? " · " + E.rows[k].join("; ") : ""}`;
+  let svg = `<svg class="ewheel" viewBox="0 0 300 260" role="img" aria-label="the eight domains, being on the left, doing on the right">` +
+    `<circle cx="${cx}" cy="${cy}" r="98" fill="none" stroke="var(--rule)" stroke-width="1" stroke-dasharray="1 5" stroke-linecap="round"/>` +
+    Array.from({length: Math.round(TOP * 10) - 1}, (_, i) => (i + 1) / 10).map(f => `<circle cx="${cx}" cy="${cy}" r="${rOf(f).toFixed(1)}" fill="none" stroke="var(--faint)" stroke-opacity=".45" stroke-width=".8" stroke-dasharray="1 4" stroke-linecap="round"/>`).join("") +
+    `<line x1="${cx}" y1="32" x2="${cx}" y2="228" stroke="var(--rule)" stroke-width="1"/>` +
+    `<text x="4" y="134" style="font:800 11px var(--sans);letter-spacing:.14em;fill:#3E6E6F">BE</text>` +
+    `<text x="296" y="134" text-anchor="end" style="font:800 11px var(--sans);letter-spacing:.14em;fill:#A04A40">DO</text>`;
+  Object.keys(EDOM).sort((x, y) => (M[y] || 0) - (M[x] || 0)).forEach(k => {
+    const cap = (w + 5) / 2, L = Math.max(rOf((M[k] || 0) / tot) - cap, 0.01), [x, y] = wpt(EDOM[k].a, L);
+    svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${EDOM[k].d}" stroke-width="${w + 5}" stroke-linecap="round"/>` +
+      `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${EDOM[k].c}" stroke-width="${w}" stroke-linecap="round"><title>${esc(tip(k))}</title></line>`; });
+  svg += `<defs><radialGradient id="dwarf"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F5ECE8"/></radialGradient>` +
+    `<radialGradient id="halo"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".95"/><stop offset=".35" stop-color="#F8F2EF" stop-opacity=".55"/><stop offset="1" stop-color="#ECDDD8" stop-opacity="0"/></radialGradient></defs>` +
+    `<circle cx="${cx}" cy="${cy}" r="24" fill="url(#halo)"/><circle cx="${cx}" cy="${cy}" r="8" fill="url(#dwarf)" stroke="var(--rule)" stroke-width=".8"/>`;
+  for (const k in EDOM) { const [x, y] = wpt(EDOM[k].a, 114);
+    svg += `<g transform="translate(${(x - 8.5).toFixed(1)} ${(y - 8.5).toFixed(1)}) scale(.85)" fill="${EDOM[k].c}" stroke="${EDOM[k].d}" stroke-width="1" stroke-linejoin="round"><title>${esc(tip(k))}</title>${EICON[k]}</g>`; }
+  svg += `</svg>`;
+  const icon = k => `<svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" style="overflow:visible"><g fill="${EDOM[k].c}" stroke="${EDOM[k].d}" stroke-width="1" stroke-linejoin="round">${EICON[k]}</g></svg>`;
+  const PAIRS = [["body", "earth"], ["heart", "water"], ["mind", "air"], ["spirit", "fire"]];
+  // the legend: the top four, the rest a tap away (1 Nov 2026, her pick from the mockup)
+  const lrow = k => `<div class="erow" title="${esc(tip(k))}"><span>${icon(k)}</span><span class="enm" style="color:${EDOM[k].d}">${k}</span>` +
+    `<span class="edf">${EDOM[k].f}</span><span class="ev">${pct(k)}%</span></div>`;
+  const ranked = Object.keys(EDOM).sort((x, y) => (M[y] || 0) - (M[x] || 0));
+  const leg = ranked.slice(0, 4).map(lrow).join("") + `<details class="emore"><summary>show all eight</summary>${ranked.slice(4).map(lrow).join("")}</details>`;
+  return `<div class="energy"><p class="bh">balance</p><p class="vline">${esc(balLine(M, pb, pt + pg))}</p>${bar}<p class="enote">Sleep, plans and someone else's own rows count zero. Plain minutes: every row ` +
+    `with a real span counts its minutes; a moment counts five.</p>${svg}<p class="enote" style="text-align:center">rings every 10% of the day · ` +
+    `the outer ring is ${Math.round(TOP * 100)}%</p><div class="elegend">${leg}</div></div>`;
+};
+// who I was with (1 Nov 2026, her pick): alone (the dogs count), family, social, across the waking day, and the people
+// by circle with their minutes; texts and calls named beneath
+const whoCard = (W, w0, w1) => {
+  // colours from the original Balance card (1 Nov 2026, her pick): being teal for alone; doing's two shades, ochre for
+  // family and brick for social, the friends and community in brick and work in a deeper brick
+  const span = Math.max(1, (w1 != null ? w1 : 1440) - w0),
+    K = [["social", "Social"], ["work", "Work"], ["family", "Family"], ["alone", "Alone"]].filter(([k]) => k !== "work" || W.work);
+  const most = Math.max(60, W.alone, W.family, W.social, W.work || 0);
+  const strip = `<div class="wstrip">${W.strip.map(([k, a, b]) => `<i class="w-${k}" style="left:${100 * (a - w0) / span}%;width:${100 * (b - a) / span}%"` +
+    ` title="${k} · ${clock2(a)}–${clock2(b)}"></i>`).join("")}</div><p class="wends"><span>${clock2(w0)}</span><span>${clock2(w1 != null ? w1 : 1440)}</span></p>`;
+  const rows = K.map(([k, n]) => `<div class="br"><span class="bn">${n}</span><span class="bt"><i class="w-${k}" style="width:${100 * W[k] / most}%;background:var(--who-${k});border-color:var(--who-${k}-d)"></i></span>` +
+    `<span class="bv">${W[k] ? hm(W[k]) : "—"}</span></div>`).join("");
+  // the circles, as on the original page (25 Sep 2026): a box per first circle, a chip per person sized by the time shared,
+  // a 💬 chip for a text or a call; coloured by the circle's place in her circle order (1 Nov 2026: merged with who I was with)
+  const COLOF = c => c === "Family" ? "var(--who-family-d)" : c === "Work" ? "var(--who-work-d)" : "var(--who-social-d)";
+  const order = W.circle_order || [], groups = {}, keys = [];
+  const add = (c, chip) => { c = c || ""; if (!groups[c]) { groups[c] = []; keys.push(c); } groups[c].push(chip); };
+  const top = Math.max(1, ...W.people.map(p => p.min));
+  W.people.forEach(p => add(p.circle, `<span class="pchip" style="--cc:COL;font-size:${(0.85 + 0.45 * p.min / top).toFixed(2)}rem">${esc(p.n)}<small>${hm(p.min)}</small></span>`));
+  (W.contacts || []).forEach(c => add(c.circle, `<span class="pchip far" style="--cc:COL" title="${esc(c.t)}">💬 ${esc((c.who || []).join(", ") || c.t)}<small>${clock2(c.m)}</small></span>`));
+  const rank = k => { const i = order.indexOf(k); return i < 0 ? 99 : i; };
+  keys.sort((a, b) => rank(a) - rank(b));
+  const boxes = keys.map(k => { const col = COLOF(k);
+    return `<div class="circ"><p class="circl" style="color:${col}">${esc(k || "no circle yet")} · ${groups[k].length}</p>` +
+      `<div class="circp">${groups[k].map(x => x.replace("COL", col)).join("")}</div></div>`; }).join("");
+  const ment = (W.mentioned || []).length ? `<p class="wment">mentioned · ${W.mentioned.map(esc).join(", ")}</p>` : "";
+  return `<div class="who"><p class="bh">who I was with</p><p class="vline">${esc(whoLine(W))}</p>${strip}<div class="bars">${rows}</div><div class="circles">${boxes}</div>${ment}</div>`;
 };
 // their day is theirs (28 Oct 2026): their own calendar's events and their own play, on a line of their own
 const theirDay = T => {
@@ -621,7 +781,9 @@ if (ONE) {
   const order = Object.keys(groups).sort((a, b) => (!a - !b) || ((dmap[b] || {}).own_min || 0) - ((dmap[a] || {}).own_min || 0) || groups[b].length - groups[a].length);
   const movedHtml = order.map(k => {
     const n = dmap[k] || {}, mins = n.own_min ? hm(n.own_min) : "";
-    return `<div><p class="dh"><span>${esc(k ? n.emoji || "·" : "·")}</span><span class="n">${esc(k || "on no drive")}</span>${mins ? `<span class="m">${mins}</span>` : ""}</p>` +
+    // a drive finished (1 Nov 2026, her word: it's not showing the drive being completed)
+    return `<div><p class="dh"><span>${esc(k ? n.emoji || "·" : "·")}</span><span class="n">${esc(k || "on no drive")}</span>` +
+      `${n.complete ? `<span class="fin">🏁 complete</span>` : ""}${mins ? `<span class="m">${mins}</span>` : ""}</p>` +
       `<ul>${groups[k].map(c => `<li>✅ ${c.url ? `<a href="${esc(c.url)}">${esc(c.t)}</a>` : esc(c.t)}</li>`).join("")}</ul></div>`;
   }).join("");
   const rest = [d0.bed ? `${hm(d0.bed)} in bed` : "", d0.readiness != null ? `readiness ${d0.readiness}` : "",
