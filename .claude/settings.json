@@ -5,5 +5,17 @@
       "mcp__Gmail__label_thread",
       "mcp__Google_Drive__trash_file"
     ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "git -C \"$CLAUDE_PROJECT_DIR\" config core.hooksPath .githooks"
+          }
+        ]
+      }
+    ]
   }
 }
