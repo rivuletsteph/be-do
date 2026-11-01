@@ -193,6 +193,46 @@ assert K6['doing'].get('family') == 30 + 30, K6['doing']               # the kit
 assert K6['being'].get('social') == 120, K6['being']
 print('ok — the kitchen after dinner is family care, the school kids are community care, a party is social recreation')
 
+# 1 Nov 2026: a be•do session whose notes talk about community care is be•do work; 🫧 hygiene is personal care.
+CARE7 = NIGHT + [
+    row('⚡ action', '09:00', '10:00', rhythm='the system', title='settled the care kinds',
+        details='what I did\n· voting is community care; hosting a party is community care\n'
+                '· filled every minute: Biscuit the whole time at the park\n———\n[be•do] a session'),
+    row('🫧 hygiene', '22:00', '22:20', rhythm='Body Care', title='personal care and my evening routine'),
+]
+K7 = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in day_rings(CARE7, DAY, L6)['bands']}
+assert not K7['doing'].get('community') and not K7['doing'].get('pet') and K7['doing'].get('system') == 60, K7['doing']
+assert K7['being'].get('personal') == 20 and not K7['doing'].get('work'), (K7['being'], K7['doing'])
+print('ok — a session about care (its notes naming community care, or the dog) is still be•do; hygiene is personal care')
+
+# 1 Nov 2026: shared care — the prep and the party were both family and community care, half and half.
+CARE8 = NIGHT + [
+    row('⚡ action', '13:00', '14:00', rhythm='The Party', title='Clean the kitchen'),                  # both, half each
+    row('⚡ action', '17:00', '18:00', rhythm='The Party', title='Make the spaghetti'),                 # not work: both
+    row('⚡ action', '16:00', '18:00', rhythm='The Party', title='the potluck at our house'),           # both, half each
+    row('🧽 clean', '10:00', '10:20', title='the bathroom'),                                          # still home care
+]
+L8 = dict(L6, care=dict(L6['care'], shared={'rhythms': ['The Party'], 'kinds': ['family', 'community']}))
+R8 = day_rings(CARE8, DAY, L8)
+K8 = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in R8['bands']}
+assert not K8['doing'].get('work') and K8['doing'].get('home') == 20, K8['doing']
+assert K8['doing'].get('family') == 90 and K8['doing'].get('community') == 90, K8['doing']   # 3 h of party, half each
+lanes = [r for r in next(b for b in R8['bands'] if b['k'] == 'doing')['runs'] if r[0] in ('family', 'community')]
+assert all(r[5] == 2 for r in lanes), lanes                                                         # drawn as two lanes
+print('ok — shared care is two kinds at once, two lanes, half each in the totals')
+
+# 1 Nov 2026: care, grouped — one kind, each minute once, the kinds that happened named under it.
+L9 = dict(L8, care=dict(L8['care'], grouped=True))
+R9 = day_rings(CARE8, DAY, L9)
+D9 = next(b for b in R9['bands'] if b['k'] == 'doing')
+K9 = {k['k']: k for k in D9['kinds']}
+assert set(K9) & {'family', 'community', 'pet', 'home'} == set(), list(K9)
+assert K9['care']['min'] == 180 + 20, K9['care']                  # the party once, and the bathroom
+assert [o[0] for o in K9['care']['of']] == ['family', 'community', 'home'], K9['care']['of']
+assert all(r[5] == 1 for r in D9['runs'] if r[0] == 'care'), D9['runs']   # one lane, not two
+assert 'the potluck at our house' in [t for r in D9['runs'] if r[0] == 'care' for t in r[3]]
+print('ok — care grouped: one kind, each minute once, the kinds named')
+
 # Their day is theirs (28 Oct 2026): an event from their own calendar and their own play go on their strip,
 # never on her rainbow; what she did meanwhile is her rows.
 import base64 as _b64
@@ -242,3 +282,65 @@ assert K6['move'] == 40 + 30 and K6['recreation'] == 15 + 40, K6     # both coun
 S6 = [(s['a'], s['b'], s['ans']) for s in R6['synergy']]
 assert S6 == [(720, 740, 'synergizing'), (960, 1000, 'competing'), (1080, 1110, 'synergizing')], S6
 print('ok — two at once are two lanes and both count; synergy and competing from her words, never for one thing alone')
+
+# 1 Nov 2026, her pick: how I spent my time is what I did; who was there is a mark on the stretch, not a kind of time.
+WITH11 = NIGHT + [
+    row('⚡ action', '16:00', '20:00', rhythm='Kid Club', person=['Ollie Plum', 'Pip Plum', 'Moss Quill', '♐Wren Ash'],
+        title='the potluck at our house'),
+    row('📝 log', '20:00', '22:00', rhythm='Fun', person=['Moss Quill'], title="the Quills' party"),   # recreation, not social
+    row('🍽️ lunch', '12:00', '12:10', person=['Moss Quill']),                                          # under 15 minutes: no mark
+]
+L11 = dict(L6, household=['Ollie', 'Pip'])
+R11 = day_rings(WITH11, DAY, L11)
+K11 = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in R11['bands']}
+assert 'social' not in K11['being'] and K11['being'].get('recreation') == 120, K11['being']
+assert [(w['a'], w['b'], w['who']) for w in R11['with_others']] == [(960, 1320, ['Moss', 'Wren'])], R11['with_others']
+print('ok — who was there is a mark on the stretch: with others, by name; no social kind of time')
+
+# 1 Nov 2026, her pick: who I was with — every waking minute alone (dogs count), family, or social; people by circle.
+W12 = NIGHT + [
+    row('📝 log', '09:00', '10:00', person=['Pip Plum'], title='breakfast fort with Pip'),          # family
+    row('⚡ action', '16:00', '18:00', rhythm='Kid Club', person=['Pip Plum', 'Moss Quill'], title='the potluck',
+        mentioned='Moss, Quill Vane, the Thursday group'),                                                      # social
+    row('🗨️ text', '12:00', title="a photo from Wren Ash's group text"),                           # at a distance
+]
+L12 = dict(L6, household=['Ollie', 'Pip'], _circles={'Moss Quill': 'Friends', 'Wren Ash': 'Family'})
+WC = day_rings(W12, DAY, L12)['who']
+awake = WC['alone'] + WC['family'] + WC['social']
+assert (WC['family'], WC['social']) == (60, 120) and awake == 24 * 60 - (7 * 60 + 30), WC   # up 7:30, no bedtime: to midnight
+assert [(p['n'], p['min'], p['circle']) for p in WC['people']] == [('Pip Plum', 180, 'Family'), ('Moss Quill', 120, 'Friends')], WC['people']
+assert [(c['who'], c['circle']) for c in WC['contacts']] == [(['Wren Ash'], 'Family')], WC['contacts']
+assert WC['mentioned'] == ['Quill Vane', 'the Thursday group'], WC['mentioned']          # Moss was there: no mention line
+assert {k for k, a, b in WC['strip']} == {'alone', 'family', 'social'}
+print('ok — who I was with: alone, family, social; the people by circle; a text by name in its circle; mentioned once')
+
+# 1 Nov 2026: social splits by who — work when everyone outside the family there is from her Work circle.
+W13 = NIGHT + [
+    row('⚡ action', '10:00', '11:00', rhythm='Paid Work', person=['Fern Oak'], title='the grant meeting'),   # work
+    row('⚡ action', '16:00', '17:00', rhythm='Kid Club', person=['Fern Oak', 'Moss Quill'], title='the potluck'),  # social
+]
+L13 = dict(L12, _circles={'Fern Oak': 'Work', 'Moss Quill': 'Friends'})
+WC13 = day_rings(W13, DAY, L13)['who']
+assert (WC13['work'], WC13['social']) == (60, 60), WC13
+print('ok — social splits by who: all of them from work is work time; friends there makes it social')
+
+# 1 Nov 2026, her pick: balance, the original wheel in plain minutes — each row's wellness kind takes its minutes, a
+# moment counts five, sleep and his own rows count nothing; doing on a drive grows, any other doing tends.
+E14 = NIGHT + [
+    row('🧽 clean', '13:00', '14:00', wellness='🌎 earth', title='the bathrooms'),                      # earth 60, tending
+    row('⚡ action', '15:00', '15:30', wellness='💨 air', rhythm='The Report', title='the report'),       # air 30, growing
+    row('⚡ action', '16:00', '18:00', wellness='🩷 heart', title='the potluck at our house'),          # heart 120
+    row('📌 social', '07:00', '07:30', wellness='🧠 mind', emotion=['🔴 high energy · unpleasant'],
+        title='scrolling in bed'),                                                                        # mind 30
+    row('🙏 gratitude', '09:55', wellness='💖 spirit', title='a good night'),                           # spirit 5
+    row('📝 log', '11:00', '11:20', wellness='🧠 mind', person=['Pip Plum'], title='Pip — his reading'),  # his: nothing
+]
+EN = day_rings(E14, DAY, dict(L, _growing=['The Report']))['energy']
+assert {k: v for k, v in EN['min'].items() if v} == {'earth': 60, 'air': 30, 'heart': 120, 'mind': 30, 'spirit': 5}, EN['min']
+assert (EN['be'], EN['tending'], EN['growing']) == (155, 60, 30), EN
+assert EN['rows']['heart'] == ['the potluck at our house'], EN['rows']
+print('ok — balance: plain minutes by wellness kind; doing on a drive grows, the rest tends; sleep and his rows count nothing')
+E15 = NIGHT + [row('⚡ action', '16:00', '18:00', wellness='🩷 heart', title='the potluck'),
+               row('📝 log', '17:00', '18:00', wellness='🩷 heart', title='the living room after')]   # inside it: once
+assert day_rings(E15, DAY, L)['energy']['min']['heart'] == 120
+print('ok — the wheel counts a minute once per kind, however many rows hold it')

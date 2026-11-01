@@ -35,7 +35,7 @@ from day_rings import day_rings  # noqa: E402
 
 STREAM_KEYS = ('title', 'key', 'when', 'end', 'status', 'rhythm')
 OPTIONAL_STREAM_KEYS = ('spent', 'deliv', 'target', 'practice', 'wellness', 'person', 'details', 'photo', 'device',
-                        'photo_checked', 'photo_links', 'event')
+                        'photo_checked', 'photo_links', 'event', 'mentioned', 'emotion')
 RHYTHM_KEYS = ('name',)
 OPTIONAL_RHYTHM_KEYS = ('emoji', 'type', 'status', 'code', 'feeds', 'dest')
 WELL = bedo_reader.FACTS['wellness']
@@ -99,6 +99,22 @@ def load(paths, F):
     # (recXXXX)'); an original left behind is the same row twice (W42 QA, 19 Oct 2026)
     moved = {m for row in seen.values() for m in MOVED.findall(row.get('details') or '')}
     return [row for i, row in seen.items() if i not in moved], reads
+
+
+def load_circles(path, L):
+    """Each connection's first circle, by full name and by short name, as the person field writes them
+    (1 Nov 2026: the who card groups the people she was with by circle)."""
+    CF = (L.get('fields') or {}).get('connections') or {}
+    out = {}
+    for r in bedo_reader.complete(path):
+        c = bedo_reader.cells(r)
+        circ = c.get(CF.get('circles')) or []
+        first = (circ[0].get('name') if isinstance(circ[0], dict) else circ[0]) if circ else ''
+        for k in (CF.get('name'), CF.get('short')):
+            n = re.sub(r'^[^\w]+', '', str(c.get(k) or '')).strip()
+            if n and first:
+                out.setdefault(n, first)
+    return out
 
 
 def load_rhythms(path, RF):
@@ -187,7 +203,7 @@ def build(rows, rhythms, start, L, ndays=7, words=None, photos=None):
         rec = rhythms.get(n['name']) or {}
         tm, cl, op = n['tm'], n['cl'], n['op']
         return dict(
-            drive=n['name'], emoji=rec.get('emoji') or '',
+            drive=n['name'], emoji=rec.get('emoji') or '', complete=(rec.get('status') or '').strip().lower() == 'done',
             min=round(tm['total']), own_min=round(tm['own']),
             closed=cl['n'], closed_own=cl['n_own'], open=op['n'], open_own=op['n_own'],
             done=[dict(t=clean(r.get('title')), url=r.get('deliv') or None,
@@ -617,6 +633,7 @@ def main():
     ap.add_argument('--stream', action='append', required=True, help='live base first')
     ap.add_argument('--rhythms', required=True)
     ap.add_argument('--practices', help="the catalog, so a flow practice shows under its flow")
+    ap.add_argument('--connections', help='with --day: the connections table, for the circles on the who card')
     ap.add_argument('--template', required=True)
     ap.add_argument('--out', required=True)
     ap.add_argument('--qa-anyway', action='store_true',
@@ -645,7 +662,10 @@ def main():
     a0 = dt.datetime.combine(day if a.day else sun, dt.time(), dt.timezone.utc) - off
     due = bedo_forecast.due_in(rows, a0, a0 + dt.timedelta(days=ndays))
     L['_flowset'] = flow_practices(a.practices, L)
+    L['_circles'] = load_circles(a.connections, L) if a.connections else {}
     rhythms, nrh = load_rhythms(a.rhythms, RF)
+    # the drives, for the balance card's growing (a doing row on a drive grows; any other doing row tends)
+    L['_growing'] = [n for n, rec in rhythms.items() if (rec.get('type') or '') in (L.get('growing_types') or ['♐ drive'])]
     photos = read_photos(a.photos, L['utc_offset_hours'])
     drives, totals, qa, more = build(rows, rhythms, start, L, ndays, words, photos)
     if due:
