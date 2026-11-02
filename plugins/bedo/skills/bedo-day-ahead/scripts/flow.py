@@ -319,7 +319,9 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
             mins_ = int(m.group(1)) if m else min(size_guess(t), 120)
             b = a + dt.timedelta(minutes=mins_)
             why = (picks or {}).get(r['id']) or (picks or {}).get(c.get(F['key']) or '')
-            items.append(dict(k='step', t=t, a=hm(a), b=hm(b), drive=rh, done=False,
+            nx = [ln.split(':', 1)[1].strip() for ln in (c.get(F['details']) or '').split('\n')
+                  if re.match(r'(?i)^\s*next( step)?:', ln)]
+            items.append(dict(k='step', t=t, a=hm(a), b=hm(b), drive=rh, done=False, nx=nx[-1] if nx else None,
                               sized=not m or 'guess' in m.group(0).lower(),
                               cat=kind_of(c, F, flows, C), pick=why is not None, why=why or None))
             continue

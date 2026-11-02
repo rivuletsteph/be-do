@@ -113,6 +113,10 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
 .cal .ev.lived i{display:none}
 .cal .ev.lived.tall i{display:block}
 .cal .ev.done b{text-decoration:none}
+.cal .ev{cursor:pointer}
+.cal .ev .more{display:none}.cal .ev.open .more{display:block;font-size:12.5px;line-height:1.35;margin-top:4px;color:var(--ink)}
+.cal .ev.open{height:auto!important;min-height:46px;z-index:6;box-shadow:0 6px 18px rgba(0,0,0,.28);opacity:1}
+.cal .ev.open b{display:block;-webkit-line-clamp:unset}.cal .ev.open i{display:block;white-space:normal}
 .cal .ev.step{border:1.5px dashed var(--edge);border-left:4px solid var(--edge);background:color-mix(in srgb,var(--fill) 28%,var(--card))}
 .legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin:0 0 10px;font-size:11.5px;color:var(--muted)}
 .legend b{font:600 10.5px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-right:-4px}
@@ -385,6 +389,19 @@ function intention(blocks){
   const el=document.getElementById('int'); if(!H){ el.innerHTML=''; return; }
   const st=BFV!=null?BedoBaseFlow.state(BFV):'good', share=(H.share||{})[st]||.5;
   const goal=Math.round(H.free*share*60/15)*15, offer=stars(blocks);
+  /* in the day's own order (2 Nov 2026, her words: the intentions integrated into the day is awesome; things
+     like before I leave should go in the right time order; it's confusing to see that second list): a step
+     set for a time today sorts by that time, first; the rest keep their rank after it */
+  const nt=t=>String(t||'').replace(/^⚡\s*/,'').trim(), when=t=>{ const s=(D.schedule||[]).find(x=>x.k==='step'&&nt(x.t)===nt(t)); return s?s.a:null; };
+  /* every step set for a time today is on it, not only each drive's easiest (backlog 261031_flow: today's
+     steps go to the top); build work on be•do never is (amendment, 8 Oct 2026) */
+  const mins=t=>{ const [a,b]=t.split(':').map(Number); return a*60+b; };
+  (D.schedule||[]).filter(x=>x.k==='step'&&!x.done&&!offer.some(s=>nt(s.a.t)===nt(x.t))).forEach(x=>{
+    const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===x.drive);
+    offer.push({a:{t:x.t,sz:Math.max(15,mins(x.b)-mins(x.a)),szg:!!x.sized},c:d&&d.c,on:((d&&d.g)?d.g+' ':'')+(x.drive||''),k:'grow'}); });
+  for(let i=offer.length-1;i>=0;i--) if(/be•do/.test(offer[i].on)) offer.splice(i,1);
+  offer.sort((x,y)=>{ const a=when(x.a.t), b=when(y.a.t); return a&&b?a.localeCompare(b):a?-1:b?1:0; });
+  const t12=t=>{ const [a,b]=t.split(':').map(Number); return `${a%12||12}:${String(b).padStart(2,'0')}`; };
   const size=a=>mySize[a.t]||a.sz||60, chosen=offer.filter(s=>picked.has(s.a.t)), sum=chosen.reduce((m,s)=>m+size(s.a),0);
   const cal=H.booked?`${hm(Math.round(H.booked*60))} on your calendar${H.travel?` and ${hm(Math.round(H.travel*60))} to get there`:''}`:'nothing on your calendar';
   const part={optimal:'most of it',good:'a comfortable share','pay attention':'a little'}[st];
@@ -392,7 +409,7 @@ function intention(blocks){
     +`<p class="holds">${goal?`about <b>${half(goal/60)}</b> you could give to steps today`:'no free time to give to steps today'}</p>`
     +`<p class="how">${hm(Math.round(H.free*60))} free · ${H.whole} h less ${cal}${H.full?' · a full day':''} · base flow ${BFV??'not in'}${BFV!=null?', '+st:''} → ${part}</p>`
     +`<div class="fill"><span class="bar"><i class="${sum>goal?'over':''}" style="width:${goal?Math.min(100,100*sum/goal):sum?100:0}%"></i></span><span>${sum?hm(sum):'nothing yet'} of about ${hm(goal)}${sum>goal?' · a little more than the day holds':''}</span></div>`
-    +(offer.length?`<ul>${offer.map((s,i)=>`<li><button class="pk" data-i="${i}" style="--dc:${col(s.c)}" aria-pressed="${picked.has(s.a.t)}"><span class="rk">${picked.has(s.a.t)?'✓':i+1}</span>${esc(s.a.t)}<small>${s.k==='tend'?'tend':'grow'} · ${esc(s.on.trim())}</small></button><button class="sz${mySize[s.a.t]?' set':''}" data-i="${i}" title="tap to change the size">${mySize[s.a.t]?SZN[mySize[s.a.t]]:'~'+SZN[s.a.sz||60]+' · guess'}</button></li>`).join('')}</ul>`
+    +(offer.length?`<ul>${offer.map((s,i)=>`<li><button class="pk" data-i="${i}" style="--dc:${col(s.c)}" aria-pressed="${picked.has(s.a.t)}"><span class="rk">${picked.has(s.a.t)?'✓':i+1}</span>${esc(s.a.t)}<small>${when(s.a.t)?t12(when(s.a.t))+' · ':''}${s.k==='tend'?'tend':'grow'} · ${esc(s.on.trim())}</small></button><button class="sz${mySize[s.a.t]?' set':''}" data-i="${i}" title="tap to change the size">${mySize[s.a.t]?SZN[mySize[s.a.t]]:'~'+SZN[s.a.sz||60]+' · guess'}</button></li>`).join('')}</ul>`
       :'<p class="how">nothing actionable today</p>')
     +`<p class="k2">tap a step to intend it · tap its size to set it (15 min · 1 h · half day) · sizes marked guess are be•do's</p>`;
   el.querySelectorAll('.pk').forEach(b=>b.onclick=()=>{ const t=offer[+b.dataset.i].a.t; picked.has(t)?picked.delete(t):picked.add(t); store(PK,[...picked]); intention(blocks); });
@@ -450,7 +467,7 @@ function today(){
   bands.forEach(x=>{ g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"><span><em>on your calendar</em>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)}<br>${tm(x.s)}–${tm(x.e)}</span></div>`; });
   past.forEach(x=>{ const w=100/x.n, h=Math.max(MINH,y(x.e)-y(x.s)-1);
     g+=`<div class="ev lived${h>=40?' tall':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kv(x.cat)};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}</i></div>`; });
-  its.forEach(x=>{ const inner=`<b>${x.done?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.sized&&!x.done?' · about':''}${x.moved!=null?` · <span class="was">planned ${tm(x.moved)}</span>`:''}${x.drive?' · '+esc(x.drive):''}</i>${x.pick&&x.why?`<span class="why">${esc(x.why)}</span>`:''}`;
+  its.forEach(x=>{ const inner=`<b>${x.done?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.sized&&!x.done?' · about':''}${x.moved!=null?` · <span class="was">planned ${tm(x.moved)}</span>`:''}${x.drive?' · '+esc(x.drive):''}</i>${x.pick&&x.why?`<span class="why">${esc(x.why)}</span>`:''}${x.nx?`<span class="more">→ ${esc(x.nx)}</span>`:''}`;
     g+=`<div class="ev ${x.k}${x.done?' done':''}${x.pick?' pick':''}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:${x.beside?'calc(50% + 2px)':'3px'};width:${x.beside||x.half?'calc(50% - 5px)':bands.some(b=>b.s<x.e&&b.e>x.s)?'58%':'calc(100% - 6px)'}">${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${inner}</a>`:inner}</div>`; });
   /* the day behind's own words for the categories, being then doing, only those on the day */
   const NAMES={eat:'eating and drinking',move:'moving',personal:'personal care',recreation:'recreation',travel:'travel',
@@ -461,6 +478,9 @@ function today(){
   el.innerHTML=(I.length?`<p class="say"><small>your intention</small>${I.map(esc).join('<br>')}</p>`:'')
     +(all.length?legend+`<div class="key2"><span><i style="background:var(--k-flow)"></i>done</span><span><i style="border:2px solid var(--ink)"></i>on your calendar · committed</span><span><i style="border:2px solid #B8860B;box-shadow:0 0 0 2px #F2C14E66"></i>★ be•do's picks</span><span><i style="border:1.5px dashed var(--muted);opacity:.7"></i>your choices</span></div><div class="cal" style="height:${y(h1*60)}px">${g}</div>`:'');
 }
+/* tap a card on the calendar to read all of it (2 Nov 2026, her words: if I click on the calendar it shows more detail) */
+document.addEventListener('click',e=>{ const c=e.target.closest('#today .cal .ev'); if(!c||e.target.closest('a')) return;
+  document.querySelectorAll('#today .cal .ev.open').forEach(o=>{ if(o!==c) o.classList.remove('open'); }); c.classList.toggle('open'); });
 function draw(){ today(); card(); const b=shape(); lists(b); intention(b); flow(b); }
 document.addEventListener('bedo-theme',draw);
 draw();
