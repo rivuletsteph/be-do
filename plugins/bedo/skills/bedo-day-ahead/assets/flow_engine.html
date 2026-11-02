@@ -140,6 +140,9 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
 .cal .ev.gcal{background:var(--gc)!important;border:0!important;border-left:0!important;color:var(--gi,#fff)!important;opacity:1}
 .cal .ev.gcal b,.cal .ev.gcal i{color:var(--gi,#fff)!important}
 .cal .ev.gcal.past{opacity:.6}
+.sth{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:6px 0 8px}
+.sth h2{font:italic 400 22px var(--serif);color:var(--accent);margin:0}
+.sth .fold{font:500 12px var(--mono);color:var(--dest);background:var(--dest-soft);border:0;border-radius:999px;padding:3px 11px;cursor:pointer}
 .ftitle{font:italic 400 24px var(--serif);color:var(--accent);margin:28px 0 2px}
 .fsub{font-size:13.5px;color:var(--muted);margin:0 0 10px;max-width:72ch}
 .allsteps{margin:18px 0 0}.allsteps summary{cursor:pointer;font:500 13px var(--mono);color:var(--muted)}
@@ -469,7 +472,13 @@ function today(){
      and a moment logged with no end of its own runs only until the next thing, so the done items stack down
      the clock one per line instead of squeezing side by side */
   const over=x=>x.k==='event'&&nowM!=null&&x.e<=nowM;
-  const past=all.filter(x=>(x.k==='lived'||over(x))&&!bands.includes(x)).sort((x,y)=>x.s-y.s);
+  /* once an hour has passed it folds to what mattered (2 Nov 2026, her words: condensed after that hour passes;
+     I want to see the highlights or glimmers or the big accomplishments, but BM and morning water don't need to
+     show unless I expand it): a finished action, an event, a moment (highlight, glimmer, noticing, dream, journal,
+     gratitude) stays; the routine folds behind 'show everything' */
+  const big=x=>x.act||x.k==='event'||x.cat==='moment'||/^(⭐|✨|🌟|👁|💭|📒|🙏|🪨|📗)/.test(x.t||'');
+  const pastAll=all.filter(x=>(x.k==='lived'||over(x))&&!bands.includes(x)).sort((x,y)=>x.s-y.s);
+  const past=window.__showall?pastAll:pastAll.filter(big), folded=pastAll.length-past.length;
   past.forEach((x,i)=>{ if(x.pt){ const nx=past.slice(i+1).find(o=>o.s>x.s); if(nx) x.e=Math.max(x.s+1,Math.min(x.e,nx.s)); } });
   const its=all.filter(x=>x.k!=='lived'&&!over(x)&&!bands.includes(x)).sort((x,y)=>x.s-y.s);
   /* a step she set inside an event (2 Nov 2026: a phone call during a class she waits through) is hers: it sits
@@ -494,8 +503,9 @@ function today(){
      things not overlap, cuz that is confusing): an hour is at least 72px, and a stretch of time grows until
      every card in it has room for its words, so a five-minute step never sits on the one after it */
   const PX=72, MINH=26, minOf=px=>px*60/PX, need=x=>past.includes(x)?MINH+4:(x.pick&&x.why?64:48);
-  const cuts=[...new Set([h0*60,h1*60,...all.map(x=>x.s),...all.map(x=>x.e),...its.map(x=>x.s),...its.map(x=>x.e)].filter(m=>m>=h0*60&&m<=h1*60))].sort((a,b)=>a-b);
-  const segH=cuts.slice(1).map((m,i)=>(m-cuts[i])*PX/60);
+  const cuts=[...new Set([h0*60,h1*60,...(nowM!=null?[nowM]:[]),...Array.from({length:h1-h0+1},(_,i)=>(h0+i)*60),...all.map(x=>x.s),...all.map(x=>x.e),...its.map(x=>x.s),...its.map(x=>x.e)].filter(m=>m>=h0*60&&m<=h1*60))].sort((a,b)=>a-b);
+  const PXP=18;   /* an hour already gone is short: it only grows to fit what's kept in it */
+  const segH=cuts.slice(1).map((m,i)=>(m-cuts[i])*(nowM!=null&&m<=nowM?PXP:PX)/60);
   const span=(s,e)=>cuts.slice(1).reduce((t,m,i)=>t+(cuts[i]>=s&&m<=e?segH[i]:0),0);
   for(let pass=0;pass<3;pass++) past.concat(its.filter(x=>!bands.includes(x))).sort((a,b)=>(a.e-a.s)-(b.e-b.s)).forEach(x=>{
     const have=span(x.s,x.e), want=need(x); if(have>0&&have<want){ const f=want/have; cuts.slice(1).forEach((m,i)=>{ if(cuts[i]>=x.s&&m<=x.e) segH[i]*=f; }); } });
@@ -523,6 +533,7 @@ function today(){
   const legend=`<div class="legend">${grp('being',['eat','move','personal','recreation','travel'])}${grp('doing',['work','family','pet','home','cook','drive','system'])}${grp('',['flow','moment'])}</div>`;
   if(nowM!=null&&nowM>=h0*60&&nowM<=h1*60) g+=`<div class="now" style="top:${y(nowM)}px"></div>`;
   el.innerHTML=(I.length?`<p class="say"><small>your intention</small>${I.map(esc).join('<br>')}</p>`:'')
+    +`<div class="sth"><h2>my stream</h2>${folded||window.__showall?`<button class="fold" onclick="window.__showall=!window.__showall;draw()">${window.__showall?'fold the routine away':`show everything · ${folded} more`}</button>`:''}</div>`
     +(all.length?legend+`<div class="key2"><span><i style="background:var(--k-flow)"></i>done</span><span><i style="border:2px solid var(--ink)"></i>on your calendar · committed</span><span><i style="border:2px solid #B8860B;box-shadow:0 0 0 2px #F2C14E66"></i>★ be•do's picks</span><span><i style="border:1.5px dashed var(--muted);opacity:.7"></i>your choices</span></div><div class="cal" style="height:${y(h1*60)}px">${g}</div>`:'');
 }
 /* tap a card on the calendar to read all of it (2 Nov 2026, her words: if I click on the calendar it shows more detail) */
