@@ -287,7 +287,8 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
         b = clock(today, e.get('end')) or a + dt.timedelta(hours=1)
         summ = e.get('summary') or ''
         items.append(dict(k='event', t=e.get('title') or summ, a=hm(a), b=hm(b), drive=e.get('drive'), who=e.get('who'),
-                          done=summ.startswith('✅'), link=e.get('link'), cat='event'))
+                          done=summ.startswith('✅'), link=e.get('link'), cat='event',
+                          summary=summ, where=e.get('where') or None, color=e.get('color')))
         if e.get('link'):
             links.add(e['link'].split('&')[0])
         if e.get('match'):
@@ -358,6 +359,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
                 secure=(D.get('secure') or {}).get('state'))
     today_page = next((x for x in D.get('days') or [] if x.get('date') == W['day']), None)
     data['holds'] = day_holds(today_page, L) if today_page else None
+    data['calcolors'] = L.get('calendar_colors') or {}   # each calendar's own colour, as Google shows it
     data['intentions'] = [x for x in (D.get('intentions') or []) if x]
     data['schedule'] = schedule_of(today, rows, today_page, F, off, set(L.get('hide_drives') or []),
                                    L.get('_flows') or frozenset(), care_settings(L), L.get('_picks'))

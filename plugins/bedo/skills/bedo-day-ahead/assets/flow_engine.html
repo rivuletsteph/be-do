@@ -134,6 +134,12 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
 .sheet .wt{grid-column:2;color:var(--kid);font-size:14px;margin-top:4px}
 .sheet .why{grid-column:2;font:400 15px/1.5 var(--sans);color:var(--muted);margin-top:8px}
 .sheet .det{grid-column:2;font:400 14px/1.5 var(--sans);color:var(--muted);margin-top:8px;border-top:1px solid var(--rule);padding-top:8px}
+.sheet .sq{display:inline-block;width:16px;height:16px;border-radius:4px;margin-right:8px;vertical-align:1px}
+.sheet .when,.sheet .where{grid-column:2;font:400 15px/1.45 var(--sans);color:var(--ink);margin-top:4px}
+.sheet .where a{color:var(--dest);text-decoration:none}
+.cal .ev.gcal{background:var(--gc)!important;border:0!important;border-left:0!important;color:#fff!important;opacity:1}
+.cal .ev.gcal b,.cal .ev.gcal i{color:#fff!important}
+.cal .ev.gcal.past{opacity:.6}
 .sheet .x{position:absolute;right:16px;top:10px;background:none;border:0;font-size:22px;color:var(--muted);cursor:pointer}
 .cal .ev .more{display:none}.cal .ev.open .more{display:block;font-size:12.5px;line-height:1.4;margin-top:6px;color:var(--ink)}
 .cal .ev .more .nx{display:block;font-weight:600;-webkit-line-clamp:unset}
@@ -502,8 +508,11 @@ function today(){
   for(let h=h0;h<=h1;h++) g+=`<div class="hr" style="top:${y(h*60)}px"><span>${lab(h)}</span></div>`;
   bands.forEach(x=>{ if(x.k!=='event'){ g+=`<div class="band" title="✅ ${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"><span><em>${x.k==='event'?'on your calendar':'✅ done'}</em>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)}<br>${tm(x.s)}–${tm(x.e)}</span></div>`; });
   past.forEach(x=>{ const w=100/x.n, h=Math.max(MINH,y(x.e)-y(x.s)-1);
-    g+=`<div data-c="${ci(x)}" class="ev lived${x.k==='event'?' event':''}${h>=40?' tall':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${more(x)}</div>`; });
-  its.forEach(x=>{ if(x.link) x.links=[{l:'calendar event',u:x.link}].concat(x.links||[]); const inner=`<b>${x.done?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.sized&&!x.done?' · about':''}${x.moved!=null?` · <span class="was">planned ${tm(x.moved)}</span>`:''}${x.drive?' · '+esc(x.drive):''}</i>${x.pick&&x.why?`<span class="why">${esc(x.why)}</span>`:''}${more(x)}`;
+    if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past" style="--gc:${gcol(x)};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(x.summary||x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i></div>`; return; }
+    g+=`<div data-c="${ci(x)}" class="ev lived${h>=40?' tall':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${more(x)}</div>`; });
+  its.forEach(x=>{ if(x.k==='event'){ const inner=`<b>${esc(x.summary||x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i>`;
+    g+=`<div data-c="${ci(x)}" class="ev event gcal" style="--gc:${gcol(x)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:${x.half?'calc(50% - 5px)':'calc(100% - 6px)'}">${inner}</div>`; return; }
+    if(x.link) x.links=[{l:'calendar event',u:x.link}].concat(x.links||[]); const inner=`<b>${x.done?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.sized&&!x.done?' · about':''}${x.moved!=null?` · <span class="was">planned ${tm(x.moved)}</span>`:''}${x.drive?' · '+esc(x.drive):''}</i>${x.pick&&x.why?`<span class="why">${esc(x.why)}</span>`:''}${more(x)}`;
     g+=`<div data-c="${ci(x)}" class="ev ${x.k}${x.done?' done':''}${x.pick?' pick':''}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:${x.beside?'calc(50% + 2px)':'3px'};width:${x.beside||x.half?'calc(50% - 5px)':bands.some(b=>b.s<x.e&&b.e>x.s)?'58%':'calc(100% - 6px)'}">${inner}</div>`; });
   /* the day behind's own words for the categories, being then doing, only those on the day */
   const NAMES={eat:'eating and drinking',move:'moving',personal:'personal care',recreation:'recreation',travel:'travel',
@@ -515,12 +524,25 @@ function today(){
     +(all.length?legend+`<div class="key2"><span><i style="background:var(--k-flow)"></i>done</span><span><i style="border:2px solid var(--ink)"></i>on your calendar · committed</span><span><i style="border:2px solid #B8860B;box-shadow:0 0 0 2px #F2C14E66"></i>★ be•do's picks</span><span><i style="border:1.5px dashed var(--muted);opacity:.7"></i>your choices</span></div><div class="cal" style="height:${y(h1*60)}px">${g}</div>`:'');
 }
 /* tap a card on the calendar to read all of it (2 Nov 2026, her words: if I click on the calendar it shows more detail) */
+/* an event looks as it does in Google Calendar (2 Nov 2026, her words: make the colors match what is already on
+   the calendar, with the box and the emoji; location, whatever we have; a link to the Google Calendar event):
+   the event's own colour (Google's eleven), else its calendar's (`calendar_colors` in her settings) */
+const GC={1:'#7986CB',2:'#33B679',3:'#8E24AA',4:'#E67C73',5:'#F6BF26',6:'#F4511E',7:'#039BE5',8:'#616161',9:'#3F51B5',10:'#0B8043',11:'#D50000'};
+const gcol=x=>GC[x.color]||((D.calcolors||{})[x.who])||'#039BE5';
 function sheet(x){
   let s=document.getElementById('sheet'); if(!s){ s=document.createElement('div'); s.id='sheet'; s.className='sheet'; document.body.appendChild(s); }
   const t12=m=>`${Math.floor(m/60)%12||12}:${String(m%60).padStart(2,'0')}`;
   const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===x.drive), done=x.done||x.act||x.k==='lived';
   const L=(x.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l||'link')} ↗</a>`).join('');
   s.style.setProperty('--dc', d?col(d.c):'var(--accent)');
+  if(x.k==='event'){ const c=gcol(x); s.style.setProperty('--dc',c);
+    s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc gc"><div class="at">${t12(x.s)}</div>`
+      +`<div class="ttl"><span class="sq" style="background:${c}"></span>${esc(x.summary||x.t)}</div>`
+      +`<div class="when">${t12(x.s)} – ${t12(x.e)}</div>`
+      +(x.where?`<div class="where">📍 ${/^https?:/.test(x.where)?`<a href="${esc(x.where)}" target="_blank" rel="noopener">${esc(x.where)}</a>`:`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.where)}" target="_blank" rel="noopener">${esc(x.where)}</a>`}</div>`:'')
+      +`<div class="when">🗓️ ${esc(x.who==='you'?'my events':x.who||'')}${x.drive?` · ${esc(x.drive)}`:''}</div>`
+      +(x.link?`<div class="lks"><a href="${esc(x.link)}" target="_blank" rel="noopener">open in Google Calendar ↗</a></div>`:'')+`</div>`;
+    requestAnimationFrame(()=>s.classList.add('on')); s.querySelector('.x').onclick=()=>s.classList.remove('on'); return; }
   s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${t12(x.s)}</div>`
     +`<div class="ttl">${x.k==='event'?'🗓️ ':`<span class="bx${done?' ok':''}"></span>${x.k==='step'||x.act?'<span class="bolt">⚡</span>':''}`}${esc(x.t)}</div>`
     +(x.drive?`<div class="dv">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</div>`:'')
