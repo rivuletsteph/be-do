@@ -330,7 +330,8 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
             continue
         real = end and to(end) > a and to(end) - a <= dt.timedelta(hours=6)
         b = to(end) if real else a + dt.timedelta(minutes=10)
-        items.append(dict(k='lived', t=t, a=hm(a), b=hm(b), drive=rh, done=True, cat=kind_of(c, F, flows, C)))
+        items.append(dict(k='lived', t=t, a=hm(a), b=hm(b), drive=rh, done=True, cat=kind_of(c, F, flows, C),
+                          act=st == '✅ done'))   # an action she finished, drawn with its green check (2 Nov 2026)
     return sorted(items, key=lambda x: (x['a'], x['k'] != 'event'))
 
 
