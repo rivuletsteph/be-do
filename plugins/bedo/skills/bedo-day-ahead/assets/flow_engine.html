@@ -114,7 +114,12 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
 .cal .ev.lived.tall i{display:block}
 .cal .ev.done b{text-decoration:none}
 .cal .ev{cursor:pointer}
-.cal .ev .more{display:none}.cal .ev.open .more{display:block;font-size:12.5px;line-height:1.35;margin-top:4px;color:var(--ink)}
+.cal .ev .more{display:none}.cal .ev.open .more{display:block;font-size:12.5px;line-height:1.4;margin-top:6px;color:var(--ink)}
+.cal .ev .more .nx{display:block;font-weight:600;-webkit-line-clamp:unset}
+.cal .ev .more .lks{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.cal .ev .more .lk{font:500 11.5px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:2px 10px;text-decoration:none}
+.cal .ev .more .det{display:block;color:var(--muted);font-size:12.5px}
+.cal .ev.open a.lk{pointer-events:auto}
 .cal .ev.open{height:auto!important;min-height:46px;z-index:6;box-shadow:0 6px 18px rgba(0,0,0,.28);opacity:1}
 .cal .ev.open b{display:block;-webkit-line-clamp:unset}.cal .ev.open i{display:block;white-space:normal}
 .cal .ev.step{border:1.5px dashed var(--edge);border-left:4px solid var(--edge);background:color-mix(in srgb,var(--fill) 28%,var(--card))}
@@ -419,6 +424,9 @@ function intention(blocks){
    calendar; I expected to see celebration as the intention, and the whole list of things I said I wanted
    to do this afternoon — those are my intentions). Her intention first, in her words; then every event
    and every step set for a time today, each at its time, overlaps side by side, a line at the clock. */
+/* what a card opens to: the next step, the ways in, her words */
+const more=x=>{ const L=(x.links||[]).map(l=>`<a class="lk" href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l||'link')} ↗</a>`).join('');
+  return (x.nx||L||x.det)?`<span class="more">${x.nx?`<b class="nx">→ ${esc(x.nx)}</b>`:''}${L?`<span class="lks">${L}</span>`:''}${x.det?`<span class="det">${esc(x.det)}</span>`:''}</span>`:''; };
 function today(){
   const el=document.getElementById('today'), S=D.schedule||[], I=D.intentions||[];
   if(!S.length && !I.length){ el.innerHTML=''; return; }
@@ -473,9 +481,9 @@ function today(){
   for(let h=h0;h<=h1;h++) g+=`<div class="hr" style="top:${y(h*60)}px"><span>${lab(h)}</span></div>`;
   bands.forEach(x=>{ if(x.k!=='event'){ g+=`<div class="band" title="✅ ${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"><span><em>${x.k==='event'?'on your calendar':'✅ done'}</em>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)}<br>${tm(x.s)}–${tm(x.e)}</span></div>`; });
   past.forEach(x=>{ const w=100/x.n, h=Math.max(MINH,y(x.e)-y(x.s)-1);
-    g+=`<div class="ev lived${x.k==='event'?' event':''}${h>=40?' tall':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}</i></div>`; });
-  its.forEach(x=>{ const inner=`<b>${x.done?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.sized&&!x.done?' · about':''}${x.moved!=null?` · <span class="was">planned ${tm(x.moved)}</span>`:''}${x.drive?' · '+esc(x.drive):''}</i>${x.pick&&x.why?`<span class="why">${esc(x.why)}</span>`:''}${x.nx?`<span class="more">→ ${esc(x.nx)}</span>`:''}`;
-    g+=`<div class="ev ${x.k}${x.done?' done':''}${x.pick?' pick':''}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:${x.beside?'calc(50% + 2px)':'3px'};width:${x.beside||x.half?'calc(50% - 5px)':bands.some(b=>b.s<x.e&&b.e>x.s)?'58%':'calc(100% - 6px)'}">${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${inner}</a>`:inner}</div>`; });
+    g+=`<div class="ev lived${x.k==='event'?' event':''}${h>=40?' tall':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${more(x)}</div>`; });
+  its.forEach(x=>{ if(x.link) x.links=[{l:'calendar event',u:x.link}].concat(x.links||[]); const inner=`<b>${x.done?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.sized&&!x.done?' · about':''}${x.moved!=null?` · <span class="was">planned ${tm(x.moved)}</span>`:''}${x.drive?' · '+esc(x.drive):''}</i>${x.pick&&x.why?`<span class="why">${esc(x.why)}</span>`:''}${more(x)}`;
+    g+=`<div class="ev ${x.k}${x.done?' done':''}${x.pick?' pick':''}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:${x.beside?'calc(50% + 2px)':'3px'};width:${x.beside||x.half?'calc(50% - 5px)':bands.some(b=>b.s<x.e&&b.e>x.s)?'58%':'calc(100% - 6px)'}">${inner}</div>`; });
   /* the day behind's own words for the categories, being then doing, only those on the day */
   const NAMES={eat:'eating and drinking',move:'moving',personal:'personal care',recreation:'recreation',travel:'travel',
     work:'professional work',family:'family care',pet:'pet care',home:'home care',cook:'making',drive:'driving',system:'be•do',flow:'dawn and dusk',moment:'moments'};

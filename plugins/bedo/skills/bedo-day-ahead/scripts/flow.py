@@ -361,6 +361,16 @@ def build(D, rows, rhythms_read, L, behind_dir):
     data['intentions'] = [x for x in (D.get('intentions') or []) if x]
     data['schedule'] = schedule_of(today, rows, today_page, F, off, set(L.get('hide_drives') or []),
                                    L.get('_flows') or frozenset(), care_settings(L), L.get('_picks'))
+    # each card opens to what the 28 Oct day ahead showed (2 Nov 2026, her words: it would be so awesome to
+    # have the day ahead show the detail about the next steps and everything the way that day ahead did):
+    # her words on the row and its ways in (the chat, the deliverable, the links), from card 1's steps
+    strip = lambda t: re.sub(r'^⚡\s*', '', (t or '').strip())
+    detail = {strip(s.get('t')): s for s in C.get('steps') or []}
+    for it in data['schedule']:
+        s = detail.get(strip(it.get('t')))
+        if s:
+            it['det'] = s.get('det') or None
+            it['links'] = [dict(l=x.get('l'), u=x.get('u')) for x in s.get('links') or [] if x.get('u')]
     data['goals'] = {c.get(RF['name']): first_sentence(c.get(RF['goal'])) for c in
                      (r['cellValuesByFieldId'] for r in rhythms_read) if c.get(RF['goal'])}
     # body: each morning's readiness, from the readiness practice's row ("readiness 81")
