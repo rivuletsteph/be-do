@@ -416,7 +416,7 @@ function today(){
   /* what she has done stays where it happened; what's ahead is laid end to end from the clock */
   const past=all.filter(x=>x.k==='lived').sort((x,y)=>x.s-y.s);
   const its=all.filter(x=>x.k!=='lived'&&!bands.includes(x)).sort((x,y)=>x.s-y.s);
-  /* a step she set inside an event (2 Nov 2026: the call with Zack during Johnny's PE) is hers: it sits
+  /* a step she set inside an event (2 Nov 2026: a phone call during a class she waits through) is hers: it sits
      beside the event at its own time, never pushed after it */
   its.forEach(x=>{ if(x.k==='step'&&!x.done){ const ev=its.find(o=>o.k==='event'&&o.s<=x.s&&x.s<o.e); if(ev){ x.beside=true; ev.half=true; } } });
   /* an event on the calendar never moves (2 Nov 2026: PE was drawn at 11:25 when it starts at 11:05); a step
