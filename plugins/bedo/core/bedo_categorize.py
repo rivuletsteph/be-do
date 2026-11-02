@@ -194,8 +194,8 @@ def lengths(rows, ctx):
         if not lived(r) or r.get('end') or r.get('time_spent') or not r.get('datetime'):
             continue
         cat = ctx.catalog.get(p) or {}
-        if cat.get('zero') or p in C['never_lengthen']:
-            continue
+        if cat.get('zero') or p in C['never_lengthen'] or not (cat.get('typical') or p in C['usual_length_practices']):
+            continue                  # only a practice with a usual length: a journal's '9 hours' is not its own
         # what she says wins, and lengths change (2 Nov 2026, her words: those need to be able to be adapted
         # based on what I tell you every day or week): her own words on this row, then the last length she
         # gave for this practice today or in her recent weeks, then her recent rows, then the catalog
