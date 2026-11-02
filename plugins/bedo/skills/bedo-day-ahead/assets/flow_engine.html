@@ -524,7 +524,7 @@ function sheet(x){
   s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${t12(x.s)}</div>`
     +`<div class="ttl">${x.k==='event'?'🗓️ ':`<span class="bx${done?' ok':''}"></span>${x.k==='step'||x.act?'<span class="bolt">⚡</span>':''}`}${esc(x.t)}</div>`
     +(x.drive?`<div class="dv">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</div>`:'')
-    +(x.k==='lived'?'':(x.nx?`<div class="nx">${esc(x.nx)}</div>`:`<div class="nx none">no next step named yet</div>`))
+    +(x.k==='lived'?'':(x.nx?`<div class="nx">${esc(x.nx.replace(/\s*\(https?:[^)]*\)|\s*https?:\/\/\S+/g,''))}</div>`:`<div class="nx none">no next step named yet</div>`))
     +(L?`<div class="lks">${L}</div>`:'')
     +(x.wait?`<div class="wt">⏸ waiting on ${esc(x.wait)}</div>`:'')
     +(x.why?`<div class="why">${esc(x.why)}</div>`:'')
