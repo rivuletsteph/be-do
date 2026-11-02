@@ -366,11 +366,22 @@ def build(D, rows, rhythms_read, L, behind_dir):
     # her words on the row and its ways in (the chat, the deliverable, the links), from card 1's steps
     strip = lambda t: re.sub(r'^⚡\s*', '', (t or '').strip())
     detail = {strip(s.get('t')): s for s in C.get('steps') or []}
+    # and only the links that serve the next step (her words, 2 Nov: not everything that's relevant, just what
+    # is very relevant for the next step): the look ahead's own move for the row, its step and its ways in
+    moves = {strip(t.get('title')): t for t in D.get('tasks') or [] if isinstance(t, dict)}
     for it in data['schedule']:
         s = detail.get(strip(it.get('t')))
         if s:
             it['det'] = s.get('det') or None
-            it['links'] = [dict(l=x.get('l'), u=x.get('u')) for x in s.get('links') or [] if x.get('u')]
+        t = moves.get(strip(it.get('t')))
+        if t:
+            mv = t.get('move') or {}
+            it['emoji'] = t.get('emoji') or None
+            if mv.get('step') and not it.get('nx'):
+                it['nx'] = mv['step']
+            it['links'] = [dict(l=x.get('label'), u=x.get('url')) for x in mv.get('links') or [] if x.get('url')]
+            it['who'] = mv.get('who') or None
+            it['wait'] = mv.get('waiting') or None
     data['goals'] = {c.get(RF['name']): first_sentence(c.get(RF['goal'])) for c in
                      (r['cellValuesByFieldId'] for r in rhythms_read) if c.get(RF['goal'])}
     # body: each morning's readiness, from the readiness practice's row ("readiness 81")

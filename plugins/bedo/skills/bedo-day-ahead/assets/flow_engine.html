@@ -114,6 +114,27 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
 .cal .ev.lived.tall i{display:block}
 .cal .ev.done b{text-decoration:none}
 .cal .ev{cursor:pointer}
+/* the card a tap opens (2 Nov 2026, her words: like the 28 Oct day ahead — I love the colors and the formatting,
+   it's easy to read, easy to see what the important information is) */
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:78vh;overflow:auto;background:var(--card);color:var(--ink);border-radius:20px 20px 0 0;box-shadow:0 -10px 34px rgba(0,0,0,.32);padding:14px 20px 30px;z-index:60;transform:translateY(105%);transition:transform .22s ease}
+.sheet.on{transform:none}
+.sheet .grab{width:44px;height:5px;border-radius:3px;background:var(--rule);margin:0 auto 12px}
+.sheet .sc{display:grid;grid-template-columns:4.2rem minmax(0,1fr);gap:4px 12px;border-left:5px solid var(--dc,var(--accent));padding:6px 0 6px 14px;border-radius:4px}
+.sheet .at{font:500 13px var(--mono);color:var(--muted);padding-top:5px}
+.sheet .ttl{font:600 1.32rem/1.25 var(--sans);color:var(--ink);overflow-wrap:anywhere}
+.sheet .ttl .bx{display:inline-block;width:15px;height:15px;border:2px solid var(--accent);border-radius:4px;margin-right:6px;vertical-align:1px}
+.sheet .ttl .bx.ok{background:var(--dest);border-color:var(--dest)}
+.sheet .ttl .bolt{color:#E0A526;margin-right:6px}
+.sheet .dv{grid-column:2;font:600 15px var(--sans);color:var(--dest)}
+.sheet .nx{grid-column:2;font:600 15.5px/1.4 var(--sans);color:var(--ink);margin-top:6px;display:flex;gap:8px}
+.sheet .nx::before{content:"→";color:var(--accent)}
+.sheet .nx.none{color:var(--past);font-weight:500;font-size:14px}.sheet .nx.none::before{content:"?";color:var(--past)}
+.sheet .lks{grid-column:2;display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.sheet .lks a{font:500 13px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:4px 12px;text-decoration:none}
+.sheet .wt{grid-column:2;color:var(--kid);font-size:14px;margin-top:4px}
+.sheet .why{grid-column:2;font:400 15px/1.5 var(--sans);color:var(--muted);margin-top:8px}
+.sheet .det{grid-column:2;font:400 14px/1.5 var(--sans);color:var(--muted);margin-top:8px;border-top:1px solid var(--rule);padding-top:8px}
+.sheet .x{position:absolute;right:16px;top:10px;background:none;border:0;font-size:22px;color:var(--muted);cursor:pointer}
 .cal .ev .more{display:none}.cal .ev.open .more{display:block;font-size:12.5px;line-height:1.4;margin-top:6px;color:var(--ink)}
 .cal .ev .more .nx{display:block;font-weight:600;-webkit-line-clamp:unset}
 .cal .ev .more .lks{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
@@ -477,13 +498,13 @@ function today(){
   const dc=n=>{ const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===n); return col(d&&d.c); };
   const kv=c=>`--fill:var(--k-${c||'flow'});--edge:var(--k-${c||'flow'}-d);--dc:var(--k-${c||'flow'}-d)`;
   const lab=h=>`${h%12||12} ${h<12||h===24?'AM':'PM'}`, tm=m=>`${Math.floor(m/60)%12||12}:${String(m%60).padStart(2,'0')}`;
-  let g='';
+  let g=''; const CARDS=window.__cards=[]; const ci=x=>{ CARDS.push(x); return CARDS.length-1; };
   for(let h=h0;h<=h1;h++) g+=`<div class="hr" style="top:${y(h*60)}px"><span>${lab(h)}</span></div>`;
   bands.forEach(x=>{ if(x.k!=='event'){ g+=`<div class="band" title="✅ ${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"><span><em>${x.k==='event'?'on your calendar':'✅ done'}</em>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)}<br>${tm(x.s)}–${tm(x.e)}</span></div>`; });
   past.forEach(x=>{ const w=100/x.n, h=Math.max(MINH,y(x.e)-y(x.s)-1);
-    g+=`<div class="ev lived${x.k==='event'?' event':''}${h>=40?' tall':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${more(x)}</div>`; });
+    g+=`<div data-c="${ci(x)}" class="ev lived${x.k==='event'?' event':''}${h>=40?' tall':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${more(x)}</div>`; });
   its.forEach(x=>{ if(x.link) x.links=[{l:'calendar event',u:x.link}].concat(x.links||[]); const inner=`<b>${x.done?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.sized&&!x.done?' · about':''}${x.moved!=null?` · <span class="was">planned ${tm(x.moved)}</span>`:''}${x.drive?' · '+esc(x.drive):''}</i>${x.pick&&x.why?`<span class="why">${esc(x.why)}</span>`:''}${more(x)}`;
-    g+=`<div class="ev ${x.k}${x.done?' done':''}${x.pick?' pick':''}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:${x.beside?'calc(50% + 2px)':'3px'};width:${x.beside||x.half?'calc(50% - 5px)':bands.some(b=>b.s<x.e&&b.e>x.s)?'58%':'calc(100% - 6px)'}">${inner}</div>`; });
+    g+=`<div data-c="${ci(x)}" class="ev ${x.k}${x.done?' done':''}${x.pick?' pick':''}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:${x.beside?'calc(50% + 2px)':'3px'};width:${x.beside||x.half?'calc(50% - 5px)':bands.some(b=>b.s<x.e&&b.e>x.s)?'58%':'calc(100% - 6px)'}">${inner}</div>`; });
   /* the day behind's own words for the categories, being then doing, only those on the day */
   const NAMES={eat:'eating and drinking',move:'moving',personal:'personal care',recreation:'recreation',travel:'travel',
     work:'professional work',family:'family care',pet:'pet care',home:'home care',cook:'making',drive:'driving',system:'be•do',flow:'dawn and dusk',moment:'moments'};
@@ -494,8 +515,26 @@ function today(){
     +(all.length?legend+`<div class="key2"><span><i style="background:var(--k-flow)"></i>done</span><span><i style="border:2px solid var(--ink)"></i>on your calendar · committed</span><span><i style="border:2px solid #B8860B;box-shadow:0 0 0 2px #F2C14E66"></i>★ be•do's picks</span><span><i style="border:1.5px dashed var(--muted);opacity:.7"></i>your choices</span></div><div class="cal" style="height:${y(h1*60)}px">${g}</div>`:'');
 }
 /* tap a card on the calendar to read all of it (2 Nov 2026, her words: if I click on the calendar it shows more detail) */
-document.addEventListener('click',e=>{ const c=e.target.closest('#today .cal .ev'); if(!c||e.target.closest('a')) return;
-  document.querySelectorAll('#today .cal .ev.open').forEach(o=>{ if(o!==c) o.classList.remove('open'); }); c.classList.toggle('open'); });
+function sheet(x){
+  let s=document.getElementById('sheet'); if(!s){ s=document.createElement('div'); s.id='sheet'; s.className='sheet'; document.body.appendChild(s); }
+  const t12=m=>`${Math.floor(m/60)%12||12}:${String(m%60).padStart(2,'0')}`;
+  const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===x.drive), done=x.done||x.act||x.k==='lived';
+  const L=(x.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l||'link')} ↗</a>`).join('');
+  s.style.setProperty('--dc', d?col(d.c):'var(--accent)');
+  s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${t12(x.s)}</div>`
+    +`<div class="ttl">${x.k==='event'?'🗓️ ':`<span class="bx${done?' ok':''}"></span>${x.k==='step'||x.act?'<span class="bolt">⚡</span>':''}`}${esc(x.t)}</div>`
+    +(x.drive?`<div class="dv">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</div>`:'')
+    +(x.k==='lived'?'':(x.nx?`<div class="nx">${esc(x.nx)}</div>`:`<div class="nx none">no next step named yet</div>`))
+    +(L?`<div class="lks">${L}</div>`:'')
+    +(x.wait?`<div class="wt">⏸ waiting on ${esc(x.wait)}</div>`:'')
+    +(x.why?`<div class="why">${esc(x.why)}</div>`:'')
+    +(x.det?`<div class="det">${esc(x.det)}</div>`:'')+`</div>`;
+  requestAnimationFrame(()=>s.classList.add('on'));
+  s.querySelector('.x').onclick=()=>s.classList.remove('on');
+}
+document.addEventListener('click',e=>{ if(e.target.closest('#sheet')) return; const c=e.target.closest('#today .cal .ev');
+  const s=document.getElementById('sheet'); if(!c){ if(s) s.classList.remove('on'); return; }
+  if(e.target.closest('a')) return; const x=(window.__cards||[])[+c.dataset.c]; if(x) sheet(x); });
 function draw(){ today(); card(); const b=shape(); lists(b); intention(b); flow(b); }
 document.addEventListener('bedo-theme',draw);
 draw();
