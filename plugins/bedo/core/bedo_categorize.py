@@ -105,11 +105,30 @@ class Ctx:
         self.sessions = sessions or []
         self.away = set(away)
         lens = {}
-        for r in history:
+        self.told = {}                         # practice → (minutes, when): the length she said last
+        for r in sorted(history, key=lambda r: r.get('datetime') or ''):
             a, b = span(r)
-            if b and lived(r) and b - a <= dt.timedelta(hours=3):
-                lens.setdefault(word(r.get('practice')), []).append((b - a).total_seconds() / 60)
-        self.usual = {p: round(statistics.median(v)) for p, v in lens.items() if len(v) >= C['usual_min_rows']}
+            p = word(r.get('practice'))
+            m = said_minutes(r)
+            if m and lived(r):
+                self.told[p] = (m, r.get('datetime'))
+            if b and lived(r) and b - a <= dt.timedelta(hours=3) and EST not in (r.get('details') or ''):
+                lens.setdefault(p, []).append((b - a).total_seconds() / 60)   # her rows, never be•do's estimates
+        self.usual = {p: round(statistics.median(v[-C['usual_recent_rows']:])) for p, v in lens.items()
+                      if len(v) >= C['usual_min_rows']}
+
+
+SAID = re.compile(C['said_minutes_pattern'], re.I)
+
+
+def said_minutes(r):
+    """A length she gave in her own words ('my hips took 20 minutes', 'about an hour'), else None."""
+    m = SAID.search(her_words(r))
+    if not m:
+        return None
+    if m.group('n'):
+        return int(m.group('n')) * (60 if (m.group('u') or '').lower().startswith('h') else 1)
+    return 60 if m.group('hour') else None
 
 
 def settings(L):
@@ -177,11 +196,20 @@ def lengths(rows, ctx):
         cat = ctx.catalog.get(p) or {}
         if cat.get('zero') or p in C['never_lengthen']:
             continue
-        m, src = cat.get('typical'), 'the catalog\'s typical duration'
+        # what she says wins, and lengths change (2 Nov 2026, her words: those need to be able to be adapted
+        # based on what I tell you every day or week): her own words on this row, then the last length she
+        # gave for this practice today or in her recent weeks, then her recent rows, then the catalog
+        today = [(said_minutes(o), o.get('datetime')) for o in rows if word(o.get('practice')) == p and said_minutes(o)]
+        told = max(today + ([ctx.told[p]] if p in ctx.told else []), key=lambda x: x[1] or '', default=None)
+        m, src = said_minutes(r), 'her words on this row'
+        if not m and told:
+            m, src = told[0], 'the length she gave last'
+        if not m and p in ctx.usual:
+            m, src = ctx.usual[p], 'her usual length, from her recent rows'
+        if not m:
+            m, src = cat.get('typical'), 'the catalog\'s typical duration'
         if not m and p in C['usual_length_practices']:
-            m, src = ctx.usual.get(p), 'her usual length, from her other weeks'
-            if not m:
-                m, src = C['usual_minutes'].get(p), "a first guess (no typical duration in the catalog yet)"
+            m, src = C['usual_minutes'].get(p), "a first guess (no typical duration in the catalog yet)"
         if m:
             out.append(change(r, 'length', 'end', z(utc(r['datetime']) + dt.timedelta(minutes=m)),
                               f'a point row covers its minutes: {m} min, {src}'))

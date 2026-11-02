@@ -140,6 +140,12 @@ C7 = {c['title']: c['new'][11:16] for c in calls(R7, 'length', CTX7)}
 assert C7 == {'🤸🏻‍♀️ morning movement': z(7, 22)[11:16], '🧎‍♀️ hip exercises': z(7, 50)[11:16],
               '🌌 evening blessing': z(22, 34)[11:16]}, C7
 print('ok 7 — movement, hips and the blessing cover their minutes; a highlight and a pill stay points')
+# what she says wins, and it changes (2 Nov 2026): her words on the row, then the last length she gave, then the catalog
+H7b = H7 + [row('🧎‍♀️ hip exercises', (8, 0), details='my hips took 12 minutes today')]
+R7b = [row('🧎‍♀️ hip exercises', (7, 30)), row('🤸🏻‍♀️ morning movement', (7, 10), details='about 5 min of movement')]
+C7b = {c['title']: c['new'][11:16] for c in calls(R7b, 'length', BC.Ctx(catalog=CTX7.catalog, history=H7b))}
+assert C7b == {'🧎‍♀️ hip exercises': z(7, 42)[11:16], '🤸🏻‍♀️ morning movement': z(7, 15)[11:16]}, C7b
+print('ok 7b — the length she gave wins over her usual and the catalog')
 
 # 8 · estimated 📝 filler gives way to rows from evidence
 EST = '———\n[be•do] ESTIMATED FROM CONTEXT: between the rows.'
