@@ -476,7 +476,7 @@ function today(){
      I want to see the highlights or glimmers or the big accomplishments, but BM and morning water don't need to
      show unless I expand it): a finished action, an event, a moment (highlight, glimmer, noticing, dream, journal,
      gratitude) stays; the routine folds behind 'show everything' */
-  const big=x=>x.act||x.k==='event'||x.cat==='moment'||/^(⭐|✨|🌟|👁|💭|📒|🙏|🪨|📗)/.test(x.t||'');
+  const big=x=>x.act||x.felt||x.keeper||x.k==='event'||x.cat==='moment'||/^(⭐|✨|🌟|👁|💭|📒|🙏|🪨|📗)/.test(x.t||'');
   const pastAll=all.filter(x=>(x.k==='lived'||over(x))&&!bands.includes(x)).sort((x,y)=>x.s-y.s);
   const past=window.__showall?pastAll:pastAll.filter(big), folded=pastAll.length-past.length;
   past.forEach((x,i)=>{ if(x.pt){ const nx=past.slice(i+1).find(o=>o.s>x.s); if(nx) x.e=Math.max(x.s+1,Math.min(x.e,nx.s)); } });
