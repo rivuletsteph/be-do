@@ -96,7 +96,11 @@ def deduce(row, ctx):
     """({field: (value, source)}, [fields to ask]) for the empty ones only."""
     got, ask = {}, []
     p = word(row.get('practice'))
-    if not row.get('wellness'):
+    named = ((ctx.local or {}).get('rhythm_wellness') or {}).get((row.get('rhythm') or '').split(',')[0].strip())
+    keeps = set((ctx.local or {}).get('rhythm_keeps') or FACTS['categorize']['rhythm_keeps'])
+    if not row.get('wellness') and named and p not in keeps:   # her named rhythms first (2 Nov 2026)
+        got['wellness'] = (named, 'her rule for the rhythm')
+    elif not row.get('wellness'):
         w = None
         if p in PASSIVE:          # passive rest is being (24 Oct 2026): heart with people, else hers to say
             w, src = (HEART, 'passive rest with people') if row.get('person') else (None, None)

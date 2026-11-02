@@ -303,11 +303,14 @@ W12 = NIGHT + [
     row('⚡ action', '16:00', '18:00', rhythm='Kid Club', person=['Pip Plum', 'Moss Quill'], title='the potluck',
         mentioned='Moss, Quill Vane, the Thursday group'),                                                      # social
     row('🗨️ text', '12:00', title="a photo from Wren Ash's group text"),                           # at a distance
+    row('📺 show', '21:00', '22:00', title='a show, on my own'),                                     # a row names no one: alone
 ]
 L12 = dict(L6, household=['Ollie', 'Pip'], _circles={'Moss Quill': 'Friends', 'Wren Ash': 'Family'})
 WC = day_rings(W12, DAY, L12)['who']
 awake = WC['alone'] + WC['family'] + WC['social']
-assert (WC['family'], WC['social']) == (60, 120) and awake == 24 * 60 - (7 * 60 + 30), WC   # up 7:30, no bedtime: to midnight
+assert awake == 24 * 60 - (7 * 60 + 30), WC                                                  # up 7:30, no bedtime: to midnight
+# with family by default (2 Nov 2026): a minute nothing covers is with the household, never alone; alone only where a row says so
+assert (WC['alone'], WC['social'], WC['family']) == (60, 120, awake - 180), WC
 assert [(p['n'], p['min'], p['circle']) for p in WC['people']] == [('Pip Plum', 180, 'Family'), ('Moss Quill', 120, 'Friends')], WC['people']
 assert [(c['who'], c['circle']) for c in WC['contacts']] == [(['Wren Ash'], 'Family')], WC['contacts']
 assert WC['mentioned'] == ['Quill Vane', 'the Thursday group'], WC['mentioned']          # Moss was there: no mention line

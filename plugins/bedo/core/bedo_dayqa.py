@@ -67,6 +67,8 @@ import bedo_entry as E
 import bedo_fill as FL
 import bedo_meals as ML
 import bedo_people as PP
+import bedo_categorize as BC
+import bedo_dayaudit as BD
 
 Q = FACTS['dayqa']
 SRC = Q['sources']
@@ -79,7 +81,7 @@ NOTES = {FL.word(p) for p in Q['note_practices']}
 LOCATION = FL.word(FACTS['practice']['location'])
 NAMES = ('datetime', 'end', 'time_spent', 'status', 'title', 'details', 'practice', 'person',
          'mentioned', 'wellness', 'device', 'rhythm', 'photo', 'key', 'attention',
-         'calendar_event', 'photo_checked', 'photo_links', 'target')
+         'calendar_event', 'photo_checked', 'photo_links', 'target', 'chat', 'waiting_on')
 
 
 def _z(t):
@@ -696,9 +698,35 @@ def gate(rows, off):
     return (len(lack), len(lived)), long_
 
 
+def categorized(rows, day, local, cat_ctx, sessions=None):
+    """The categorizing pass, as the QA's own work (2 Nov 2026): be•do makes the calls and writes them
+    through the entry check before her list is shown; she never sees them as questions. Then every chat
+    she worked in that day has its time. Returns (items, the rows as the calls leave them)."""
+    calls = BC.run(rows, day, local, cat_ctx)
+    after = BC.apply(rows, calls)
+    items = []
+    if calls:
+        kinds = collections.Counter(c['rule'] for c in calls)
+        it = todo('categorize', f'{len(calls)} calls on {len({c["id"] for c in calls})} rows — '
+                  + ', '.join(f'{k} {n}' for k, n in kinds.most_common())
+                  + ': write each through entry (--json gives the patches), then run dayqa again',
+                  [c['id'] for c in calls])
+        it['patches'], it['calls'] = BC.patches(calls), BC.lines(calls)
+        items.append(it)
+    for f in BD.check_chats(after, sessions, day, local):
+        items.append(todo('chats', f['line']))
+    for a in BD.check_company(calls, after, local):
+        items.append(dict(ask('company', a['line']), if_alone=a.get('if_alone'), if_alone_patch=a.get('if_alone_patch')))
+    return items, after
+
+
 def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=None, history=(),
-        events=None, files=None, lb=None, opens=None):
+        events=None, files=None, lb=None, opens=None, cat_ctx=None, sessions=None):
     ctx = ctx or FL.Context(day_rows=rows, local=local)
+    pre = []
+    if cat_ctx is not None:
+        pre, rows = categorized(rows, day, {**(lb or {}), **local}, cat_ctx, sessions)
+    quiet = [q.lower() for q in local.get('quiet_topics') or []]
     cal_practice = next((n for n in catalog_names if FL.word(n) == 'calendar event'), '🗓️ calendar event')
     theirs = tuple(((lb or {}).get('care') or {}).get('family', {}).get('calendars') or ())
     first = (calendar(rows, events_from(events), off, cal_practice, theirs) if events is not None else []) \
@@ -706,6 +734,7 @@ def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=N
         + (photos(rows, files, off, day, (local.get('people') or {}).get('self') or '') if files is not None else []) \
         + painted(rows, day, local, lb) \
         + (reconcile(rows, opens, off) if opens else [])
+    first = pre + first
     items = first + (meals(rows, off, (local.get('people') or {}).values())
              + movement(rows, off, day, local, catalog_names, typical)
              + people(rows, index, (local.get('people') or {}).get('self'))
@@ -714,6 +743,8 @@ def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=N
              + overlapping(rows, off)
              + synergy(rows, off, history))
     items += gaps(rows, off, items, ctx)
+    # a quiet topic is never raised: no reminder, no check-in, no ask (1 Nov 2026)
+    items = [i for i in items if not (i['kind'] in ('ask', 'fill') and any(q in i['line'].lower() for q in quiet))]
     # Logging the important things well is what matters (9 Oct 2026): what she did,
     # ate, moved and who she was with, one item each; the bookkeeping — device,
     # wellness, partial attention — one item per kind, accepted at once. Then the
@@ -828,6 +859,8 @@ def main(argv=None):
     ap.add_argument('--open', action='append', default=[],
                     help="a week's stream read, for the steps still open (--live reads this week and last)")
     ap.add_argument('--look-behind-local', dest='lbl', help='the page settings, for the painted check (--live reads them)')
+    ap.add_argument('--sleep', help="Oura's sleep periods around the day (day_sleep.py --out), for the clock call")
+    ap.add_argument('--sessions', help="the day's chats with her stretches: [{url, title, stretches: [[start, end]]}]")
     ap.add_argument('--date', help='YYYY-MM-DD, default today')
     ap.add_argument('--json', action='store_true')
     a = ap.parse_args(argv)
@@ -890,8 +923,11 @@ def main(argv=None):
                      drives=FL.drive_elements(rh, L) if rh else None,
                      day_rows=rows, history=hist, local=L)
     names = list(FL.catalog_wellness(cat, L)) if cat else []
+    cat_ctx = BC.Ctx(rhythms=FL.drive_elements(rh, L) if rh else None, catalog=BC.catalog_from(cat, L) if cat else None,
+                     history=hist, sleep=json.load(open(a.sleep, encoding='utf-8')) if a.sleep else None,
+                     sessions=json.load(open(a.sessions, encoding='utf-8')) if a.sessions else None)
     items = run(rows, day, off, L, ctx, connections_index(con, L) if con else None, names,
-                catalog_typical(cat, L) if cat else None, hist, events, files, lb, opens)
+                catalog_typical(cat, L) if cat else None, hist, events, files, lb, opens, cat_ctx, cat_ctx.sessions)
     now_local = now + dt.timedelta(hours=offset_hours(L, now))
     if a.json:
         print(json.dumps({'day': day.isoformat(), 'items': items,

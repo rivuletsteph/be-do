@@ -213,6 +213,10 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
     # who was there is a mark on the stretch, not a kind of time (1 Nov 2026, her pick: how I spent my time is what I
     # did; who I was with goes on the stretch). `household` names the family; anyone else on a lived row is "with others"
     household = tuple(L.get('household') or ())
+    self_name = re.sub(r'^[^\w]+', '', L.get('self_person') or '').strip()
+    # with family by default (2 Nov 2026, her words: I don't know that I was ever alone yesterday): a waking minute
+    # no row covers is not alone; it is with the household, unless a row there names no one or only her
+    default_with = 'family' if household and L.get('with_family_by_default', True) else 'alone'
     system = L.get('system_rhythm') or 'be•do'
     shared = (bedo_reader.FACTS.get('garden') or {}).get('shared_pattern')
 
@@ -235,6 +239,7 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
     WITH = [set() for _ in range(1440)]  # who outside the family was there, minute by minute
     SEEN = {}                            # each name's place as she wrote it on the row, for the order she reads them in
     FAMW = [set() for _ in range(1440)]  # who in the family was there, minute by minute
+    SAYS_ALONE = [False] * 1440          # a row of hers there that names no one: alone only when a row says so (2 Nov)
     contacts = []                        # texts and calls: who she reached, at a distance
     ENERGY = {k: set() for k in BEING4 + DOING4}   # the minutes each kind held: a minute counts once per kind
     GROW = {k: set() for k in DOING4}               # the doing minutes on a drive: growing; the rest is tending
@@ -336,14 +341,18 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
                 social = pr == 'social' or 'party' in said or (bool(others) and len(others) == len(who))
                 paint('recreation', 'social' if social else 'recreation', a, b, t)
         if span and household and pr not in SLEEP:
-            outside = [n for n in who if not any(w in n for w in household)]
+            outside = [n for n in who if not any(w in n for w in household) and not (self_name and self_name in n)]
             for n in outside:
                 SEEN.setdefault(n, len(SEEN))
-            inside = [n for n in who if n not in outside]
-            for m in range(max(0, mins(a)), min(1440, mins(b))):
+            inside = [n for n in who if n not in outside and not (self_name and self_name in n)]   # her own name: no company
+            alone_here = not who or all(self_name and self_name in n for n in who)
+            # over her stretches only, never a session's envelope (2 Nov 2026: a chat touched at 11 and at 8 is not
+            # nine hours with the family)
+            for m in sorted({m for pa, pb in pieces for m in range(max(0, mins(pa)), min(1440, mins(pb)))}):
                 FAMW[m].update(inside)
-            for m in range(max(0, mins(a)), min(1440, mins(b))):
                 WITH[m].update(outside)
+                if alone_here:
+                    SAYS_ALONE[m] = True
         if (pr in flows and pr not in AT_THE_MOMENT) or pr in FLOW_CLOSES:
             paint('flow', 'flow', a, bb, t)
             WIN['dawn' if a.hour < 15 else 'dusk'].append(a)
@@ -561,7 +570,8 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         def social_kind(ws):
             cs = [circles.get(clean_name(n)) or circles.get(n) for n in ws]
             return 'work' if cs and all(c == 'Work' for c in cs) else 'social'
-        kind = {m: social_kind(WITH[m]) if WITH[m] else 'family' if FAMW[m] else 'alone' for m in awake}
+        kind = {m: social_kind(WITH[m]) if WITH[m] else 'family' if FAMW[m] else 'alone' if SAYS_ALONE[m] else default_with
+                for m in awake}
         strip, prev = [], None
         for m in awake:
             if strip and prev == m - 1 and strip[-1][0] == kind[m]:
