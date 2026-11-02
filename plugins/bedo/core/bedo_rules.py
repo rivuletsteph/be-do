@@ -73,6 +73,20 @@ CHECKS = {
     'stretches': "bedo_stretches — a session's time is the sum of its stretches",
     'order': 'bedo_order — the predicted flow order',
     'close': 'bedo_close — a chat closes with QA, then its session entry, then the rename to done',
+    'categorize.company': 'bedo_categorize — with the family by default; alone only when a row says so',
+    'categorize.sleep': 'bedo_categorize — the sleep row names her (the family bed)',
+    'categorize.travel': 'bedo_categorize — a family car trip is travel, not driving, unless she drove',
+    'categorize.wellness': "bedo_categorize — a row's wellness follows its rhythm (her rhythm_wellness)",
+    'categorize.length': 'bedo_categorize — a point row gets its usual length, what she said last first',
+    'categorize.filler': 'bedo_categorize — estimated filler gives way to rows from evidence',
+    'categorize.clock': "bedo_categorize — on the day the clocks change, a stamp an hour off its source is set to it",
+    'categorize.money': 'bedo_categorize — an open money step with no date goes to the coming Wednesday',
+    'dayaudit.intention': "bedo_dayaudit — the day's intention and highlight show on the balance, the story, the moments",
+    'dayaudit.chats': 'bedo_dayaudit — every chat she worked in that day has its time',
+    'dayaudit.photos': 'bedo_photos.select + bedo_dayaudit — at most six photos on the day page, one per moment',
+    'quiet_topics': 'bedo_dayqa + bedo_dayaudit — a quiet topic in her settings is never raised',
+    'remaining.week_turn': "bedo_remaining — on Sunday, once the dawn flow is through, the turn to the week",
+    'quest_page': "assets/quest-day/quest_page.py — the child's quest page, built on her word only",
 }
 NOT_CODE = 'judgment'
 
