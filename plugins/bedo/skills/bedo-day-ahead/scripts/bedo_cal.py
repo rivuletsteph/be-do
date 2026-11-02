@@ -36,7 +36,7 @@ MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'No
 DAY3 = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 # the event keys the builder reads, and what a saved result may be trimmed to
 KEEP = ('id', 'summary', 'status', 'start', 'end', 'htmlLink', 'location',
-        'recurringEventId', 'transparency')
+        'recurringEventId', 'transparency', 'colorId')   # colorId: the event's own colour (2 Nov 2026)
 NEED = ('summary', 'start', 'end', 'htmlLink')
 
 

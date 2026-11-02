@@ -178,6 +178,166 @@ def buffer_on(morning, rows, F, rhythm_names, hidden, local):
     return dict(value=max(0, round(100 - BUF_PER * (BUF_TEND * tend + BUF_GROW * grow))), tend=tend, grow=grow)
 
 
+# the day behind's own categories (31 Oct 2026, her words: I'd love to see the colour coding of the being
+# and doing on my calendar, the same as the day behind graphic, maybe even the same categories — as I move
+# through the day I see the blocks, and at the end of the day it all gets turned into a circle). The sets
+# are the day behind's (bedo-week-look-behind/scripts/day_rings.py), read from there when it's beside us.
+try:
+    sys.path.insert(0, os.path.join(HERE, '..', '..', 'bedo-week-look-behind', 'scripts'))
+    sys.path.insert(0, os.path.join(HERE, '..', '..', '..', 'core'))
+    import day_rings as _DR
+    SLEEP, EAT, MOVE, PERSONAL, RECREATION, TV, COOK, MAKE, HOME, TRAVEL, MOMENTS = (
+        _DR.SLEEP, _DR.EAT, _DR.MOVE, _DR.PERSONAL, _DR.RECREATION, _DR.TV, _DR.COOK, _DR.MAKE, _DR.HOME,
+        _DR.TRAVEL, _DR.MOMENTS)
+except Exception:                                   # a copy without the day behind beside it
+    SLEEP = {'sleep', 'nap'}
+    EAT = {'breakfast', 'lunch', 'dinner', 'snack', 'coffee', 'smoothie', 'tea', 'morning water', 'water', 'drink'}
+    MOVE = {'morning movement', 'walking', 'strength training', 'barre', 'cycling', 'yoga', 'morning sun', 'evening sun'}
+    PERSONAL = {'shower', 'bath', 'evening hygiene', 'getting ready', 'skincare'}
+    RECREATION = {'book', 'podcast', 'show', 'movie', 'video', 'game', 'glimmer', 'social', 'song', 'puzzle'}
+    TV = {'show', 'movie', 'video'}
+    COOK = {'dinner prep', 'meal prep', 'cooking', 'lunch prep', 'breakfast prep', 'baking'}
+    MAKE = {'cooking', 'baking', 'building', 'gardening', 'crafting', 'making'}
+    HOME = {'clean', 'laundry', 'laundry move', 'care task', 'dishes', 'tidy', 'errand'}
+    TRAVEL = {'riding', 'flight', 'travel'}
+    MOMENTS = {'highlight', 'glimmer', 'gratitude', 'insight', 'milestone', 'journal'}
+BEING = ('eat', 'move', 'personal', 'recreation', 'travel')
+
+
+def care_settings(L):
+    """The day behind's care and recreation settings (`care`, `recreation`, `system_rhythm`): from the day-ahead
+    settings when they carry them, else the look-behind settings row, read live; without either, none."""
+    if L.get('care'):
+        return L
+    try:
+        import bedo_settings
+        B, _ = bedo_settings.fetch('look_behind_local')
+        return B or {}
+    except Exception:
+        return {}
+
+
+def low(p):
+    return re.sub(r'^[^\w]+', '', p or '').strip().lower()
+
+
+def kind_of(c, F, flows, C):
+    """One row's category on the day behind's rainbow, one per block: being (eating and drinking, moving,
+    personal care, recreation, travel) or doing (professional work, family care, pet care, home care,
+    making, driving, be•do), else a flow step or a moment."""
+    pr = low(c.get(F['practice']))
+    rh = (c.get(F['rhythm']) or '')
+    title = c.get(F['title']) or ''
+    who = (c.get(F['person']) or '') + ' ' + (c.get(F.get('mentioned', '')) or '' if F.get('mentioned') else '')
+    care = C.get('care') or {}
+    fam = care.get('family') or care
+    if pr in MOMENTS:
+        return 'moment'
+    for k, ks in (('eat', EAT), ('move', MOVE), ('personal', PERSONAL), ('drive', {'driving'}), ('travel', TRAVEL)):
+        if pr in ks:
+            return k
+    if pr in COOK or pr in MAKE:
+        return 'cook'
+    if pr == 'action':                                       # an action says what it is in its own words
+        tl = title.lower()
+        if re.search(r'\b(clean|tidy|vacuum|laundry|dishes|bathrooms?|kitchen|mop|sweep)\b', tl):
+            return 'home'
+        if re.search(r'\b(cook|bake|baking|appetizers?|bruschetta|spaghetti|dinner|lunch|breakfast|zombie brains|food)\b', tl):
+            return 'cook'
+    if pr in RECREATION or pr in TV or any(x in rh for x in (C.get('recreation') or {}).get('rhythms') or ()):
+        return 'recreation'
+    if any(x in rh for x in fam.get('rhythms') or ()) or any(w in who for w in fam.get('people') or ()):
+        return 'family'
+    if any(x in rh for x in (care.get('pet') or {}).get('rhythms') or ()) or any(
+            re.search(r'\b%s\b' % re.escape(n), title) for n in (care.get('pet') or {}).get('names') or ()):
+        return 'pet'
+    if pr in HOME or any(x in rh for x in (care.get('home') or {}).get('rhythms') or ()):
+        return 'home'
+    if any(x in rh for x in (care.get('personal') or {}).get('rhythms') or ()):
+        return 'personal'
+    if rh == (C.get('system_rhythm') or 'be•do'):
+        return 'system'
+    st = c.get(F['status']) or ''
+    st = st.get('name') if isinstance(st, dict) else st
+    if pr in flows or st == '◉ done':                       # a flow step is a ◉ be-row
+        return 'flow'
+    if rh or pr == 'action':
+        return 'work'
+    return 'flow'
+
+
+def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None, picks=None):
+    """Today as a calendar (31 Oct 2026, her words: I want it to look like how the schedule looks in Google
+    calendar, and the whole list of things I said I wanted to do this afternoon — those are my intentions;
+    and take into account all the work I've done so far today). What she has done today, each row at its own
+    time; every calendar event today; and every step set for a time today, still open, at its time. A step
+    holds be•do's guess at its size (at most two hours) unless it carries its own end; a lived row with no
+    end holds ten minutes. An event's own row is the event, not twice. Each carries its category (`cat`)."""
+    C = C or {}
+    to = lambda ts: dt.datetime.fromisoformat(ts.replace('Z', '+00:00')) + off
+    hm = lambda t: t.strftime('%H:%M')
+    items, links, own = [], set(), set()
+    for e in (day_page or {}).get('events') or []:
+        try:
+            a = dt.datetime.fromisoformat(e['sort'])
+        except (KeyError, ValueError):
+            continue
+        if a.date() != today or not e.get('when'):
+            continue
+        b = clock(today, e.get('end')) or a + dt.timedelta(hours=1)
+        summ = e.get('summary') or ''
+        items.append(dict(k='event', t=e.get('title') or summ, a=hm(a), b=hm(b), drive=e.get('drive'), who=e.get('who'),
+                          done=summ.startswith('✅'), link=e.get('link'), cat='event',
+                          summary=summ, where=e.get('where') or None, color=e.get('color')))
+        if e.get('link'):
+            links.add(e['link'].split('&')[0])
+        if e.get('match'):
+            own.add(e['match'])
+    for r in rows:
+        c = r['cellValuesByFieldId']
+        st = c.get(F['status']) or ''
+        st = st.get('name') if isinstance(st, dict) else st
+        rh = (c.get(F['rhythm']) or '').strip()
+        title = (c.get(F['title']) or '').strip()
+        ev = (c.get(F['event']) or '') if F.get('event') else ''
+        if rh in hidden and not (C.get('system_rhythm') and rh == C['system_rhythm']):
+            continue
+        if title in own or (ev and ev.split('&')[0] in links):
+            continue
+        t = re.sub(r'^⚡\s*', '', title)
+        end = c.get(F['end'])
+        if st in OPEN:                                         # a step still to do, at its time today
+            tg = c.get(F['target'])
+            if not tg or to(tg).date() != today:
+                continue
+            if F.get('quickie') and c.get(F['quickie']):
+                continue
+            a = to(tg)
+            # a size on the row wins (31 Oct 2026, her words: a lot of those things aren't going to take an
+            # hour; the bike ride with Rosa will probably take 20 minutes): a `size: 20 min` line in its words
+            # or the [be•do] block, `guess` on that line when it is be•do's; else be•do's guess off the words
+            m = re.search(r'(?im)^.*?\bsize:\s*(\d+)\s*min\b(.*)$', c.get(F['details']) or '')
+            mins_ = int(m.group(1)) if m else min(size_guess(t), 120)
+            b = a + dt.timedelta(minutes=mins_)
+            why = (picks or {}).get(r['id']) or (picks or {}).get(c.get(F['key']) or '')
+            nx = [ln.split(':', 1)[1].strip() for ln in (c.get(F['details']) or '').split('\n')
+                  if re.match(r'(?i)^\s*next( step)?:', ln)]
+            items.append(dict(k='step', t=t, a=hm(a), b=hm(b), drive=rh, done=False, nx=nx[-1] if nx else None,
+                              sized=not m or 'guess' in m.group(0).lower(),
+                              cat=kind_of(c, F, flows, C), pick=why is not None, why=why or None))
+            continue
+        if st in NOT_LIVED or not c.get(F['when']):            # skipped, dropped, a potential
+            continue
+        a = to(c[F['when']])
+        if a.date() != today or low(c.get(F['practice'])) in SLEEP:
+            continue
+        real = end and to(end) > a and to(end) - a <= dt.timedelta(hours=6)
+        b = to(end) if real else a + dt.timedelta(minutes=10)
+        items.append(dict(k='lived', t=t, a=hm(a), b=hm(b), drive=rh, done=True, cat=kind_of(c, F, flows, C),
+                          act=st == '✅ done', pt=not real))   # an action she finished, drawn with its green check (2 Nov 2026)
+    return sorted(items, key=lambda x: (x['a'], x['k'] != 'event'))
+
+
 def sized(acts):
     """Each step with be•do's guess at its size (sz, minutes), marked a guess (szg)."""
     return [dict(a, sz=size_guess(a.get('t')), szg=True) for a in acts]
@@ -199,6 +359,31 @@ def build(D, rows, rhythms_read, L, behind_dir):
                 secure=(D.get('secure') or {}).get('state'))
     today_page = next((x for x in D.get('days') or [] if x.get('date') == W['day']), None)
     data['holds'] = day_holds(today_page, L) if today_page else None
+    data['calcolors'] = L.get('calendar_colors') or {}   # each calendar's own colour, as Google shows it
+    data['intentions'] = [x for x in (D.get('intentions') or []) if x]
+    data['schedule'] = schedule_of(today, rows, today_page, F, off, set(L.get('hide_drives') or []),
+                                   L.get('_flows') or frozenset(), care_settings(L), L.get('_picks'))
+    # each card opens to what the 28 Oct day ahead showed (2 Nov 2026, her words: it would be so awesome to
+    # have the day ahead show the detail about the next steps and everything the way that day ahead did):
+    # her words on the row and its ways in (the chat, the deliverable, the links), from card 1's steps
+    strip = lambda t: re.sub(r'^⚡\s*', '', (t or '').strip())
+    detail = {strip(s.get('t')): s for s in C.get('steps') or []}
+    # and only the links that serve the next step (her words, 2 Nov: not everything that's relevant, just what
+    # is very relevant for the next step): the look ahead's own move for the row, its step and its ways in
+    moves = {strip(t.get('title')): t for t in D.get('tasks') or [] if isinstance(t, dict)}
+    for it in data['schedule']:
+        s = detail.get(strip(it.get('t')))
+        if s:
+            it['det'] = s.get('det') or None
+        t = moves.get(strip(it.get('t')))
+        if t:
+            mv = t.get('move') or {}
+            it['emoji'] = t.get('emoji') or None
+            if mv.get('step') and not it.get('nx'):
+                it['nx'] = mv['step']
+            it['links'] = [dict(l=x.get('label'), u=x.get('url')) for x in mv.get('links') or [] if x.get('url')]
+            it['who'] = mv.get('who') or None
+            it['wait'] = mv.get('waiting') or None
     data['goals'] = {c.get(RF['name']): first_sentence(c.get(RF['goal'])) for c in
                      (r['cellValuesByFieldId'] for r in rhythms_read) if c.get(RF['goal'])}
     # body: each morning's readiness, from the readiness practice's row ("readiness 81")
@@ -238,6 +423,8 @@ def main():
     ap.add_argument('--local', required=True)
     ap.add_argument('--behind')
     ap.add_argument('--out', required=True)
+    ap.add_argument('--pick', action='append', default=[],
+                    help='"<row key or record id>::<why>" — be•do\'s three for today, starred on the calendar')
     a = ap.parse_args()
     L = json.load(open(a.local, encoding='utf-8'))
     h, D = page_data(a.day_ahead)
@@ -248,6 +435,7 @@ def main():
             if r['id'] not in seen:
                 seen.add(r['id']); rows.append(r)
     rhythms_read = json.load(open(os.path.join(dd, 'rhythms.json'), encoding='utf-8'))['records']
+    L['_picks'] = dict((p.split('::', 1) + [''])[:2] for p in a.pick)
     data = build(D, rows, rhythms_read, L, a.behind)
     root = re.search(r':root\{[^}]*--c-moss[^}]*\}', h).group(0)
     night = re.search(r'html\[data-bedo="night"\]\{[^}]*\}', h).group(0)

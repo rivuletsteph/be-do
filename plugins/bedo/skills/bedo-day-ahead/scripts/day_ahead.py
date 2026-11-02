@@ -472,7 +472,7 @@ def calendar(cal, rows, open_rows, today, days, L):
                 continue
             evs.append(dict(who=c['who'], title=strip_prefix(e['summary']), a=a, b=b, allday=allday,
                             recurring=e.get('recurring', False), multi=(b - a) >= dt.timedelta(days=2),
-                            summary=e['summary'], link=e.get('htmlLink'), eid=eid_of(e.get('htmlLink')),
+                            summary=e['summary'], link=e.get('htmlLink'), eid=eid_of(e.get('htmlLink')), color=e.get('colorId'),
                             topic=topic_of(e['summary']), location=e.get('location') or '',
                             occasion=allday and bool(e.get('transparent')),
                             stay=(b - a) >= dt.timedelta(hours=L.get('stay_hours', 12)),
@@ -567,7 +567,7 @@ def calendar(cal, rows, open_rows, today, days, L):
             # the event as the calendar shows it — its own glyphs, its own end, its link
             end = '' if e['allday'] or not last else f"{hour12(e['b'])}:{e['b'].minute:02d}".replace(':00', '') + ampm(e['b'])[0]
             items.append(dict(who=e['who'], title=e['title'], summary=e['summary'], link=e['link'], where=e['location'],
-                              when=when, end=end, gap=not e['row'], match=e.get('match'),
+                              color=e.get('color'), when=when, end=end, gap=not e['row'], match=e.get('match'),
                               clash=e['clash'] if first else [], sort=e['a'].isoformat()))
         items.sort(key=lambda x: x['sort'])
         bands = [e['title'] for e in evs if e['multi'] and e['a'].date() < d < (e['b'] - dt.timedelta(seconds=1)).date()]
