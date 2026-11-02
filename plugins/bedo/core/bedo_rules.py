@@ -83,10 +83,10 @@ CHECKS = {
     'categorize.money': 'bedo_categorize — an open money step with no date goes to the coming Wednesday',
     'dayaudit.intention': "bedo_dayaudit — the day's intention and highlight show on the balance, the story, the moments",
     'dayaudit.chats': 'bedo_dayaudit — every chat she worked in that day has its time',
-    'dayaudit.photos': 'bedo_photos.select + bedo_dayaudit — at most six photos on the day page, one per moment',
+    'dayaudit.photos': 'bedo_photos + bedo_dayaudit — at most six photos on the day page, one per moment',
     'quiet_topics': 'bedo_dayqa + bedo_dayaudit — a quiet topic in her settings is never raised',
     'remaining.week_turn': "bedo_remaining — on Sunday, once the dawn flow is through, the turn to the week",
-    'quest_page': "assets/quest-day/quest_page.py — the child's quest page, built on her word only",
+    'quest_page': "quest_page — the child's quest page (assets/quest-day), built on her word only",
 }
 NOT_CODE = 'judgment'
 
