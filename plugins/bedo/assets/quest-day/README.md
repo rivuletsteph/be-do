@@ -3,6 +3,7 @@
 The page a parent hands to the child: the day's score out of ten and its money, the day's big win as a
 trophy photo, the five realms with two mini-quests each, and the week line. Settled 2 Nov 2026 as the
 standing format (her words: I love this format, please save this artifact format; it works so well).
+It is built for the day before, while she looks back on it, and only when she asks for it (her cue: let's build the quest HTML), never unasked.
 
 Rules the page keeps:
 - **Written to the child**, second person, in his register. A missed quest is a *next time* line, never a mark against him.
