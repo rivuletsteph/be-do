@@ -140,6 +140,13 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
 .cal .ev.gcal{background:var(--gc)!important;border:0!important;border-left:0!important;color:var(--gi,#fff)!important;opacity:1}
 .cal .ev.gcal b,.cal .ev.gcal i{color:var(--gi,#fff)!important}
 .cal .ev.gcal.past{opacity:.6}
+.ftitle{font:italic 400 24px var(--serif);color:var(--accent);margin:28px 0 2px}
+.fsub{font-size:13.5px;color:var(--muted);margin:0 0 10px;max-width:72ch}
+.allsteps{margin:18px 0 0}.allsteps summary{cursor:pointer;font:500 13px var(--mono);color:var(--muted)}
+.int .nf{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.int .nf li{display:block!important;border-left:4px solid var(--dc,var(--rule));background:var(--card);border-radius:8px;padding:6px 10px;font-size:14px;line-height:1.35;cursor:pointer}
+.int .nf li small{display:block;font:500 11px var(--mono);color:var(--muted);margin-top:2px}
+.int .nf li .st{color:var(--ink);font-weight:500}
 .sheet .x{position:absolute;right:16px;top:10px;background:none;border:0;font-size:22px;color:var(--muted);cursor:pointer}
 .cal .ev .more{display:none}.cal .ev.open .more{display:block;font-size:12.5px;line-height:1.4;margin-top:6px;color:var(--ink)}
 .cal .ev .more .nx{display:block;font-weight:600;-webkit-line-clamp:unset}
@@ -176,11 +183,12 @@ html[data-bedo="night"] .td{--k-flow-d:#BDB3A6;--k-eat-d:#C4E6D4;--k-move-d:#DCE
 <p class="chip" id="chip"></p>
 <h1 id="h1"></h1>
 <section class="td" id="today"></section>
-<p class="sub">How things flow. Each rhythm is something to tend, resting on a balanced wellness wheel, the foundation; the drives grow out of the rhythms and flow on to what they lead to. Draft for your reaction.</p>
+<section class="int" id="int"></section>
 <section class="rv" id="rv"></section>
 <p class="leannote" id="leannote"></p>
-<section class="int" id="int"></section>
-<div class="blocks" id="blocks"></div>
+<details class="allsteps"><summary>every step, by rhythm</summary><div class="blocks" id="blocks"></div></details>
+<h2 class="ftitle">How things flow</h2>
+<p class="fsub">today's steps → the drives they serve → the rhythms → ☸️ the wellness wheel, and on to where each drive leads. Tap anything to follow it.</p>
 <div class="card"><div class="scroll"><svg id="flow" role="img" aria-label="Steps flowing into drives, rhythms, the wellness wheel and destinations"></svg></div>
 <div class="sum" id="sum"></div>
 <p class="hint">each list runs from the easiest next step · tap anything on the flow to follow it · tap again to see all</p></div>
@@ -418,34 +426,23 @@ function stars(blocks){
   return mix.sort((x,y)=>pri(y)-pri(x)||(x.a.d||'9').localeCompare(y.a.d||'9'));
 }
 function intention(blocks){
-  const el=document.getElementById('int'); if(!H){ el.innerHTML=''; return; }
-  const st=BFV!=null?BedoBaseFlow.state(BFV):'good', share=(H.share||{})[st]||.5;
-  const goal=Math.round(H.free*share*60/15)*15, offer=stars(blocks);
-  /* in the day's own order (2 Nov 2026, her words: the intentions integrated into the day is awesome; things
-     like before I leave should go in the right time order; it's confusing to see that second list): a step
-     set for a time today sorts by that time, first; the rest keep their rank after it */
-  const nt=t=>String(t||'').replace(/^⚡\s*/,'').trim(), when=t=>{ const s=(D.schedule||[]).find(x=>x.k==='step'&&nt(x.t)===nt(t)); return s?s.a:null; };
-  /* every step set for a time today is on it, not only each drive's easiest (backlog 261031_flow: today's
-     steps go to the top); build work on be•do never is (amendment, 8 Oct 2026) */
-  const mins=t=>{ const [a,b]=t.split(':').map(Number); return a*60+b; };
-  (D.schedule||[]).filter(x=>x.k==='step'&&!x.done&&!offer.some(s=>nt(s.a.t)===nt(x.t))).forEach(x=>{
-    const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===x.drive);
-    offer.push({a:{t:x.t,sz:Math.max(15,mins(x.b)-mins(x.a)),szg:!!x.sized},c:d&&d.c,on:((d&&d.g)?d.g+' ':'')+(x.drive||''),k:'grow'}); });
-  for(let i=offer.length-1;i>=0;i--) if(/be•do/.test(offer[i].on)) offer.splice(i,1);
-  offer.sort((x,y)=>{ const a=when(x.a.t), b=when(y.a.t); return a&&b?a.localeCompare(b):a?-1:b?1:0; });
-  const t12=t=>{ const [a,b]=t.split(':').map(Number); return `${a%12||12}:${String(b).padStart(2,'0')}`; };
-  const size=a=>mySize[a.t]||a.sz||60, chosen=offer.filter(s=>picked.has(s.a.t)), sum=chosen.reduce((m,s)=>m+size(s.a),0);
-  const cal=H.booked?`${hm(Math.round(H.booked*60))} on your calendar${H.travel?` and ${hm(Math.round(H.travel*60))} to get there`:''}`:'nothing on your calendar';
-  const part={optimal:'most of it',good:'a comfortable share','pay attention':'a little'}[st];
-  el.innerHTML=`<h2>intention</h2>`
-    +`<p class="holds">${goal?`about <b>${half(goal/60)}</b> you could give to steps today`:'no free time to give to steps today'}</p>`
-    +`<p class="how">${hm(Math.round(H.free*60))} free · ${H.whole} h less ${cal}${H.full?' · a full day':''} · base flow ${BFV??'not in'}${BFV!=null?', '+st:''} → ${part}</p>`
-    +`<div class="fill"><span class="bar"><i class="${sum>goal?'over':''}" style="width:${goal?Math.min(100,100*sum/goal):sum?100:0}%"></i></span><span>${sum?hm(sum):'nothing yet'} of about ${hm(goal)}${sum>goal?' · a little more than the day holds':''}</span></div>`
-    +(offer.length?`<ul>${offer.map((s,i)=>`<li><button class="pk" data-i="${i}" style="--dc:${col(s.c)}" aria-pressed="${picked.has(s.a.t)}"><span class="rk">${picked.has(s.a.t)?'✓':i+1}</span>${esc(s.a.t)}<small>${when(s.a.t)?t12(when(s.a.t))+' · ':''}${s.k==='tend'?'tend':'grow'} · ${esc(s.on.trim())}</small></button><button class="sz${mySize[s.a.t]?' set':''}" data-i="${i}" title="tap to change the size">${mySize[s.a.t]?SZN[mySize[s.a.t]]:'~'+SZN[s.a.sz||60]+' · guess'}</button></li>`).join('')}</ul>`
-      :'<p class="how">nothing actionable today</p>')
-    +`<p class="k2">tap a step to intend it · tap its size to set it (15 min · 1 h · half day) · sizes marked guess are be•do's</p>`;
-  el.querySelectorAll('.pk').forEach(b=>b.onclick=()=>{ const t=offer[+b.dataset.i].a.t; picked.has(t)?picked.delete(t):picked.add(t); store(PK,[...picked]); intention(blocks); });
-  el.querySelectorAll('.sz').forEach(b=>b.onclick=()=>{ const a=offer[+b.dataset.i].a, now=size(a); mySize[a.t]=SZ[(SZ.indexOf(now)+1)%SZ.length]; store(SK,mySize); intention(blocks); });
+  /* not on today's calendar (2 Nov 2026, her words: it should only be an intention if it can actually fit on my
+     calendar; it would be nice to show what doesn't fit; the intention list and below are extra and could be
+     integrated into the calendar). The calendar holds what fits; this lists the rest: steps pushed past the
+     evening, then the easiest next steps with no time today, each with its drive, a guess at its size and its
+     next step. A tap opens its card. */
+  const el=document.getElementById('int'); const nt=t=>String(t||'').replace(/^⚡\s*/,'').trim();
+  const onCal=new Set((window.__cards||[]).map(x=>nt(x.t)));
+  const late=(window.__nofit||[]).map(x=>({t:x.t,drive:x.drive,sz:x.e-x.s,nx:x.nx,x}));
+  const rest=stars(blocks).filter(s=>!onCal.has(nt(s.a.t))&&!late.some(l=>nt(l.t)===nt(s.a.t))&&!/be•do/.test(s.on))
+    .map(s=>({t:s.a.t,drive:s.on.trim(),sz:s.a.sz,nx:s.a.nx||null,c:s.c}));
+  const all=late.concat(rest), hmz=m=>m>=60?`${Math.floor(m/60)} h${m%60?' '+(m%60)+' min':''}`:`${m} min`;
+  if(!all.length){ el.innerHTML=''; return; }
+  const free=`<p class="how">the calendar above holds what fits today; these wait for a time</p>`;
+  el.innerHTML=`<h2>not on today's calendar</h2>${free}<ul class="nf">${all.map((s,i)=>{ const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===s.drive||(s.drive||'').endsWith(r.n));
+    return `<li data-n="${i}" style="--dc:${col((d&&d.c)||s.c)}"><span class="st">${esc(nt(s.t))}</span><small>${i<late.length?'doesn\'t fit today · ':''}${esc(s.drive||'')}${s.sz?' · about '+hmz(s.sz):''}</small></li>`; }).join('')}</ul>`;
+  el.querySelectorAll('.nf li').forEach(li=>li.onclick=()=>{ const s=all[+li.dataset.n]; const x=s.x||{k:'step',t:s.t,drive:(s.drive||'').replace(/^\S+\s/,''),nx:s.nx,s:0,e:s.sz||0};
+    sheet(Object.assign({},x,{s:x.s||0})); });
 }
 /* today, as a calendar (31 Oct 2026, her words: I want it to look like how the schedule looks in Google
    calendar; I expected to see celebration as the intention, and the whole list of things I said I wanted
@@ -487,6 +484,11 @@ function today(){
     x.s=Math.max(x.s,at,nowS); x.e=live?Math.max(x.e,x.s+15):x.s+d;
     let hit; while((hit=evs.find(o=>o.s<x.e&&x.s<o.e))){ x.s=hit.e; x.e=x.s+d; }
     x.moved=!live&&x.s!==want?want:null; at=Math.max(at,x.e); });
+  /* only what fits is today's (2 Nov 2026, her words: it really should only be an intention if it can actually
+     fit on my calendar; it would be nice to show what doesn't fit): a step pushed past the evening's end
+     comes off the calendar and goes to the list under it */
+  const END=(D.day_end?min(D.day_end):21*60); window.__nofit=[];
+  for(let i=its.length-1;i>=0;i--){ const x=its[i]; if(x.k==='step'&&!x.done&&!x.beside&&x.e>END){ window.__nofit.unshift(x); its.splice(i,1); } }
   const h0=Math.max(0,Math.floor(Math.min(...all.map(x=>x.s),...its.map(x=>x.s),nowM??1e9)/60)), h1=Math.min(24,Math.ceil(Math.max(...all.map(x=>x.e),...its.map(x=>x.e),(nowM??0)+30)/60));
   /* a stretched clock (2 Nov 2026, her words: lengthen the calendar so all these things fit on it, and make
      things not overlap, cuz that is confusing): an hour is at least 72px, and a stretch of time grows until
@@ -538,14 +540,14 @@ function sheet(x){
   const L=(x.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l||'link')} ↗</a>`).join('');
   s.style.setProperty('--dc', d?col(d.c):'var(--accent)');
   if(x.k==='event'){ const c=gcol(x); s.style.setProperty('--dc',c);
-    s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc gc"><div class="at">${t12(x.s)}</div>`
+    s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc gc"><div class="at">${x.s?t12(x.s):'later'}</div>`
       +`<div class="ttl"><span class="sq" style="background:${c}"></span>${esc(x.summary||x.t)}</div>`
       +`<div class="when">${t12(x.s)} – ${t12(x.e)}</div>`
       +(x.where?`<div class="where">📍 ${/^https?:/.test(x.where)?`<a href="${esc(x.where)}" target="_blank" rel="noopener">${esc(x.where)}</a>`:`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.where)}" target="_blank" rel="noopener">${esc(x.where)}</a>`}</div>`:'')
       +`<div class="when">🗓️ ${esc(x.who==='you'?'my events':x.who||'')}${x.drive?` · ${esc(x.drive)}`:''}</div>`
       +(x.link?`<div class="lks"><a href="${esc(x.link)}" target="_blank" rel="noopener">open in Google Calendar ↗</a></div>`:'')+`</div>`;
     requestAnimationFrame(()=>s.classList.add('on')); s.querySelector('.x').onclick=()=>s.classList.remove('on'); return; }
-  s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${t12(x.s)}</div>`
+  s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${x.s?t12(x.s):'later'}</div>`
     +`<div class="ttl">${x.k==='event'?'🗓️ ':`<span class="bx${done?' ok':''}"></span>${x.k==='step'||x.act?'<span class="bolt">⚡</span>':''}`}${esc(x.t)}</div>`
     +(x.drive?`<div class="dv">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</div>`:'')
     +(x.k==='lived'?'':(x.nx?`<div class="nx">${esc(x.nx.replace(/\s*\(https?:[^)]*\)|\s*https?:\/\/\S+/g,''))}</div>`:`<div class="nx none">no next step named yet</div>`))
