@@ -296,8 +296,8 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         wk = WELL_ALIAS.get(str(wl or '').split()[-1].lower(), str(wl or '').split()[-1].lower()) if wl else ''
         if wk in ENERGY and pr not in SLEEP and pr not in zero_pr and not pr.startswith(tuple(w.lower() + "'s" for w in care_who)) \
                 and not any(t == w or t.startswith(w + ' ') for w in care_who):      # 'his name — his reading' is his own row
-            if span:
-                ms = range(max(mins(a), 0), min(mins(b), 1440))
+            if span:      # her stretches only, when the row names them, never the envelope between (2 Nov 2026)
+                ms = sorted({m for pa, pb in pieces for m in range(max(mins(pa), 0), min(mins(pb), 1440))})
             else:
                 ms = range(mins(a), min(mins(a) + TICK, 1440)) if s0 <= a < e0 else range(0)
             if len(ms):
