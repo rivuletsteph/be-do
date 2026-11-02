@@ -137,8 +137,8 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
 .sheet .sq{display:inline-block;width:16px;height:16px;border-radius:4px;margin-right:8px;vertical-align:1px}
 .sheet .when,.sheet .where{grid-column:2;font:400 15px/1.45 var(--sans);color:var(--ink);margin-top:4px}
 .sheet .where a{color:var(--dest);text-decoration:none}
-.cal .ev.gcal{background:var(--gc)!important;border:0!important;border-left:0!important;color:#fff!important;opacity:1}
-.cal .ev.gcal b,.cal .ev.gcal i{color:#fff!important}
+.cal .ev.gcal{background:var(--gc)!important;border:0!important;border-left:0!important;color:var(--gi,#fff)!important;opacity:1}
+.cal .ev.gcal b,.cal .ev.gcal i{color:var(--gi,#fff)!important}
 .cal .ev.gcal.past{opacity:.6}
 .sheet .x{position:absolute;right:16px;top:10px;background:none;border:0;font-size:22px;color:var(--muted);cursor:pointer}
 .cal .ev .more{display:none}.cal .ev.open .more{display:block;font-size:12.5px;line-height:1.4;margin-top:6px;color:var(--ink)}
@@ -508,10 +508,10 @@ function today(){
   for(let h=h0;h<=h1;h++) g+=`<div class="hr" style="top:${y(h*60)}px"><span>${lab(h)}</span></div>`;
   bands.forEach(x=>{ if(x.k!=='event'){ g+=`<div class="band" title="✅ ${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"><span><em>${x.k==='event'?'on your calendar':'✅ done'}</em>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)}<br>${tm(x.s)}–${tm(x.e)}</span></div>`; });
   past.forEach(x=>{ const w=100/x.n, h=Math.max(MINH,y(x.e)-y(x.s)-1);
-    if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past" style="--gc:${gcol(x)};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(x.summary||x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i></div>`; return; }
+    if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past" style="--gc:${gcol(x)};--gi:${gink(gcol(x))};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(x.summary||x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i></div>`; return; }
     g+=`<div data-c="${ci(x)}" class="ev lived${h>=40?' tall':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${more(x)}</div>`; });
   its.forEach(x=>{ if(x.k==='event'){ const inner=`<b>${esc(x.summary||x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i>`;
-    g+=`<div data-c="${ci(x)}" class="ev event gcal" style="--gc:${gcol(x)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:${x.half?'calc(50% - 5px)':'calc(100% - 6px)'}">${inner}</div>`; return; }
+    g+=`<div data-c="${ci(x)}" class="ev event gcal" style="--gc:${gcol(x)};--gi:${gink(gcol(x))};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:${x.half?'calc(50% - 5px)':'calc(100% - 6px)'}">${inner}</div>`; return; }
     if(x.link) x.links=[{l:'calendar event',u:x.link}].concat(x.links||[]); const inner=`<b>${x.done?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.sized&&!x.done?' · about':''}${x.moved!=null?` · <span class="was">planned ${tm(x.moved)}</span>`:''}${x.drive?' · '+esc(x.drive):''}</i>${x.pick&&x.why?`<span class="why">${esc(x.why)}</span>`:''}${more(x)}`;
     g+=`<div data-c="${ci(x)}" class="ev ${x.k}${x.done?' done':''}${x.pick?' pick':''}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:${x.beside?'calc(50% + 2px)':'3px'};width:${x.beside||x.half?'calc(50% - 5px)':bands.some(b=>b.s<x.e&&b.e>x.s)?'58%':'calc(100% - 6px)'}">${inner}</div>`; });
   /* the day behind's own words for the categories, being then doing, only those on the day */
@@ -529,6 +529,8 @@ function today(){
    the event's own colour (Google's eleven), else its calendar's (`calendar_colors` in her settings) */
 const GC={1:'#7986CB',2:'#33B679',3:'#8E24AA',4:'#E67C73',5:'#F6BF26',6:'#F4511E',7:'#039BE5',8:'#616161',9:'#3F51B5',10:'#0B8043',11:'#D50000'};
 const gcol=x=>GC[x.color]||((D.calcolors||{})[x.who])||'#039BE5';
+/* dark text on a light colour (a yellow calendar), white on the rest */
+const gink=c=>{ const n=parseInt(String(c).replace('#',''),16), r=n>>16&255, g=n>>8&255, b=n&255; return (0.299*r+0.587*g+0.114*b)>165?'#2b2118':'#fff'; };
 function sheet(x){
   let s=document.getElementById('sheet'); if(!s){ s=document.createElement('div'); s.id='sheet'; s.className='sheet'; document.body.appendChild(s); }
   const t12=m=>`${Math.floor(m/60)%12||12}:${String(m%60).padStart(2,'0')}`;
