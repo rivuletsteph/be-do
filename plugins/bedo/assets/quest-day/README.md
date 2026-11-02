@@ -13,7 +13,15 @@ Rules the page keeps:
 - **Nothing personal lives here.** The name, the day, the lines and the photos come from the day's ⚔️ quest row and its photos
   at build time; this folder holds only the shape.
 
-Build: replace `/*TITLE*/` with the page's name (`<Name>'s Quest · <Weekday>`) and `/*DATA*/` with JSON:
+Build it with one command, from the day's ⚔️ quest row (its scored lines, `· ✓ Quest — what he did`):
+
+```
+python3 plugins/bedo/assets/quest-day/quest_page.py --row quest_row.json --name NAME --day "Sunday · 1 November" \
+    --trophy big_win.jpg --trophy-text "Today's big one: …" [--photo "The Fuel=snack.jpg"] --out quest.html
+```
+
+It turns each line to him (he → you, mechanically: read every line before she sees it) and counts the points.
+Or by hand: replace `/*TITLE*/` with the page's name (`<Name>'s Quest · <Weekday>`) and `/*DATA*/` with JSON:
 
 ```json
 {"name": "…", "day": "Sunday · 1 November", "per_point": 0.5,

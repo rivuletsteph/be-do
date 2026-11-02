@@ -49,6 +49,22 @@ from an earlier chat. The key to read is named below wherever one is wanted.
 a separate be•do work chat that ends with a push and a new tag in the version
 store — not with a new zip; the installed loader fetches the change by itself.
 
+## Before she sees it: the pass and the audit (2 Nov 2026)
+
+Her words, Mon 2 Nov: *I'm really annoyed that I have to check all this stuff.* So the day page's build
+(`week_look_behind.py --day`) runs two things itself, and the chat reads them before it shows anything:
+
+- **The categorizing pass** (`core/bedo_categorize.py`) draws the rows as her rules say they should read —
+  with the family by default, riding not driving, wellness by its rhythm, point rows their usual length,
+  filler giving way, the time-change hour, the night naming her. The output's `categorize.patches` are the
+  same calls for the stream: write them through `entry`, so the record matches the page.
+  `--as-written` draws the rows untouched, for comparison only.
+- **The page audit** (`core/bedo_dayaudit.py`), in the output's `audit_text`: the day's intention and
+  highlight show on the balance, in the story and in the moments; the night is drawn; every chat she worked
+  in has its time (`--sessions`); at most six photos, one per moment (the build picks them,
+  `bedo_photos.select`). **Every `FIX` is done and the page rebuilt before she sees it.** An `ask` line is
+  the one question worth her minute; show it as one short list after the page, never before.
+
 ## Two things on this page are the user's, and you write them
 
 The builder computes every section but two. **The lead and the story are not

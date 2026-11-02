@@ -236,3 +236,29 @@ def place(rows, photos, me='', prefer=None):
             continue
         placed.append({'t': t, 'src': src, 'file': fid, 'row': best, 'keeper': best is not None and kind(best, me) == KEEPER})
     return placed, left
+
+
+def select(placed, me='', n=None, burst=None):
+    """The day page's photos, selective (2 Nov 2026, her words: less photos is good, like no more than six,
+    and there's a lot of duplicates). One of each near-duplicate (the same moment seconds apart, a burst),
+    then the best `n`: the highlight first, then moments with people, then the rest; a keeper that is only
+    a place gives way. Returns the chosen, in the order given, and the ones left off the page (the record
+    keeps every link; only the page is selective)."""
+    n = n or P.get('day_page_max') or 6
+    burst = burst or P.get('burst_seconds') or 90
+    def score(p):
+        r = p.get('row') or {}
+        pr = word(r.get('practice'))
+        others = [x.strip() for x in (r.get('person') or '').split(',') if x.strip() and x.strip() != me]
+        return (0 if pr in P.get('highlight_practices', ['highlight']) else 1 if others else 2 if p.get('keeper') else 3)
+    keep, prev = [], None
+    for p in sorted(placed, key=lambda p: p['t']):           # one per burst: the best-scored of the cluster
+        if prev is not None and (p['t'] - prev['t']).total_seconds() <= burst:
+            if score(p) < score(keep[-1]):
+                keep[-1] = p
+        else:
+            keep.append(p)
+        prev = p
+    best = sorted(keep, key=lambda p: (score(p), p['t']))[:n]
+    chosen = [p for p in placed if any(p is b for b in best)]
+    return chosen, [p for p in placed if not any(p is c for c in chosen)]

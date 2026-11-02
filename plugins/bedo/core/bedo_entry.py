@@ -67,6 +67,7 @@ import datetime as dt, re
 
 from bedo_reader import ACTION_STATUSES, FACTS
 import bedo_fill
+import bedo_categorize
 
 ALL_STATUSES = frozenset(FACTS['status']['logs'] + FACTS['status']['actions'])
 KEY = re.compile(FACTS['key']['pattern'])
@@ -327,6 +328,21 @@ def cloudy_problems(row, fill=None):
             'words, never ⨂ skipped for the weather']
 
 
+def categorize_problems(row, fill=None):
+    """The categorizing pass on the one row as it is written (2 Nov 2026): who she was with, riding or
+    driving, wellness by its rhythm, a usual length, money to Wednesday. Each is a value to write with the
+    row, like a deduced device; an empty wellness is left to whole_problems."""
+    if fill is None or not fill.local:
+        return []
+    ctx = bedo_categorize.Ctx(rhythms=fill.drives, catalog={p: {'wellness': w} for p, w in fill.catalog.items()})
+    out = []
+    for c in bedo_categorize.row_calls(row, fill.local, ctx, fill.day_rows):
+        if c['rule'] == 'filler' or (c['field'] == 'wellness' and not row.get('wellness')):
+            continue
+        out.append(f'{c["field"]}: {c["old"] or "empty"} → {c["new"]} — {c["why"]}; write it with the row')
+    return out
+
+
 def span_problems(row, utc_offset_hours=None):
     start, end = row.get('datetime'), row.get('end')
     if not (start and end and start.endswith('Z') and end.endswith('Z')):
@@ -397,6 +413,7 @@ def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•
     out += being_doing_problems(row, fill)
     out += appointment_problems(row, now)
     out += cloudy_problems(row, fill)
+    out += categorize_problems(row, fill)
     if row.get('status') in PLANS and [p for p in (row.get('person') or '').split(',')
                                          if p.strip() and p.strip() != self_name]:
         out.append(f'person: {row.get("status")} is a plan — the people go in mentioned until it happens')

@@ -238,6 +238,24 @@ def render(flow, steps, day_rows, due=None, light=None):
     return '```\n' + ' · '.join(parts) + '\n```'
 
 
+def week_turn(day, day_rows):
+    """Sunday's turn to the week (1 Nov 2026, her words: after I get through my dawn flow, you're kind of
+    pushing, like, hey, you ready to do the transition to the next week?). Once the dawn flow is closed on
+    a Sunday and no my week chat has a row yet, the line to say; else None."""
+    if day.weekday() != 6:
+        return None
+    close = norm(FLOWS['close']['dawn'])
+    closed = [r for r in day_rows if norm(r.get('practice')) == close]
+    if not closed:
+        return None
+    t0 = min(r.get('datetime') or '' for r in closed)
+    week = (FACTS.get('week_turn') or {}).get('window', 'my week')
+    if any(week in (r.get('title') or '').lower() and (r.get('datetime') or '') >= t0 for r in day_rows):
+        return None
+    return (FACTS.get('week_turn') or {}).get('line') or \
+        'next: ready for the transition to the next week? say yes and I\'ll open the my week chat'
+
+
 def spoken(flow, steps, day_rows):
     """The one spoken line on voice — names only."""
     done, total, core, rest = split(steps, day_rows, flow)
@@ -276,8 +294,9 @@ def main(argv=None):
     every = as_rows(complete(day_src, 'day'), fields)
     rows = on_day(every, day, L)
     flow = a.flow or open_flow(now_local, rows)
+    turn = week_turn(day, rows)
     if not flow:
-        print('no flow open')
+        print(f'```\n{turn}\n```' if turn else 'no flow open')
         return
     gate, due, light = {}, None, None
     if flow == 'dawn':
@@ -293,6 +312,8 @@ def main(argv=None):
             light = L.get('cloudy_light') or FACTS['cloudy']['light']
     steps = flow_steps(cat, flow, a.next, gate)
     print(spoken(flow, steps, rows) if a.voice else render(flow, steps, rows, due, light))
+    if turn and flow == 'dawn':
+        print(turn)
 
 
 if __name__ == '__main__':

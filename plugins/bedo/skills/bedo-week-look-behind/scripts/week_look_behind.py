@@ -31,13 +31,15 @@ import bedo_reader  # noqa: E402
 import bedo_drives  # noqa: E402
 import bedo_photos  # noqa: E402
 import bedo_forecast  # noqa: E402
+import bedo_categorize  # noqa: E402
+import bedo_dayaudit  # noqa: E402
 from day_rings import day_rings  # noqa: E402
 
 STREAM_KEYS = ('title', 'key', 'when', 'end', 'status', 'rhythm')
 OPTIONAL_STREAM_KEYS = ('spent', 'deliv', 'target', 'practice', 'wellness', 'person', 'details', 'photo', 'device',
-                        'photo_checked', 'photo_links', 'event', 'mentioned', 'emotion')
+                        'photo_checked', 'photo_links', 'event', 'mentioned', 'emotion', 'chat')
 RHYTHM_KEYS = ('name',)
-OPTIONAL_RHYTHM_KEYS = ('emoji', 'type', 'status', 'code', 'feeds', 'dest')
+OPTIONAL_RHYTHM_KEYS = ('emoji', 'type', 'status', 'code', 'feeds', 'dest', 'element')
 WELL = bedo_reader.FACTS['wellness']
 SLEEP = bedo_reader.FACTS['practice']['sleep']
 ST = bedo_reader.FACTS['status']
@@ -430,6 +432,8 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset(), ndays=7, words=N
     pics = {}
     placed, _ = bedo_photos.place(lived, photos or [], me, prefer=lambda r, t: (
         not bedo_photos.has_photo(r), not marked(r), abs((r['_a'] - t).total_seconds())))
+    if ndays == 1:      # the day page: at most six, never two of one moment (2 Nov 2026)
+        placed, _ = bedo_photos.select(placed, me)
     for p in placed:
         best = p['row']
         if best is not None and best['id'] in by_row:
@@ -607,6 +611,38 @@ def readings(rows, timed, rhythms, start, L, local, ndays=7, words=None, photos=
                 secure_assumed=sum(1 for v in out if v['assumed']))
 
 
+def practices_catalog(path, L):
+    """practice → {wellness, typical, zero}, from the catalog read, for the categorizing pass."""
+    if not path or not os.path.exists(path):
+        return {}
+    PF = (L.get('fields') or {}).get('practices') or {}
+    out = {}
+    for r in bedo_reader.complete(path):
+        c = bedo_reader.cells(r)
+        n = sv(c.get(PF.get('name')))
+        if n:
+            t = c.get(PF.get('typical')) if PF.get('typical') else None
+            out[n] = dict(wellness=sv(c.get(PF.get('wellness'))) if PF.get('wellness') else None,
+                          typical=int(t) if isinstance(t, (int, float)) and t > 0 else None,
+                          zero=bool(c.get(PF.get('zero'))) if PF.get('zero') else False)
+    return out
+
+
+def categorize_day(rows, day, L, rhythms, catalog, sleep=None, sessions=None):
+    """The calls be•do makes on the day's rows before the page is drawn (2 Nov 2026): the page
+    reads them as they should be, and the patches go back to the stream through the entry check."""
+    every = [dict(r, datetime=r.get('when'), time_spent=r.get('spent')) for r in rows]
+    ids = {r['id'] for r in bedo_reader.on_day(every, day, L)}          # the day's own rows, and the night into it
+    ids |= {r['id'] for r in bedo_reader.on_day([dict(r, datetime=r['end']) for r in every if r.get('end')], day, L)}
+    mine = [r for r in every if r['id'] in ids]
+    ctx = bedo_categorize.Ctx(rhythms={n: rec.get('element') for n, rec in rhythms.items()}, catalog=catalog,
+                              sleep=sleep, sessions=sessions)
+    ch = bedo_categorize.run(mine, day, L, ctx)
+    fixed = {r['id']: dict(r, when=r['datetime'], end=r.get('end'), spent=r.get('time_spent'))
+             for r in bedo_categorize.apply(mine, ch)}
+    return [fixed.get(r['id'], r) for r in rows], ch
+
+
 def read_photos(folder, off):
     """The small photos day_photos.py wrote, as (taken, Drive file id or None, data URI)."""
     out = []
@@ -634,6 +670,9 @@ def main():
     ap.add_argument('--rhythms', required=True)
     ap.add_argument('--practices', help="the catalog, so a flow practice shows under its flow")
     ap.add_argument('--connections', help='with --day: the connections table, for the circles on the who card')
+    ap.add_argument('--sessions', help="with --day: the day's chats with her stretches, for the audit's chats check")
+    ap.add_argument('--as-written', action='store_true',
+                    help='with --day: draw the rows as they are, without the categorizing pass (for comparison only)')
     ap.add_argument('--template', required=True)
     ap.add_argument('--out', required=True)
     ap.add_argument('--qa-anyway', action='store_true',
@@ -664,6 +703,11 @@ def main():
     L['_flowset'] = flow_practices(a.practices, L)
     L['_circles'] = load_circles(a.connections, L) if a.connections else {}
     rhythms, nrh = load_rhythms(a.rhythms, RF)
+    sleep = json.load(open(a.sleep, encoding='utf-8')) if a.day and a.sleep else None
+    sessions = json.load(open(a.sessions, encoding='utf-8')) if a.sessions else None
+    calls = []
+    if a.day and not a.as_written:      # the page is right before she sees it (2 Nov 2026)
+        rows, calls = categorize_day(rows, day, L, rhythms, practices_catalog(a.practices, L), sleep, sessions)
     # the drives, for the balance card's growing (a doing row on a drive grows; any other doing row tends)
     L['_growing'] = [n for n, rec in rhythms.items() if (rec.get('type') or '') in (L.get('growing_types') or ['♐ drive'])]
     photos = read_photos(a.photos, L['utc_offset_hours'])
@@ -683,8 +727,7 @@ def main():
                               else f'Sun {sun.day} {sun:%b} – Sat {sat.day} {sat:%b}'),
         totals=totals, drives=drives, loops=qa['feeds_loops'], **more,
         forecasts=[{'t': (r.get('title') or '').strip()} for r in due],
-        rings=day_rings(rows, day, L, L.get('_flowset') or frozenset(), NOT_LIVED,
-                        json.load(open(a.sleep, encoding='utf-8')) if a.sleep else None) if a.day else None,
+        rings=day_rings(rows, day, L, L.get('_flowset') or frozenset(), NOT_LIVED, sleep) if a.day else None,
         read=' · '.join(f'{n} {k}/{k}' for n, k in reads) + f' · rhythms {nrh}/{nrh}')
     if a.day:   # the day behind's own keys, so words.py can read the words back and carry edits to the page
         W = words or {}
@@ -701,6 +744,17 @@ def main():
         for n in ns:
             yield '  ' * d + f"{n['drive']} · {n['min']} min · {n['closed']} closed · {n['open']} open"
             yield from outline(n['children'], d + 1)
+    audit = None
+    if a.day:     # run before the page is shown: every FIX is done and the page rebuilt first (2 Nov 2026)
+        shown = [dt.datetime.fromisoformat(x) for d in more['stream']['days'] for x in
+                 [m['at'] for m in d['stones'] for _ in m.get('photos') or []] + [p['at'] for p in d['pictures']]]
+        day_rows = [dict(r, datetime=r.get('when'), time_spent=r.get('spent')) for r in rows]
+        ids = {r['id'] for r in bedo_reader.on_day(day_rows, day, L)}
+        ids |= {r['id'] for r in day_rows if r.get('end') and r['id'] not in ids
+                and r['id'] in {x['id'] for x in bedo_reader.on_day([dict(x, datetime=x['end']) for x in day_rows
+                                                                       if x.get('end')], day, L)}}
+        audit = bedo_dayaudit.audit([r for r in day_rows if r['id'] in ids], day, L, DATA['rings'], words, shown,
+                                    sessions, calls)
     rest, tm = more['rest'], more['time']
     placed = sum(len(m.get('photos') or []) for d in more['stream']['days'] for m in d['stones'])
     strip = sum(len(d['pictures']) for d in more['stream']['days'])
@@ -711,7 +765,10 @@ def main():
                           rest=dict(nights=rest['nights'], bed=round(rest['bed']), play=round(rest['play']), readiness=rest['readiness']),
                           needs={k: [f"{g['label']} {g['min']}" for g in v] for k, v in more['needs'].items()},
                           secure=f"{more['secure_days']}/{ndays} ({more['secure_assumed']} assumed)",
-                          drives=list(outline(drives)), qa=qa, read=DATA['read']), ensure_ascii=False, indent=1))
+                          drives=list(outline(drives)), qa=qa, read=DATA['read'],
+                          **({'categorize': dict(calls=bedo_categorize.lines(calls), patches=bedo_categorize.patches(calls)),
+                              'audit': audit, 'audit_text': bedo_dayaudit.render(audit, day)} if a.day else {})),
+                     ensure_ascii=False, indent=1))
 
 
 if __name__ == '__main__':

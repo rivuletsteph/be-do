@@ -7,7 +7,8 @@
 #   bash run_checks.sh remaining [--flow dawn|dusk] [--voice]
 #   bash run_checks.sh dusk      [--date YYYY-MM-DD] [--chats chats.json] [--photos folder.json [--links week.json]] [--write]
 #   bash run_checks.sh meals     [--date YYYY-MM-DD] [--json]   # each meal's prep and eating, placed from context
-#   bash run_checks.sh dayqa     YYYY-MM-DD [--calendar day.json …] [--photos folder.json] [--json]  # the day's records read, then one list to accept
+#   bash run_checks.sh dayqa     YYYY-MM-DD [--calendar day.json …] [--photos folder.json] [--sleep oura.json] [--sessions chats.json] [--json]
+#                                # be•do's calls on the day first (bedo_categorize), the day's records read, then one list to accept
 #   bash run_checks.sh entry     row.json [--base "w41 be•do"] [--chat MMDD] [--catalog practices.json] [--rhythms rhythms.json] [--day today.json]
 #                                # MMDD: a my day chat's date, from its title; the catalog and rhythms let it deduce
 #                                # wellness and know a flow step; the day's rows let it see two things at once
