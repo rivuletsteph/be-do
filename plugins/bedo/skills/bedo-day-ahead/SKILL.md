@@ -116,7 +116,7 @@ zip; the installed loader fetches the change by itself.
   Airtable directly with the read-only token, so no row passes through the chat.
 - `scripts/day_ahead.py` — the reader and builder
 - `scripts/ledger.py` — the ledger of older weeks, for how far each drive has come.
-- `scripts/flow.py` and `assets/flow_engine.html` — how things flow: base flow, the day's lean,
+- `scripts/flow.py` and `assets/flow_engine.html` — **the published my day page**: base flow, the day's lean,
   the rhythms with their drives, and the flow (below, *How things flow*).
 - `scripts/myday.py` — the my day page's two cards, where they lead and the
   whole map, from the same read; the page's name and the day's own link
@@ -330,7 +330,12 @@ contents never pass through the chat.
    event's own if it is timed within the hour; otherwise it becomes an ask.
 6. **Publish to the day's own page** (261028_myday, her decision of 28 Oct
    2026: *at the end of the day it just becomes the day behind, and that's
-   what's saved for the record*). Each day has one my day page, named like that
+   what's saved for the record*). **What gets published is the flow page,
+   `<day>-myday.html`** (since 2 Nov 2026; at her word 3 Nov: *this is the old
+   version … I'm looking for the one that was developed yesterday*). Every
+   `build` writes the day ahead first and then runs `scripts/flow.py` over it
+   with the same `--pick`s; the day ahead (`<day>-day-ahead.html`) is only the
+   flow page's input and its plan, never published. Each day has one my day page, named like that
    day's my day chat — the build prints it as `page.title` and puts it in the
    page's `<title>` (`▶️🔆1028 💧 Wed 𖡎 W44 my day`). The build also reads
    today's ◉ 👁️ look ahead row and prints `page.url` and `page.row`:
@@ -511,8 +516,9 @@ Her words: the whole map should become *how things flow*, and be more of the bas
 tending and growing are different actions, and some days want the minimum of one and
 the most of the other; and *choose for me, based on my readiness and how caught up I am*.
 `scripts/flow.py` builds it from the built day-ahead page, the reads beside the settings,
-and the week's day behinds (`--behind`, a folder). It is its own page for now, beside
-the my day page.
+and the week's day behinds (`--behind`, a folder; the runner passes `behind/` in the
+working folder when it exists). **It is the day's my day page** (since 2 Nov 2026), titled
+with the day's my day name, built by every `build` and published to `page.url`.
 
 1. **Base flow** — the morning card, drawn as water through the last seven mornings. Three
    parts, 0–100, in equal shares: **body** (that morning's readiness, the
@@ -549,6 +555,13 @@ the my day page.
    15 min, 1 h or half a day off the step's words and marks it *guess*; a tap on the size
    sets hers. Her picks and sizes stay in that browser for now — a size field on the
    stream is hers to add, not be•do's.
+6. **☸️ Today's wheel, so far** — at the bottom (3 Nov 2026, her words: *I would like to see
+   the wellness wheel at the bottom … built throughout the day*). Today's lived rows so far,
+   each under its wellness element, weighed as balance weighs the day before (a span's
+   minutes over six, a moment one; plans, skips, drops and sleep score nothing), drawn as the
+   look behind draws its wheel: be to the left, do to the right, a share for each of the
+   eight. Tap an element for the rows that made it; the rows fold under one line. It grows
+   with each rebuild of the page through the day — `fetch`, then `build`, then republish.
 
 ## Saturday and Sunday have their own shape
 

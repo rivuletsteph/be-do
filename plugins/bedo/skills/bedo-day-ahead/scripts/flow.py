@@ -36,7 +36,12 @@ settings file, as the runner leaves them.
 import argparse, datetime as dt, glob, json, math, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-BF_DIR = os.path.join(HERE, '..', '..', '..', 'assets', 'base-flow')
+# in the version store the base-flow assets sit three folders up; in the runner's working folder,
+# prep copies them beside the engine (assets/base-flow), so either layout builds
+BF_DIR = next((d for d in (os.path.join(HERE, '..', '..', '..', 'assets', 'base-flow'),
+                           os.path.join(HERE, '..', 'assets', 'base-flow'))
+               if os.path.exists(os.path.join(d, 'base_flow.css'))),
+              os.path.join(HERE, '..', '..', '..', 'assets', 'base-flow'))
 OPEN = ('⬜ intention', '▶️ in motion')
 CLOSED = ('✅ done', '✖️ dropped')
 BUF_TEND, BUF_GROW, BUF_PER = 1.5, 1.0, 6   # buffer: a late tending step weighs 1.5, a growing one 1; 6 a point
@@ -70,7 +75,7 @@ RESTING = ('sleep', 'nap')                  # sleep scores nothing on the wheel 
 DIVISOR = 6                                 # a real span weighs its minutes over six, as the canon does
 
 
-def wheel_of(day, rows, F, off):
+def wheel_of(day, rows, F, off, entries=None):
     """The day's wheel from its own rows (30 Oct 2026): each lived row under its wellness
     element, a real span weighing its minutes over six and a moment weighing one (the canon
     weighs a moment by its practice's effort band, which this read doesn't carry)."""
@@ -91,6 +96,9 @@ def wheel_of(day, rows, F, off):
         end = c.get(F['end'])
         mins = (to(end) - to(when)).total_seconds() / 60 if end else 0
         dom[k] += mins / DIVISOR if 0 < mins <= 12 * 60 else 1.0
+        if entries is not None:
+            entries.append(dict(k=k, t=re.sub(r'^⚡\s*', '', (c.get(F['title']) or '').strip()),
+                                at=to(when).strftime('%H:%M')))
     return {k: round(v, 1) for k, v in dom.items()}
 
 
@@ -387,6 +395,12 @@ def build(D, rows, rhythms_read, L, behind_dir):
             it['links'] = [dict(l=x.get('label'), u=x.get('url')) for x in mv.get('links') or [] if x.get('url')]
             it['who'] = mv.get('who') or None
             it['wait'] = mv.get('waiting') or None
+    # the wheel at the bottom, built through the day (3 Nov 2026, her words: I would like to see the
+    # wellness wheel at the bottom ... built throughout the day): today's lived rows so far, each under
+    # its element, read the same way balance reads the day before; every rebuild of the page adds to it
+    ents = []
+    dom = wheel_of(today, rows, F, off, ents)
+    data['wheel'] = dict(domains=dom, entries=sorted(ents, key=lambda e: e['at'])) if dom else None
     data['goals'] = {c.get(RF['name']): first_sentence(c.get(RF['goal'])) for c in
                      (r['cellValuesByFieldId'] for r in rhythms_read) if c.get(RF['goal'])}
     # body: each morning's readiness, from the readiness practice's row ("readiness 81")
@@ -447,6 +461,9 @@ def main():
             .replace('/*BFCSS*/', open(os.path.join(BF_DIR, 'base_flow.css'), encoding='utf-8').read())
             .replace('/*BFJS*/', open(os.path.join(BF_DIR, 'base_flow.js'), encoding='utf-8').read())
             .replace('/*DATA*/', json.dumps(data, ensure_ascii=False).replace('</', '<\\/')))
+    # the flow page IS the day's my day page (since 2 Nov 2026), so it carries the day's my day name
+    esc = lambda t: t.replace('&', '&amp;').replace('<', '&lt;')
+    page = page.replace('<title>How Things Flow</title>', f'<title>{esc(data["chip"] or "How Things Flow")}</title>', 1)
     open(a.out, 'w', encoding='utf-8').write(page)
     bf = data['baseflow']['week'][-1]
     print(json.dumps(dict(out=a.out, body=bf['body'], balance=bf['balance'], buffer=bf['effectiveness']), ensure_ascii=False))

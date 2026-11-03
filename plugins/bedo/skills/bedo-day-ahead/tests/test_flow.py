@@ -64,6 +64,10 @@ def main():
     d = flow.wheel_of(dt.date(2026, 3, 4), day_rows, W, zero)
     assert (d['body'], d['mind'], d['fire'], d['water']) == (10.0, 1.0, 0.0, 0.0), d
     assert flow.wheel_of(dt.date(2026, 3, 4), day_rows, F, zero) is None                       # no wellness field
+    # the wheel at the bottom, built through the day (3 Nov 2026): the rows that made it, each with its element
+    ents = []
+    flow.wheel_of(dt.date(2026, 3, 4), day_rows, W, zero, ents)
+    assert [(e['k'], e['at']) for e in ents] == [('body', '09:00'), ('mind', '11:00')], ents
 
     # how much the day holds: her own timed events today, plus the travel buffer for one at a place
     day = dict(date='2026-03-04', events=[
