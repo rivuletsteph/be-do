@@ -640,6 +640,12 @@ def categorize_day(rows, day, L, rhythms, catalog, sleep=None, sessions=None):
     ch = bedo_categorize.run(mine, day, L, ctx)
     fixed = {r['id']: dict(r, when=r['datetime'], end=r.get('end'), spent=r.get('time_spent'))
              for r in bedo_categorize.apply(mine, ch)}
+    # company the pass filled (the household by default, or the row it sits inside) is who was around, not time
+    # spent with them: the wheel's heart reads only the company a row names itself (3 Nov 2026)
+    orig = {r['id']: r.get('person') for r in mine}
+    for c in ch:
+        if c.get('rule') == 'company' and c['id'] in fixed:
+            fixed[c['id']]['_named_person'] = orig.get(c['id']) or ''
     return [fixed.get(r['id'], r) for r in rows], ch
 
 
