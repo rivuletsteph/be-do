@@ -403,7 +403,12 @@ def _gap_fill(g, t, mins, off, at, inside, before, after, ctx):
     if not (at or inside):
         return None
     src = src or SRC['rule'] + ' (fill a stretch from what you logged in it)'
-    what = f'at {_t(at)}' if at else f'{_t(inside[0])}'
+    # a stretch is never named for one short thing in it (3 Nov 2026, her words: the morning book? that takes
+    # about 2 mins to read and 1 min to upload): it is time she didn't log, and what she did log in it keeps its
+    # own row and its own time; the title lists them
+    def short(r):
+        return re.sub(r'\s*[—;(].*$', '', _t(r)).strip()
+    what = f'at {_t(at)}' if at else 'unlogged time — ' + ', '.join(dict.fromkeys(short(r) for r in inside[:3]))
     new = {'datetime': _z(g), 'end': _z(t), 'status': FACTS['status']['logs'][0], 'practice': LOG_PRACTICE,
            'title': f'{LOG_PRACTICE.split(" ")[0]} {what} (estimated)',
            'details': f'{DIVIDER}\n[be•do] {EST}: not logged by her. Clues: ' + '; '.join(clues) + '.'}
