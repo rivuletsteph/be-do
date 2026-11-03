@@ -295,7 +295,7 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
         b = clock(today, e.get('end')) or a + dt.timedelta(hours=1)
         summ = e.get('summary') or ''
         items.append(dict(k='event', t=e.get('title') or summ, a=hm(a), b=hm(b), drive=e.get('drive'), who=e.get('who'),
-                          done=summ.startswith('✅'), link=e.get('link'), cat='event',
+                          done=summ.startswith(('✅', '✔')), link=e.get('link'), cat='event',
                           summary=summ, where=e.get('where') or None, color=e.get('color')))
         if e.get('link'):
             links.add(e['link'].split('&')[0])
