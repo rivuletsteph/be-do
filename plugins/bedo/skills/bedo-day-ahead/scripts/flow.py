@@ -334,7 +334,10 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
         real = end and to(end) > a and to(end) - a <= dt.timedelta(hours=6)
         b = to(end) if real else a + dt.timedelta(minutes=10)
         items.append(dict(k='lived', t=t, a=hm(a), b=hm(b), drive=rh, done=True, cat=kind_of(c, F, flows, C),
-                          act=st == '✅ done', pt=not real))   # an action she finished, drawn with its green check (2 Nov 2026)
+                          act=st == '✅ done', pt=not real,
+                          # a feeling or a keeper photo marks what mattered (2 Nov 2026): it stays when the hour folds
+                          felt=bool(F.get('emotion') and c.get(F['emotion'])),
+                          keeper=bool(F.get('photo') and 'keeper' in str(c.get(F['photo']) or ''))))   # an action she finished, drawn with its green check (2 Nov 2026)
     return sorted(items, key=lambda x: (x['a'], x['k'] != 'event'))
 
 

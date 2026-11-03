@@ -441,9 +441,10 @@ function intention(blocks){
     .map(s=>({t:s.a.t,drive:s.on.trim(),sz:s.a.sz,nx:s.a.nx||null,c:s.c}));
   const all=late.concat(rest), hmz=m=>m>=60?`${Math.floor(m/60)} h${m%60?' '+(m%60)+' min':''}`:`${m} min`;
   if(!all.length){ el.innerHTML=''; return; }
-  const free=`<p class="how">the calendar above holds what fits today; these wait for a time</p>`;
-  el.innerHTML=`<h2>not on today's calendar</h2>${free}<ul class="nf">${all.map((s,i)=>{ const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===s.drive||(s.drive||'').endsWith(r.n));
-    return `<li data-n="${i}" style="--dc:${col((d&&d.c)||s.c)}"><span class="st">${esc(nt(s.t))}</span><small>${i<late.length?'doesn\'t fit today · ':''}${esc(s.drive||'')}${s.sz?' · about '+hmz(s.sz):''}</small></li>`; }).join('')}</ul>`;
+  const over_=new Date().toLocaleDateString('en-CA')>D.day;
+  const free=`<p class="how">${over_?'the day is over; these were open at its end and wait for a time':'the calendar above holds what fits today; these wait for a time'}</p>`;
+  el.innerHTML=`<h2>${over_?'still open':'not on today\'s calendar'}</h2>${free}<ul class="nf">${all.map((s,i)=>{ const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===s.drive||(s.drive||'').endsWith(r.n));
+    return `<li data-n="${i}" style="--dc:${col((d&&d.c)||s.c)}"><span class="st">${esc(nt(s.t))}</span><small>${i<late.length?(over_?'didn\'t happen · ':'doesn\'t fit today · '):''}${esc(s.drive||'')}${s.sz?' · about '+hmz(s.sz):''}</small></li>`; }).join('')}</ul>`;
   el.querySelectorAll('.nf li').forEach(li=>li.onclick=()=>{ const s=all[+li.dataset.n]; const x=s.x||{k:'step',t:s.t,drive:(s.drive||'').replace(/^\S+\s/,''),nx:s.nx,s:0,e:s.sz||0};
     sheet(Object.assign({},x,{s:x.s||0})); });
 }
@@ -475,8 +476,10 @@ function today(){
   /* once an hour has passed it folds to what mattered (2 Nov 2026, her words: condensed after that hour passes;
      I want to see the highlights or glimmers or the big accomplishments, but BM and morning water don't need to
      show unless I expand it): a finished action, an event, a moment (highlight, glimmer, noticing, dream, journal,
-     gratitude) stays; the routine folds behind 'show everything' */
-  const big=x=>x.act||x.k==='event'||x.cat==='moment'||/^(⭐|✨|🌟|👁|💭|📒|🙏|🪨|📗)/.test(x.t||'');
+     gratitude) stays; the routine folds behind 'show everything'. Anything that took ten minutes or more stays too
+     (3 Nov 2026, her words: the goal is to show how I spent my time, and there's a lot of gaps, especially at the
+     end of the day): only the instant blips fold */
+  const big=x=>x.act||x.felt||x.keeper||(!x.pt&&x.e-x.s>=10)||x.k==='event'||x.cat==='moment'||/^(⭐|✨|🌟|👁|💭|📒|🙏|🪨|📗)/.test(x.t||'');
   const pastAll=all.filter(x=>(x.k==='lived'||over(x))&&!bands.includes(x)).sort((x,y)=>x.s-y.s);
   const past=window.__showall?pastAll:pastAll.filter(big), folded=pastAll.length-past.length;
   past.forEach((x,i)=>{ if(x.pt){ const nx=past.slice(i+1).find(o=>o.s>x.s); if(nx) x.e=Math.max(x.s+1,Math.min(x.e,nx.s)); } });
@@ -497,7 +500,9 @@ function today(){
      fit on my calendar; it would be nice to show what doesn't fit): a step pushed past the evening's end
      comes off the calendar and goes to the list under it */
   const END=(D.day_end?min(D.day_end):21*60); window.__nofit=[];
-  for(let i=its.length-1;i>=0;i--){ const x=its[i]; if(x.k==='step'&&!x.done&&!x.beside&&x.e>END){ window.__nofit.unshift(x); its.splice(i,1); } }
+  /* a day already over keeps no open step on its clock (3 Nov 2026): what she didn't get to waits in the list */
+  const closed=now.toLocaleDateString('en-CA')>D.day;
+  for(let i=its.length-1;i>=0;i--){ const x=its[i]; if(x.k==='step'&&!x.done&&(closed||(!x.beside&&x.e>END))){ window.__nofit.unshift(x); its.splice(i,1); } }
   const h0=Math.max(0,Math.floor(Math.min(...all.map(x=>x.s),...its.map(x=>x.s),nowM??1e9)/60)), h1=Math.min(24,Math.ceil(Math.max(...all.map(x=>x.e),...its.map(x=>x.e),(nowM??0)+30)/60));
   /* a stretched clock (2 Nov 2026, her words: lengthen the calendar so all these things fit on it, and make
      things not overlap, cuz that is confusing): an hour is at least 72px, and a stretch of time grows until
