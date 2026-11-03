@@ -314,7 +314,7 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
                     GROW[wk].update(ms)
                 ENERGY_ROWS[wk][t] = ENERGY_ROWS[wk].get(t, 0) + len(ms)
                 # time with somebody counts toward heart too, whatever else it was, as on the week page
-                # (recuslRBZxZyJj9eF, 19 Oct 2026; 3 Nov 2026, her words: I feel like it was a pretty balanced full
+                # (the 19 Oct 2026 rule; 3 Nov 2026, her words: I feel like it was a pretty balanced full
                 # day ... the wellness wheel should reflect that). A minute counts once in heart however many
                 # people; the row keeps its own kind, and heart feeds the wheel, not the being total.
                 named = r['_named_person'] if '_named_person' in r else r.get('person')   # never company filled in
