@@ -179,6 +179,21 @@ html[data-bedo="night"] .td{--k-flow-d:#BDB3A6;--k-eat-d:#C4E6D4;--k-move-d:#DCE
 .key2 i{display:inline-block;width:16px;height:11px;border-radius:3px}
 .cal .now{position:absolute;left:-5px;right:0;border-top:2px solid var(--c-clay,#c0392b);z-index:3}
 .cal .now:before{content:"";position:absolute;left:-1px;top:-6px;width:10px;height:10px;border-radius:50%;background:var(--c-clay,#c0392b)}
+.wh{margin-top:34px}
+.wh .wrap{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:18px;align-items:start}
+.wh svg{width:100%;height:auto;display:block}
+.wh .wk{cursor:pointer}.wh .dim{opacity:.18}
+.wh .lg{display:grid;gap:2px;font-size:13px}
+.wh .lr{display:grid;grid-template-columns:14px 4.2rem minmax(0,1fr) 2.6rem;gap:8px;align-items:center;padding:3px 0;cursor:pointer}
+.wh .lr i{width:12px;height:12px;border-radius:3px}
+.wh .lr .f{color:var(--muted);font-size:12px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.wh .lr .v{font:500 12px var(--mono);text-align:right}
+.wh .lr.z{opacity:.45}
+.wh .ents{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:3px;font-size:13px}
+.wh .ents b{font:500 11px var(--mono);color:var(--faint);display:inline-block;min-width:3.2rem}
+.wh .wrows{margin-top:10px}.wh .wrows summary{cursor:pointer;font-size:13px;color:var(--muted)}
+.wh .none{color:var(--muted);font-size:13px}
+@media (max-width:620px){.wh .wrap{grid-template-columns:1fr}.wh svg{max-width:300px;margin:0 auto}}
 </style>
 </head>
 <body>
@@ -196,6 +211,7 @@ html[data-bedo="night"] .td{--k-flow-d:#BDB3A6;--k-eat-d:#C4E6D4;--k-move-d:#DCE
 <div class="sum" id="sum"></div>
 <p class="hint">each list runs from the easiest next step · tap anything on the flow to follow it · tap again to see all</p></div>
 <div class="focus" id="focus" hidden></div>
+<section class="wh" id="wheel"></section>
 </main>
 <script>/*BFJS*/</script>
 <script>
@@ -577,7 +593,52 @@ function sheet(x){
 document.addEventListener('click',e=>{ if(e.target.closest('#sheet')) return; const c=e.target.closest('#today .cal .ev');
   const s=document.getElementById('sheet'); if(!c){ if(s) s.classList.remove('on'); return; }
   if(e.target.closest('a')) return; const x=(window.__cards||[])[+c.dataset.c]; if(x) sheet(x); });
-function draw(){ today(); card(); const b=shape(); lists(b); intention(b); flow(b); }
+/* the wellness wheel at the bottom, built through the day (3 Nov 2026, her words: I would like to see the
+   wellness wheel at the bottom ... built throughout the day). Today's lived rows so far, each under its
+   element; every rebuild of the page adds to it. Drawn as the look behind draws it: be to the left, do to
+   the right, each mirrored pair one line through the centre. Tap an element for the rows that made it. */
+const WDOM={heart:{c:"#3E7FD0",d:"#245693",a:247.5,f:"connection · love · care"},water:{c:"#9BC4F5",d:"#4C95ED",a:67.5,f:"connecting · advocacy · community"},
+ mind:{c:"#BE4A88",d:"#822F5C",a:292.5,f:"thinking · planning · learning"},air:{c:"#F49CC8",d:"#EB4E9D",a:112.5,f:"systems · technical · digital"},
+ body:{c:"#4E9E62",d:"#31643E",a:202.5,f:"health · movement · rest"},earth:{c:"#97D8A3",d:"#58C06B",a:22.5,f:"tending · maintaining · admin"},
+ spirit:{c:"#EFA038",d:"#C17410",a:337.5,f:"meaning · values · joy"},fire:{c:"#F7CE72",d:"#F2B120",a:157.5,f:"creating · transforming · play"}};
+const WPAIRS=[["body","earth"],["heart","water"],["mind","air"],["spirit","fire"]];
+let WF='';
+const wt=h=>{const [a,b]=h.split(':').map(Number);return `${a%12||12}:${String(b).padStart(2,'0')}${a<12?'a':'p'}`;};
+function wheel(){
+  const el=document.getElementById('wheel'), W=D.wheel;
+  const head=`<h2 class="ftitle">☸️ Today's wheel, so far</h2>`;
+  if(!W){ el.innerHTML=head+`<p class="none">no lived rows with a wellness element yet today</p>`; return; }
+  const ink=k=>WDOM[k][document.documentElement.getAttribute('data-bedo')==='night'?'c':'d'];
+  const B=W.domains, tot=Object.values(B).reduce((a,b)=>a+b,0);
+  if(!tot){ el.innerHTML=head+`<p class="none">nothing lived on the wheel yet today · it fills as the day's rows are written</p>`; return; }
+  const cx=150,cy=130,w=13,R0=12,RO=98, shMax=Math.max(...Object.values(B))/tot, TOP=Math.max(.3,Math.ceil(shMax*10)/10);
+  const rOf=sh=>R0+(RO-R0)*Math.min(sh,TOP*1.12)/TOP;
+  const pt=(deg,r)=>{const t=deg*Math.PI/180;return[(cx+r*Math.sin(t)).toFixed(1),(cy-r*Math.cos(t)).toFixed(1)];};
+  let g=`<svg viewBox="0 0 300 260" role="img" aria-label="today's eight elements so far, being on the left, doing on the right">`
+   +`<circle cx="${cx}" cy="${cy}" r="${RO}" fill="none" stroke="${cv('--rule')}" stroke-dasharray="1 5" stroke-linecap="round"/>`
+   +Array.from({length:Math.round(TOP*10)-1},(_,i)=>(i+1)/10).map(f=>`<circle cx="${cx}" cy="${cy}" r="${rOf(f).toFixed(1)}" fill="none" stroke="${cv('--faint')}" stroke-opacity=".45" stroke-width=".8" stroke-dasharray="1 4"/>`).join('')
+   +`<line x1="${cx}" y1="32" x2="${cx}" y2="228" stroke="${cv('--rule')}"/>`
+   +`<text x="4" y="134" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="${cv('--muted')}" letter-spacing=".14em">BE</text>`
+   +`<text x="296" y="134" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="${cv('--muted')}" letter-spacing=".14em">DO</text>`;
+  for(const k of Object.keys(WDOM).sort((x,y)=>B[y]-B[x])){ const v=B[k]||0; if(!v) continue;
+    const L=Math.max(rOf(v/tot)-(w+5)/2,.01), [x,y]=pt(WDOM[k].a,L), dim=WF&&WF!==k?' dim':'';
+    g+=`<line class="wk${dim}" data-k="${k}" x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${WDOM[k].d}" stroke-width="${w+5}" stroke-linecap="round"/>`
+     +`<line class="wk${dim}" data-k="${k}" x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${WDOM[k].c}" stroke-width="${w}" stroke-linecap="round"><title>${k} ${Math.round(v/tot*100)}%</title></line>`; }
+  g+=`<circle cx="${cx}" cy="${cy}" r="8" fill="${cv('--card')}" stroke="${cv('--rule')}"/>`;
+  for(const k in WDOM){ const [x,y]=pt(WDOM[k].a,114); g+=`<text class="wk" data-k="${k}" x="${x}" y="${(+y+4).toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="600" fill="${ink(k)}">${k}</text>`; }
+  g+=`</svg>`;
+  let lg='<div class="lg">';
+  for(const [be,dv] of WPAIRS) for(const k of [be,dv]){ const v=B[k]||0;
+    lg+=`<div class="lr wk${v?'':' z'}${WF&&WF!==k?' dim':''}" data-k="${k}"><i style="background:${WDOM[k].c};border:1.5px solid ${WDOM[k].d}"></i><span style="color:${ink(k)};font-weight:600">${k}</span><span class="f">${WDOM[k].f}</span><span class="v">${Math.round(v/tot*100)}%</span></div>`; }
+  lg+='</div>';
+  const es=(W.entries||[]).filter(e=>!WF||e.k===WF);
+  const ents=`<details class="wrows"${WF?' open':''}><summary>${WF?`${esc(WF)} · ${es.length} ${es.length===1?'row':'rows'}`:`the ${es.length} rows that made it`}</summary><ul class="ents">${es.map(e=>`<li><b>${wt(e.at)}</b><span style="color:${WDOM[e.k].c}">●</span> ${esc(e.t)}</li>`).join('')}</ul></details>`;
+  el.innerHTML=head+`<p class="fsub">today's lived rows so far, each under its wellness element · it fills as the day goes · tap an element for its rows${WF?` · <a href="#" id="wclr">show all</a>`:''}</p>`
+   +`<div class="card"><div class="wrap">${g}<div>${lg}${ents}</div></div></div>`;
+  el.querySelectorAll('.wk').forEach(n=>n.addEventListener('click',()=>{WF=WF===n.dataset.k?'':n.dataset.k;wheel();}));
+  const c=document.getElementById('wclr'); if(c) c.onclick=e=>{e.preventDefault();WF='';wheel();};
+}
+function draw(){ today(); card(); const b=shape(); lists(b); intention(b); flow(b); wheel(); }
 document.addEventListener('bedo-theme',draw);
 draw();
 </script>

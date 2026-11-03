@@ -78,6 +78,9 @@ if [ "$MODE" = prep ]; then
   git clone -q --depth 1 https://github.com/rivuletsteph/be-do be-do-main
   S=be-do-main/plugins/bedo/skills
   rm -rf scripts && cp -r $S/bedo-day-ahead/scripts . && cp $S/bedo-day-ahead/assets/day_ahead_engine.html .
+  # the flow page (the day's my day page): its engine and the base-flow card it draws
+  rm -rf assets && mkdir -p assets && cp $S/bedo-day-ahead/assets/flow_engine.html assets/ \
+    && cp -r be-do-main/plugins/bedo/assets/base-flow assets/
   cp $S/bedo-look-behind/scripts/bedo_fetch.py scripts/     # the Airtable reader lives with the look behind
   cp be-do-main/plugins/bedo/core/*.py be-do-main/plugins/bedo/core/facts.json scripts/   # the one reader (I11 I15 I5)
   # an escape hatch: anything in overlay/ wins over the version store for this run
@@ -115,8 +118,15 @@ elif [ "$MODE" = build ]; then
   "$PY" scripts/day_ahead.py --today "$DAY" --local day_ahead_local.json $STREAMS \
     --rhythms data/rhythms.json --calendar cal.json --template day_ahead_engine.html \
     --out "$DAY-day-ahead.html" "${SEC_ARGS[@]}" "$@"
+  # the day's my day page is the flow page (since 2 Nov 2026): built from the day ahead just written,
+  # with the three passed on as its starred picks. This is the page that gets published.
+  PICKS=(); prev=""; for a in "$@"; do [ "$prev" = --pick ] && PICKS+=(--pick "$a"); prev=$a; done
+  BEH=(); [ -d behind ] && BEH=(--behind behind)
+  "$PY" scripts/flow.py --day-ahead "$DAY-day-ahead.html" --local day_ahead_local.json \
+    --out "$DAY-myday.html" "${BEH[@]}" "${PICKS[@]}"
+  echo "publish: $DAY-myday.html (the flow page) to page.url above"
   OUT=${LB_OUT:-/mnt/user-data/outputs}
-  if mkdir -p "$OUT" 2>/dev/null; then cp "$DAY-day-ahead.html" "$OUT/"
+  if mkdir -p "$OUT" 2>/dev/null; then cp "$DAY-day-ahead.html" "$DAY-myday.html" "$OUT/"
     echo "also copied to $OUT/"; fi
 else
   echo "usage: run_day_ahead.sh prep|cal|fetch|build YYYY-MM-DD [secure] [builder args…]"; exit 2
