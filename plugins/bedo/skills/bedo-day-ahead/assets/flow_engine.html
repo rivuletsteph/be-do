@@ -179,6 +179,23 @@ html[data-bedo="night"] .td{--k-flow-d:#BDB3A6;--k-eat-d:#C4E6D4;--k-move-d:#DCE
 .key2 i{display:inline-block;width:16px;height:11px;border-radius:3px}
 .cal .now{position:absolute;left:-5px;right:0;border-top:2px solid var(--c-clay,#c0392b);z-index:3}
 .cal .now:before{content:"";position:absolute;left:-1px;top:-6px;width:10px;height:10px;border-radius:50%;background:var(--c-clay,#c0392b)}
+/* the wellness wheel card, the week page's own (3 Nov 2026) */
+.wl .bh{margin:8px 0 0;font:600 .68rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.wl .bh span{font:500 .72rem var(--mono);letter-spacing:0;text-transform:none;margin-left:6px}
+.wl .energy{margin:26px 0 4px}.wl .ewheel{width:100%;max-width:400px;height:auto;display:block;margin:4px auto 10px}
+.wl .elegend{display:grid;gap:6px;padding-left:6px}.wl .epair{border-left:3px solid;padding:2px 0 2px 10px;display:grid;gap:3px}
+.wl .erow{display:grid;grid-template-columns:18px 52px 1fr auto;gap:8px;align-items:baseline;font-size:.8rem}
+.wl .erow svg{width:15px!important;height:15px!important;display:block}.wl .enm{font-weight:700}.wl .edf{color:var(--soft);line-height:1.35}.wl .ev{font:500 .78rem var(--mono);color:var(--ink);white-space:nowrap}
+.wl .enote{margin:10px 0 0;font-size:.76rem;color:var(--muted);line-height:1.45}
+.wl .vline{margin:2px 0 10px;font:700 1.06rem/1.35 var(--sans);color:var(--ink);text-wrap:balance}
+.wl .emore summary{cursor:pointer;font-size:.82rem;font-weight:600;color:var(--link);padding:4px 0}
+.wl .balbar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:8px 0 6px}.wl .balbar span{display:block;height:100%}
+.wl .ballab{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin:0;font:600 .86rem var(--sans)}
+.wl .ballab i{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 3px 0 8px}.wl .ballab b{font-weight:800}
+.wl{margin:18px 0 0;background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:14px 16px 16px}
+.wl h2{font:italic 600 22px/1.2 var(--serif,Georgia,serif);color:var(--accent,var(--ink));margin:0 0 2px}
+.wl .edf{color:var(--muted)}
+.wl .emore summary{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -196,6 +213,7 @@ html[data-bedo="night"] .td{--k-flow-d:#BDB3A6;--k-eat-d:#C4E6D4;--k-move-d:#DCE
 <div class="sum" id="sum"></div>
 <p class="hint">each list runs from the easiest next step · tap anything on the flow to follow it · tap again to see all</p></div>
 <div class="focus" id="focus" hidden></div>
+<section class="wl" id="wheelcard" hidden></section>
 </main>
 <script>/*BFJS*/</script>
 <script>
@@ -580,6 +598,85 @@ document.addEventListener('click',e=>{ if(e.target.closest('#sheet')) return; co
 function draw(){ today(); card(); const b=shape(); lists(b); intention(b); flow(b); }
 document.addEventListener('bedo-theme',draw);
 draw();
+</script>
+<script>
+/* the wellness wheel card (3 Nov 2026, her words: can we add the wellness wheel card for Monday? that can go at
+   the bottom): the week page's where-my-energy-went card, drawn as it is there, from the day page's own numbers */
+(()=>{ if(!D.energy) return; const hm=m=>{m=Math.round(m); return m<60?`${m} min`:`${Math.floor(m/60)} h${m%60?' '+m%60:''}`;};
+const EDOM = {
+  heart: {c: "#3E7C7D", d: "#2A5A5B", a: 247.5, f: "connection · love · care", w: "connection"},
+  water: {c: "#93C3C1", d: "#4F8A8B", a: 67.5, f: "connecting · advocacy · community", w: "connecting"},
+  mind: {c: "#7A6191", d: "#564369", a: 292.5, f: "thinking · planning · learning", w: "thinking"},
+  air: {c: "#C3AFD3", d: "#8C74A3", a: 112.5, f: "systems · technical · digital", w: "systems"},
+  body: {c: "#5D8A66", d: "#41644A", a: 202.5, f: "health · movement · rest", w: "health and movement"},
+  earth: {c: "#AFCAA6", d: "#6F9A6A", a: 22.5, f: "tending · maintaining · admin", w: "tending"},
+  spirit: {c: "#B7832F", d: "#87601F", a: 337.5, f: "meaning · values · joy", w: "meaning"},
+  fire: {c: "#E6BE78", d: "#C29440", a: 157.5, f: "creating · transforming · play", w: "creating"}};
+// one plain sentence on top of each view, written from the numbers (1 Nov 2026, her pick from the mockup)
+const balLine = (M, be, doing) => {
+  const ks = Object.keys(EDOM).sort((x, y) => (M[y] || 0) - (M[x] || 0)), tot = Object.values(M).reduce((a, b) => a + b, 0) || 1;
+  const two = ((M[ks[1]] || 0) - (M[ks[2]] || 0)) / tot >= 0.03;     // name the second only when it stands clear of the third
+  const led = two ? `${ks[0][0].toUpperCase() + ks[0].slice(1)} and ${ks[1]} led: ${EDOM[ks[0]].w} and ${EDOM[ks[1]].w}.`
+    : `${ks[0][0].toUpperCase() + ks[0].slice(1)} led: ${EDOM[ks[0]].w}.`;
+  const tilt = doing > be ? ` More doing than being, ${doing} to ${be}.` : be > doing ? ` More being than doing, ${be} to ${doing}.` : " Being and doing even.";
+  return led + tilt;
+};
+const EICON = {
+  heart: `<path d="M10 17.2 3.4 10.8A3.9 3.9 0 0 1 10 5.6a3.9 3.9 0 0 1 6.6 5.2Z"/>`,
+  water: `<path d="M2 8.5c2-2.2 4-2.2 6 0s4 2.2 6 0 3-1.4 4-1M2 13.5c2-2.2 4-2.2 6 0s4 2.2 6 0 3-1.4 4-1" fill="none" stroke-width="2.2" stroke-linecap="round"/>`,
+  mind: `<path d="M10 3.2c-1.6-1-3.8-.3-4.3 1.5-2 .1-3 2.2-2.1 3.8-1.2 1.3-.8 3.6 1 4.2.1 2 2.2 3.1 3.9 2.2.6.9 1.5 1.3 1.5 1.3s.9-.4 1.5-1.3c1.7.9 3.8-.2 3.9-2.2 1.8-.6 2.2-2.9 1-4.2.9-1.6-.1-3.7-2.1-3.8C13.8 2.9 11.6 2.2 10 3.2Z"/><path d="M10 3.4v12.8" fill="none" stroke-width="1.2"/>`,
+  air: `<path d="M2 7.5h9.5a2.5 2.5 0 1 0-2.4-3.2M2 11h13.5a2.5 2.5 0 1 1-2.4 3.2M2 14.5h6" fill="none" stroke-width="2.2" stroke-linecap="round"/>`,
+  body: `<circle cx="10" cy="3.8" r="2.2"/><path d="M4 7.8 10 9l6-1.2M10 9v3.6M10 12.6 6.2 17.4M10 12.6l3.8 4.8" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`,
+  earth: `<circle cx="10" cy="10" r="7.4"/><path d="M2.8 10h14.4M10 2.6c-2.6 2.2-2.6 12.6 0 14.8M10 2.6c2.6 2.2 2.6 12.6 0 14.8" fill="none" stroke-width="1.1"/>`,
+  spirit: `<path d="M10 1.8 11.9 8.1 18.2 10 11.9 11.9 10 18.2 8.1 11.9 1.8 10 8.1 8.1Z"/>`,
+  fire: `<path d="M10 18.2c-3.6 0-6-2.4-6-5.6 0-2.6 1.7-4.2 3-5.8.2 1.4.9 2.4 1.8 2.8C8.4 6.4 9.9 3.8 12.2 1.8c-.2 2.6.8 4.2 2 5.8 1 1.4 1.8 2.9 1.8 5 0 3.2-2.4 5.6-6 5.6Z"/>`};
+const energyCard = E => {
+  // balance, the original card (13 Sep and 25 Sep 2026), in plain minutes (1 Nov 2026, her pick): BE and DO, doing
+  // split into tending and growing, then the wheel and its legend as they were
+  const M = E.min || {}, tot = Object.values(M).reduce((a, b) => a + b, 0);
+  if (!tot) return "";
+  const all = (E.be || 0) + (E.tending || 0) + (E.growing || 0) || 1;
+  const parts = [E.be || 0, E.tending || 0, E.growing || 0].map(v => v / all * 100), fl = parts.map(Math.floor);
+  let left = 100 - fl.reduce((a, b) => a + b, 0);
+  parts.map((v, i) => [v - fl[i], i]).sort((a, b) => b[0] - a[0]).slice(0, left).forEach(([, i]) => fl[i]++);
+  const [pb, pt, pg] = fl;
+  const bar = `<div class="balbar"><span style="width:${pb}%;background:#4F8A8B"></span><span style="width:${pt}%;background:#D4A055"></span>` +
+    `<span style="width:${pg}%;background:#BE5B50"></span></div><p class="ballab"><span style="color:#3E6E6F">BE <b>${pb}</b></span>` +
+    `<span style="color:#A04A40">DO <b>${pt + pg}</b> <i style="background:#D4A055"></i>tending <b>${pt}</b> <i style="background:#BE5B50"></i>growing <b>${pg}</b></span></p>`;
+  const cx = 150, cy = 130, w = 13, shMax = Math.max(...Object.values(M)) / tot, TOP = Math.max(0.3, Math.ceil(shMax * 10) / 10);
+  const R0 = 12, RO = 98, rOf = sh => R0 + (RO - R0) * Math.min(sh, TOP * 1.12) / TOP;
+  const wpt = (deg, r) => { const t = deg * Math.PI / 180; return [(cx + r * Math.sin(t)).toFixed(1), (cy - r * Math.cos(t)).toFixed(1)]; };
+  const pct = k => Math.round((M[k] || 0) / tot * 100);
+  const tip = k => `${k} · ${pct(k)}% · ${hm(M[k] || 0)}${(E.rows[k] || []).length ? " · " + E.rows[k].join("; ") : ""}`;
+  let svg = `<svg class="ewheel" viewBox="0 0 300 260" role="img" aria-label="the eight domains, being on the left, doing on the right">` +
+    `<circle cx="${cx}" cy="${cy}" r="98" fill="none" stroke="var(--rule)" stroke-width="1" stroke-dasharray="1 5" stroke-linecap="round"/>` +
+    Array.from({length: Math.round(TOP * 10) - 1}, (_, i) => (i + 1) / 10).map(f => `<circle cx="${cx}" cy="${cy}" r="${rOf(f).toFixed(1)}" fill="none" stroke="var(--faint)" stroke-opacity=".45" stroke-width=".8" stroke-dasharray="1 4" stroke-linecap="round"/>`).join("") +
+    `<line x1="${cx}" y1="32" x2="${cx}" y2="228" stroke="var(--rule)" stroke-width="1"/>` +
+    `<text x="4" y="134" style="font:800 11px var(--sans);letter-spacing:.14em;fill:#3E6E6F">BE</text>` +
+    `<text x="296" y="134" text-anchor="end" style="font:800 11px var(--sans);letter-spacing:.14em;fill:#A04A40">DO</text>`;
+  Object.keys(EDOM).sort((x, y) => (M[y] || 0) - (M[x] || 0)).forEach(k => {
+    const cap = (w + 5) / 2, L = Math.max(rOf((M[k] || 0) / tot) - cap, 0.01), [x, y] = wpt(EDOM[k].a, L);
+    svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${EDOM[k].d}" stroke-width="${w + 5}" stroke-linecap="round"/>` +
+      `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${EDOM[k].c}" stroke-width="${w}" stroke-linecap="round"><title>${esc(tip(k))}</title></line>`; });
+  svg += `<defs><radialGradient id="dwarf"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F5ECE8"/></radialGradient>` +
+    `<radialGradient id="halo"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".95"/><stop offset=".35" stop-color="#F8F2EF" stop-opacity=".55"/><stop offset="1" stop-color="#ECDDD8" stop-opacity="0"/></radialGradient></defs>` +
+    `<circle cx="${cx}" cy="${cy}" r="24" fill="url(#halo)"/><circle cx="${cx}" cy="${cy}" r="8" fill="url(#dwarf)" stroke="var(--rule)" stroke-width=".8"/>`;
+  for (const k in EDOM) { const [x, y] = wpt(EDOM[k].a, 114);
+    svg += `<g transform="translate(${(x - 8.5).toFixed(1)} ${(y - 8.5).toFixed(1)}) scale(.85)" fill="${EDOM[k].c}" stroke="${EDOM[k].d}" stroke-width="1" stroke-linejoin="round"><title>${esc(tip(k))}</title>${EICON[k]}</g>`; }
+  svg += `</svg>`;
+  const icon = k => `<svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" style="overflow:visible"><g fill="${EDOM[k].c}" stroke="${EDOM[k].d}" stroke-width="1" stroke-linejoin="round">${EICON[k]}</g></svg>`;
+  const PAIRS = [["body", "earth"], ["heart", "water"], ["mind", "air"], ["spirit", "fire"]];
+  // the legend: the top four, the rest a tap away (1 Nov 2026, her pick from the mockup)
+  const lrow = k => `<div class="erow" title="${esc(tip(k))}"><span>${icon(k)}</span><span class="enm" style="color:${EDOM[k].d}">${k}</span>` +
+    `<span class="edf">${EDOM[k].f}</span><span class="ev">${pct(k)}%</span></div>`;
+  const ranked = Object.keys(EDOM).sort((x, y) => (M[y] || 0) - (M[x] || 0));
+  const leg = ranked.slice(0, 4).map(lrow).join("") + `<details class="emore"><summary>show all eight</summary>${ranked.slice(4).map(lrow).join("")}</details>`;
+  return `<div class="energy"><p class="bh">balance</p><p class="vline">${esc(balLine(M, pb, pt + pg))}</p>${bar}<p class="enote">Sleep, plans and someone else's own rows count zero. Plain minutes: every row ` +
+    `with a real span counts its minutes; a moment counts five.</p>${svg}<p class="enote" style="text-align:center">rings every 10% of the day · ` +
+    `the outer ring is ${Math.round(TOP * 100)}%</p><div class="elegend">${leg}</div></div>`;
+};
+const el=document.getElementById('wheelcard'); const html=energyCard(D.energy); if(!html) return;
+el.innerHTML=`<h2>the wellness wheel</h2>`+html; el.hidden=false; })();
 </script>
 </body>
 </html>
