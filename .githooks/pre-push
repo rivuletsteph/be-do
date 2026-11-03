@@ -1,5 +1,10 @@
 #!/bin/sh
 # Refuses a push that would put anything personal into this public repo.
 # Turn it on once per clone:  git config core.hooksPath .githooks
-python3 tools/privacy_check.py || { echo "privacy check failed — nothing was pushed"; exit 1; }
-python3 tools/privacy_check.py --diff origin/main || { echo "privacy check failed on the new commits — nothing was pushed"; exit 1; }
+# The first python that really runs: on Windows, python3 can be the Store
+# shortcut, which exists but runs nothing, and would block every push.
+for PY in python3 python; do "$PY" -c '' 2>/dev/null && break; PY=; done
+[ -n "$PY" ] || { echo "privacy check: no python found — nothing was pushed"; exit 1; }
+export PYTHONUTF8=1
+"$PY" tools/privacy_check.py || { echo "privacy check failed — nothing was pushed"; exit 1; }
+"$PY" tools/privacy_check.py --diff origin/main || { echo "privacy check failed on the new commits — nothing was pushed"; exit 1; }

@@ -16,7 +16,8 @@ Two kinds of hit:
       - STATIC: places, projects and handles from $BEDO_PRIVATE_TERMS (one per
         line; a repo secret in CI) or ~/.bedo/private_terms.txt.
   · patterns anyone's data has — Airtable ids, real email addresses, artifact,
-    Drive and Docs links, calendar ids.
+    Drive and Docs links, calendar ids, and location: Google place ids and
+    precise coordinates. A home address goes in the static list.
 
     python3 tools/privacy_check.py              # every tracked file, as it is now
     python3 tools/privacy_check.py --diff BASE  # lines added and commit messages since BASE
@@ -32,6 +33,11 @@ PATTERNS = [
     ('artifact link', re.compile(r'claude\.ai/(?:code/)?artifact/[\w-]{8,}')),
     ('drive or docs link', re.compile(r'(?:drive|docs)\.google\.com/\S+')),
     ('calendar event link', re.compile(r'google\.com/calendar/event\?eid=\w+')),
+    # where someone has been: a Google place id points at one exact spot, and a
+    # precise lat,lng pair or a Timeline E7 coordinate is a spot by itself
+    ('google place id', re.compile(r'\bChIJ[\w-]{20,}')),
+    ('coordinates', re.compile(r'(?<![\d.])-?[1-9]\d?\.\d{4,}\s*,\s*-?\d{2,3}\.\d{4,}\b')),
+    ('timeline coordinate', re.compile(r'\b(?:lat|lng|latitude|longitude)E7\"?\s*[:=]\s*-?\d{6,}')),
 ]
 # placeholders the tests and examples use on purpose
 ALLOW = re.compile(r'^(?:me|you|kid|fam|someone|user|name|example|test|noreply)@'
