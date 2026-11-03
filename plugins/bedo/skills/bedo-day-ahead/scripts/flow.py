@@ -425,6 +425,7 @@ def main():
     ap.add_argument('--day-ahead', required=True)
     ap.add_argument('--local', required=True)
     ap.add_argument('--behind')
+    ap.add_argument('--energy', help="the day page's wheel numbers (its DATA.rings.energy), for the wellness wheel card")
     ap.add_argument('--out', required=True)
     ap.add_argument('--pick', action='append', default=[],
                     help='"<row key or record id>::<why>" — be•do\'s three for today, starred on the calendar')
@@ -440,6 +441,8 @@ def main():
     rhythms_read = json.load(open(os.path.join(dd, 'rhythms.json'), encoding='utf-8'))['records']
     L['_picks'] = dict((p.split('::', 1) + [''])[:2] for p in a.pick)
     data = build(D, rows, rhythms_read, L, a.behind)
+    if a.energy:   # the wellness wheel card at the bottom (3 Nov 2026): the day page's own numbers, so the two agree
+        data['energy'] = json.load(open(a.energy, encoding='utf-8'))
     root = re.search(r':root\{[^}]*--c-moss[^}]*\}', h).group(0)
     night = re.search(r'html\[data-bedo="night"\]\{[^}]*\}', h).group(0)
     page = open(os.path.join(HERE, '..', 'assets', 'flow_engine.html'), encoding='utf-8').read()
