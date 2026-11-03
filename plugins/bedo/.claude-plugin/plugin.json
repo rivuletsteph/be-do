@@ -1,5 +1,5 @@
 {
   "name": "bedo",
-  "version": "1.2.0",
-  "description": "Builders for the be•do day pages: the day ahead, read forward from the stream and the calendars, and the day behind, read back over one finished day."
+  "version": "1.3.0",
+  "description": "Builders for the be•do day pages: the day ahead, read forward from the stream and the calendars, the day behind, read back over one finished day, and the morning paper, the day's news as a one-reader newspaper."
 }
