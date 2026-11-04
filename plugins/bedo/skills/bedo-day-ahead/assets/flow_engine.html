@@ -488,7 +488,7 @@ function today(){
   const all=S.map(x=>({...x,s:min(x.a),e:Math.max(min(x.b),min(x.a)+(x.k==='lived'?(x.pt?10:1):15))}));
   /* a long event, or a block of hers already done that holds other things (her prep window), is ground */
   /* her own meetings stay cards in their calendar colour (4 Nov 2026, her words: the precipitation check and the
-     Louisiana work are purple like on my calendar, but it seems to be missing the TIAER weekly): an event of hers
+     Louisiana work are purple like on my calendar, but it seems to be missing the work weekly): an event of hers
      is ground only at three hours or more (a party); someone else's long event (Greenhouse) still at two */
   const bands=all.filter(x=>(x.k==='event'&&x.e-x.s>=(x.who==='you'?180:120))||(x.k==='lived'&&x.act&&x.e-x.s>=60));
   /* what she has done stays where it happened; what's ahead is laid end to end from the clock */
