@@ -182,7 +182,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 - Defaults: the family bed (solo fortress only when she says) · hero's service is him asking how he can help and following through · good sport needs other people or animals — adults, other kids, a dog — never just family (25 Oct 2026) · the adventure means going somewhere · unobserved is unreported, not missed.
 - **Tablet or screen play never fills Digital Creation / Independence** — the tablet is a distraction, and what she cares about is initiative (25 Oct 2026; the slot itself is hers to revisit). Milk alone is not The Fuel's protein.
 - Friends physically here: the rules run loose; the 9 PM close holds. His pages speak to him.
-- **His quest page, on her word only** (2 Nov 2026): while she looks back on the day before, and only when she asks for it, the quest page is built from that day's ⚔️ row in the saved format (`plugins/bedo/assets/quest-day`, `quest_page.py`): written to him, the score and its money at the top, the big win as a trophy photo, at most one more photo beside a quest it proves. Read every line before she sees it.
+- **His quest page, every morning** (2 Nov 2026; every morning by her word, 4 Nov): it is built with every look behind, from that day's ⚔️ row, and the morning chat hands her the link, so she can go over it with him once he's rested — what went great, where he missed out, so he can correct it. It is built in the saved format (`plugins/bedo/assets/quest-day`, `quest_page.py`): written to him, the score and its money at the top, the big win as a trophy photo, at most one more photo beside a quest it proves. Read every line before she sees it.
 
 ## J14 · What's hers
 
@@ -224,7 +224,7 @@ installed copy is replaced by its loader, and costs nothing after.
 | 2 Nov · wellness follows the rhythm; an adventure gets its credit | `bedo_categorize` wellness (her `rhythm_wellness`); `bedo_dayaudit` intention and highlight |
 | 2 Nov · every chat's time in the QA | `bedo_dayaudit` chats, through `dayqa --sessions` |
 | 2 Nov · at most six photos, no near-duplicates | `bedo_photos.select`; `bedo_dayaudit` photos |
-| 2 Nov · the quest page on her word | `assets/quest-day/quest_page.py` |
+| 2 Nov · the quest page (every morning, 4 Nov) | `assets/quest-day/quest_page.py`, look behind step 5b, `bedo_preflight.quest_line` |
 | 1 Nov · Wednesday is money day | `bedo_categorize` money |
 | 1 Nov · a quiet topic is never raised | `quiet_topics` in her settings, dropped by `dayqa` and the audit |
 | 1 Nov · Sunday's turn to the week | `bedo_remaining.week_turn` |

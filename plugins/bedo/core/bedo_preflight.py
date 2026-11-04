@@ -154,6 +154,14 @@ def look_behind_url(local):
     return None
 
 
+def quest_line(local):
+    """His quest page, built with every look behind (her word, 4 Nov 2026): she goes over it with him
+    in the morning, once he's rested. `quest_url` in her settings; no line without it."""
+    url = local.get('quest_url')
+    return (f"quest  his quest page · {url} — built with yesterday's look behind; go over it with him "
+            "once he's rested (the page names its day)") if url else None
+
+
 LOG_HEAD = re.compile(r'^\[be\u2022do\] look behind (\d{4}-\d{2}-\d{2})(?:\s*\u00b7\s*(draft|final))?\s*$', re.M)
 
 
@@ -236,6 +244,8 @@ def report(local, names, rows, now=None, kind='day', part=None, week=None, hando
         lines.append(f'newest {(now - t).total_seconds() / 3600:.1f} h ago')
     if kind == 'day':
         lines.append(yesterday_line(day, look_behind_url(local), built))
+        if quest_line(local):
+            lines.append(quest_line(local))
     d = due(now_local)
     if d:
         lines.append(d)

@@ -87,7 +87,8 @@ CHECKS = {
     'dayaudit.photos': 'bedo_photos + bedo_dayaudit — at most six photos on the day page, one per moment',
     'quiet_topics': 'bedo_dayqa + bedo_dayaudit — a quiet topic in her settings is never raised',
     'remaining.week_turn': "bedo_remaining — on Sunday, once the dawn flow is through, the turn to the week",
-    'quest_page': "quest_page — the child's quest page (assets/quest-day), built on her word only",
+    'quest_page': "quest_page — the child's quest page (assets/quest-day), built with every look behind (4 Nov 2026)",
+    'preflight.quest': "bedo_preflight — the quest line: his quest page's link beside the look behind, every morning",
 }
 NOT_CODE = 'judgment'
 
