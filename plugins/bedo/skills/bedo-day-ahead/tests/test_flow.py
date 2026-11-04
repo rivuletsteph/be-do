@@ -100,8 +100,24 @@ def main():
     assert all(o['sz'] == flow.SESSION_MIN for o in sess[0]['list'])
     assert {x['t'] for x in out if not x.get('session')} == {'call the bank', 'walk the dog', 'dentist'}
     assert flow.sessions_of(items, []) == sorted(items, key=lambda x: (x['a'], x['k'] != 'event'))
+    # an event is drawn once: its own row and what happened inside it fold in, other calendars and moments do not
+    ev = lambda t, a, b, who='you': dict(k='event', t=t, a=a, b=b, who=who)
+    lv = lambda t, a, b, cat='move', links=None: dict(k='lived', t=t, a=a, b=b, cat=cat, links=links)
+    note = [dict(l='notes', u='https://example.org/notes')]
+    items = [ev('Yoga class', '09:00', '09:45'), lv('stretches, in yoga', '09:00', '09:45'),
+             lv('a glimmer at yoga', '09:05', '09:06', cat='moment'),
+             ev('Team call', '10:00', '10:45'), lv('🌱 team CALL', '10:00', '11:00', cat='work', links=note),
+             ev('Grandparents day', '08:30', '15:30', who='Kid'), lv('sun on the patio', '08:30', '08:40'),
+             lv('lunch', '12:00', '12:30', cat='eat')]
+    out = flow.fold_into_events(items)
+    yoga, call = out[0], out[3 - 1]
+    assert yoga['covers'] == ['stretches, in yoga'] and yoga['done'], yoga
+    assert call['t'] == 'Team call' and 'covers' not in call and call['links'] == note, call
+    assert {x['t'] for x in out} == {'Yoga class', 'a glimmer at yoga', 'Team call', 'Grandparents day',
+                                     'sun on the patio', 'lunch'}, [x['t'] for x in out]
     print('ok — balance is evenness, a goal is her first sentence, buffer counts what is late that morning, '
-          'the day holds her free hours, a size is a guess off the words, a session batches one kind at its time')
+          'the day holds her free hours, a size is a guess off the words, a session batches one kind at its time, '
+          'an event is drawn once with what it covered')
 
 
 if __name__ == '__main__':

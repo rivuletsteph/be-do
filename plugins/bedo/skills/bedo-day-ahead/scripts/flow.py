@@ -284,7 +284,7 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
     C = C or {}
     to = lambda ts: dt.datetime.fromisoformat(ts.replace('Z', '+00:00')) + off
     hm = lambda t: t.strftime('%H:%M')
-    items, links, own = [], set(), set()
+    items, links, own, owner = [], set(), set(), {}
     for e in (day_page or {}).get('events') or []:
         try:
             a = dt.datetime.fromisoformat(e['sort'])
@@ -300,7 +300,7 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
         if e.get('link'):
             links.add(e['link'].split('&')[0])
         if e.get('match'):
-            own.add(e['match'])
+            own.add(e['match']); owner[e['match']] = items[-1]
     for r in rows:
         c = r['cellValuesByFieldId']
         st = c.get(F['status']) or ''
@@ -311,6 +311,14 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
         if rh in hidden and not (C.get('system_rhythm') and rh == C['system_rhythm']):
             continue
         if title in own or (ev and ev.split('&')[0] in links):
+            # the event's own row is the event: its links ride on the event's card (4 Nov 2026, her words: I want
+            # to see the link to the notes, so I can click on it, like when I finish an action with a deliverable)
+            mine = owner.get(title) or next((x for x in items if x['k'] == 'event' and ev and x.get('link')
+                                             and x['link'].split('&')[0] == ev.split('&')[0]), None)
+            if mine is not None:
+                mine.setdefault('links', []).extend(links_of(c, F))
+                if st not in OPEN and _norm(title) != _norm(mine.get('t')):
+                    mine.setdefault('covers', []).append(re.sub(r'^⚡\s*', '', title))
             continue
         t = re.sub(r'^⚡\s*', '', title)
         end = c.get(F['end'])
@@ -343,11 +351,52 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
         real = end and to(end) > a and to(end) - a <= dt.timedelta(hours=6)
         b = to(end) if real else a + dt.timedelta(minutes=10)
         items.append(dict(k='lived', t=t, a=hm(a), b=hm(b), drive=rh, done=True, cat=kind_of(c, F, flows, C),
+                          links=links_of(c, F) or None,
                           act=st == '✅ done', pt=not real,
                           # a feeling or a keeper photo marks what mattered (2 Nov 2026): it stays when the hour folds
                           felt=bool(F.get('emotion') and c.get(F['emotion'])),
                           keeper=bool(F.get('photo') and 'keeper' in str(c.get(F['photo']) or ''))))   # an action she finished, drawn with its green check (2 Nov 2026)
-    return sorted(items, key=lambda x: (x['a'], x['k'] != 'event'))
+    return fold_into_events(sorted(items, key=lambda x: (x['a'], x['k'] != 'event')))
+
+
+def links_of(c, F):
+    """The row's deliverable as links: every url in the field, labelled by what it is."""
+    out = []
+    for u in re.findall(r'https?://[^\s)\]>"]+', (c.get(F['deliverable']) or '') if F.get('deliverable') else ''):
+        kind = ('notes' if re.search(r'loop|onenote|docs\.google|sharepoint|1drv|onedrive', u) else
+                'the page' if 'claude.ai' in u else 'deliverable')
+        out.append(dict(l=kind, u=u))
+    return out
+
+
+def _norm(t):
+    return re.sub(r'[^a-z0-9]+', '', (t or '').lower())
+
+
+def fold_into_events(items, start_min=10, end_min=5):
+    """An event is drawn once (4 Nov 2026, her words: Barre with Mel is on here twice … it only needs to show up as
+    one line, and then it can indicate that it covered my hip exercises practice; and for the ECON meeting: I only want
+    to see the calendar event). A lived row is folded into the event it belongs to — its own title, or a row that starts
+    within `start_min` of the event and ends with it — and the event's card names what it covered and carries the
+    row's links. A moment (a glimmer, a highlight) keeps its own card."""
+    mm = lambda s: int(s[:2]) * 60 + int(s[3:5])
+    evs = [x for x in items if x['k'] == 'event' and x.get('a') and x.get('b')]
+    gone = set()
+    for e in evs:
+        ea, eb, en = mm(e['a']), mm(e['b']), _norm(e.get('t'))
+        for x in items:
+            if x['k'] != 'lived' or id(x) in gone or x.get('cat') == 'moment':
+                continue
+            xa, xb = mm(x['a']), mm(x['b'])
+            same = bool(en) and _norm(x['t']) == en and xa < eb and ea < xb
+            inside = e.get('who') in (None, 'you') and ea <= xa <= ea + start_min and xb <= eb + end_min
+            if same or inside:
+                gone.add(id(x))
+                if not same:
+                    e.setdefault('covers', []).append(x['t'])
+                e.setdefault('links', []).extend(x.get('links') or [])
+                e['done'] = True
+    return [x for x in items if id(x) not in gone]
 
 
 SESSION_MIN = 15   # each item in a session: a plain default she can change, said so on the card
