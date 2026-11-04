@@ -18,6 +18,7 @@
 #   bash run_checks.sh calendar event.json [--readback read.json --from CALENDAR_ID] [--rhythms rhythms.json]
 #                                # every calendar write: named, read back, work in purple
 #   bash run_checks.sh inbox threads.json [--archive planned.json]   # before the inbox sweep archives anything
+#   bash run_checks.sh usage [days]          # the Airtable calls made from here, by day and by script
 #
 # With an Airtable token (AIRTABLE_PAT, a bedo_secrets.json, or a Claude cloud
 # session's proxy) the checks read Airtable themselves. Without one, read through
@@ -177,5 +178,8 @@ for r in rows:
 sys.exit(1 if bad else 0)
 E
     ;;
-  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|entry|stretches|order|close|calendar|inbox [args]"; exit 2 ;;
+  usage)      # 4 Nov 2026: what the checks spend, so the plan can be sized from real numbers
+    [ -d "$W/core" ] || fetch_core
+    "$PY" "$W/core/bedo_air.py" usage "$@" ;;
+  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|entry|stretches|order|close|calendar|inbox|usage [args]"; exit 2 ;;
 esac

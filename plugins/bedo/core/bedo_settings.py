@@ -61,7 +61,7 @@ def fetch(name):
         table = next((t['id'] for t in tables if t['name'] == TABLE_NAME), None)
         if not table:
             return None, f'no {TABLE_NAME} table in {BASE_NAME}'
-        return from_records(air.records(base, table), name)
+        return from_records(air.records(base, table, ttl=bedo_air.SLOW), name)   # kept: every check reads it
     except SystemExit as e:                      # bedo_air dies on an HTTP error
         return None, str(e)
     except Exception as e:                       # noqa: BLE001 — the fallback must always be reachable

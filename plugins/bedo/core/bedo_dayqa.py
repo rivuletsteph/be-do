@@ -889,15 +889,15 @@ def main(argv=None):
     cat = rh = con = None
     hist = []
     if a.live:
-        from bedo_air import Air, read_day, read_catalog
+        from bedo_air import Air, SLOW, read_day, read_catalog
         air = Air()
         src, _ = read_day(air, L, day, air.bases())
         cat = complete(read_catalog(air, L), 'catalog')
         b = L.get('bases') or {}
         if b.get('rhythms'):
-            rh = complete(air.dump(*b['rhythms'], by_id=bool(L.get('rhythms_fields'))), 'rhythms')
+            rh = complete(air.dump(*b['rhythms'], by_id=bool(L.get('rhythms_fields')), ttl=SLOW), 'rhythms')
         if b.get('connections'):
-            con = complete(air.dump(*b['connections'], by_id=bool(L.get('connections_fields'))), 'connections')
+            con = complete(air.dump(*b['connections'], by_id=bool(L.get('connections_fields')), ttl=SLOW), 'connections')
         # last week, for her usuals and the pairs she has answered before
         from bedo_entry import week_number
         prev = L.get('weekly_name', 'w{n} be•do').format(n=week_number(day) - 1)
