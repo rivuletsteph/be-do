@@ -13,7 +13,7 @@ the read-back.
            2026). Work is a drive under her work parents, or a title that
            names her work (calendar.work_words); a series is coloured on the
            series
-  done ✔️  a done event's title starts with ✔️, the plain gray check, never ✅
+  done ✔️  a done event's title starts with ✔️, the plain check, never ✅
            (4 Nov 2026, her words: just a simple check, not the green one … it's
            too distracting on my regular Google calendar to have a bunch of green
            checks). The day page still draws a ✔️ event as ✅ done
