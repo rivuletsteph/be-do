@@ -75,6 +75,21 @@ them with their status, so a rebuild later in the day draws one closed as done,
 and the builder's own picks step down to next in line. Without `--pick` the
 builder chooses.
 
+**Small things go in a session, never a pile at the day's end** (4 Nov 2026, her words: the problem
+where it stacks up a bunch of tasks at the end of the day doesn't work for me at all … it needs to say
+something like 'financial session', and then show the top three things at the top; and: put the session on
+the timeline, and when I tap on it, show me a list of the tasks you recommend I tackle in that period).
+Pass `--session "💰 financial session::16:00-17:00::<drive>|<drive>"` for a time she has, and
+`--session-top "<row key or record id>::<why>"` for its top three, in order. The page draws one card at that
+time with the top three on it; a tap opens the whole list, the rest folded. Each item is a plain 15-minute
+default, said so, because steps carry no history of their own length. Ask her before the session goes on her
+Google Calendar: the page's timeline is not her calendar. Any other step whose own time is still ahead keeps
+it; one that would land more than an hour past its time leaves the clock for the list under it.
+
+**Her own work block is not a meeting** (4 Nov 2026, her words: I don't want to see the dark purple filling,
+because it made me think I was missing a meeting): a work-colour event with nobody else on it, no call link
+and no series is drawn light periwinkle; meetings keep the bold purple. The past stays pastel.
+
 **Every open card names its next move** (the 7 Oct amendment on the next step
 2026, in the builder 9 Oct; the user's words: *what is the website? What is the
 thing exactly that I need to do?* and *so I just don't think of the whole big
@@ -192,7 +207,8 @@ contents never pass through the chat.
      Save each result to the file the plan names, `cal/<label>.json`: as
      returned, or trimmed to `summary`, `nextPageToken` and, per event, `id`,
      `summary`, `status`, `start`, `end`, `htmlLink`, `location`,
-     `recurringEventId`, `transparency`. A result that carries `nextPageToken`
+     `recurringEventId`, `transparency`, and `attendees` and `conferenceUrl` (they tell a
+     meeting from her own work block, 4 Nov 2026). A result that carries `nextPageToken`
      is not finished: fetch the next page and save every page as a list.
    - Then
      ```
