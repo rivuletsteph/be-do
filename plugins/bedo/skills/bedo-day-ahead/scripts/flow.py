@@ -296,7 +296,7 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
         summ = e.get('summary') or ''
         items.append(dict(k='event', t=e.get('title') or summ, a=hm(a), b=hm(b), drive=e.get('drive'), who=e.get('who'),
                           done=summ.startswith(('✅', '✔')), link=e.get('link'), cat='event',
-                          summary=summ, where=e.get('where') or None, color=e.get('color')))
+                          summary=summ, where=e.get('where') or None, color=e.get('color'), meet=e.get('meet')))
         if e.get('link'):
             links.add(e['link'].split('&')[0])
         if e.get('match'):
@@ -331,6 +331,7 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
             nx = [ln.split(':', 1)[1].strip() for ln in (c.get(F['details']) or '').split('\n')
                   if re.match(r'(?i)^\s*next( step)?:', ln)]
             items.append(dict(k='step', t=t, a=hm(a), b=hm(b), drive=rh, done=False, nx=nx[-1] if nx else None,
+                              key=c.get(F['key']) or None, rid=r['id'],
                               sized=not m or 'guess' in m.group(0).lower(),
                               cat=kind_of(c, F, flows, C), pick=why is not None, why=why or None))
             continue
@@ -347,6 +348,43 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
                           felt=bool(F.get('emotion') and c.get(F['emotion'])),
                           keeper=bool(F.get('photo') and 'keeper' in str(c.get(F['photo']) or ''))))   # an action she finished, drawn with its green check (2 Nov 2026)
     return sorted(items, key=lambda x: (x['a'], x['k'] != 'event'))
+
+
+SESSION_MIN = 15   # each item in a session: a plain default she can change, said so on the card
+
+
+def session_arg(s):
+    """'💰 financial session::16:00-17:00::Finances & Admin|2025 Taxes' → its name, window and drives."""
+    name, win, drives = (s.split('::') + ['', ''])[:3]
+    a, _, b = win.partition('-')
+    return dict(name=name.strip(), a=a.strip(), b=b.strip(), drives={d.strip() for d in drives.split('|') if d.strip()})
+
+
+def sessions_of(items, sessions, tops=None):
+    """Small open steps of one kind, batched into one named session at a time she has (4 Nov 2026, her words:
+    the problem where it stacks up a bunch of tasks at the end of the day doesn't work for me at all … I need to
+    see those things batched, and it needs to say something like 'financial session' … put the session on the
+    timeline, and when I tap on it, show me a list of the tasks you recommend I tackle in that period).
+    Each session takes the steps due today on its drives, except be•do's picks; its `top` (row keys or ids, with
+    a why) lead the list, the rest follow folded. Every item is SESSION_MIN, a default, not her history."""
+    out = list(items)
+    for S in sessions:
+        mine = [x for x in out if x.get('k') == 'step' and not x.get('done') and not x.get('pick')
+                and (x.get('drive') or '') in S['drives']]
+        if not mine or not S.get('a') or not S.get('b'):
+            continue
+        order = {k: i for i, (k, _) in enumerate(S.get('top') or [])}
+        why = dict(S.get('top') or [])
+        rank = lambda x: min(order.get(x.get('key') or '', 99), order.get(x.get('rid') or '', 99))
+        mine.sort(key=rank)
+        lst = [dict(t=x['t'], nx=x.get('nx'), drive=x.get('drive'), sz=SESSION_MIN,
+                    top=rank(x) < 99, why=why.get(x.get('key') or '') or why.get(x.get('rid') or '') or None)
+               for x in mine]
+        out = [x for x in out if x not in mine]
+        out.append(dict(k='step', t=S['name'], a=S['a'], b=S['b'], drive=mine[0].get('drive'), done=False,
+                        session=True, list=lst, cat=mine[0].get('cat'), sized=False,
+                        nx=f'{len(lst)} small things, about {SESSION_MIN} min each by default — tap for the list'))
+    return sorted(out, key=lambda x: (x['a'], x['k'] != 'event'))
 
 
 def sized(acts):
@@ -395,6 +433,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
             it['links'] = [dict(l=x.get('label'), u=x.get('url')) for x in mv.get('links') or [] if x.get('url')]
             it['who'] = mv.get('who') or None
             it['wait'] = mv.get('waiting') or None
+    data['schedule'] = sessions_of(data['schedule'], L.get('_sessions') or [])
     # the wheel at the bottom, built through the day (3 Nov 2026, her words: I would like to see the
     # wellness wheel at the bottom ... built throughout the day): today's lived rows so far, each under
     # its element, read the same way balance reads the day before; every rebuild of the page adds to it
@@ -442,6 +481,10 @@ def main():
     ap.add_argument('--out', required=True)
     ap.add_argument('--pick', action='append', default=[],
                     help='"<row key or record id>::<why>" — be•do\'s three for today, starred on the calendar')
+    ap.add_argument('--session', action='append', default=[],
+                    help='"<name>::HH:MM-HH:MM::<drive>|<drive>" — small steps on those drives, batched at that time')
+    ap.add_argument('--session-top', action='append', default=[],
+                    help='"<row key or record id>::<why>" — the session\'s top three, in order')
     a = ap.parse_args()
     L = json.load(open(a.local, encoding='utf-8'))
     h, D = page_data(a.day_ahead)
@@ -453,6 +496,8 @@ def main():
                 seen.add(r['id']); rows.append(r)
     rhythms_read = json.load(open(os.path.join(dd, 'rhythms.json'), encoding='utf-8'))['records']
     L['_picks'] = dict((p.split('::', 1) + [''])[:2] for p in a.pick)
+    tops = [tuple((t.split('::', 1) + [''])[:2]) for t in a.session_top]
+    L['_sessions'] = [dict(session_arg(s), top=tops) for s in a.session]
     data = build(D, rows, rhythms_read, L, a.behind)
     root = re.search(r':root\{[^}]*--c-moss[^}]*\}', h).group(0)
     night = re.search(r'html\[data-bedo="night"\]\{[^}]*\}', h).group(0)

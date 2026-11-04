@@ -85,8 +85,23 @@ def main():
     assert flow.size_guess('Call the plumber about the leak') == 15
     assert flow.size_guess('Draft the methods chapter') == 240
     assert flow.size_guess('Walk the dog') == 60
+    # a session: small steps of one kind batched at one time, its top first, picks and other drives left alone
+    S = flow.session_arg('🪙 money hour::16:00-17:00::Money|Taxes')
+    assert (S['name'], S['a'], S['b'], S['drives']) == ('🪙 money hour', '16:00', '17:00', {'Money', 'Taxes'})
+    st = lambda t, d, key, **kw: dict(k='step', t=t, a='09:00', b='10:00', drive=d, key=key, rid='r' + key, **kw)
+    items = [st('pay the water bill', 'Money', 'k1'), st('file the receipt', 'Taxes', 'k2'),
+             st('call the bank', 'Money', 'k3', pick=True), st('walk the dog', 'Pets', 'k4'),
+             dict(k='event', t='dentist', a='14:00', b='15:00')]
+    out = flow.sessions_of(items, [dict(S, top=[('k2', 'due Friday')])])
+    sess = [x for x in out if x.get('session')]
+    assert len(sess) == 1 and (sess[0]['a'], sess[0]['b']) == ('16:00', '17:00'), sess
+    assert [o['t'] for o in sess[0]['list']] == ['file the receipt', 'pay the water bill']
+    assert sess[0]['list'][0]['top'] and sess[0]['list'][0]['why'] == 'due Friday' and not sess[0]['list'][1]['top']
+    assert all(o['sz'] == flow.SESSION_MIN for o in sess[0]['list'])
+    assert {x['t'] for x in out if not x.get('session')} == {'call the bank', 'walk the dog', 'dentist'}
+    assert flow.sessions_of(items, []) == sorted(items, key=lambda x: (x['a'], x['k'] != 'event'))
     print('ok — balance is evenness, a goal is her first sentence, buffer counts what is late that morning, '
-          'the day holds her free hours, a size is a guess off the words')
+          'the day holds her free hours, a size is a guess off the words, a session batches one kind at its time')
 
 
 if __name__ == '__main__':

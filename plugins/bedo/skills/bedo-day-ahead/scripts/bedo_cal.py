@@ -202,6 +202,11 @@ def build(a, L):
                 die(f'{p}: "{e["summary"]}" ({ea.date()}) lies outside {start.date()} → {end.date()} — the read used the wrong times')
             k = {key: e[key] for key in KEEP if key in e}
             k['recurring'] = bool(e.get('recurringEventId'))
+            # a meeting has someone else on it, a call link, or comes round again; her own work block has none
+            # (4 Nov 2026, her words: a work session for my job shouldn't look like I'm missing a meeting).
+            # Keep `attendees` and `conferenceUrl` when trimming a result so this can be read.
+            others = [a for a in e.get('attendees') or [] if isinstance(a, dict) and not a.get('self')]
+            k['meet'] = bool(others or e.get('conferenceUrl') or e.get('hangoutLink') or k['recurring'])
             if e.get('transparency') == 'transparent':
                 k['transparent'] = True
             kept.append(k)

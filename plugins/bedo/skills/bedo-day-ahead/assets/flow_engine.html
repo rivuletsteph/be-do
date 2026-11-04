@@ -145,6 +145,14 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
 .cal .ev.gcal{background:var(--gc)!important;border:0!important;border-left:0!important;color:var(--gi,#fff)!important;opacity:1}
 .cal .ev.gcal b,.cal .ev.gcal i{color:var(--gi,#fff)!important}
 .cal .ev.gcal.past{opacity:.6}
+.cal .ev.session{border:2px solid var(--edge);border-left-width:5px;overflow:hidden}
+.cal .ev.session .sl{display:block;font-size:12px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+.cal .ev.session .sl.more{color:var(--muted)}
+.sheet ol.sess,.sheet ul.sess{margin:8px 0 0;padding-left:20px}
+.sheet .sess li{margin:0 0 10px}
+.sheet .sc .sess,.sheet .sc .det.sd{grid-column:1/-1}
+.sheet .sess li small{display:block;color:var(--muted)}
+.sheet details.sess summary{cursor:pointer;margin-top:6px;color:var(--muted)}
 .sth{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:6px 0 8px}
 .sth h2{font:italic 400 22px var(--serif);color:var(--accent);margin:0}
 .sth .fold{font:500 12px var(--mono);color:var(--dest);background:var(--dest-soft);border:0;border-radius:999px;padding:3px 11px;cursor:pointer}
@@ -521,20 +529,28 @@ function today(){
     its.filter(x=>x.beside).forEach(x=>its.forEach(o=>{ if(o.k==='event'&&o.s<x.e&&x.s<o.e) o.half=true; })); }
   /* an event on the calendar never moves (2 Nov 2026: PE was drawn at 11:25 when it starts at 11:05); a step
      never lands on one, it goes after it; and a block of hers already under way keeps its own end */
-  const evs=its.filter(x=>x.k==='event'), nowS=nowM!=null?Math.ceil(nowM/15)*15:0;
-  let at=0; its.forEach(x=>{ const d=x.e-x.s, want=x.s;
-    if(x.k==='event'||x.beside||x.done){ x.moved=null; return; }
-    const live=!x.sized&&x.s<nowS&&x.e>nowS;
-    x.s=Math.max(x.s,at,nowS); x.e=live?Math.max(x.e,x.s+15):x.s+d;
-    let hit; while((hit=evs.find(o=>o.s<x.e&&x.s<o.e))){ x.s=hit.e; x.e=x.s+d; }
-    x.moved=!live&&x.s!==want?want:null; at=Math.max(at,x.e); });
+  const evs=its.filter(x=>x.k==='event'||x.session), nowS=nowM!=null?Math.ceil(nowM/15)*15:0;
+  /* a step whose own time is still ahead keeps it, and is placed first (4 Nov 2026: date night at 5 was pushed to 8
+     behind the morning's leftovers); the rest fill the gaps after now, and one that would land more than an hour past
+     its time leaves the clock for the list under it, never a pile at the end of the day (her words, 4 Nov 2026: the
+     problem where it stacks up a bunch of tasks at the end of the day doesn't work for me at all) */
+  const blk=evs.slice(), PUSH=60;
+  const place=x=>{ const d=x.e-x.s, want=x.s, live=!x.sized&&x.s<nowS&&x.e>nowS;
+    x.s=Math.max(x.s,nowS); x.e=live?Math.max(x.e,x.s+15):x.s+d;
+    let hit; while((hit=blk.find(o=>o!==x&&o.s<x.e&&x.s<o.e))){ x.s=hit.e; x.e=x.s+d; }
+    x.moved=!live&&x.s!==want?want:null; x.late=!live&&x.s-want>PUSH; if(!x.late) blk.push(x); };
+  const free=x=>!(x.k==='event'||x.beside||x.done||x.session);
+  its.forEach(x=>{ if(!free(x)) x.moved=null; });
+  its.filter(x=>free(x)&&x.s>=nowS).forEach(place);
+  its.filter(x=>free(x)&&x.s<nowS).forEach(place);
+  its.sort((p,q)=>p.s-q.s);
   /* only what fits is today's (2 Nov 2026, her words: it really should only be an intention if it can actually
      fit on my calendar; it would be nice to show what doesn't fit): a step pushed past the evening's end
      comes off the calendar and goes to the list under it */
   const END=(D.day_end?min(D.day_end):21*60); window.__nofit=[];
   /* a day already over keeps no open step on its clock (3 Nov 2026): what she didn't get to waits in the list */
   const closed=now.toLocaleDateString('en-CA')>D.day;
-  for(let i=its.length-1;i>=0;i--){ const x=its[i]; if(x.k==='step'&&!x.done&&(closed||(!x.beside&&x.e>END))){ window.__nofit.unshift(x); its.splice(i,1); } }
+  for(let i=its.length-1;i>=0;i--){ const x=its[i]; if(x.k==='step'&&!x.done&&(closed||x.late||(!x.beside&&x.e>END))){ window.__nofit.unshift(x); its.splice(i,1); } }
   const h0=Math.max(0,Math.floor(Math.min(...all.map(x=>x.s),...its.map(x=>x.s),nowM??1e9)/60)), h1=Math.min(24,Math.ceil(Math.max(...all.map(x=>x.e),...its.map(x=>x.e),(nowM??0)+30)/60));
   /* a stretched clock (2 Nov 2026, her words: lengthen the calendar so all these things fit on it, and make
      things not overlap, cuz that is confusing): an hour is at least 72px, and a stretch of time grows until
@@ -567,6 +583,8 @@ function today(){
     g+=`<div data-c="${ci(x)}" class="ev lived${h>=40?' tall':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${more(x)}</div>`; });
   its.forEach(x=>{ if(x.k==='event'){ const inner=`<b>${esc(dn(x.summary||x.t))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i>`;
     g+=`<div data-c="${ci(x)}" class="ev event gcal" style="--gc:${gcol(x)};--gi:${gink(gcol(x))};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:${x.half?'calc(50% - 5px)':'calc(100% - 6px)'}">${inner}</div>`; return; }
+    if(x.session){ const top=(x.list||[]).filter(o=>o.top), rest=(x.list||[]).length-top.length;
+      g+=`<div data-c="${ci(x)}" class="ev step session" style="${kv(x.cat)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:calc(100% - 6px)"><b>${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)} · ${(x.list||[]).length} things · tap for the list</i>${top.map((o,i)=>`<span class="sl">${i+1}. ${esc(o.t)}</span>`).join('')}${rest?`<span class="sl more">+ ${rest} more</span>`:''}</div>`; return; }
     if(x.link) x.links=[{l:'calendar event',u:x.link}].concat(x.links||[]); const inner=`<b>${x.done?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.sized&&!x.done?' · about':''}${x.moved!=null?` · <span class="was">planned ${tm(x.moved)}</span>`:''}${x.drive?' · '+esc(x.drive):''}</i>${x.pick&&x.why?`<span class="why">${esc(x.why)}</span>`:''}${more(x)}`;
     g+=`<div data-c="${ci(x)}" class="ev ${x.k}${x.done?' done':''}${x.pick?' pick':''}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:${x.beside?'calc(50% + 2px)':'3px'};width:${x.beside||x.half?'calc(50% - 5px)':bands.some(b=>b.s<x.e&&b.e>x.s)?'58%':'calc(100% - 6px)'}">${inner}</div>`; });
   /* the day behind's own words for the categories, being then doing, only those on the day */
@@ -584,7 +602,10 @@ function today(){
    the calendar, with the box and the emoji; location, whatever we have; a link to the Google Calendar event):
    the event's own colour (Google's eleven), else its calendar's (`calendar_colors` in her settings) */
 const GC={1:'#7986CB',2:'#33B679',3:'#8E24AA',4:'#E67C73',5:'#F6BF26',6:'#F4511E',7:'#039BE5',8:'#616161',9:'#3F51B5',10:'#0B8043',11:'#D50000'};
-const gcol=x=>GC[x.color]||((D.calcolors||{})[x.who])||'#039BE5';
+/* her own work block — work colour, nobody else on it, not a series — is a light periwinkle, never the meeting purple
+   (4 Nov 2026, her words: I don't want to see the dark purple filling, because it made me think I was missing a meeting) */
+const BLOCK='#AFB6E8';
+const gcol=x=>(String(x.color)==='3'&&x.meet===false)?BLOCK:(GC[x.color]||((D.calcolors||{})[x.who])||'#039BE5');
 /* dark text on a light colour (a yellow calendar), white on the rest */
 const gink=c=>{ const n=parseInt(String(c).replace('#',''),16), r=n>>16&255, g=n>>8&255, b=n&255; return (0.299*r+0.587*g+0.114*b)>165?'#2b2118':'#fff'; };
 function sheet(x){
@@ -600,6 +621,14 @@ function sheet(x){
       +(x.where?`<div class="where">📍 ${/^https?:/.test(x.where)?`<a href="${esc(x.where)}" target="_blank" rel="noopener">${esc(x.where)}</a>`:`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.where)}" target="_blank" rel="noopener">${esc(x.where)}</a>`}</div>`:'')
       +`<div class="when">🗓️ ${esc(x.who==='you'?'my events':x.who||'')}${x.drive?` · ${esc(x.drive)}`:''}</div>`
       +(x.link?`<div class="lks"><a href="${esc(x.link)}" target="_blank" rel="noopener">open in Google Calendar ↗</a></div>`:'')+`</div>`;
+    requestAnimationFrame(()=>s.classList.add('on')); s.querySelector('.x').onclick=()=>s.classList.remove('on'); return; }
+  if(x.session){ const top=(x.list||[]).filter(o=>o.top), rest=(x.list||[]).filter(o=>!o.top);
+    const li=o=>`<li><span class="bx"></span><b>${esc(o.t)}</b>${o.why?`<div class="why">${esc(o.why)}</div>`:''}${o.nx?`<div class="nx">${esc(o.nx.replace(/\s*\(https?:[^)]*\)|\s*https?:\/\/\S+/g,''))}</div>`:''}<small>about ${o.sz} min · a default</small></li>`;
+    s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${t12(x.s)} – ${t12(x.e)}</div>`
+      +`<div class="ttl">${esc(x.t)}</div><div class="when">what I'd tackle in this hour, in order</div>`
+      +`<ol class="sess">${top.map(li).join('')}</ol>`
+      +(rest.length?`<details class="sess"><summary>the rest · ${rest.length}</summary><ul class="sess">${rest.map(li).join('')}</ul></details>`:'')
+      +`<div class="det sd">Each one is about ${(x.list[0]||{}).sz||15} minutes by default — be•do has no history of how long these take yet.</div></div>`;
     requestAnimationFrame(()=>s.classList.add('on')); s.querySelector('.x').onclick=()=>s.classList.remove('on'); return; }
   s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${x.s?t12(x.s):'later'}</div>`
     +`<div class="ttl">${x.k==='event'?'🗓️ ':`<span class="bx${done?' ok':''}"></span>${x.k==='step'||x.act?'<span class="bolt">⚡</span>':''}`}${esc(x.t)}</div>`

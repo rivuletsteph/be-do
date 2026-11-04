@@ -115,15 +115,20 @@ elif [ "$MODE" = build ]; then
   SEC_ARGS=(); [ -n "$SECURE" ] && SEC_ARGS=(--secure "$SECURE")
   # the practices catalog, when the settings name it: a practice with a cadence is drawn on its day
   [ -f data/practices.json ] && SEC_ARGS+=(--practices data/practices.json)
+  # a session (--session, --session-top) is the flow page's alone; the day ahead never sees it (4 Nov 2026)
+  DA=(); SESS=(); prev=""; for a in "$@"; do
+    if [ "$prev" = --session ] || [ "$prev" = --session-top ]; then SESS+=("$prev" "$a"); prev=""; continue; fi
+    if [ "$a" = --session ] || [ "$a" = --session-top ]; then prev=$a; continue; fi
+    DA+=("$a"); prev=$a; done
   "$PY" scripts/day_ahead.py --today "$DAY" --local day_ahead_local.json $STREAMS \
     --rhythms data/rhythms.json --calendar cal.json --template day_ahead_engine.html \
-    --out "$DAY-day-ahead.html" "${SEC_ARGS[@]}" "$@"
+    --out "$DAY-day-ahead.html" "${SEC_ARGS[@]}" "${DA[@]}"
   # the day's my day page is the flow page (since 2 Nov 2026): built from the day ahead just written,
   # with the three passed on as its starred picks. This is the page that gets published.
   PICKS=(); prev=""; for a in "$@"; do [ "$prev" = --pick ] && PICKS+=(--pick "$a"); prev=$a; done
   BEH=(); [ -d behind ] && BEH=(--behind behind)
   "$PY" scripts/flow.py --day-ahead "$DAY-day-ahead.html" --local day_ahead_local.json \
-    --out "$DAY-myday.html" "${BEH[@]}" "${PICKS[@]}"
+    --out "$DAY-myday.html" "${BEH[@]}" "${PICKS[@]}" "${SESS[@]}"
   echo "publish: $DAY-myday.html (the flow page) to page.url above"
   OUT=${LB_OUT:-/mnt/user-data/outputs}
   if mkdir -p "$OUT" 2>/dev/null; then cp "$DAY-day-ahead.html" "$DAY-myday.html" "$OUT/"
