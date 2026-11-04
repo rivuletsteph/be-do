@@ -482,7 +482,10 @@ function today(){
      the clock (she can't go back), each at its own time or as soon as the one before it ends. */
   const all=S.map(x=>({...x,s:min(x.a),e:Math.max(min(x.b),min(x.a)+(x.k==='lived'?(x.pt?10:1):15))}));
   /* a long event, or a block of hers already done that holds other things (her prep window), is ground */
-  const bands=all.filter(x=>(x.k==='event'&&x.e-x.s>=120)||(x.k==='lived'&&x.act&&x.e-x.s>=60));
+  /* her own meetings stay cards in their calendar colour (4 Nov 2026, her words: the precipitation check and the
+     Louisiana work are purple like on my calendar, but it seems to be missing the TIAER weekly): an event of hers
+     is ground only at three hours or more (a party); someone else's long event (Greenhouse) still at two */
+  const bands=all.filter(x=>(x.k==='event'&&x.e-x.s>=(x.who==='you'?180:120))||(x.k==='lived'&&x.act&&x.e-x.s>=60));
   /* what she has done stays where it happened; what's ahead is laid end to end from the clock */
   /* what's done reads as a list in time (2 Nov 2026, her words: show me my day flow, up to date, for what I've
      already accomplished): an event already over joins the done side, so it never covers what she did in it,
