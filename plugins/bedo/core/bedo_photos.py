@@ -234,7 +234,8 @@ def place(rows, photos, me='', prefer=None):
         if k == INFO:
             left += 1
             continue
-        placed.append({'t': t, 'src': src, 'file': fid, 'row': best, 'keeper': best is not None and kind(best, me) == KEEPER})
+        placed.append({'t': t, 'src': src, 'file': fid, 'row': best, 'keeper': best is not None and kind(best, me) == KEEPER,
+                       'linked': bool(fid) and fid in by_file})
     return placed, left
 
 
@@ -250,7 +251,9 @@ def select(placed, me='', n=None, burst=None):
         r = p.get('row') or {}
         pr = word(r.get('practice'))
         others = [x.strip() for x in (r.get('person') or '').split(',') if x.strip() and x.strip() != me]
-        return (0 if pr in P.get('highlight_practices', ['highlight']) else 1 if others else 2 if p.get('keeper') else 3)
+        # a photo her rows link by name (her keepers, paired at dusk) before one placed only by its time (4 Nov 2026:
+        # an unlinked photo beside a moment with people took a linked keeper's place)
+        return (not p.get('linked'), 0 if pr in P.get('highlight_practices', ['highlight']) else 1 if others else 2 if p.get('keeper') else 3)
     keep, prev = [], None
     for p in sorted(placed, key=lambda p: p['t']):           # one per burst: the best-scored of the cluster
         if prev is not None and (p['t'] - prev['t']).total_seconds() <= burst:

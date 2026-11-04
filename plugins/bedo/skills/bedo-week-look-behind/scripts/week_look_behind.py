@@ -311,6 +311,7 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset(), ndays=7, words=N
     rest of the day as a short line of what it was (19 Oct 2026: show what the thing
     was, a picture, a few words, an emoji for the kind, and how it fits)."""
     G = L.get('garden') or bedo_reader.FACTS['garden']
+    story = (words or {}).get('story') if isinstance(words, dict) else None   # her story's lines, before `words` is reused below
     kinds = set(G['moment_practices'])
     shared_rx = re.compile(G.get('shared_pattern') or r"'s highlight$")
     me = L.get('self_person') or ''
@@ -412,7 +413,7 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset(), ndays=7, words=N
                     badges.insert(0, g)
                 g = named
         out.append(dict(
-            at=s_['at'], day=s_['day'], g=g,
+            at=s_['at'], day=s_['day'], g=g, pg=glyph(main.get('practice')),   # pg: the practice's own glyph (⭐, 🌟)
             kind=clean(main.get('practice')), t=clean(main.get('title')), words=words, people=people,
             badges=badges, theirs=theirs,
             memory=next((w for w in G['memory'] if w in low), None),
@@ -424,6 +425,25 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset(), ndays=7, words=N
         for r in rs:
             by_row[r['id']] = out[-1]
     out.sort(key=lambda m: m['at'])
+    # a highlight told at dusk about an earlier moment is that moment, starred, never a second card (4 Nov 2026,
+    # her words: it did a weird thing with the cottonwoods and lunch at the ditch being repeated). The earlier
+    # moment of the same day sharing the most of its uncommon words, at least two, takes it as a star.
+    hl = set(G.get('highlight_practices') or ['highlight'])
+    starry = lambda m: norm(m['kind']) in hl or bool(shared_rx.search(norm(m['kind'])))  # noqa: E731
+    said = lambda m: bedo_dayaudit.words_of(m['t'] + ' ' + (m['words'] or ''))          # noqa: E731
+    for h in [m for m in out if starry(m)]:
+        hw = bedo_dayaudit.words_of(h['t'])
+        cands = [m for m in out if m is not h and m['day'] == h['day'] and m['at'] < h['at']
+                 and not starry(m) and not m.get('_into')]
+        best = max(cands, key=lambda m: (len(hw & said(m)), m['at']), default=None)
+        if best is None or len(hw & said(best)) < 2:
+            continue
+        best.setdefault('stars', []).append(dict(g=h.get('pg') or h['g'], t=h['t'], words=h['words'], theirs=h['theirs'], at=h['at']))
+        h['_into'] = best
+    for k, m in list(by_row.items()):
+        if m.get('_into'):
+            by_row[k] = m['_into']
+    out = [m for m in out if not m.get('_into')]
     # the day's photos (22 Oct 2026; keepers, 25 Oct): each on the row whose photo links
     # name its file, else on the row taken at that minute or spanning it, preferring a row
     # read from a photo, then a moment. Inside its moment when it has one, else in the
@@ -445,6 +465,8 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset(), ndays=7, words=N
                 t=clean(best.get('title')) if best else ''))
     for v in pics.values():
         v.sort(key=lambda x: not x['keeper'])
+    if ndays == 1:
+        group_photos(out, pics, kinds, starry)
     days = []
     for i in range(ndays):
         d = (start + dt.timedelta(days=i)).date()
@@ -458,8 +480,10 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset(), ndays=7, words=N
                 continue
             if t not in [x['t'] for x in texture]:
                 texture.append(dict(g=glyph(r.get('practice')), t=t))
+        day_stones = [m for m in out if m['day'] == d.isoformat()]
         days.append(dict(date=d.isoformat(), label=f'{DAY3[d.weekday()]} {d.day} {d:%b}', lead=leads.get(d.isoformat()),
                          pictures=pics.get(d.isoformat(), []),
+                         story_pics=story_photos(day_stones, story) if ndays == 1 else [],
                          stones=[m for m in out if m['day'] == d.isoformat()], texture=texture[:10]))
     # where it flowed: one tile per drive the moments sat on, naming the destinations it
     # serves, so a drive serving four destinations is one tile, not four (21 Oct 2026);
@@ -497,6 +521,56 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset(), ndays=7, words=N
         be.append(dict(date=d.isoformat(), **day))
     flows_meta = [dict(k=k, n=f'the {k} flow', e=F['phase'][k].split()[0]) for k in ('dawn', 'dusk')]
     return dict(days=days, flowed=flowed, n=len(out), bands=bands, be=be, flows=flows_meta)
+
+
+def group_photos(out, pics, kinds, starry, gap_min=20):
+    """The day page's photos as groups (4 Nov 2026, her words: the pictures at the ditch, those three should
+    be grouped together). Photos taken within `gap_min` of the one before are one group, and the group sits
+    on its best moment: a starred one, then a moment she marked (a glimmer), then one with people, then the
+    earliest. The day's loose pictures join the group they fall in."""
+    items = [(dt.datetime.fromisoformat(t), src, m) for m in out for t, src in zip(m.get('photo_at') or [], m.get('photos') or [])]
+    for day, ps in pics.items():
+        items += [(dt.datetime.fromisoformat(p['at']), p['src'], None) for p in ps]
+    items.sort(key=lambda x: x[0])
+    groups = []
+    for it in items:
+        if groups and (it[0] - groups[-1][-1][0]).total_seconds() <= gap_min * 60 and it[0].date() == groups[-1][-1][0].date():
+            groups[-1].append(it)
+        else:
+            groups.append([it])
+    rank = lambda m: (not m.get('stars'), norm(m['kind']) not in kinds, not m['people'], m['at'])  # noqa: E731
+    for g in groups:
+        hosts = [m for _, _, m in g if m is not None]
+        if len(g) < 2 or not hosts:
+            continue
+        host = min(hosts, key=rank)
+        for _, _, m in g:
+            if m is not None:
+                m.pop('photos', None), m.pop('photo_at', None)
+        host['photos'] = [src for _, src, _ in g]
+        host['photo_at'] = [t.isoformat() for t, _, _ in g]
+        for day in pics:
+            pics[day] = [p for p in pics[day] if not any(p['src'] == src for _, src, _ in g)]
+
+
+def story_photos(stones, story):
+    """Each group of the day's photos under the line of her story it belongs to (4 Nov 2026, her words: integrate
+    the photos into the summary of my day in a beautiful way): the line sharing the most uncommon words with
+    the moment it sits on; with none, the line of the group before it, so the photos keep the story's order.
+    [[{src, at, t}] per line]."""
+    lines = [bedo_dayaudit.words_of(' '.join(map(str, x[1:]))) for x in story or []]
+    out = [[] for _ in lines]
+    if not lines:
+        return out
+    prev = 0
+    for m in sorted((m for m in stones if m.get('photos')), key=lambda m: m['at']):
+        said = bedo_dayaudit.words_of(m['t'] + ' ' + (m['words'] or '') + ' '
+                                      + ' '.join(x['t'] for x in m.get('stars') or []))
+        score = [len(said & w) for w in lines]
+        i = max(range(len(lines)), key=lambda j: (score[j], -abs(j - prev))) if max(score) else prev
+        out[i] += [dict(src=s, at=a, t=m['t']) for s, a in zip(m['photos'], m.get('photo_at') or [m['at']] * len(m['photos']))]
+        prev = i
+    return out
 
 
 def needs_map(L):
@@ -659,12 +733,26 @@ def read_photos(folder, off):
     return out
 
 
+def read_thumbs(folder):
+    """A picture of each deliverable, from deliverable_thumbs.py: {url: data URI}."""
+    idx = os.path.join(folder or '', 'index.json')
+    if not folder or not os.path.exists(idx):
+        return {}
+    out = {}
+    for url, n in json.load(open(idx, encoding='utf-8')).items():
+        f = os.path.join(folder, n)
+        if os.path.exists(f):
+            out[url] = 'data:image/jpeg;base64,' + base64.b64encode(open(f, 'rb').read()).decode()
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--week', help='the Sunday the week opens on, or any day in it')
     ap.add_argument('--day', help='one day instead of a week: the day behind as a stream (20 Oct 2026)')
     ap.add_argument('--words', help="with --day: the day behind's words file (lead and story)")
     ap.add_argument('--photos', help='a folder of small photos named by the phone (day_photos.py --out)')
+    ap.add_argument('--thumbs', help='a picture of each deliverable (deliverable_thumbs.py --out): what moved forward shows them')
     ap.add_argument('--sleep', help="with --day: Oura's sleep periods around the day (day_sleep.py --out)")
     ap.add_argument('--local', required=True)
     ap.add_argument('--stream', action='append', required=True, help='live base first')
@@ -713,6 +801,10 @@ def main():
     L['_growing'] = [n for n, rec in rhythms.items() if (rec.get('type') or '') in (L.get('growing_types') or ['♐ drive'])]
     photos = read_photos(a.photos, L['utc_offset_hours'])
     drives, totals, qa, more = build(rows, rhythms, start, L, ndays, words, photos)
+    thumbs = read_thumbs(a.thumbs)      # what she made, as a picture (4 Nov 2026, her words: a little image of what the deliverable was)
+    for c in more['moved']['closed']:
+        if c.get('url') in thumbs:
+            c['thumb'] = thumbs[c['url']]
     if due:
         qa['forecasts_due'] = [bedo_forecast.line(r) for r in due]
     if not a.day and a.qa_anyway and unqad(rows, sun):

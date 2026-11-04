@@ -248,6 +248,14 @@ chat except the digest the words are written from.
    rainbow against the day, not only the QA block: a span copied onto a closed
    ⚡ action, a session's time spent running past where the work stopped, or a
    person tag on a long estimated stretch each paint a band wrong (Sat 24 Oct).
+   **The deliverables as pictures** (4 Nov 2026, her words: a little image of what the deliverable was): for each
+   closed action whose deliverable is one of her own pages, read it with the Artifact tool (`read`, `path`
+   `index.html`) and run `python3 scripts/deliverable_thumbs.py --page URL FILE … --out thumbs-YYYY-MM-DD` before
+   `build`; what moved forward shows each as a tile under its drive. A Drive document passes as an image (its
+   thumbnail) or is left without one. **The photos sit in her story** (4 Nov 2026): each group of the day's photos
+   goes under the story line it belongs to, a dusk highlight stars the earlier moment it names instead of
+   repeating it, and the moments below keep small photos; a story line that names the moment is what places it,
+   so the words she accepts are also where her pictures land.
    Then check the page at phone width. If a read aborts on a short read, don't
    build from a partial read: read again. The canon build aborts the same way
    on a missing field id, a missing clock offset, or an offset that disagrees

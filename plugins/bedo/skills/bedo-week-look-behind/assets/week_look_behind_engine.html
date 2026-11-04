@@ -141,6 +141,23 @@ details.fw[open] .v::after{content:" · hide"}
 .pics figure{margin:0;flex:0 0 min(68%,240px);scroll-snap-align:start;min-width:0}
 .pics img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:12px;background:var(--tint)}
 .pics figcaption{font:400 .72rem var(--mono);color:var(--muted);margin-top:4px;line-height:1.35}
+/* the day's photos inside her story, one collage per line (4 Nov 2026): one wide, two side by side, three as one
+   tall and two stacked, four or more in a square grid; the moments below keep small ones */
+.dstory li .col{grid-column:2;display:grid;gap:3px;margin:8px 0 6px;border-radius:14px;overflow:hidden;background:var(--tint)}
+.col img{display:block;width:100%;height:100%;object-fit:cover;min-height:0}
+.col.n1{aspect-ratio:16/10}
+.col.n2{grid-template-columns:1fr 1fr;aspect-ratio:16/10}
+.col.n3{grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;aspect-ratio:4/3}
+.col.n3 img:first-child{grid-row:1/3}
+.col.n4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;aspect-ratio:1}
+.mo .ph.sm{display:flex;flex-wrap:wrap;gap:6px}
+.mo .ph.sm img{width:64px;height:64px;object-fit:cover;border-radius:10px}
+.mo .star{margin:6px 0 0;font-size:.85rem;color:var(--soft);line-height:1.4}
+.mo .star b{font-weight:600;color:var(--ink)}
+.dv{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin:8px 0 4px 1.6rem}
+.dv a{display:block;border:1px solid var(--rule);border-radius:12px;overflow:hidden;background:var(--tint);color:var(--ink);text-decoration:none}
+.dv img{display:block;width:100%;aspect-ratio:3/2;object-fit:cover;object-position:top}
+.dv span{display:block;font-size:.72rem;line-height:1.3;padding:6px 8px;color:var(--soft)}
 .mv{display:grid;gap:14px;margin:10px 0 0}
 .mv .dh{display:flex;align-items:baseline;gap:8px;margin:0;font-size:.95rem}
 .mv .dh .n{font-weight:600}
@@ -767,9 +784,11 @@ if (ONE) {
   const moment = m => {
     const who = m.people.length ? `with ${esc(m.people.join(", "))}` : "";
     const to = m.drives.length ? `→ ${esc(m.drives[0].e)} ${esc(m.drives[0].n)}` : "";
-    return `<li class="mo"><span class="g">${esc(m.g || "·")}</span><div class="mt">` +
-      `<p class="tt">${esc(m.t)}</p>${words(m.words)}` +
-      ((m.photos || []).length ? `<div class="ph">${m.photos.map(src => `<img src="${src}" alt="${esc(m.t)}" loading="lazy">`).join("")}</div>` : "") +
+    // a highlight told at dusk about this moment is a star on it, not a second card (4 Nov 2026)
+    const stars = (m.stars || []).map(x => `<p class="star">${esc(x.g)} <b>${x.theirs && x.theirs.length ? esc(x.theirs[0].replace(/^./, c => c.toUpperCase())) + "'s highlight" : "the highlight of the day"}</b>${x.words ? ` · ${esc(x.words)}` : ""}</p>`).join("");
+    return `<li class="mo"><span class="g">${esc((m.stars || []).length ? m.stars[0].g : m.g || "·")}</span><div class="mt">` +
+      `<p class="tt">${esc(m.t)}</p>${words(m.words)}${stars}` +
+      ((m.photos || []).length ? `<div class="ph sm">${m.photos.map(src => `<img src="${src}" alt="${esc(m.t)}" loading="lazy">`).join("")}</div>` : "") +
       `<p class="meta">${[at(m), who, m.memory ? `↺ ${esc(m.memory)}` : "", to].filter(Boolean).map(x => `<span>${x}</span>`).join("")}</p></div></li>`;
   };
   // what moved forward (24 Oct 2026, her pick): the day's closed actions under their drive,
@@ -784,7 +803,9 @@ if (ONE) {
     // a drive finished (1 Nov 2026, her word: it's not showing the drive being completed)
     return `<div><p class="dh"><span>${esc(k ? n.emoji || "·" : "·")}</span><span class="n">${esc(k || "on no drive")}</span>` +
       `${n.complete ? `<span class="fin">🏁 complete</span>` : ""}${mins ? `<span class="m">${mins}</span>` : ""}</p>` +
-      `<ul>${groups[k].map(c => `<li>✅ ${c.url ? `<a href="${esc(c.url)}">${esc(c.t)}</a>` : esc(c.t)}</li>`).join("")}</ul></div>`;
+      `<ul>${groups[k].map(c => `<li>✅ ${c.url ? `<a href="${esc(c.url)}">${esc(c.t)}</a>` : esc(c.t)}</li>`).join("")}</ul>` +
+      // what she made, as a picture (4 Nov 2026, her words: a little image of what the deliverable was)
+      (groups[k].some(c => c.thumb) ? `<div class="dv">${groups[k].filter(c => c.thumb).map(c => `<a href="${esc(c.url)}"><img src="${c.thumb}" alt="" loading="lazy"><span>${esc(c.t)}</span></a>`).join("")}</div>` : "") + `</div>`;
   }).join("");
   const rest = [d0.bed ? `${hm(d0.bed)} in bed` : "", d0.readiness != null ? `readiness ${d0.readiness}` : "",
     d0.people ? `${hm(d0.people)} with people` : ""].filter(Boolean).join(" · ");
@@ -793,7 +814,8 @@ if (ONE) {
   P.innerHTML = `<div class="chip">${esc(DATA.chip)}${drafted ? ` <span class="draft">${drafted} · not yet your words</span>` : ""}</div>
 <p class="eyebrow">the day behind · ${esc(DATA.range)}</p>
 ${lead ? `<h1 class="sh"${DR.lead ? " data-draft" : ""}>${esc(lead)}</h1>` : ""}
-${(DATA.story || []).length ? `<ul class="dstory"${DR.story ? " data-draft" : ""}>${DATA.story.map(([g, t]) => `<li><span>${esc(g)}</span><span>${esc(t)}</span></li>`).join("")}</ul>` : ""}
+${(DATA.story || []).length ? `<ul class="dstory"${DR.story ? " data-draft" : ""}>${DATA.story.map(([g, t], i) => { const ps = (day.story_pics || [])[i] || [];
+  return `<li><span>${esc(g)}</span><span>${esc(t)}</span>${ps.length ? `<div class="col n${Math.min(ps.length, 4)}">${ps.slice(0, 4).map(p => `<img src="${p.src}" alt="${esc(p.t)}" loading="lazy">`).join("")}</div>` : ""}</li>`; }).join("")}</ul>` : ""}
 ${(day.pictures || []).length ? `<div class="pics">${day.pictures.map(p => `<figure><img src="${p.src}" alt="${esc(p.t)}" loading="lazy"><figcaption>${clock(p.at)}${p.t ? ` · ${esc(p.g)} ${esc(p.t)}` : ""}</figcaption></figure>`).join("")}</div>` : ""}
 ${DATA.rings ? `<section class="rb"><p class="label">how the day went</p>${rainbow(DATA.rings)}</section>` : ""}
 <section><p class="label">what mattered</p>

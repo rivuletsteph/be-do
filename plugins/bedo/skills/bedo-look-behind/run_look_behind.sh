@@ -106,9 +106,11 @@ elif [ "$MODE" = build ] || [ "$MODE" = canon ]; then
     if "$PY" scripts/day_sleep.py --day "$DAY" --out "sleep-$DAY.json"; then SLEEPARG="--sleep sleep-$DAY.json"; fi
     # the connections give the who card its circles (1 Nov 2026); without them the people stand ungrouped
     CONN=; [ -f data/connections.json ] && CONN="--connections data/connections.json"
+    # a picture of each deliverable, when the chat made them (deliverable_thumbs.py --out thumbs-DAY; 4 Nov 2026)
+    THUMBS=; [ -f "thumbs-$DAY/index.json" ] && THUMBS="--thumbs thumbs-$DAY"
     "$PY" scripts/week_look_behind.py --day "$DAY" --words "$WORDS" --local look_behind_local.json $STREAMS \
       --rhythms data/rhythms.json --practices data/practices.json $CONN \
-      --template week_look_behind_engine.html $PHOTOS $SLEEPARG --out "$DAY-day-behind.html"
+      --template week_look_behind_engine.html $PHOTOS $SLEEPARG $THUMBS --out "$DAY-day-behind.html"
   else
   # typical lengths, the median of the user's own timed rows (scripts/typical_time.py)
   TYPICAL=; [ -f typical_time.json ] && TYPICAL="--typical typical_time.json"
