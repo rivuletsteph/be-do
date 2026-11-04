@@ -246,6 +246,7 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
     GROW = {k: set() for k in DOING4}               # the doing minutes on a drive: growing; the rest is tending
     growing_rh = set(L.get('_growing') or ())
     ENERGY_ROWS = {k: {} for k in BEING4 + DOING4}
+    HEART_OWN = set()   # heart minutes from rows that are heart themselves: the being total counts these, not the added
     zero_pr = {low(x) for x in (L.get('zero_practices') or ())}
     mentioned = []                       # people named in the day's rows, whether or not they were there
     lived = []                          # (a, b, row) for the synergy read
@@ -308,9 +309,19 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
                 ms = range(mins(a), min(mins(a) + TICK, 1440)) if s0 <= a < e0 else range(0)
             if len(ms):
                 ENERGY[wk].update(ms)
+                if wk == 'heart':
+                    HEART_OWN.update(ms)
                 if wk in GROW and (r.get('rhythm') or '') in growing_rh:
                     GROW[wk].update(ms)
                 ENERGY_ROWS[wk][t] = ENERGY_ROWS[wk].get(t, 0) + len(ms)
+                # time with somebody counts toward heart too, whatever else it was, as on the week page
+                # (the 19 Oct 2026 rule; 3 Nov 2026, her words: I feel like it was a pretty balanced full
+                # day ... the wellness wheel should reflect that). A minute counts once in heart however many
+                # people; the row keeps its own kind, and heart feeds the wheel, not the being total.
+                named = r['_named_person'] if '_named_person' in r else r.get('person')   # never company filled in
+                if wk != 'heart' and [n for n in names(named) if n and not (self_name and self_name in n)]:
+                    ENERGY['heart'].update(ms)
+                    ENERGY_ROWS['heart'][t] = ENERGY_ROWS['heart'].get(t, 0) + len(ms)
         if pr in CONTACT and s0 <= a < e0:
             contacts.append(dict(m=mins(a), t=t, who=names(r.get('person'))))
         if s0 <= a < e0:
@@ -624,7 +635,8 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
                         social=sum(1 for m in awake if kind[m] == 'social'),
                         work=sum(1 for m in awake if kind[m] == 'work'), strip=strip, people=people,
                         contacts=reach, mentioned=named, circle_order=list(L.get('circle_order') or []))
-    be_min, do_min = sum(len(ENERGY[k]) for k in BEING4), sum(len(ENERGY[k]) for k in DOING4)
+    be_min = len(HEART_OWN) + sum(len(ENERGY[k]) for k in BEING4 if k != 'heart')
+    do_min = sum(len(ENERGY[k]) for k in DOING4)
     grow_min = sum(len(GROW[k]) for k in DOING4)
     energy = dict(min={k: len(v) for k, v in ENERGY.items()}, be=be_min, tending=do_min - grow_min, growing=grow_min,
                   rows={k: [x for x, _ in sorted(v.items(), key=lambda kv: -kv[1])[:3]]
