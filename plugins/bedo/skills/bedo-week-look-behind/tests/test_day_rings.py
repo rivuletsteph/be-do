@@ -326,6 +326,14 @@ L13 = dict(L12, _circles={'Fern Oak': 'Work', 'Moss Quill': 'Friends'})
 WC13 = day_rings(W13, DAY, L13)['who']
 assert (WC13['work'], WC13['social']) == (60, 60), WC13
 print('ok — social splits by who: all of them from work is work time; friends there makes it social')
+# 4 Nov 2026, her words: how on earth do you not have them as my work colleagues? The person field writes the name
+# she goes by ('Fern'); connections hold the full name and a lowercase short one. Any of them, any case, finds the circle.
+W13b = NIGHT + [row('⚡ action', '13:00', '14:50', rhythm='Paid Work', person=['Fern', 'Ivy'], title='the site tables')]
+L13b = dict(L12, _circles={'Fern Oak': 'Work', 'fern': 'Work', 'Ivy Moss': 'Work', 'ivy': 'Work'})
+WC13b = day_rings(W13b, DAY, L13b)['who']
+assert (WC13b['work'], WC13b['social']) == (110, 0), WC13b
+assert {p['n']: p['circle'] for p in WC13b['people']} == {'Fern': 'Work', 'Ivy': 'Work'}, WC13b['people']
+print('ok — her colleagues by the names she uses: Fern and Ivy are work, not social')
 
 # 1 Nov 2026, her pick: balance, the original wheel in plain minutes — each row's wellness kind takes its minutes, a
 # moment counts five, sleep and his own rows count nothing; doing on a drive grows, any other doing tends.

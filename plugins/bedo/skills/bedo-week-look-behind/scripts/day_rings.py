@@ -42,6 +42,7 @@ import re
 import bedo_reader
 from bedo_entry import synergy_from
 import bedo_stretches as stretches
+from bedo_categorize import away_spans, inside as away_at   # her day away (4 Nov 2026)
 
 TICK = 5                    # a moment with no length is drawn as five minutes
 IDEAL_BED = 480             # 16 waking hours and 8 in bed make the day
@@ -55,7 +56,7 @@ MAKE = {'cooking', 'baking', 'woodworking', 'building', 'gardening', 'crafting',
 # "there wasn't anything particularly creative about the dinner I made yesterday, so I would just call that family care")
 MADE = ('i baked', 'we baked', 'baked bread', 'baked a ', 'baked some', 'recipe', 'from scratch', 'tried a new',
         'experiment')   # her words: she made something (not 'baked potato', a side dish, 31 Oct)
-EAT = {'breakfast', 'lunch', 'dinner', 'snack', 'brunch', 'dessert', 'coffee', 'smoothie', 'evening tea',
+EAT = {'alcohol', 'breakfast', 'lunch', 'dinner', 'snack', 'brunch', 'dessert', 'coffee', 'smoothie', 'evening tea',
        'tea', 'morning water', 'water', 'other consumable', 'drink'}
 MOVE = {'morning movement', 'walking', 'hip exercises', 'strength training', 'barre', 'cycling', 'rowing',
         'yoga', 'squat', 'sun salutations', 'morning sun', 'evening sun', 'exercise', 'stretch'}
@@ -332,14 +333,16 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         on_rec = any(x in rh for x in rec_rh)       # an action on a recreation rhythm too: it was lived, not worked (27 Oct)
         if span and (pr in RECREATION or on_rec):
             if household:                     # who was there is a mark (1 Nov 2026), so time with others is recreation
-                paint('recreation', 'recreation', a, b, t)
+                for pa, pb in pieces:         # her stretches only, never the envelope (4 Nov 2026: a 26-minute summary
+                    paint('recreation', 'recreation', pa, pb, t)   # touched at 1, 5:48 and 9:53 drew 8 h of recreation)
             else:
                 # social recreation: time with other people for its own sake, like a party someone else threw (31 Oct
                 # 2026) beyond the family she cares for: time with her son is family time, a party with friends is
                 # social (and a playmate's visit is his play, with her caring for him); a party is social either way
                 others = [n for n in who if not any(w in n for w in care_who)]
                 social = pr == 'social' or 'party' in said or (bool(others) and len(others) == len(who))
-                paint('recreation', 'social' if social else 'recreation', a, b, t)
+                for pa, pb in pieces:
+                    paint('recreation', 'social' if social else 'recreation', pa, pb, t)
         if span and household and pr not in SLEEP:
             outside = [n for n in who if not any(w in n for w in household) and not (self_name and self_name in n)]
             for n in outside:
@@ -377,8 +380,13 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         # in its notes, then as pet care, from "Rosa and Buddy the whole time at Greenhouse")
         by_words = rh != system
         is_community = span and by_words and any(w in said for w in COMMUNITY + community_words)
+        # an action is caretaking when her words or its title say it was with or for them, or it was lived together on
+        # a recreation rhythm (a playmate's visit, 27 Oct) -- never because they were company on her work: the household
+        # default puts them there too (4 Nov 2026: her morning's work sessions drew as two hours of family care)
+        named = any(w.lower() in t.lower() for w in with_care)
         is_family = cook_care or chore_care or any(x in rh for x in care_rh) or (span and (
-            (with_care and (pr in ('action', 'driving') or together)) or (pr == 'driving' and any(w in t for w in care_who))))
+            (with_care and (pr == 'driving' or together or (pr == 'action' and (named or on_rec))))
+            or (pr == 'driving' and any(w in t for w in care_who))))
         is_pet = any(x in rh for x in pet_rh) or bool(span and by_words and pet_rx and pet_rx.search(
             (r.get('title') or '') + ' ' + (r.get('details') or '').split('———')[0] + ' ' + ' '.join(who)))
         care_kind = ('community' if is_community else       # her words for it win over the rhythm it was filed under
@@ -398,7 +406,11 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
             for pa, pb in pieces:
                 paint('work', care_kind, pa, pb, t, own=pr != 'action')
         elif rh and span and (pr == 'action' or pr not in flows) and not on_rec and pr not in COOK and \
-                (parts or b - a >= dt.timedelta(minutes=10)):     # a work practice with its time counts too (28 Oct)
+                pr not in SLEEP and pr not in EAT and pr not in MOVE and pr != 'driving' and pr not in TRAVEL and \
+                not (pr != 'action' and any(x in rh for x in personal_rh)) and \
+                (parts or b - a >= dt.timedelta(minutes=10)):     # never sleep, food, moving, a drive or her own routine
+                                                                  # (4 Nov 2026: the night, the lunch drive and a glass of
+                                                                  # wine on her health rhythm drew as professional work)     # a work practice with its time counts too (28 Oct)
             for pa, pb in pieces:
                 paint('work', 'system' if rh == system else 'work', pa, pb, t)
                 if pr != 'action':
@@ -415,6 +427,10 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
     # asleep is where the night says so (Oura's timeline, or a row's own line); with neither, all the hours in bed.
     # A bedtime flow step done in bed before sleep stays a flow (26 Oct 2026).
     night = night_runs(nights, sleep, s0, off)
+    # her day away (4 Nov 2026): from a drive to work to the drive home the household default doesn't hold, so a
+    # minute no row covers is alone there, not with the family (core/bedo_categorize.away_spans, the same rule)
+    away = away_spans([(a_, b_, r_.get('title')) for a_, b_, r_ in lived if low(r_.get('practice')) in ('driving', 'travel')])
+    AWAY = [away_at(away, s0 + dt.timedelta(minutes=m)) for m in range(1440)]
     asleep = [False] * 1440
     for i, n in enumerate(nights):
         for m in range(n['a'], n['b']):
@@ -564,14 +580,20 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         bed_m = evening['a'] if evening else 1440
         awake = [m for m in range(wake, bed_m) if not asleep[m]]
         circles = L.get('_circles') or {}
+        folded = {k.lower(): v for k, v in circles.items()}
         def clean_name(n):
             return re.sub(r'^[^\w]+', '', n).strip()
+        def circle_of(n):
+            # by any name she goes by, whatever its case (4 Nov 2026: two colleagues in her Work circle by full name
+            # and lowercase short name, written by first name on the row, drew as social time)
+            c = clean_name(n)
+            return circles.get(c) or circles.get(n) or folded.get(c.lower()) or folded.get(c.split()[0].lower() if c else '')
         # social splits by who: work when everyone outside the family there is from her Work circle (1 Nov 2026)
         def social_kind(ws):
-            cs = [circles.get(clean_name(n)) or circles.get(n) for n in ws]
+            cs = [circle_of(n) for n in ws]
             return 'work' if cs and all(c == 'Work' for c in cs) else 'social'
-        kind = {m: social_kind(WITH[m]) if WITH[m] else 'family' if FAMW[m] else 'alone' if SAYS_ALONE[m] else default_with
-                for m in awake}
+        kind = {m: social_kind(WITH[m]) if WITH[m] else 'family' if FAMW[m] else 'alone' if SAYS_ALONE[m] or AWAY[m]
+                else default_with for m in awake}
         strip, prev = [], None
         for m in awake:
             if strip and prev == m - 1 and strip[-1][0] == kind[m]:
@@ -584,14 +606,14 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
             for n in WITH[m] | FAMW[m]:
                 mins_of[n] = mins_of.get(n, 0) + 1
         people = [dict(n=clean_name(n), min=v,
-                       circle=circles.get(clean_name(n)) or circles.get(n) or ('Family' if any(h in n for h in household) else ''))
+                       circle=circle_of(n) or ('Family' if any(h in n for h in household) else ''))
                   for n, v in sorted(mins_of.items(), key=lambda x: (-x[1], SEEN.get(x[0], 0)))]
         # a text or a call names its person on the row, or in its title by a name from connections
         known = sorted((k for k in circles if ' ' in k), key=len, reverse=True)
         reach = []
         for c in sorted(contacts, key=lambda x: x['m']):
             ws = [clean_name(n) for n in c['who']] or [k for k in known if k.lower() in c['t'].lower()][:1]
-            reach.append(dict(m=c['m'], t=c['t'], who=ws, circle=next((circles.get(w) for w in ws if circles.get(w)), '')))
+            reach.append(dict(m=c['m'], t=c['t'], who=ws, circle=next((circle_of(w) for w in ws if circle_of(w)), '')))
         # mentioned but not there: one quiet line, never a chip on everyone (1 Nov 2026)
         there = {clean_name(n).split()[0].lower() for n in mins_of} | {w.lower() for c in reach for w in c['who']}
         named = [clean_name(n) for n in mentioned]

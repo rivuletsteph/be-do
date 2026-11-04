@@ -277,6 +277,11 @@ def photos(w, out, loc, rows):
                         '--template', ENGINE, '--out', o], capture_output=True, text=True, encoding='utf-8',
                        timeout=60, env=env)
     assert json.loads(r.stdout)['photos']['on_moments'] == 1, r.stdout + r.stderr
+    # the audit reads each photo's own time, not its moment's (4 Nov 2026: a picture at 8:14 and a moment at 8:15,
+    # nine minutes from the next photo, read as one burst)
+    X2 = json.loads(open(o, encoding='utf-8').read().split('const DATA = ', 1)[1].split(';\nconst esc', 1)[0])
+    held = [m for m in X2['stream']['days'][0]['stones'] if m.get('photos')]
+    assert len(held) == 1 and len(held[0]['photo_at']) == 1 and held[0]['photo_at'][0].endswith(':01:00'), held
     print('ok — photos: made small, placed by the time they were taken, routine checks left out')
 
 
