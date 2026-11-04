@@ -168,7 +168,9 @@
  },
  "calendar": {
   "_about": "6 Oct 2026: every calendar write names its calendar and is read back before it's called done. 9 Oct 2026: every work event is purple, Google Calendar colorId 3 (Grape), her employer's colour. Her calendar ids, work parents and work words live in facts_local under calendar.",
-  "work_color": "3"
+  "work_color": "3",
+  "done_mark": "✔️",
+  "_done_mark": "4 Nov 2026, her words: mark it with a check — just a simple check, not the green one, the simple gray one on my calendar, and a green check on the HTML timeline. A bunch of green checks on Google Calendar is too distracting. A done event's title starts with ✔️, never ✅; the day page draws ✔️ as ✅ done. Refines the 2 Nov rule (when she says an event is done, it gets its check)."
  },
  "inbox": {
   "_about": "Her inbox rules, in code (bedo_inbox): an automatic keep (26 Oct: anything from her husband is important, like a star) always gets a line on the one list and is never archived; a sender archived by default (25 Oct: a club's mail, a keep only when it's about what she cares about there); and before anything is archived she gets one line to glance through the inbox herself, and archiving waits for her go (22 Oct). The senders live in facts_local under inbox.",

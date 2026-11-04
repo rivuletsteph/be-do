@@ -513,7 +513,12 @@ function today(){
   const its=all.filter(x=>x.k!=='lived'&&!over(x)&&!bands.includes(x)).sort((x,y)=>x.s-y.s);
   /* a step she set inside an event (2 Nov 2026: a phone call during a class she waits through) is hers: it sits
      beside the event at its own time, never pushed after it */
-  its.forEach(x=>{ if(x.k==='step'&&!x.done){ const ev=its.find(o=>o.k==='event'&&o.s<=x.s&&x.s<o.e); if(ev){ x.beside=true; ev.half=true; } } });
+  its.forEach(x=>{ if(x.k==='step'&&!x.done){ const ev=its.find(o=>o.k==='event'&&o.s<=x.s&&x.s<o.e); if(ev){ x.beside=true; x.ev=ev; ev.half=true; } } });
+  /* steps beside one event stack down it one after another, never on one spot (4 Nov 2026, her words: there's two
+     items that are right on top of each other, and that needs to be addressed to make it more usable) */
+  { const ends=new Map(); its.filter(x=>x.beside).forEach(x=>{ const d=Math.max(15,x.e-x.s), at=ends.get(x.ev);
+      if(at!=null&&x.s<at){ x.s=at; x.e=at+d; } ends.set(x.ev,x.e); });
+    its.filter(x=>x.beside).forEach(x=>its.forEach(o=>{ if(o.k==='event'&&o.s<x.e&&x.s<o.e) o.half=true; })); }
   /* an event on the calendar never moves (2 Nov 2026: PE was drawn at 11:25 when it starts at 11:05); a step
      never lands on one, it goes after it; and a block of hers already under way keeps its own end */
   const evs=its.filter(x=>x.k==='event'), nowS=nowM!=null?Math.ceil(nowM/15)*15:0;

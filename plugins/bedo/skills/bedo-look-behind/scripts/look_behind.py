@@ -257,7 +257,7 @@ def sub_steps(details):
 
 
 def clean_title(t):
-    t = re.sub(r'^[✅✖️⬜▶️▫️◉●⨂⚡\s]+', '', t or '')
+    t = re.sub(r'^[✅✔✖️⬜▶️▫️◉●⨂⚡\s]+', '', t or '')
     return t.strip()
 
 

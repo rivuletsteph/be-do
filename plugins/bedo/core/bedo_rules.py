@@ -64,6 +64,7 @@ CHECKS = {
     'day_ahead.chore': 'day_ahead — the look ahead plants one chore for her son',
     'calendar': 'bedo_calendar — every calendar write names its calendar and is read back',
     'calendar.purple': 'bedo_calendar — every work event is purple, colorId 3',
+    'calendar.done': 'bedo_calendar — a done event takes ✔️, the plain check, never ✅',
     'inbox.keeps': 'bedo_inbox — an automatic keep (her keep list) is never archived',
     'inbox.archive_unless': 'bedo_inbox — a sender archived by default stays only when it is about what she keeps it for',
     'inbox.nudge': 'bedo_inbox — before archiving, one line asks her to glance through the inbox',
