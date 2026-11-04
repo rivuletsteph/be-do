@@ -59,6 +59,18 @@ One row, or a list.
 `core/bedo_rules.py`, or `["judgment"]`). A line there is a rule that still
 depends on a chat remembering: tell her once, and add it to the backlog.
 
+## What the calls cost
+
+Every call to Airtable counts against her plan (4 Nov 2026: the free plan's
+month ran out on the 4th). The checks keep what changes slowly — the base list
+and schemas for a day; the catalog, the settings row, the amendments, rhythms
+and people for four hours — in `~/.bedo/cache`, and read the stream live every
+time. **After a change to the catalog or a settings row, run the next check with
+`BEDO_FRESH=1`**, so it reads live and refreshes what is kept. A spent month
+stops at the first refusal (`monthly API allowance is spent`): say so in one
+line and read nothing more, connector included. `run_checks.sh usage` prints
+the calls made from here, by day and by script.
+
 ## Where the Airtable reads come from
 
 - **With a token** — `AIRTABLE_PAT`, a `bedo_secrets.json` beside the work or
