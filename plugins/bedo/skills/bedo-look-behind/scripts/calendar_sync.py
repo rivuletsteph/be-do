@@ -4,7 +4,9 @@
 The stream is the record of what HAPPENED; the calendar is the record of what
 was SCHEDULED, and mirrors the stream once the day is lived. A stream row tied
 to an event carries the event's link in its `event` field. At the dusk close,
-each linked event takes the row's status as its title prefix (⬜ → ✅ / ✖️) and,
+each linked event takes the row's status as its title prefix (⬜ → ✔️ / ✖️) and,
+(✔️, the plain check, never ✅: her word, 4 Nov 2026 — a bunch of green checks on
+her calendar throws her off; the day page draws ✔️ as ✅ done)
 when the row holds a real span, the row's real times.
 
 It never writes the calendar itself. Two steps, both printing JSON:
@@ -44,7 +46,7 @@ import bedo_reader  # noqa: E402
 
 KEYS = ('title', 'key', 'when', 'end', 'target', 'status', 'event', 'spent')
 # the status → calendar prefix map. A plan row is ⬜ until it happens.
-PREFIX = {'✅ done': '✅', '◉ done': '✅', '● log': '✅',
+PREFIX = {'✅ done': '✔️', '◉ done': '✔️', '● log': '✔️',
           '✖️ dropped': '✖️', '⨂ skipped': '✖️',
           '⬜ intention': '⬜', '▶️ in motion': '⬜', '▫️potential': '▫️'}
 # every prefix the calendar already carries, so one is replaced, never stacked
@@ -253,7 +255,7 @@ def main():
         new_summary = reprefix(e.get('summary', ''), glyph)
         if new_summary != e.get('summary'):
             want['summary'] = new_summary; why.append(f"prefix → {glyph}")
-        sp = span(r) if glyph == '✅' else None
+        sp = span(r) if glyph == '✔️' else None
         ea, eb = ev_time(e['start']), ev_time(e['end'])
         if sp and ea and eb:
             ra, rb = sp

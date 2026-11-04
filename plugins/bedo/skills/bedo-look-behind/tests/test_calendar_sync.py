@@ -57,7 +57,7 @@ EVENTS = [
     ev('me@gmail.com', 'ev1', '⬜🏭Example check-in', '2026-09-23T09:00:00-05:00', '2026-09-23T10:00:00-05:00'),
     ev('me@gmail.com', 'ev2', 'Example lunch', '2026-09-23T11:00:00-05:00', '2026-09-23T12:00:00-05:00'),
     ev('fam@group.calendar.google.com', 'ev3', 'Example appointment', '2026-09-30T14:00:00-05:00', '2026-09-30T15:00:00-05:00'),
-    ev('me@gmail.com', 'ev4', '✅ Example session', '2026-09-23T15:00:00-05:00', '2026-09-23T16:00:00-05:00'),
+    ev('me@gmail.com', 'ev4', '✔️ Example session', '2026-09-23T15:00:00-05:00', '2026-09-23T16:00:00-05:00'),
     ev('gone@group.calendar.google.com', 'ev5', '✖️Example outing', '2026-09-23T17:00:00-05:00', '2026-09-23T18:00:00-05:00'),
 ]
 
@@ -88,7 +88,7 @@ def main():
           [(f['event_id'], f['calendar_id']) for f in L['fetch']][:3],
           [('ev1', 'me@gmail.com'), ('ev2', 'me@gmail.com'), ('ev3', 'fam@group.calendar.google.com')])
     ch = {c['key']: c['update'] for c in P['changes']}
-    check('done takes ✅ in place of ⬜', ch.get('a', {}).get('summary'), '✅🏭Example check-in')
+    check('done takes ✔️, the plain check, in place of ⬜ (4 Nov 2026)', ch.get('a', {}).get('summary'), '✔️🏭Example check-in')
     check('its real times follow the row', (ch.get('a', {}).get('startTime'), ch.get('a', {}).get('endTime')),
           ('2026-09-23T09:00', '2026-09-23T09:45'))
     check('notifications are off', ch.get('a', {}).get('notificationLevel'), 'NONE')

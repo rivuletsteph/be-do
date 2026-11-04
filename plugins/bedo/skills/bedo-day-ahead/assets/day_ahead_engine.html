@@ -355,7 +355,7 @@ page.querySelectorAll('.theme button').forEach(b=>b.onclick=()=>{ window.bedoThe
 /* your intention now sits in the header, under the date (28 Oct 2026) */
 
 const glyph = st => {
-  const k = {'⬜':'int','▫️':'pot','▶️':'mot','✅':'don'}[String(st||'⬜').trim()] || 'int';
+  const k = {'⬜':'int','▫️':'pot','▶️':'mot','✅':'don','✔️':'don','✔':'don'}[String(st||'⬜').trim()] || 'int';
   const nm = {int:'intention',pot:'potential',mot:'in motion',don:'done'}[k];
   return `<span class="gl" title="${nm} · action"><span class="st ${k}"></span><svg class="bolt" viewBox="0 0 11 14" aria-hidden="true"><path d="M6.6 0 0 8h4.2L3.4 14 11 5.6H6.6z"/></svg></span>`;
 };
@@ -421,7 +421,7 @@ if (SUNDAY && D.morning){
    right thing … sometimes I like to have choices). The three stay; the first one not yet done
    stands in front, the others are the choice, and the ones done today drop to the end. */
 if (WEEKDAY && D.pareto && D.pareto.length){
-  const isDone = p => String(p.st||'').trim().startsWith('✅');
+  const isDone = p => /^(✅|✔)/.test(String(p.st||'').trim());   /* ✔️ on her calendar is done too (4 Nov 2026) */
   const open = D.pareto.filter(p=>!isDone(p)), done = D.pareto.filter(isDone);
   const sec = $(`<section class="tsec nrt"><h2>the next right thing</h2><p class="sub">${open.length?'one of the three for today · be•do’s pick, not your intentions':'all three done today'}</p><div class="ecards first"></div>${open.length>1?'<p class="or">or, if that can’t happen now</p>':''}<div class="ecards rest"></div></section>`);
   const why = p => [p.kind, p.why].filter(Boolean).join(' · ');

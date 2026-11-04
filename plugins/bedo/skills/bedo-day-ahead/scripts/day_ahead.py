@@ -194,7 +194,7 @@ def load_rhythms(path):
 
 
 def clean_title(t):
-    t = re.sub(r'^[✅✖️⬜▶️▫️\s]+', '', t or '')
+    t = re.sub(r'^[✅✔✖️⬜▶️▫️\s]+', '', t or '')
     return re.sub(r'^⚡\s*', '', t).strip()
 
 

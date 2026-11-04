@@ -294,7 +294,8 @@ chat except the digest the words are written from.
 8. **Sync the calendar from the stream.** The stream is the record of what
    happened; the calendar mirrors it. Every row tied to an event carries the
    event's link in its `event` field, and at the dusk close each linked event
-   takes the row's status as its title prefix (⬜ → ✅ / ✖️) and, when the row
+   takes the row's status as its title prefix (⬜ → ✔️ / ✖️ — the plain check on
+   her calendar, never the green ✅; the pages draw ✔️ as ✅ done, 4 Nov 2026) and, when the row
    holds a real span, its real times. The script plans; the chat writes.
    ```
    python3 scripts/calendar_sync.py --list --day YYYY-MM-DD \

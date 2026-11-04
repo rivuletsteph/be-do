@@ -250,6 +250,13 @@ class Calendar(unittest.TestCase):
         out, _ = CA.problems(self.ev(), CAL_LOCAL, found, 'me@example.com')
         self.assertTrue(any('not the calendar it was written to' in p for p in out))
 
+    def test_a_done_event_takes_the_plain_check(self):
+        """4 Nov 2026: a done event is ✔️ on the calendar, never the green ✅."""
+        out, _ = CA.problems(self.ev(summary='✅🎹 piano lesson'), CAL_LOCAL)
+        self.assertTrue(any('starts with ✔️' in p and '“✔️🎹 piano lesson”' in p for p in out))
+        self.assertEqual(CA.problems(self.ev(summary='✔️🎹 piano lesson'), CAL_LOCAL)[0], [])
+        self.assertEqual(CA.problems(self.ev(summary='⬜🎹 piano lesson'), CAL_LOCAL)[0], [])
+
     def test_work_is_purple(self):
         parents = {'River data': 'Water work', 'Water work': 'Work mission'}
         work = self.ev(summary='quarterly data review', calendarId='me@example.com', drive='River data')

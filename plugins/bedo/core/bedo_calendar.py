@@ -13,6 +13,10 @@ the read-back.
            2026). Work is a drive under her work parents, or a title that
            names her work (calendar.work_words); a series is coloured on the
            series
+  done ✔️  a done event's title starts with ✔️, the plain check, never ✅
+           (4 Nov 2026, her words: just a simple check, not the green one … it's
+           too distracting on my regular Google calendar to have a bunch of green
+           checks). The day page still draws a ✔️ event as ✅ done
 
 Her calendars, work parents and work words live in facts_local under
 `calendar`, never here:
@@ -77,6 +81,10 @@ def problems(event, local, readback=None, read_from=None, parents=None):
                    + ' — never the tool default')
     elif cals and cid not in names:
         out.append(f'calendar: {cid} is not one of hers — ' + ', '.join(cals) + '; a write there is invisible to her')
+    t = (event.get('summary') or '').lstrip()
+    if t.startswith('✅'):
+        out.append(f'done: a done event starts with {CAL["done_mark"]}, the plain check, never ✅ — '
+                   f'“{CAL["done_mark"]}{t[1:].lstrip(chr(0xfe0f))}”')
     if is_work(event, local, parents) and str(event.get('colorId') or '') != CAL['work_color']:
         out.append(f'colour: a work event is purple — colorId {CAL["work_color"]}'
                    + (' (on the series)' if event.get('recurrenceData') else ''))
