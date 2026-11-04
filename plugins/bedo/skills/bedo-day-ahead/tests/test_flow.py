@@ -111,6 +111,9 @@ def main():
              lv('lunch', '12:00', '12:30', cat='eat')]
     out = flow.fold_into_events(items)
     yoga, call = out[0], out[3 - 1]
+    booked = flow.fold_into_events([ev('Massage', '14:20', '15:20'),
+                                    dict(lv('book the massage', '14:20', '14:30', cat='personal'), act=True)])
+    assert len(booked) == 1 and 'covers' not in booked[0], booked
     assert yoga['covers'] == ['stretches, in yoga'] and yoga['done'], yoga
     assert call['t'] == 'Team call' and 'covers' not in call and call['links'] == note, call
     assert {x['t'] for x in out} == {'Yoga class', 'a glimmer at yoga', 'Team call', 'Grandparents day',

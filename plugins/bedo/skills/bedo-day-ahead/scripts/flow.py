@@ -392,7 +392,9 @@ def fold_into_events(items, start_min=10, end_min=5):
             inside = e.get('who') in (None, 'you') and ea <= xa <= ea + start_min and xb <= eb + end_min
             if same or inside:
                 gone.add(id(x))
-                if not same:
+                # a finished action closed onto the event (a booking thread, the event's own ⬜) is the event; only a
+                # practice done inside it is named as covered (4 Nov 2026: the massage listed its booking row)
+                if not same and not x.get('act'):
                     e.setdefault('covers', []).append(x['t'])
                 e.setdefault('links', []).extend(x.get('links') or [])
                 e['done'] = True
