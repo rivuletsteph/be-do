@@ -103,6 +103,11 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
 .cal .ev b{font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cal .ev.event b{-webkit-line-clamp:3}.cal .ev i{display:block;font:500 10.5px var(--mono);font-style:normal;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cal .ev a{color:inherit;text-decoration:none}
 .cal .band{position:absolute;left:3px;right:3px;border-radius:10px;border-left:4px solid var(--dc);background:color-mix(in srgb,var(--dc) 12%,transparent);z-index:0}
+.bandtop{display:flex;flex-wrap:wrap;gap:4px 12px;margin:0 0 8px;font-size:12px;color:var(--ink)}
+.bandtop b{font:600 10.5px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.05em}
+.bandtop span{display:inline-flex;align-items:center;gap:5px}
+.bandtop i{width:14px;height:11px;border-radius:3px;border:2px solid var(--dc);background:color-mix(in srgb,var(--dc) 16%,transparent)}
+.bandtop a{color:inherit}
 .cal .band span{position:absolute;right:8px;top:4px;font:600 11px var(--sans);color:var(--muted);text-align:right;max-width:55%}
 .cal .ev{z-index:1}
 .cal .band a{color:inherit;text-decoration:none}
@@ -491,7 +496,10 @@ function today(){
      already accomplished): an event already over joins the done side, so it never covers what she did in it,
      and a moment logged with no end of its own runs only until the next thing, so the done items stack down
      the clock one per line instead of squeezing side by side */
-  const over=x=>x.k==='event'&&nowM!=null&&x.e<=nowM;
+  /* on a day already gone every event is over (4 Nov 2026, her words: it looks like there's stuff behind it that
+     I can't see): it sits beside what she did during it, never on top of it */
+  const gone=now.toLocaleDateString('en-CA')>D.day;
+  const over=x=>x.k==='event'&&(gone||(nowM!=null&&x.e<=nowM));
   /* once an hour has passed it folds to what mattered (2 Nov 2026, her words: condensed after that hour passes;
      I want to see the highlights or glimmers or the big accomplishments, but BM and morning water don't need to
      show unless I expand it): a finished action, an event, a moment (highlight, glimmer, noticing, dream, journal,
@@ -536,13 +544,17 @@ function today(){
   const y=m=>{ let t=0; for(let i=0;i<segH.length;i++){ const a=cuts[i], b=cuts[i+1]; if(m>=b){ t+=segH[i]; continue; } if(m>a) t+=segH[i]*(m-a)/(b-a); break; } return t; };
   /* the past as it was: two things at once sit side by side, as the calendar does */
   const cols=[]; past.forEach(x=>{ x.de=x.e; let c=0; while(cols[c]&&cols[c]>x.s) c++; cols[c]=x.de; x.col=c; });
-  past.forEach(x=>{ x.n=1+Math.max(...past.filter(o=>o.s<x.de&&o.de>x.s).map(o=>o.col)); });
+  /* every card in a run of overlapping ones shares one width, so three at once never sit on each other (4 Nov 2026) */
+  { let run=[], end=-1; const close=()=>{ const n=1+Math.max(...run.map(o=>o.col)); run.forEach(o=>o.n=n); run=[]; };
+    past.forEach(x=>{ if(run.length&&x.s>=end) close(); run.push(x); end=Math.max(end,x.de); }); if(run.length) close(); }
   const dc=n=>{ const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===n); return col(d&&d.c); };
   const kv=c=>`--fill:var(--k-${c||'flow'});--edge:var(--k-${c||'flow'}-d);--dc:var(--k-${c||'flow'}-d)`;
   const lab=h=>`${h%12||12} ${h<12||h===24?'AM':'PM'}`, tm=m=>`${Math.floor(m/60)%12||12}:${String(m%60).padStart(2,'0')}`;
+  /* a long event's name sits on a line above the clock, never over the cards in it (4 Nov 2026) */
+  const bandTop=[];
   let g=''; const CARDS=window.__cards=[]; const ci=x=>{ CARDS.push(x); return CARDS.length-1; };
   for(let h=h0;h<=h1;h++) g+=`<div class="hr" style="top:${y(h*60)}px"><span>${lab(h)}</span></div>`;
-  bands.forEach(x=>{ if(x.k!=='event'){ g+=`<div class="band" title="✅ ${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"><span><em>${x.k==='event'?'on your calendar':'✅ done'}</em>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)}<br>${tm(x.s)}–${tm(x.e)}</span></div>`; });
+  bands.forEach(x=>{ if(x.k!=='event'){ g+=`<div class="band" title="✅ ${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); });
   past.forEach(x=>{ const w=100/x.n, h=Math.max(MINH,y(x.e)-y(x.s)-1);
     if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past" style="--gc:${gcol(x)};--gi:${gink(gcol(x))};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(x.summary||x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i></div>`; return; }
     g+=`<div data-c="${ci(x)}" class="ev lived${h>=40?' tall':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${more(x)}</div>`; });
@@ -558,7 +570,7 @@ function today(){
   if(nowM!=null&&nowM>=h0*60&&nowM<=h1*60) g+=`<div class="now" style="top:${y(nowM)}px"></div>`;
   el.innerHTML=(I.length?`<p class="say"><small>your intention</small>${I.map(esc).join('<br>')}</p>`:'')
     +`<div class="sth"><h2>my stream</h2>${folded||window.__showall?`<button class="fold" onclick="window.__showall=!window.__showall;draw()">${window.__showall?'fold the routine away':`show everything · ${folded} more`}</button>`:''}</div>`
-    +(all.length?legend+`<div class="key2"><span><i style="background:var(--k-flow)"></i>done</span><span><i style="border:2px solid var(--ink)"></i>on your calendar · committed</span><span><i style="border:2px solid #B8860B;box-shadow:0 0 0 2px #F2C14E66"></i>★ be•do's picks</span><span><i style="border:1.5px dashed var(--muted);opacity:.7"></i>your choices</span></div><div class="cal" style="height:${y(h1*60)}px">${g}</div>`:'');
+    +(all.length?legend+`<div class="key2"><span><i style="background:var(--k-flow)"></i>done</span><span><i style="border:2px solid var(--ink)"></i>on your calendar · committed</span><span><i style="border:2px solid #B8860B;box-shadow:0 0 0 2px #F2C14E66"></i>★ be•do's picks</span><span><i style="border:1.5px dashed var(--muted);opacity:.7"></i>your choices</span></div>${bandTop.length?`<div class="bandtop"><b>behind the day</b>${bandTop.join('')}</div>`:''}<div class="cal" style="height:${y(h1*60)}px">${g}</div>`:'');
 }
 /* tap a card on the calendar to read all of it (2 Nov 2026, her words: if I click on the calendar it shows more detail) */
 /* an event looks as it does in Google Calendar (2 Nov 2026, her words: make the colors match what is already on
