@@ -89,16 +89,18 @@ class OpenDevice(unittest.TestCase):
         self.assertTrue(any('deduced 💻 laptop' in p for p in probs(self.act('draft the report on the laptop'))))
         self.assertTrue(any('deduced 📱 phone' in p for p in probs(self.act('call the vet about Rosa'))))
         self.assertTrue(any('deduced 📱 phone' in p for p in probs(self.act('pick the paint', quickie=True))))
+        # 4 Nov 2026: the Chromebook is its own device, not the laptop
+        self.assertTrue(any('deduced ⌨️ chromebook' in p for p in probs(self.act('set up the Chromebook for be•do'))))
 
     def test_else_asked_in_passing(self):
         r = self.act('sort the garage shelves')
         self.assertFalse([p for p in probs(r) if p.startswith('device')])
-        self.assertTrue(any('laptop or phone' in n for n in E.notes(r, ctx())))
+        self.assertTrue(any('Chromebook or phone' in n for n in E.notes(r, ctx())))
 
     def test_a_plan_that_is_not_an_action_still_carries_none(self):
         r = row(practice='🔅 morning sun', status=INT, device=None)
         self.assertFalse([p for p in probs(r) if p.startswith('device')])
-        self.assertFalse([n for n in E.notes(r, ctx()) if 'laptop or phone' in n])
+        self.assertFalse([n for n in E.notes(r, ctx()) if 'Chromebook or phone' in n])
 
 
 class BeingDoing(unittest.TestCase):

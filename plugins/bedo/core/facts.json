@@ -18,7 +18,7 @@
  },
  "emotion": ["🟡 high energy · pleasant", "🟢 low energy · pleasant", "🔴 high energy · unpleasant", "🔵 low energy · unpleasant", "⚪ neutral"],
  "attention": ["🌕 full", "🌓 partial"],
- "device": ["📱 phone", "💻 laptop", "🖥️ work desktop", "📺 tv", "🚫 none"],
+ "device": ["📱 phone", "💻 laptop", "⌨️ chromebook", "🖥️ work desktop", "📺 tv", "🚫 none"],
  "rhythm_types": {
   "write": ["♉ value", "♈ passion", "♎ destination", "♒ rhythm", "♐ drive"],
   "never_write": ["🫧 free-floating"]
@@ -148,6 +148,7 @@
   "device_none": ["wake", "sleep", "bm", "coffee", "morning movement", "morning sun", "evening sun", "morning mantra", "morning water", "mirror check", "breakfast", "lunch", "dinner", "snack", "evening tea", "evening breaths", "morning breaths", "supplements", "bp meds", "walking", "driving", "cycling", "location", "highlight", "face-to-face", "phone charging", "strength training", "hip exercises", "gratitude", "noticing", "shower", "smoothie", "evening meditation", "neck release"],
   "device_phone": ["morning oura", "evening oura", "weather check", "text", "email", "clear gmail inbox", "capture", "dream record", "morning book", "evening blessing", "look ahead", "look behind", "intention check", "action check", "qa check", "map check", "dawn flow close", "dusk flow close"],
   "laptop_words": ["laptop", "💻"],
+  "chromebook_words": ["chromebook", "⌨️"],
   "span_practices": ["location", "walking", "driving", "cycling"],
   "generic_practices": ["action", "log"]
  },

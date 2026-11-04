@@ -127,6 +127,8 @@ def deduce(row, ctx):
             d, src = '🚫 none', 'a body or self-care practice'
         elif p in ctx.phone:
             d, src = '📱 phone', 'a phone practice'
+        elif any(w in t.lower() or w in t for w in FILL.get('chromebook_words', [])):
+            d, src = '⌨️ chromebook', 'the title names the Chromebook'
         elif any(w in t.lower() or w in t for w in FILL['laptop_words']):
             d, src = '💻 laptop', 'the title names the laptop'
         elif s and any(a <= s <= b for a, b in ctx.spans):
@@ -176,6 +178,8 @@ def open_device(row, ctx):
     if (row.get('practice') or '').strip() != ACTION or row.get('status') not in PLANS or row.get('device'):
         return None
     t = row.get('title') or ''
+    if any(w in t.lower() or w in t for w in FILL.get('chromebook_words', [])):
+        return '⌨️ chromebook', 'the title names the Chromebook'
     if any(w in t.lower() or w in t for w in FILL['laptop_words']):
         return '💻 laptop', 'the title names the laptop'
     if row.get('quickie'):
