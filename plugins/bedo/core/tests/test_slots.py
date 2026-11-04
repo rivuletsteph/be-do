@@ -16,6 +16,7 @@ import bedo_remaining as RL  # noqa: E402
 import bedo_stretches as ST  # noqa: E402
 import bedo_dusk_audit as D  # noqa: E402
 import bedo_air as A  # noqa: E402
+os.environ['BEDO_HOME'] = tempfile.mkdtemp()   # a test's calls are never counted or kept with hers
 import bedo_order as O  # noqa: E402
 
 F = R.FACTS

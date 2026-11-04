@@ -264,7 +264,7 @@ def main(argv=None):
     fields = {'datetime': L.get('stream_fields', {}).get('datetime', 'datetime')}
     now, now_local, _, _ = clock(L)
     if a.live:
-        from bedo_air import Air
+        from bedo_air import Air, SLOW
         air = Air()
         names = air.bases()
         want = bases_in_play(now_local.date(), L)[0]
@@ -277,7 +277,10 @@ def main(argv=None):
             rows = as_rows(src['records'], fields)
         built = built_pages(read_log_rows(air, names, now_local.date(), L)) if a.kind == 'day' else None
         amend = (L.get('bases') or {}).get('amendments')
-        amendments = bedo_rules.active(air.records(*amend, by_id=bool(L.get('amendments_fields'))), L) if amend else None
+        st = (L.get('amendments_fields') or {}).get('status', 'status')
+        amendments = (bedo_rules.active(air.records(*amend, by_id=bool(L.get('amendments_fields')), ttl=SLOW,
+                                                    formula=f"{{{st}}}='active'"), L)   # the active ones: one page, not four
+                      if amend else None)
     else:
         if not (a.bases and a.stream):
             sys.exit('give --live, or both --bases and --stream')

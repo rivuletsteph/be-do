@@ -283,7 +283,7 @@ def main(argv=None):
     day = dt.date.fromisoformat(a.date) if a.date else now_local.date()
     fields = {**{k: k for k in ('practice', 'status', 'datetime', 'details')}, **L.get('stream_fields', {})}
     if a.live:
-        from bedo_air import Air, read_day, read_catalog
+        from bedo_air import Air, SLOW, read_day, read_catalog
         air = Air()
         cat_src, (day_src, _) = read_catalog(air, L), read_day(air, L, day)
     else:
@@ -303,7 +303,7 @@ def main(argv=None):
         rise = sunrise(every, L)
         if not rise and a.live:                      # the weather check often comes after the sun
             for back in (1, 2, 3):
-                prev = as_rows(complete(read_day(air, L, day - dt.timedelta(days=back))[0], 'day'), fields)
+                prev = as_rows(complete(read_day(air, L, day - dt.timedelta(days=back), ttl=SLOW)[0], 'day'), fields)
                 rise = sunrise(prev, L)
                 if rise:
                     break

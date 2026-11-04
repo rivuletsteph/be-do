@@ -74,6 +74,13 @@ class Air:
                     time.sleep(SLEEP)
                     return json.load(r)
             except urllib.error.HTTPError as e:
+                if e.code == 429:
+                    try:
+                        body = e.read().decode('utf-8', 'replace')
+                    except Exception:            # noqa: BLE001
+                        body = ''
+                    if 'BILLING' in body.upper():   # the month's allowance: waiting won't help (4 Nov 2026)
+                        die(f"{path}: Airtable's monthly API allowance is spent — nothing read, no retry")
                 if e.code == 429 and attempt < 3:
                     time.sleep(30)
                     continue
