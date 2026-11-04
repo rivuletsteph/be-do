@@ -197,7 +197,7 @@ def notes(row, fill=None):
                    f'which rhythm or drive for “{t}”?')
     d = bedo_fill.open_device(row, ctx)
     if d and not d[0]:
-        out.append(f'device left empty on an open action — ask in passing: laptop or phone for “{t}”?')
+        out.append(f'device left empty on an open action — ask in passing: laptop, Chromebook or phone for “{t}”?')
     out += synergy_now(row, ctx)
     return out
 
