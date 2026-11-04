@@ -265,6 +265,25 @@ chat except the digest the words are written from.
    `artifact_url` from the settings file, the same file path every day. One
    living page, republished in place; every republish is kept as a version
    (the user's choice, 25 Oct 2026, when the day page took it over).
+5b. **His quest page, with every look behind** (her word, 4 Nov 2026: build
+   it every morning, and go over it with him when he's rested — what went
+   great yesterday, where he missed out, so he can correct it; in time it
+   grows into planning). When the settings carry `quest_url`, build the
+   child's quest page for the same day from the stream dumps `prep` saved:
+   ```
+   python3 <repo>/plugins/bedo/assets/quest-day/quest_page.py --from-stream data/w##.json \
+     [--from-stream data/w##-prev.json] --date YYYY-MM-DD --local look_behind_local.json \
+     --name <quest_name from the settings> --out out/quest.html
+   ```
+   Exit 4 is no scored ⚔️ row that day: build nothing, and say so in a
+   clause. Read every line as him before she sees it — second person, his
+   register, a missed quest a next-time line — and reword in his copy any line
+   that still carries the scorer's reasoning (`{"details": "…"}` to a file,
+   the same command again with `--row FILE`); the stream row is never
+   touched. Publish to `quest_url` the same way as step 5, one living page.
+   In the chat it is one line: the link, the score, and *a photo for his
+   trophy?* — photos are hers to pick (`--trophy`, at most one `--photo`;
+   the README). `MORNING.md` step 8 is the same for an unattended run.
 6. **Save the page to Drive**, in the folder of its own week:
    `be•do/<year>-W## <Mon D>/YYYY-MM-DD-day-behind.html` — the folder named for
    the week number and its Sunday, no leading zero. Search the folder by name;
@@ -421,7 +440,9 @@ wanted again; don't create or re-enable one unasked.
 ## Morning, in the chat: seen means complete
 
 The morning chat shows yesterday's look behind first — preflight prints the
-link and the title yesterday's chat will take. If the words are still a draft,
+link and the title yesterday's chat will take — and his quest page beside it
+(the `quest` line), built in the same step (5b), for her to go over with him
+once he's rested. If the words are still a draft,
 show the lead and story and offer the edit commands above. **When the user
 says they have seen it, yesterday's my day chat is complete**: rename it to the
 ✔️ title preflight printed (the chat-title skill's rename), or give them the

@@ -72,6 +72,7 @@ one reason, which is what the notification carries.
 | publish to the living page | **yes** — her word, 8 Oct 2026 |
 | update the look behind's log row (status, link, the words block) | *asked — pending; yes is what makes the row the channel* |
 | sync the calendar from the stream | *asked — pending* |
+| build and publish the child's quest page (`quest_url`) | **yes** — her word, 4 Nov 2026 |
 | a day with no ⏏️ secure base row | build `secure`, the assumed default since 29 Sep, and say the row was absent |
 
 Until an answer is in, the routine does everything up to that step and stops
@@ -135,8 +136,30 @@ it is the only place the routine looks.
       that datetime** (an amendment) — a Monday routine
       writing Sunday's row across a week boundary is the case that rule is for.
    7. **Sync the calendar** (if allowed): `SKILL.md` step 8.
+   8. **The child's quest page** (her word, 4 Nov 2026: build it every
+      morning, so she can go over it with him once he's rested — what went
+      great yesterday, where he missed out, so he can correct it). Only when
+      the settings carry `quest_url`; it does not wait on the look behind
+      having built.
+      ```
+      python3 <repo>/plugins/bedo/assets/quest-day/quest_page.py \
+        --from-stream data/w##.json [--from-stream data/w##-prev.json] \
+        --date <day> --local look_behind_local.json --name <the child's short name> --out out/quest.html
+      ```
+      The name is the settings' `quest_name`; `<repo>` is the clone (`be-do-main`). Exit 4 means no scored ⚔️ row
+      that day: build nothing, publish nothing, say so in the account. Then
+      **read every line as him**: each one talks to him, in his register,
+      second person, and a missed quest is a next-time line, never a mark
+      against him. A line that still carries the scorer's reasoning or a note
+      to her (why it was scored ✗, a time only she'd follow) is reworded in
+      the copy for him — the stream row is never touched: write the block as
+      `{"details": "…"}` to `quest_row.json` and run the same command again
+      with `--row quest_row.json`. No photos: they are hers to pick, in the
+      morning chat. Publish to `quest_url` the same way as the look behind
+      (the first publish is refused and hands back the live page; publish
+      again — it is replaced whole).
 5. **Its own account**, the run's last message: one line — the date, draft or
-   dusk words, published or not, the QA items the morning chat will meet, and
+   dusk words, published or not, the quest page published or why not, the QA items the morning chat will meet, and
    what it could not do and why. On any failure the line opens `FAILED <date>:`.
 
 ## What it never does
