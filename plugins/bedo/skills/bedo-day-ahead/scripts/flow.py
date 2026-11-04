@@ -354,7 +354,7 @@ SESSION_MIN = 15   # each item in a session: a plain default she can change, sai
 
 
 def session_arg(s):
-    """'💰 financial session::16:00-17:00::Finances & Admin|2025 Taxes' → its name, window and drives."""
+    """'💰 financial session::16:00-17:00::Money|Taxes' → its name, window and drives."""
     name, win, drives = (s.split('::') + ['', ''])[:3]
     a, _, b = win.partition('-')
     return dict(name=name.strip(), a=a.strip(), b=b.strip(), drives={d.strip() for d in drives.split('|') if d.strip()})
