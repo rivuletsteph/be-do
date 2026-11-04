@@ -228,7 +228,9 @@ def sentence_with(text, pats):
 # read off the row, never invented. A row with no step named says so, so it gets one.
 NEXT_RE = re.compile(r'^[ \t]*(?:[-•*·][ \t]*)?(?:next(?:[ \t]+(?:right[ \t]+)?step)?|step)[ \t]*[:—–][ \t]*(.+)$',
                      re.I | re.M)
-URL_RE = re.compile(r'https?://[^\s<>()"\'\]]+')
+# a link to a chat in the Claude app on her laptop (claude://…) counts too (4 Nov 2026, her words: I could click
+# on the link to the actual chat. So that's a goal)
+URL_RE = re.compile(r'(?:https?|claude)://[^\s<>()"\'\]]+')
 
 
 def link_label(u):

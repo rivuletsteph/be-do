@@ -426,7 +426,7 @@ def sessions_of(items, sessions, tops=None):
         why = dict(S.get('top') or [])
         rank = lambda x: min(order.get(x.get('key') or '', 99), order.get(x.get('rid') or '', 99))
         mine.sort(key=rank)
-        lst = [dict(t=x['t'], nx=x.get('nx'), drive=x.get('drive'), sz=SESSION_MIN,
+        lst = [dict(t=x['t'], nx=x.get('nx'), drive=x.get('drive'), sz=SESSION_MIN, links=x.get('links') or None,
                     top=rank(x) < 99, why=why.get(x.get('key') or '') or why.get(x.get('rid') or '') or None)
                for x in mine]
         out = [x for x in out if x not in mine]
@@ -468,7 +468,9 @@ def build(D, rows, rhythms_read, L, behind_dir):
     detail = {strip(s.get('t')): s for s in C.get('steps') or []}
     # and only the links that serve the next step (her words, 2 Nov: not everything that's relevant, just what
     # is very relevant for the next step): the look ahead's own move for the row, its step and its ways in
-    moves = {strip(t.get('title')): t for t in D.get('tasks') or [] if isinstance(t, dict)}
+    # the due lines of each day carry their move too (4 Nov 2026: a step's chat link sat there, unreached)
+    moves = {strip(t.get('title')): t for t in [d for x in D.get('days') or [] for d in x.get('due') or []]
+             + (D.get('tasks') or []) if isinstance(t, dict) and t.get('move')}
     for it in data['schedule']:
         s = detail.get(strip(it.get('t')))
         if s:

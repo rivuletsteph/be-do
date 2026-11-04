@@ -628,7 +628,7 @@ function sheet(x){
       +(x.link?`<div class="lks"><a href="${esc(x.link)}" target="_blank" rel="noopener">open in Google Calendar ↗</a></div>`:'')+`</div>`;
     requestAnimationFrame(()=>s.classList.add('on')); s.querySelector('.x').onclick=()=>s.classList.remove('on'); return; }
   if(x.session){ const top=(x.list||[]).filter(o=>o.top), rest=(x.list||[]).filter(o=>!o.top);
-    const li=o=>`<li><span class="bx"></span><b>${esc(o.t)}</b>${o.why?`<div class="why">${esc(o.why)}</div>`:''}${o.nx?`<div class="nx">${esc(o.nx.replace(/\s*\(https?:[^)]*\)|\s*https?:\/\/\S+/g,''))}</div>`:''}<small>about ${o.sz} min · a default</small></li>`;
+    const li=o=>`<li><span class="bx"></span><b>${esc(o.t)}</b>${o.why?`<div class="why">${esc(o.why)}</div>`:''}${o.nx?`<div class="nx">${esc(o.nx.replace(/\s*\((?:https?|claude):[^)]*\)|\s*(?:https?|claude):\/\/\S+/g,''))}</div>`:''}${(o.links||[]).length?`<div class="lks">${o.links.map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l||'link')} ↗</a>`).join('')}</div>`:''}<small>about ${o.sz} min · a default</small></li>`;
     s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${t12(x.s)} – ${t12(x.e)}</div>`
       +`<div class="ttl">${esc(x.t)}</div><div class="when">what I'd tackle in this hour, in order</div>`
       +`<ol class="sess">${top.map(li).join('')}</ol>`
@@ -638,7 +638,7 @@ function sheet(x){
   s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${x.s?t12(x.s):'later'}</div>`
     +`<div class="ttl">${x.k==='event'?'🗓️ ':`<span class="bx${done?' ok':''}"></span>${x.k==='step'||x.act?'<span class="bolt">⚡</span>':''}`}${esc(x.t)}</div>`
     +(x.drive?`<div class="dv">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</div>`:'')
-    +(x.k==='lived'?'':(x.nx?`<div class="nx">${esc(x.nx.replace(/\s*\(https?:[^)]*\)|\s*https?:\/\/\S+/g,''))}</div>`:`<div class="nx none">no next step named yet</div>`))
+    +(x.k==='lived'?'':(x.nx?`<div class="nx">${esc(x.nx.replace(/\s*\((?:https?|claude):[^)]*\)|\s*(?:https?|claude):\/\/\S+/g,''))}</div>`:`<div class="nx none">no next step named yet</div>`))
     +(L?`<div class="lks">${L}</div>`:'')
     +(x.wait?`<div class="wt">⏸ waiting on ${esc(x.wait)}</div>`:'')
     +(x.why?`<div class="why">${esc(x.why)}</div>`:'')
