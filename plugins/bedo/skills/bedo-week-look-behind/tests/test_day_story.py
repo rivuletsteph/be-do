@@ -48,7 +48,7 @@ def row(practice, title, at, end=None, **kw):
 
 
 def link(fid):
-    return f'https://drive.google.com/file/d/{fid}/view'
+    return f'https://example.org/photos/d/{fid}/view'   # any link with /d/<file id> names its file
 
 
 ROWS = [
