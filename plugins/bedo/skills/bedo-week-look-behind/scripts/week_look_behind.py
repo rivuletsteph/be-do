@@ -438,6 +438,7 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset(), ndays=7, words=N
         best = p['row']
         if best is not None and best['id'] in by_row:
             by_row[best['id']].setdefault('photos', []).append(p['src'])
+            by_row[best['id']].setdefault('photo_at', []).append(p['t'].isoformat())   # when it was taken, for the audit
         else:
             pics.setdefault(p['t'].date().isoformat(), []).append(dict(
                 src=p['src'], at=p['t'].isoformat(), keeper=p['keeper'], g=glyph(best.get('practice')) if best else '',
@@ -747,7 +748,8 @@ def main():
     audit = None
     if a.day:     # run before the page is shown: every FIX is done and the page rebuilt first (2 Nov 2026)
         shown = [dt.datetime.fromisoformat(x) for d in more['stream']['days'] for x in
-                 [m['at'] for m in d['stones'] for _ in m.get('photos') or []] + [p['at'] for p in d['pictures']]]
+                 [x for m in d['stones'] for x in (m.get('photo_at') or [m['at']] * len(m.get('photos') or []))]
+                 + [p['at'] for p in d['pictures']]]   # the photos' own times, never their moment's (4 Nov 2026)
         day_rows = [dict(r, datetime=r.get('when'), time_spent=r.get('spent')) for r in rows]
         ids = {r['id'] for r in bedo_reader.on_day(day_rows, day, L)}
         ids |= {r['id'] for r in day_rows if r.get('end') and r['id'] not in ids

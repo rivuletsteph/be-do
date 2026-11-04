@@ -261,3 +261,50 @@ assert abs(alone - acc['alone']) <= 30, alone                           # her an
 print(f'ok — Sunday from code alone: fire {E1["fire"]} (accepted {acc["fire"]}), spirit {E1["spirit"]} '
       f'({acc["spirit"]}), alone {got["who"]["alone"]} by her rule, {alone} once she says the my week hour was hers '
       f'({acc["alone"]})')
+
+# 13 · her day away, and how she spent her time (4 Nov 2026, her words: major issues with how I spent my time;
+#      this is a systemic issue that needs to be fixed properly). A drive to work starts her time away and the
+#      drive home ends it: away, a row nothing places is hers alone and an empty minute is alone, not the family.
+#      Company on her work is not caretaking; sleep, food, a drive and her own routine are never professional
+#      work; a recreation row draws over its stretches, never its envelope; his own calendar event is his day.
+L13 = dict(L, care=dict(family=dict(people=['Kid']), pet=dict(names=['Pip']), personal=dict(rhythms=['Health'])),
+           recreation=dict(rhythms=['Tales']))
+EV = 'an event link'
+R13 = [row('😴 sleep', (0, 0), (6, 0), rhythm='Health'),
+       row('⚡ action', (7, 0), (8, 0), rhythm='Paid Work', title='the report'),
+       row('🚗 driving', (9, 0), (9, 20), title='🚗 drove to work'),
+       row('⚡ action', (9, 30), (11, 0), rhythm='Paid Work', title='the model run'),
+       row('🚗 driving', (12, 0), (12, 15), rhythm='Health', title='🚗 lunch out'),
+       row('🍽️ lunch', (12, 15), (12, 45)),
+       row('🚗 driving', (12, 45), (13, 0), title='🚗 back to the office'),
+       row('⚡ action', (13, 0), rhythm='Tales', title='the episode notes', time_spent=20 * 60,
+           details='———\n[be•do] stretches: 1:00–1:10 · 9:00–9:10 = 20m'),
+       row('⚡ action', (13, 15), (16, 45), rhythm='Paid Work', title='the afternoon runs'),
+       row('🚗 driving', (17, 0), (17, 20), title='🚗 drove home from work'),
+       row('🍽️ dinner', (18, 0), (18, 30)),
+       row('➖ alcohol', (18, 0), (18, 30), rhythm='Health', title='➖ a glass of wine')]
+C13 = {c['title']: c['new'] for c in calls(R13, settings=L13) if c['field'] == 'person'}
+assert C13['the report'] == f'{PA}, {KID}', C13                         # at home before work: with them by default
+assert C13['the model run'] == ME and C13['🍽️ lunch'] == ME and C13['the afternoon runs'] == ME, C13   # away
+assert C13['🍽️ dinner'] == f'{PA}, {KID}', C13                          # home again
+assert BC.away_spans([(1, 2, 'drove to work'), (5, 6, 'lunch out'), (8, 9, 'drove home from work')]) == [(2, 9)]
+assert BC.away_spans([(1, 2, 'school run')]) == []                     # a drive that names no work keeps her home
+R13b = BC.apply(R13, calls(R13, settings=L13))
+G13 = rings(R13b, settings=L13)
+K13 = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in G13['bands']}
+assert K13['doing']['work'] == 60 + 90 + 210, K13['doing']              # the report, the model run, the afternoon
+assert K13['doing'].get('family', 0) == 0, K13['doing']                 # company on the report is not caretaking
+assert K13['being']['recreation'] == 20, K13['being']                   # the two stretches, not 1:00 to 9:10
+assert K13['being']['eat'] == 30 + 30, K13['being']                     # lunch; dinner with the wine, one minute once
+strip = {(k, a, b) for k, a, b in G13['who']['strip']}
+assert ('alone', 11 * 60, 12 * 60) in strip or any(k == 'alone' and a <= 11 * 60 and b >= 12 * 60 for k, a, b in strip), strip
+assert not any(k == 'family' and a < 17 * 60 + 20 and b > 9 * 60 + 20 for k, a, b in strip), strip   # never the family at work
+# his own calendar day is not evidence of hers: the estimate inside it stands
+R13c = [row('⚡ action', (10, 0), (14, 0), person=KID, calendar_event=EV, title='school day'),
+        row('📝 log', (11, 0), (11, 30), title='📝 at the office (estimated)', details='———\n[be•do] ESTIMATED FROM CONTEXT'),
+        row('⚡ action', (12, 0), (13, 0), person=ME, calendar_event=EV, title='a meeting she was in')]
+assert not [c for c in calls(R13c, 'filler', settings=L13)], calls(R13c, 'filler', settings=L13)
+R13d = R13c[:2] + [row('⚡ action', (11, 0), (11, 30), person=ME, title='the call she logged')]
+assert [c['new'] for c in calls(R13d, 'filler', settings=L13)] == ['✖️ dropped'], calls(R13d, 'filler', settings=L13)
+print('ok 13 — her day away is hers; company on her work is not care; sleep, food and drives are never work; '
+      'recreation over its stretches; his calendar day is his')

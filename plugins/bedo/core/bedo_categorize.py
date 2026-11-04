@@ -221,10 +221,19 @@ def is_filler(r):
     return p in C['filler_practices'] and EST in (r.get('details') or '') and not her_words(r)
 
 
-def filler(rows):
-    """Estimated filler gives way to evidence (8, 2 Nov 2026)."""
+def theirs(r, me):
+    """A calendar event she isn't in — her son's school day, on his calendar with only him on it — is
+    his day, not evidence of hers (4 Nov 2026; the day page draws it on his strip already)."""
+    who = people(r.get('person'))
+    return bool(r.get('event') or r.get('calendar_event')) and bool(who) and bool(me) and \
+        not any(me in p or p in me for p in who)
+
+
+def filler(rows, L=None):
+    """Estimated filler gives way to evidence (8, 2 Nov 2026), and his own day is not evidence (4 Nov)."""
     out = []
-    ev = [span(r) for r in rows if lived(r) and not is_filler(r) and span(r)[1]]
+    me = settings(L or {})[0]
+    ev = [span(r) for r in rows if lived(r) and not is_filler(r) and not theirs(r, me) and span(r)[1]]
     for r in rows:
         if not (lived(r) and is_filler(r)):
             continue
@@ -274,6 +283,34 @@ def says_alone(r, pets, house_words):
     return False
 
 
+def away_spans(drives):
+    """Her time away from home, from the day's drives (4 Nov 2026): [(start, end)], end None when no drive
+    home follows. `drives` is [(start, end, title)]: a drive naming work or the office starts it, the next
+    naming home ends it (at its end: the drive home is hers too), and drives in between (lunch out, back to the office) keep her away. Any clock
+    works, as long as it is one clock (the stream's UTC here, local on the day page)."""
+    out, start = [], None
+    for a, b, t in sorted((d for d in drives if d[0]), key=lambda d: d[0]):
+        tl = (t or '').lower()
+        if re.search(C['home_pattern'], tl):
+            if start is not None:
+                out.append((start, b or a))          # the drive home is still away: she is in the car
+                start = None
+        elif start is None and re.search(C['away_pattern'], tl):
+            start = b or a
+    if start is not None:
+        out.append((start, None))
+    return out
+
+
+def inside(spans, t):
+    return bool(t) and any(a <= t and (b is None or t < b) for a, b in spans)
+
+
+def drives_of(rows):
+    car = {word(C['driving_practice']), word(C['travel_practice'])}     # at the wheel or carried
+    return [(*span(r), r.get('title')) for r in rows if lived(r) and word(r.get('practice')) in car]
+
+
 def company(rows, L, ctx):
     """With family by default (1, 2 Nov 2026): a row says alone, or she is with them."""
     me, house, _, pets = settings(L)
@@ -285,6 +322,7 @@ def company(rows, L, ctx):
     cand = [r for r in rows if lived(r) and r.get('datetime') and word(r.get('practice')) not in skip
             and word(r.get('practice')) not in C['sleep_practices']]
     out, decided = [], {}
+    away = away_spans(drives_of(rows))               # her day away: the household default doesn't hold there
     for r in cand:                                   # what each row says of itself first
         ps = people(r.get('person'))
         if ps:
@@ -306,6 +344,8 @@ def company(rows, L, ctx):
         if holders:
             o = min(holders, key=lambda x: x[0])[1]
             got, why = decided[id(o)], f'inside “{(o.get("title") or "?")[:40]}”, which names its company'
+        elif me and inside(away, a):
+            got, why = [me], 'away from home (after a drive to work, before the drive home): on her own unless a row says who'
         else:
             got, why = house, 'at home with the household by default: alone only when a row says so'
         decided[id(r)] = got
@@ -452,7 +492,7 @@ def run(rows, day, L, ctx=None, now=None):
         rows = apply(rows, got)
     step(clock, day, L, ctx)
     step(lengths, ctx)
-    step(filler)
+    step(filler, L)
     step(sleep_names_her, L, ctx)
     step(company, L, ctx)
     step(lambda rs: travel(rs, L, {}))
