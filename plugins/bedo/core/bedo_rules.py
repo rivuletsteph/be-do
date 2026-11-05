@@ -90,7 +90,7 @@ CHECKS = {
     'quest_page': "quest_page — the child's quest page (assets/quest-day), built with every look behind (4 Nov 2026)",
     'chats': 'bedo_chats — the chat sweep: every open chat against its objective and its row, at the dusk close and the weekly close',
     'chats.kept': "bedo_chats — her keep sticks: a row's `chat sweep: kept` line holds the chat off her list for a week",
-    'preflight.quest':"bedo_preflight — the quest line: his quest page's link beside the look behind, every morning",
+    'preflight.quest': "bedo_preflight — the quest line: his quest page's link beside the look behind, every morning",
 }
 NOT_CODE = 'judgment'
 
