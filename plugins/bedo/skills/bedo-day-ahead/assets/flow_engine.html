@@ -156,6 +156,9 @@ html[data-bedo="night"] .bfw{--bf-body:#8CC3C3;--bf-balance:#E3BB77;--bf-effect:
 .cal .ev.gcal{background:var(--gc)!important;border:0!important;border-left:0!important;color:var(--gi,#fff)!important;opacity:1}
 .cal .ev.gcal b,.cal .ev.gcal i{color:var(--gi,#fff)!important}
 .cal .ev.gcal.past{opacity:.6}
+.cal .ev .th{position:absolute;right:3px;top:3px;bottom:3px;width:44px;max-height:48px;object-fit:cover;border-radius:4px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.cal .ev.hasph{padding-right:52px}
+.sheet .ph{display:block;width:100%;max-height:60vh;object-fit:contain;border-radius:8px;margin:8px 0 0}
 .cal .ev .cov{display:block;font-size:11.5px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cal .ev.session{border:2px solid var(--edge);border-left-width:5px;overflow:hidden}
 .cal .ev.session .sl{display:block;font-size:12px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
@@ -571,7 +574,7 @@ function today(){
   /* a stretched clock (2 Nov 2026, her words: lengthen the calendar so all these things fit on it, and make
      things not overlap, cuz that is confusing): an hour is at least 72px, and a stretch of time grows until
      every card in it has room for its words, so a five-minute step never sits on the one after it */
-  const PX=72, MINH=26, minOf=px=>px*60/PX, need=x=>past.includes(x)?MINH+4:(x.pick&&x.why?64:48);
+  const PX=72, MINH=26, minOf=px=>px*60/PX, need=x=>(x.photos&&x.photos.length)?56:past.includes(x)?MINH+4:(x.pick&&x.why?64:48);
   const cuts=[...new Set([h0*60,h1*60,...(nowM!=null?[nowM]:[]),...Array.from({length:h1-h0+1},(_,i)=>(h0+i)*60),...all.map(x=>x.s),...all.map(x=>x.e),...its.map(x=>x.s),...its.map(x=>x.e)].filter(m=>m>=h0*60&&m<=h1*60))].sort((a,b)=>a-b);
   const PXP=18;   /* an hour already gone is short: it only grows to fit what's kept in it */
   const segH=cuts.slice(1).map((m,i)=>(m-cuts[i])*(nowM!=null&&m<=nowM?PXP:PX)/60);
@@ -588,6 +591,7 @@ function today(){
   /* a done event is ✔️ on her calendar and ✅ here (4 Nov 2026, her words: the simple check on my calendar, and a green check on the timeline) */
   /* an event drawn once names what it covered, and shows it carries a link (4 Nov 2026) */
   const cov=x=>(x.covers&&x.covers.length?`<span class="cov">covered ${x.covers.map(esc).join(' · ')}</span>`:'')+((x.links||[]).length?`<span class="cov">🔗 ${esc(x.links[0].l)}</span>`:'');
+  const thumb=x=>(x.photos||[]).length?`<img class="th" alt="" src="${x.photos[0].src}">`:'';
   const dn=t=>String(t||'').replace(/^\s*(✔️|✔)\uFE0F?/,'✅');
   const kv=c=>`--fill:var(--k-${c||'flow'});--edge:var(--k-${c||'flow'}-d);--dc:var(--k-${c||'flow'}-d)`;
   const lab=h=>`${h%12||12} ${h<12||h===24?'AM':'PM'}`, tm=m=>`${Math.floor(m/60)%12||12}:${String(m%60).padStart(2,'0')}`;
@@ -597,8 +601,8 @@ function today(){
   for(let h=h0;h<=h1;h++) g+=`<div class="hr" style="top:${y(h*60)}px"><span>${lab(h)}</span></div>`;
   bands.forEach(x=>{ if(x.k!=='event'){ g+=`<div class="band" title="✅ ${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); });
   past.forEach(x=>{ const w=100/x.n, h=Math.max(MINH,y(x.e)-y(x.s)-1);
-    if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past" style="--gc:${gcol(x)};--gi:${gink(gcol(x))};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(dn(x.summary||x.t))}</b><i>${tm(x.s)}–${tm(x.e)}${x.covers&&x.covers.length?` · covers ${x.covers.length}`:''}${(x.links||[]).length?' · 🔗':''}${x.where?', '+esc(x.where):''}</i></div>`; return; }
-    g+=`<div data-c="${ci(x)}" class="ev lived${h>=40?' tall':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${more(x)}</div>`; });
+    if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past${(x.photos||[]).length?' hasph':''}" style="--gc:${gcol(x)};--gi:${gink(gcol(x))};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(dn(x.summary||x.t))}</b><i>${tm(x.s)}–${tm(x.e)}${x.covers&&x.covers.length?` · covers ${x.covers.length}`:''}${(x.links||[]).length?' · 🔗':''}${x.where?', '+esc(x.where):''}</i>${thumb(x)}</div>`; return; }
+    g+=`<div data-c="${ci(x)}" class="ev lived${h>=40?' tall':''}${(x.photos||[]).length?' hasph':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${more(x)}${thumb(x)}</div>`; });
   its.forEach(x=>{ if(x.k==='event'){ const inner=`<b>${esc(dn(x.summary||x.t))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i>${cov(x)}`;
     g+=`<div data-c="${ci(x)}" class="ev event gcal" style="--gc:${gcol(x)};--gi:${gink(gcol(x))};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:${x.half?'calc(50% - 5px)':'calc(100% - 6px)'}">${inner}</div>`; return; }
     if(x.session){ const top=(x.list||[]).filter(o=>o.top), rest=(x.list||[]).length-top.length;
@@ -626,6 +630,7 @@ const BLOCK='#AFB6E8';
 const gcol=x=>(String(x.color)==='3'&&x.meet===false)?BLOCK:(GC[x.color]||((D.calcolors||{})[x.who])||'#039BE5');
 /* dark text on a light colour (a yellow calendar), white on the rest */
 const gink=c=>{ const n=parseInt(String(c).replace('#',''),16), r=n>>16&255, g=n>>8&255, b=n&255; return (0.299*r+0.587*g+0.114*b)>165?'#2b2118':'#fff'; };
+const photosOf=x=>(x.photos||[]).map(p=>p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener"><img class="ph" alt="" src="${p.src}"></a>`:`<img class="ph" alt="" src="${p.src}">`).join('');
 function sheet(x){
   let s=document.getElementById('sheet'); if(!s){ s=document.createElement('div'); s.id='sheet'; s.className='sheet'; document.body.appendChild(s); }
   const t12=m=>`${Math.floor(m/60)%12||12}:${String(m%60).padStart(2,'0')}`;
@@ -640,7 +645,7 @@ function sheet(x){
       +`<div class="when">🗓️ ${esc(x.who==='you'?'my events':x.who||'')}${x.drive?` · ${esc(x.drive)}`:''}</div>`
       +(x.covers&&x.covers.length?`<div class="when">covered: ${x.covers.map(esc).join(' · ')}</div>`:'')
       +(L?`<div class="lks">${L}</div>`:'')
-      +(x.link?`<div class="lks"><a href="${esc(x.link)}" target="_blank" rel="noopener">open in Google Calendar ↗</a></div>`:'')+`</div>`;
+      +(x.link?`<div class="lks"><a href="${esc(x.link)}" target="_blank" rel="noopener">open in Google Calendar ↗</a></div>`:'')+photosOf(x)+`</div>`;
     requestAnimationFrame(()=>s.classList.add('on')); s.querySelector('.x').onclick=()=>s.classList.remove('on'); return; }
   if(x.session){ const top=(x.list||[]).filter(o=>o.top), rest=(x.list||[]).filter(o=>!o.top);
     const li=o=>`<li><span class="bx"></span><b>${esc(o.t)}</b>${o.why?`<div class="why">${esc(o.why)}</div>`:''}${o.nx?`<div class="nx">${esc(o.nx.replace(/\s*\((?:https?|claude):[^)]*\)|\s*(?:https?|claude):\/\/\S+/g,''))}</div>`:''}${(o.links||[]).length?`<div class="lks">${o.links.map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l||'link')} ↗</a>`).join('')}</div>`:''}<small>about ${o.sz} min · a default</small></li>`;
@@ -657,7 +662,7 @@ function sheet(x){
     +(L?`<div class="lks">${L}</div>`:'')
     +(x.wait?`<div class="wt">⏸ waiting on ${esc(x.wait)}</div>`:'')
     +(x.why?`<div class="why">${esc(x.why)}</div>`:'')
-    +(x.det?`<div class="det">${esc(x.det)}</div>`:'')+`</div>`;
+    +(x.det?`<div class="det">${esc(x.det)}</div>`:'')+photosOf(x)+`</div>`;
   requestAnimationFrame(()=>s.classList.add('on'));
   s.querySelector('.x').onclick=()=>s.classList.remove('on');
 }

@@ -350,7 +350,7 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
             continue
         real = end and to(end) > a and to(end) - a <= dt.timedelta(hours=6)
         b = to(end) if real else a + dt.timedelta(minutes=10)
-        items.append(dict(k='lived', t=t, a=hm(a), b=hm(b), drive=rh, done=True, cat=kind_of(c, F, flows, C),
+        items.append(dict(k='lived', t=t, a=hm(a), b=hm(b), drive=rh, done=True, cat=kind_of(c, F, flows, C), rid=r['id'],
                           links=links_of(c, F) or None,
                           act=st == '✅ done', pt=not real,
                           # a feeling or a keeper photo marks what mattered (2 Nov 2026): it stays when the hour folds
@@ -392,6 +392,7 @@ def fold_into_events(items, start_min=10, end_min=5):
             inside = e.get('who') in (None, 'you') and ea <= xa <= ea + start_min and xb <= eb + end_min
             if same or inside:
                 gone.add(id(x))
+                e.setdefault('rids', []).append(x.get('rid'))
                 # a finished action closed onto the event (a booking thread, the event's own ⬜) is the event; only a
                 # practice done inside it is named as covered (4 Nov 2026: the massage listed its booking row)
                 if not same and not x.get('act'):
@@ -399,6 +400,59 @@ def fold_into_events(items, start_min=10, end_min=5):
                 e.setdefault('links', []).extend(x.get('links') or [])
                 e['done'] = True
     return [x for x in items if id(x) not in gone]
+
+
+def photos_onto(items, today, rows, F, off, folder, me=''):
+    """Her keeper photos on the cards they belong to (5 Nov 2026, her words: yes please — a small picture on the
+    card at its time, tap to open it). The day's photos come from the week's Drive folder (day_photos.py, the same
+    read the day behind uses); each is placed on its row the way the day behind places it (bedo_photos.place: the
+    row whose photo links name it, else the row at that minute), and only a photo on a keeper row is drawn. A photo
+    on an info row, or with no row, stays off the page."""
+    import base64
+    import bedo_photos
+    if not folder or not os.path.isdir(folder):
+        return 0
+    idx_path = os.path.join(folder, 'index.json')
+    ids = json.load(open(idx_path, encoding='utf-8')) if os.path.exists(idx_path) else {}
+    hours = off.total_seconds() / 3600
+    pics = []
+    for n in sorted(os.listdir(folder)):
+        t = bedo_photos.taken(n, hours)
+        if t and t.date() == today:
+            pics.append((t, ids.get(n), 'data:image/jpeg;base64,' + base64.b64encode(open(os.path.join(folder, n), 'rb').read()).decode()))
+    to = lambda ts: (dt.datetime.fromisoformat(ts.replace('Z', '+00:00')) + off).replace(tzinfo=None)
+    g = lambda c, k: (c.get(F[k]) if F.get(k) else None)
+    lived = []
+    for r in rows:
+        c = r['cellValuesByFieldId']
+        st = c.get(F['status']) or ''
+        st = st.get('name') if isinstance(st, dict) else st
+        if st in NOT_LIVED or st in OPEN or not c.get(F['when']):
+            continue
+        a = to(c[F['when']])
+        if a.date() != today:
+            continue
+        b = to(c[F['end']]) if c.get(F['end']) else a + dt.timedelta(minutes=10)
+        pe = g(c, 'person')
+        lived.append(dict(id=r['id'], title=c.get(F['title']) or '', practice=g(c, 'practice') or '',
+                          person=', '.join(pe) if isinstance(pe, list) else (pe or ''), photo=g(c, 'photo'),
+                          details=c.get(F['details']) or '', photo_links=g(c, 'photo_links') or '', _a=a, _b=b))
+    placed, _ = bedo_photos.place(lived, pics, me)
+    # selective, as the day behind is (2 Nov 2026, her words: less photos is good, like no more than six)
+    placed, _ = bedo_photos.select([p for p in placed if p['keeper'] and p['row']], me)
+    card = {}
+    for x in items:
+        for rid in [x.get('rid')] + (x.get('rids') or []):
+            if rid:
+                card.setdefault(rid, x)
+    n = 0
+    for p in placed:
+        x = card.get(p['row']['id']) if p['keeper'] and p['row'] else None
+        if x is not None:
+            x.setdefault('photos', []).append(dict(src=p['src'], url=bedo_photos.link(p['file']) if p['file'] else None,
+                                                   at=p['t'].strftime('%H:%M')))
+            n += 1
+    return n
 
 
 SESSION_MIN = 15   # each item in a session: a plain default she can change, said so on the card
@@ -495,6 +549,8 @@ def build(D, rows, rhythms_read, L, behind_dir):
                 it['who'] = mv.get('who') or None
             it['wait'] = mv.get('waiting') or None
     data['schedule'] = sessions_of(data['schedule'], L.get('_sessions') or [])
+    if L.get('_photos'):
+        photos_onto(data['schedule'], today, rows, F, off, L['_photos'], L.get('self_person') or '')
     # the wheel at the bottom, built through the day (3 Nov 2026, her words: I would like to see the
     # wellness wheel at the bottom ... built throughout the day): today's lived rows so far, each under
     # its element, read the same way balance reads the day before; every rebuild of the page adds to it
@@ -542,6 +598,7 @@ def main():
     ap.add_argument('--out', required=True)
     ap.add_argument('--pick', action='append', default=[],
                     help='"<row key or record id>::<why>" — be•do\'s three for today, starred on the calendar')
+    ap.add_argument('--photos', help="a folder of the day's small photos (day_photos.py --out), for her keepers")
     ap.add_argument('--session', action='append', default=[],
                     help='"<name>::HH:MM-HH:MM::<drive>|<drive>" — small steps on those drives, batched at that time')
     ap.add_argument('--session-top', action='append', default=[],
@@ -559,6 +616,7 @@ def main():
     L['_picks'] = dict((p.split('::', 1) + [''])[:2] for p in a.pick)
     tops = [tuple((t.split('::', 1) + [''])[:2]) for t in a.session_top]
     L['_sessions'] = [dict(session_arg(s), top=tops) for s in a.session]
+    L['_photos'] = a.photos
     data = build(D, rows, rhythms_read, L, a.behind)
     root = re.search(r':root\{[^}]*--c-moss[^}]*\}', h).group(0)
     night = re.search(r'html\[data-bedo="night"\]\{[^}]*\}', h).group(0)
