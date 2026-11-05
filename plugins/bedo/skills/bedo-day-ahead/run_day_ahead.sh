@@ -83,6 +83,7 @@ if [ "$MODE" = prep ]; then
     && cp -r be-do-main/plugins/bedo/assets/base-flow assets/
   cp $S/bedo-look-behind/scripts/bedo_fetch.py scripts/     # the Airtable reader lives with the look behind
   cp be-do-main/plugins/bedo/core/*.py be-do-main/plugins/bedo/core/facts.json scripts/   # the one reader (I11 I15 I5)
+  cp $S/bedo-week-look-behind/scripts/day_photos.py scripts/ 2>/dev/null || true   # the day's photos, as the day behind reads them
   # an escape hatch: anything in overlay/ wins over the version store for this run
   if [ -d overlay ]; then cp overlay/*.py scripts/ 2>/dev/null || true
     cp overlay/day_ahead_engine.html . 2>/dev/null || true; fi
@@ -127,8 +128,14 @@ elif [ "$MODE" = build ]; then
   # with the three passed on as its starred picks. This is the page that gets published.
   PICKS=(); prev=""; for a in "$@"; do [ "$prev" = --pick ] && PICKS+=(--pick "$a"); prev=$a; done
   BEH=(); [ -d behind ] && BEH=(--behind behind)
+  # her keeper photos on their cards (5 Nov 2026), from the week's Drive folder when a Drive key is here
+  PHO=()
+  if [ -n "${BEDO_DRIVE_SA:-}${BEDO_DRIVE_SA_FILE:-}" ] && [ -f scripts/day_photos.py ]; then
+    "$PY" scripts/day_photos.py --day "$DAY" --local day_ahead_local.json --out "photos-$DAY" >/dev/null 2>&1 \
+      && [ -n "$(ls -A "photos-$DAY" 2>/dev/null)" ] && PHO=(--photos "photos-$DAY") || echo "photos: none read — the page builds without them"
+  fi
   "$PY" scripts/flow.py --day-ahead "$DAY-day-ahead.html" --local day_ahead_local.json \
-    --out "$DAY-myday.html" "${BEH[@]}" "${PICKS[@]}" "${SESS[@]}"
+    --out "$DAY-myday.html" "${BEH[@]}" "${PICKS[@]}" "${SESS[@]}" "${PHO[@]}"
   echo "publish: $DAY-myday.html (the flow page) to page.url above"
   OUT=${LB_OUT:-/mnt/user-data/outputs}
   if mkdir -p "$OUT" 2>/dev/null; then cp "$DAY-day-ahead.html" "$DAY-myday.html" "$OUT/"

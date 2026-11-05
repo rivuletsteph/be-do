@@ -86,6 +86,13 @@ default, said so, because steps carry no history of their own length. Ask her be
 Google Calendar: the page's timeline is not her calendar. Any other step whose own time is still ahead keeps
 it; one that would land more than an hour past its time leaves the clock for the list under it.
 
+**Her keeper photos sit on their cards** (5 Nov 2026, at her yes: a small picture on the card at its time,
+tap to open it). When a Drive key is here (`BEDO_DRIVE_SA`), `build` reads the day's photos from the week's
+`W## photos` folder with the day behind's own `day_photos.py`, and `flow.py --photos` places each one the way
+the day behind does: on the row whose photo links name it, else the row at that minute. Only a keeper is drawn,
+and no more than six, by the same picker. A photo linked to an info row stays off. The settings need
+`fields.stream.photo_links`.
+
 **Her own work block is not a meeting** (4 Nov 2026, her words: I don't want to see the dark purple filling,
 because it made me think I was missing a meeting): a work-colour event with nobody else on it, no call link
 and no series is drawn light periwinkle; meetings keep the bold purple. The past stays pastel.
