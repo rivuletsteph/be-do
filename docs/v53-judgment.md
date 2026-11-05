@@ -144,6 +144,7 @@ in the crosswalk are hers and settled: yes to all, 4 Oct 2026.
 
 - my week is one chat, Sunday to Sunday; my day comes first. The reflective and spiritual half of Sunday comes before the close.
 - The mechanical half is code — `close.py fetch · backup · check · audit · export · plan` → her clone → her yes to clear → `verify`. Decide what the rules decide.
+- **The chat sweep runs at every dusk close and the weekly close** (`chats`, her amendment 2 Nov 2026): be•do archives, closes and logs what the rules decide on its own, says one line after, and asks her only close, park or keep for a chat in motion and quiet over a week. It never writes to a chat she touched in the last few minutes, and never renames another chat.
 - **At the close, her university's events calendar for the next two weeks** (a trial, 27 Oct 2026; the link is `events_calendar` in her settings): offer only what fits her drives or her interests — talks, theatre, family events — one line each she can say yes to. A yes goes on her calendar (purple for work) and in as a ⬜ row.
 - **Ask her only:** her reflection, the week's word, her **one focus practice** for the week (from either flow, not three and three: her rule, 25 Oct 2026), and *clone the base now*.
 - The handoff is rewritten each week and saved to both week folders.
