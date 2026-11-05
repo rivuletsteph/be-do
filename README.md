@@ -12,6 +12,7 @@ together, so a skill runs in any project or none.
 | the monthly ahead-review | `bedo-ahead-review` | `ahead_review_local.json` |
 | Oura into the stream | `bedo-oura` | `look_behind_local.json` (the day behind's) |
 | the morning news paper | `morning-news` | `morning_news_local.json` |
+| the meal plan's brief | `bedo-meal-plan` | `meal_plan_local.json` (and the core's `facts_local`) |
 
 ## V53 — the rules in code
 
