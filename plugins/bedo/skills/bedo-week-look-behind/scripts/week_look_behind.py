@@ -63,6 +63,28 @@ def split_places(rows):
     return [r for r in rows if norm(r.get('practice')) != norm(PLACE)], at
 
 
+def day_map_data(stays, places_path, rows, day, L, template, tiles=True):
+    """The day's map, or None: the stays on that day, placed by the places base."""
+    import bedo_places, day_map
+    off = L['utc_offset_hours']
+    on = [s for s in stays if s.get('when') and
+          (dt.datetime.fromisoformat(s['when'].replace('Z', '+00:00')) + dt.timedelta(hours=off)).date() == day]
+    places = bedo_places.places_from(bedo_reader.complete(places_path, 'places'), L)
+    key = L.get('carto_key') or os.environ.get('BEDO_CARTO_KEY')   # CARTO's base tiles need her key
+    m = day_map.build(bedo_places.stays_of(on), places, rows, day, off, L.get('home_names') or ('home',), NOT_LIVED, tiles,
+                      key=key)
+    if not m:
+        return None
+    for p in (os.path.join(os.path.dirname(os.path.abspath(template)), 'leaflet-1.9.4.css'),
+              os.path.join(_HERE, '..', 'assets', 'leaflet-1.9.4.css')):
+        if os.path.exists(p):
+            m['css'] = open(p, encoding='utf-8').read()
+            break
+    else:
+        die('leaflet-1.9.4.css not found beside the template or in the skill\'s assets')
+    return m
+
+
 def die(msg):
     sys.exit('ABORT: ' + msg)
 
@@ -775,6 +797,8 @@ def main():
     ap.add_argument('--rhythms', required=True)
     ap.add_argument('--practices', help="the catalog, so a flow practice shows under its flow")
     ap.add_argument('--connections', help='with --day: the connections table, for the circles on the who card')
+    ap.add_argument('--places', help="with --day: the places base, whose coordinates put the day's 📍 stays on its map")
+    ap.add_argument('--no-tiles', action='store_true', help="with --places: draw the map without fetching its base tiles")
     ap.add_argument('--sessions', help="with --day: the day's chats with her stretches, for the audit's chats check")
     ap.add_argument('--as-written', action='store_true',
                     help='with --day: draw the rows as they are, without the categorizing pass (for comparison only)')
@@ -840,6 +864,8 @@ def main():
         rings=day_rings(rows, day, L, L.get('_flowset') or frozenset(), NOT_LIVED, sleep) if a.day else None,
         read=' · '.join(f'{n} {k}/{k}' for n, k in reads) + f' · rhythms {nrh}/{nrh}'
              + (f' · {len(places)} 📍 kept for the map' if places else ''))
+    if a.day and a.places and places:   # where she was: the day's 📍 stays on a map (5 Nov 2026)
+        DATA['map'] = day_map_data(places, a.places, rows, day, L, a.template, not a.no_tiles)
     if a.day:   # the day behind's own keys, so words.py can read the words back and carry edits to the page
         W = words or {}
         DATA.update(day=day.isoformat(), title=W.get('lead') or '',

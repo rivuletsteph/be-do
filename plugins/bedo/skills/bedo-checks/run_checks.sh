@@ -7,6 +7,7 @@
 #   bash run_checks.sh remaining [--flow dawn|dusk] [--voice]
 #   bash run_checks.sh dusk      [--date YYYY-MM-DD] [--chats chats.json] [--photos folder.json [--links week.json]] [--write]
 #   bash run_checks.sh meals     [--date YYYY-MM-DD] [--json]   # each meal's prep and eating, placed from context
+#   bash run_checks.sh places    --stays stays.json [--json]   # the map check: her Timeline screenshot's stays as 📍 rows, new places to ask
 #   bash run_checks.sh dayqa     YYYY-MM-DD [--calendar day.json …] [--photos folder.json] [--sleep oura.json] [--sessions chats.json] [--json]
 #                                # be•do's calls on the day first (bedo_categorize), the day's records read, then one list to accept
 #   bash run_checks.sh entry     row.json [--base "w41 be•do"] [--chat MMDD] [--catalog practices.json] [--rhythms rhythms.json] [--day today.json]
@@ -27,6 +28,7 @@
 #   remaining --catalog practices.json --day today.json
 #   dusk      --day today.json --catalog practices.json
 #   meals     --day today.json
+#   places    --stays stays.json --day today.json --places places.json
 #   dayqa     --day today.json --catalog practices.json --rhythms rhythms.json --connections connections.json
 # A command given no files and no token says so and exits 3.
 #
@@ -109,6 +111,10 @@ case "$CMD" in
     [ -d "$W/core" ] || fetch_core; find_local
     if live_or_files "--day today.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_meals.py" "$@" ;;
+  places)     # 5 Nov 2026: one 📍 row per stay, coordinates only in the places base
+    [ -d "$W/core" ] || fetch_core; find_local
+    if live_or_files "--day today.json --places places.json" "$@"; then set -- --live "$@"; fi
+    "$PY" "$W/core/bedo_places.py" "$@" ;;
   dayqa)
     [ -d "$W/core" ] || fetch_core; find_local
     D=${1:?usage: run_checks.sh dayqa YYYY-MM-DD [--json] [files]}; shift

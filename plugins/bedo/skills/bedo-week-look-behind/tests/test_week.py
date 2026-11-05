@@ -229,7 +229,45 @@ def one_day(w, out, loc, rows):
     assert not [m for d in X['stream']['days'] for m in d['stones']], 'Wednesday\'s moments are not Tuesday\'s'
     assert run({'day': '2026-09-30', 'lead': 'x', 'story': []}).returncode, 'words for another day must be refused'
     print('ok — one day: its own window, the whole night before, its own words, and no one else\'s')
+    day_map(w, out, loc, rows, X)
     photos(w, out, loc, rows)
+
+
+def day_map(w, out, loc, rows, before):
+    """Where she was (5 Nov 2026): the day's 📍 stays, placed by the places base, on the
+    day's map. Size is the time there, a place added that day is a star, a tap names what
+    she did there; the stays change none of the day's time, and home has no row."""
+    sf = loc['fields']['stream']
+    stay = lambda title, ref, a, b, who='': {'id': f'recST{a.replace(":", "")}', 'createdTime': T.format(a), 'cellValuesByFieldId': {
+        sf['title']: title, sf['practice']: '📍 location', sf['status']: LOG, sf['when']: T.format(a), sf['end']: T.format(b),
+        sf['person']: who, sf['details']: f'———\n[be•do] place: {ref}'}}
+    stays = [stay('📍 the field', 'recPLACEfieldaaaa', '07:00', '08:30', 'Pip Plum'),
+             stay('📍 the noodle bar', 'recPLACEnoodlebbb', '12:00', '12:45')]
+    places = {'records': [
+        {'id': 'recPLACEfieldaaaa', 'createdTime': '', 'fields': {'place': 'the field', 'coordinates': '30.10, -97.20',
+                                                                   'serves': 'Moving', 'added': '2026-09-01'}},
+        {'id': 'recPLACEnoodlebbb', 'createdTime': '', 'fields': {'place': 'the noodle bar', 'coordinates': '30.12, -97.25',
+                                                                   'added': '2026-09-29'}},
+        {'id': 'recPLACEhomeccccc', 'createdTime': '', 'fields': {'place': 'Home', 'coordinates': '30.11, -97.22'}}],
+        'metadata': {'totalRecordCount': 3}}
+    o = out.replace('week.html', 'map.html')
+    r = subprocess.run([sys.executable, BUILDER, '--day', '2026-09-29',
+                        '--words', w('words5.json', {'day': '2026-09-29', 'lead': 'a walk and a show', 'story': []}),
+                        '--local', w('local5.json', loc), '--stream', w('w40m.json', dump(rows + stays)),
+                        '--rhythms', w('rhythms5.json', dump(RHYTHMS)), '--places', w('places.json', places), '--no-tiles',
+                        '--template', ENGINE, '--out', o],
+                       capture_output=True, text=True, encoding='utf-8', timeout=60, env=dict(os.environ, PYTHONIOENCODING='utf-8'))
+    if r.returncode:
+        sys.exit(r.stdout + r.stderr)
+    html = open(o, encoding='utf-8').read()
+    M = json.loads(html.split('const DATA = ', 1)[1].split(';\nconst esc', 1)[0])
+    m = M['map']
+    assert [(p['name'], p['hours'], p['new']) for p in m['places']] == [('the field', 1.5, False), ('the noodle bar', 0.75, True)], m['places']
+    assert m['places'][0]['who'] == 'Pip Plum' and m['places'][0]['did'] == 'walk', m['places'][0]   # what she did there
+    assert m['home'] == {'lat': 30.11, 'lng': -97.22} and m['tiles'] == {} and '.leaflet-pane' in m['css'], m['home']
+    assert M['days'] == before['days'] and M['totals'] == before['totals'], 'a stay is where, never what'
+    assert '30.1' not in json.dumps([s['cellValuesByFieldId'] for s in stays]), 'no coordinates on a row'
+    print('ok — the day\'s map: stays placed by the places base, sized by time, a new place starred, the day\'s time unchanged')
 
 
 def photos(w, out, loc, rows):
