@@ -439,6 +439,9 @@ def photos_onto(items, today, rows, F, off, folder, me=''):
                           details=c.get(F['details']) or '', photo_links=g(c, 'photo_links') or '', _a=a, _b=b))
     placed, _ = bedo_photos.place(lived, pics, me)
     # selective, as the day behind is (2 Nov 2026, her words: less photos is good, like no more than six)
+    # a row that names its photos holds only those (5 Nov 2026, her words: I really don't want to see a picture of
+    # the TV on the wall — it was placed on the show's row by its time, though the row linked another)
+    placed = [p for p in placed if p['row'] and (not bedo_photos.linked(p['row']) or p['file'] in bedo_photos.linked(p['row']))]
     placed, _ = bedo_photos.select([p for p in placed if p['keeper'] and p['row']], me)
     card = {}
     for x in items:
