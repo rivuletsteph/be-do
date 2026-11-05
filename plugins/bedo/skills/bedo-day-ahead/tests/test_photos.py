@@ -16,7 +16,8 @@ F = dict(title='t', when='wh', end='en', status='st', practice='pr', person='pe'
          details='de')
 DAY = dt.date(2026, 3, 4)
 OFF = dt.timedelta(hours=-6)
-link = lambda fid: f'https://drive.google.com/file/d/{fid}/view'
+import bedo_photos  # noqa: E402
+link = bedo_photos.link
 
 
 def row(rid, title, a, b, **c):
@@ -36,7 +37,7 @@ def main():
             row('r2', '🔅 evening sun', '2026-03-04T23:11:00.000Z', '2026-03-04T23:14:00.000Z',
                 pr='🔅 evening sun', ph='info', pl=link('fidOutside')),
             row('r3', '⭐ dinner out', '2026-03-04T23:14:00.000Z', '2026-03-04T23:57:00.000Z',
-                pr='⭐ highlight', ph='keeper', pl=link('fidTable'), pe='a friend')]
+                pr='⭐ highlight', ph='keeper', pl=link('fidTable'), pe='a guest')]
     items = [dict(k='lived', t='sun', a='08:30', b='08:40', rid='r1'),
              dict(k='lived', t='evening sun', a='17:11', b='17:14', rid='r2'),
              dict(k='event', t='Dinner', a='17:10', b='18:00', rids=['r3'])]
