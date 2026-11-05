@@ -483,8 +483,16 @@ def build(D, rows, rhythms_read, L, behind_dir):
             it['emoji'] = t.get('emoji') or None
             if mv.get('step') and not it.get('nx'):
                 it['nx'] = mv['step']
-            it['links'] = [dict(l=x.get('label'), u=x.get('url')) for x in mv.get('links') or [] if x.get('url')]
-            it['who'] = mv.get('who') or None
+            got = [dict(l=x.get('label'), u=x.get('url')) for x in mv.get('links') or [] if x.get('url')]
+            # an event keeps its own: `who` there is the calendar it came from, which picks its colour, and its links
+            # are the ones folded in from its rows (5 Nov 2026, her words: when there is a calendar item that's on my
+            # calendar and on this timeline the colors must match — the G&Gs were blue, not his calendar's yellow)
+            if it.get('k') == 'event':
+                it['links'] = (it.get('links') or []) + [x for x in got if x not in (it.get('links') or [])]
+                it['with'] = mv.get('who') or None
+            else:
+                it['links'] = got
+                it['who'] = mv.get('who') or None
             it['wait'] = mv.get('waiting') or None
     data['schedule'] = sessions_of(data['schedule'], L.get('_sessions') or [])
     # the wheel at the bottom, built through the day (3 Nov 2026, her words: I would like to see the
