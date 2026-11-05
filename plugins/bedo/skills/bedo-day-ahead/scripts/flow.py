@@ -374,8 +374,8 @@ def _norm(t):
 
 
 def fold_into_events(items, start_min=10, end_min=5):
-    """An event is drawn once (4 Nov 2026, her words: Barre with Mel is on here twice … it only needs to show up as
-    one line, and then it can indicate that it covered my hip exercises practice; and for the ECON meeting: I only want
+    """An event is drawn once (4 Nov 2026, her words: my class is on here twice … it only needs to show up as
+    one line, and then it can indicate that it covered my hip exercises practice; and for a meeting: I only want
     to see the calendar event). A lived row is folded into the event it belongs to — its own title, or a row that starts
     within `start_min` of the event and ends with it — and the event's card names what it covered and carries the
     row's links. A moment (a glimmer, a highlight) keeps its own card."""
@@ -392,7 +392,9 @@ def fold_into_events(items, start_min=10, end_min=5):
             inside = e.get('who') in (None, 'you') and ea <= xa <= ea + start_min and xb <= eb + end_min
             if same or inside:
                 gone.add(id(x))
-                if not same:
+                # a finished action closed onto the event (a booking thread, the event's own ⬜) is the event; only a
+                # practice done inside it is named as covered (4 Nov 2026: the massage listed its booking row)
+                if not same and not x.get('act'):
                     e.setdefault('covers', []).append(x['t'])
                 e.setdefault('links', []).extend(x.get('links') or [])
                 e['done'] = True
@@ -426,7 +428,7 @@ def sessions_of(items, sessions, tops=None):
         why = dict(S.get('top') or [])
         rank = lambda x: min(order.get(x.get('key') or '', 99), order.get(x.get('rid') or '', 99))
         mine.sort(key=rank)
-        lst = [dict(t=x['t'], nx=x.get('nx'), drive=x.get('drive'), sz=SESSION_MIN,
+        lst = [dict(t=x['t'], nx=x.get('nx'), drive=x.get('drive'), sz=SESSION_MIN, links=x.get('links') or None,
                     top=rank(x) < 99, why=why.get(x.get('key') or '') or why.get(x.get('rid') or '') or None)
                for x in mine]
         out = [x for x in out if x not in mine]
@@ -468,7 +470,9 @@ def build(D, rows, rhythms_read, L, behind_dir):
     detail = {strip(s.get('t')): s for s in C.get('steps') or []}
     # and only the links that serve the next step (her words, 2 Nov: not everything that's relevant, just what
     # is very relevant for the next step): the look ahead's own move for the row, its step and its ways in
-    moves = {strip(t.get('title')): t for t in D.get('tasks') or [] if isinstance(t, dict)}
+    # the due lines of each day carry their move too (4 Nov 2026: a step's chat link sat there, unreached)
+    moves = {strip(t.get('title')): t for t in [d for x in D.get('days') or [] for d in x.get('due') or []]
+             + (D.get('tasks') or []) if isinstance(t, dict) and t.get('move')}
     for it in data['schedule']:
         s = detail.get(strip(it.get('t')))
         if s:
@@ -479,8 +483,16 @@ def build(D, rows, rhythms_read, L, behind_dir):
             it['emoji'] = t.get('emoji') or None
             if mv.get('step') and not it.get('nx'):
                 it['nx'] = mv['step']
-            it['links'] = [dict(l=x.get('label'), u=x.get('url')) for x in mv.get('links') or [] if x.get('url')]
-            it['who'] = mv.get('who') or None
+            got = [dict(l=x.get('label'), u=x.get('url')) for x in mv.get('links') or [] if x.get('url')]
+            # an event keeps its own: `who` there is the calendar it came from, which picks its colour, and its links
+            # are the ones folded in from its rows (5 Nov 2026, her words: when there is a calendar item that's on my
+            # calendar and on this timeline the colors must match — the G&Gs were blue, not his calendar's yellow)
+            if it.get('k') == 'event':
+                it['links'] = (it.get('links') or []) + [x for x in got if x not in (it.get('links') or [])]
+                it['with'] = mv.get('who') or None
+            else:
+                it['links'] = got
+                it['who'] = mv.get('who') or None
             it['wait'] = mv.get('waiting') or None
     data['schedule'] = sessions_of(data['schedule'], L.get('_sessions') or [])
     # the wheel at the bottom, built through the day (3 Nov 2026, her words: I would like to see the

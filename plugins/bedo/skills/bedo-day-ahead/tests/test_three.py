@@ -67,7 +67,13 @@ def main():
     # nothing named: said so, not guessed
     bare = row('n', 'Do the thing', '2026-03-11')
     assert da.next_move(bare, [bare])['step'] is None
-    print('ok — four kinds in the order of pull, calendar events left out, one slot per person waiting, the next move')
+    # a chat in the Claude app on her laptop is a link too, labelled chat (4 Nov 2026)
+    t = 'Next: on the laptop, open the class-talk chat (claude://claude.ai/epitaxy/local_abc-123) and send it.'
+    assert da.URL_RE.findall(t) == ['claude://claude.ai/epitaxy/local_abc-123'], da.URL_RE.findall(t)
+    assert da.link_label('claude://claude.ai/epitaxy/local_abc-123') == 'chat'
+    assert da.link_label('https://claude.ai/code/session_x') == 'chat'
+    print('ok — four kinds in the order of pull, calendar events left out, one slot per person waiting, the next move, '
+          'a laptop chat is a link')
 
 
 if __name__ == '__main__':
