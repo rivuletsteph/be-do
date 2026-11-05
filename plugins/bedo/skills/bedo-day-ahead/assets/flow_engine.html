@@ -575,18 +575,26 @@ function today(){
      things not overlap, cuz that is confusing): an hour is at least 72px, and a stretch of time grows until
      every card in it has room for its words, so a five-minute step never sits on the one after it */
   const PX=72, MINH=26, minOf=px=>px*60/PX, need=x=>(x.photos&&x.photos.length)?56:past.includes(x)?MINH+4:(x.pick&&x.why?64:48);
+  /* the past as it was: two things at once sit side by side, as the calendar does */
+  const cols=[]; past.forEach(x=>{ x.de=x.e; let c=0; while(cols[c]&&cols[c]>x.s) c++; cols[c]=x.de; x.col=c; });
+  /* every card in a run of overlapping ones shares one width, so three at once never sit on each other (4 Nov 2026);
+     three or more at once stack one under another, full width, the clock stretched to hold them (5 Nov 2026, her
+     words: yes, stack the dinner cards) */
+  const STACKS=[];
+  { let run=[], end=-1; const close=()=>{ const n=1+Math.max(...run.map(o=>o.col));
+      if(n>=3){ const st={s:Math.min(...run.map(o=>o.s)),e:Math.max(...run.map(o=>o.de)),m:run.slice().sort((a,b)=>a.s-b.s)};
+        st.m.forEach((o,i)=>{ o.n=1; o.col=0; o.stk=st; o.si=i; }); STACKS.push(st); }
+      else run.forEach(o=>o.n=n); run=[]; };
+    past.forEach(x=>{ if(run.length&&x.s>=end) close(); run.push(x); end=Math.max(end,x.de); }); if(run.length) close(); }
   const cuts=[...new Set([h0*60,h1*60,...(nowM!=null?[nowM]:[]),...Array.from({length:h1-h0+1},(_,i)=>(h0+i)*60),...all.map(x=>x.s),...all.map(x=>x.e),...its.map(x=>x.s),...its.map(x=>x.e)].filter(m=>m>=h0*60&&m<=h1*60))].sort((a,b)=>a-b);
   const PXP=18;   /* an hour already gone is short: it only grows to fit what's kept in it */
   const segH=cuts.slice(1).map((m,i)=>(m-cuts[i])*(nowM!=null&&m<=nowM?PXP:PX)/60);
   const span=(s,e)=>cuts.slice(1).reduce((t,m,i)=>t+(cuts[i]>=s&&m<=e?segH[i]:0),0);
   for(let pass=0;pass<3;pass++) past.concat(its.filter(x=>!bands.includes(x))).sort((a,b)=>(a.e-a.s)-(b.e-b.s)).forEach(x=>{
     const have=span(x.s,x.e), want=need(x); if(have>0&&have<want){ const f=want/have; cuts.slice(1).forEach((m,i)=>{ if(cuts[i]>=x.s&&m<=x.e) segH[i]*=f; }); } });
+  STACKS.forEach(st=>{ const have=span(st.s,st.e), want=st.m.reduce((t,o)=>t+need(o)+2,0);
+    if(have>0&&have<want){ const f=want/have; cuts.slice(1).forEach((m,i)=>{ if(cuts[i]>=st.s&&m<=st.e) segH[i]*=f; }); } });
   const y=m=>{ let t=0; for(let i=0;i<segH.length;i++){ const a=cuts[i], b=cuts[i+1]; if(m>=b){ t+=segH[i]; continue; } if(m>a) t+=segH[i]*(m-a)/(b-a); break; } return t; };
-  /* the past as it was: two things at once sit side by side, as the calendar does */
-  const cols=[]; past.forEach(x=>{ x.de=x.e; let c=0; while(cols[c]&&cols[c]>x.s) c++; cols[c]=x.de; x.col=c; });
-  /* every card in a run of overlapping ones shares one width, so three at once never sit on each other (4 Nov 2026) */
-  { let run=[], end=-1; const close=()=>{ const n=1+Math.max(...run.map(o=>o.col)); run.forEach(o=>o.n=n); run=[]; };
-    past.forEach(x=>{ if(run.length&&x.s>=end) close(); run.push(x); end=Math.max(end,x.de); }); if(run.length) close(); }
   const dc=n=>{ const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===n); return col(d&&d.c); };
   /* a done event is ✔️ on her calendar and ✅ here (4 Nov 2026, her words: the simple check on my calendar, and a green check on the timeline) */
   /* an event drawn once names what it covered, and shows it carries a link (4 Nov 2026) */
@@ -600,9 +608,10 @@ function today(){
   let g=''; const CARDS=window.__cards=[]; const ci=x=>{ CARDS.push(x); return CARDS.length-1; };
   for(let h=h0;h<=h1;h++) g+=`<div class="hr" style="top:${y(h*60)}px"><span>${lab(h)}</span></div>`;
   bands.forEach(x=>{ if(x.k!=='event'){ g+=`<div class="band" title="✅ ${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); });
-  past.forEach(x=>{ const w=100/x.n, h=Math.max(MINH,y(x.e)-y(x.s)-1);
-    if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past${(x.photos||[]).length?' hasph':''}" style="--gc:${gcol(x)};--gi:${gink(gcol(x))};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(dn(x.summary||x.t))}</b><i>${tm(x.s)}–${tm(x.e)}${x.covers&&x.covers.length?` · covers ${x.covers.length}`:''}${(x.links||[]).length?' · 🔗':''}${x.where?', '+esc(x.where):''}</i>${thumb(x)}</div>`; return; }
-    g+=`<div data-c="${ci(x)}" class="ev lived${h>=40?' tall':''}${(x.photos||[]).length?' hasph':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kv(x.k==='event'?'flow':x.cat)};top:${y(x.s)}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${more(x)}${thumb(x)}</div>`; });
+  past.forEach(x=>{ const w=100/x.n; let top=y(x.s), h=Math.max(MINH,y(x.e)-y(x.s)-1);
+    if(x.stk){ const a=y(x.stk.s), sh=(y(x.stk.e)-a)/x.stk.m.length; top=a+x.si*sh; h=Math.max(MINH,sh-2); }
+    if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past${(x.photos||[]).length?' hasph':''}" style="--gc:${gcol(x)};--gi:${gink(gcol(x))};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(dn(x.summary||x.t))}</b><i>${tm(x.s)}–${tm(x.e)}${x.covers&&x.covers.length?` · covers ${x.covers.length}`:''}${(x.links||[]).length?' · 🔗':''}${x.where?', '+esc(x.where):''}</i>${thumb(x)}</div>`; return; }
+    g+=`<div data-c="${ci(x)}" class="ev lived${h>=40?' tall':''}${(x.photos||[]).length?' hasph':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kv(x.k==='event'?'flow':x.cat)};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${more(x)}${thumb(x)}</div>`; });
   its.forEach(x=>{ if(x.k==='event'){ const inner=`<b>${esc(dn(x.summary||x.t))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i>${cov(x)}`;
     g+=`<div data-c="${ci(x)}" class="ev event gcal" style="--gc:${gcol(x)};--gi:${gink(gcol(x))};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:${x.half?'calc(50% - 5px)':'calc(100% - 6px)'}">${inner}</div>`; return; }
     if(x.session){ const top=(x.list||[]).filter(o=>o.top), rest=(x.list||[]).length-top.length;
