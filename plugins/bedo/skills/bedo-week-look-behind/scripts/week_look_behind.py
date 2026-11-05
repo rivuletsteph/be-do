@@ -51,6 +51,16 @@ MAX_SPAN = dt.timedelta(hours=bedo_reader.FACTS['entry_rules']['max_span_hours']
 DAY3 = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 MARK = chr(0x1684E)                                      # be•do's mark, by codepoint
 MOVED = re.compile(r'moved from w\d+ \((rec[A-Za-z0-9]+)\)')   # a row moved between bases names its original
+# A 📍 place says where she was, never what she did (5 Nov 2026, her word: the location on the stream,
+# integrated). One row per stay; it never counts toward time, the areas, the drives, the stream or the rings.
+# The rest of the page reads the rows without them; the places are kept apart for the day's map.
+PLACE = bedo_reader.FACTS['practice']['location']
+
+
+def split_places(rows):
+    """The rows of what she did, and the 📍 rows of where she was."""
+    at = [r for r in rows if norm(r.get('practice')) == norm(PLACE)]
+    return [r for r in rows if norm(r.get('practice')) != norm(PLACE)], at
 
 
 def die(msg):
@@ -785,6 +795,7 @@ def main():
     if words and words.get('day') not in (None, day.isoformat()):
         die(f"{a.words} holds the words for {words.get('day')}, not {day}")
     rows, reads = load(a.stream, F)
+    rows, places = split_places(rows)
     if not a.day:
         missing = unqad(rows, sun)
         if missing and not a.qa_anyway:
@@ -827,7 +838,8 @@ def main():
         totals=totals, drives=drives, loops=qa['feeds_loops'], **more,
         forecasts=[{'t': (r.get('title') or '').strip()} for r in due],
         rings=day_rings(rows, day, L, L.get('_flowset') or frozenset(), NOT_LIVED, sleep) if a.day else None,
-        read=' · '.join(f'{n} {k}/{k}' for n, k in reads) + f' · rhythms {nrh}/{nrh}')
+        read=' · '.join(f'{n} {k}/{k}' for n, k in reads) + f' · rhythms {nrh}/{nrh}'
+             + (f' · {len(places)} 📍 kept for the map' if places else ''))
     if a.day:   # the day behind's own keys, so words.py can read the words back and carry edits to the page
         W = words or {}
         DATA.update(day=day.isoformat(), title=W.get('lead') or '',

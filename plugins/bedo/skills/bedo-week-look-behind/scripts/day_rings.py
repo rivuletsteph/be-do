@@ -268,8 +268,11 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
             if t:
                 seen_titles.setdefault((arr, m), []).append((kind, t))
 
+    place = low(bedo_reader.FACTS['practice']['location'])
     for r in rows:
         if r.get('status') in not_lived:
+            continue
+        if low(r.get('practice')) == place:   # a 📍 place says where, never what: no band, no minutes (5 Nov 2026)
             continue
         a, b = local(r.get('when')), local(r.get('end'))
         if not a:
