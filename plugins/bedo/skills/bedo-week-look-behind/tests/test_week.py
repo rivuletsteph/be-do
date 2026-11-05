@@ -238,17 +238,17 @@ def day_map(w, out, loc, rows, before):
     day's map. Size is the time there, a place added that day is a star, a tap names what
     she did there; the stays change none of the day's time, and home has no row."""
     sf = loc['fields']['stream']
-    stay = lambda title, ref, a, b, who='': {'id': f'recST{a.replace(":", "")}', 'createdTime': T.format(a), 'cellValuesByFieldId': {
+    stay = lambda title, ref, a, b, who='': {'id': f'recSt{a.replace(":", "")}', 'createdTime': T.format(a), 'cellValuesByFieldId': {
         sf['title']: title, sf['practice']: '📍 location', sf['status']: LOG, sf['when']: T.format(a), sf['end']: T.format(b),
         sf['person']: who, sf['details']: f'———\n[be•do] place: {ref}'}}
-    stays = [stay('📍 the field', 'recPLACEfieldaaaa', '07:00', '08:30', 'Pip Plum'),
-             stay('📍 the noodle bar', 'recPLACEnoodlebbb', '12:00', '12:45')]
+    stays = [stay('📍 the field', 'recField', '07:00', '08:30', 'Pip Plum'),
+             stay('📍 the noodle bar', 'recNoodle', '12:00', '12:45')]
     places = {'records': [
-        {'id': 'recPLACEfieldaaaa', 'createdTime': '', 'fields': {'place': 'the field', 'coordinates': '30.10, -97.20',
+        {'id': 'recField', 'createdTime': '', 'fields': {'place': 'the field', 'coordinates': '30.10, -97.20',
                                                                    'serves': 'Moving', 'added': '2026-09-01'}},
-        {'id': 'recPLACEnoodlebbb', 'createdTime': '', 'fields': {'place': 'the noodle bar', 'coordinates': '30.12, -97.25',
+        {'id': 'recNoodle', 'createdTime': '', 'fields': {'place': 'the noodle bar', 'coordinates': '30.12, -97.25',
                                                                    'added': '2026-09-29'}},
-        {'id': 'recPLACEhomeccccc', 'createdTime': '', 'fields': {'place': 'Home', 'coordinates': '30.11, -97.22'}}],
+        {'id': 'recHome', 'createdTime': '', 'fields': {'place': 'Home', 'coordinates': '30.11, -97.22'}}],
         'metadata': {'totalRecordCount': 3}}
     o = out.replace('week.html', 'map.html')
     r = subprocess.run([sys.executable, BUILDER, '--day', '2026-09-29',

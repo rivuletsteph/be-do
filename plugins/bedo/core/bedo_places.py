@@ -39,7 +39,7 @@ from bedo_reader import FACTS, as_rows, cells, complete, load_local, offset_hour
 PLACE = FACTS['practice']['location']
 LOG = FACTS['status']['ad_hoc']
 DIVIDER = FACTS['divider']
-REF = re.compile(r'\bplace:\s*(rec[A-Za-z0-9]{14}|new)\b')
+REF = re.compile(r'\bplace:\s*(rec[A-Za-z0-9]+|new)\b')
 FIELDS = {'place': 'place', 'standing': 'standing', 'where': 'where', 'serves': 'serves', 'added': 'added',
           'google_place_id': 'google place id', 'coordinates': 'coordinates'}
 

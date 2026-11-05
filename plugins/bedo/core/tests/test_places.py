@@ -14,10 +14,10 @@ import bedo_places as P  # noqa: E402
 DAY = dt.date(2026, 3, 4)
 OFF = -5
 PLACES = P.places_from([
-    {'id': 'recOFFICEaaaaaaaa', 'createdTime': '', 'fields': {
+    {'id': 'recOffice', 'createdTime': '', 'fields': {
         'place': 'the office', 'standing': 'been', 'google place id': 'ChIJabcdefghijk1234567',
-        'coordinates': '30.100000, -97.200000'}},
-    {'id': 'recPARKbbbbbbbbbb', 'createdTime': '', 'fields': {'place': 'Fern Park', 'standing': 'want to go'}},
+        'coordinates': '30.10, -97.20'}},
+    {'id': 'recPark', 'createdTime': '', 'fields': {'place': 'Fern Park', 'standing': 'want to go'}},
 ])
 
 
@@ -31,7 +31,7 @@ class Stays(unittest.TestCase):
         self.assertEqual(r['status'], '● log')
         self.assertEqual((r['datetime'], r['end']), ('2026-03-04T15:27:00.000Z', '2026-03-04T20:30:00.000Z'))
         self.assertEqual(r['person'], 'Ivy Moss')
-        self.assertTrue(r['details'].startswith('the weekly\n———\n[be•do] place: recOFFICEaaaaaaaa'))
+        self.assertTrue(r['details'].startswith('the weekly\n———\n[be•do] place: recOffice'))
         self.assertIn('from her Timeline screenshot at 10:07 PM', r['details'])
         self.assertNotIn('30.1', r['details'])                  # coordinates live only in the places base
         self.assertEqual(p['ask'], [])
@@ -56,8 +56,8 @@ class Stays(unittest.TestCase):
     def test_a_second_run_writes_nothing_twice(self):
         stay = dict(place='the office', arrive='10:27', leave='15:30')
         first = P.propose([stay], PLACES, [], DAY, OFF)['write'][0]
-        again = P.propose([stay], PLACES, [dict(first, id='recROWccccccccccc')], DAY, OFF)
-        self.assertEqual((again['write'], [x['id'] for x in again['already']]), ([], ['recROWccccccccccc']))
+        again = P.propose([stay], PLACES, [dict(first, id='recRowOne')], DAY, OFF)
+        self.assertEqual((again['write'], [x['id'] for x in again['already']]), ([], ['recRowOne']))
 
     def test_past_midnight_and_a_backwards_stay(self):
         p = P.propose([dict(place='Fern Park', arrive='23:30', leave='+00:30')], PLACES, [], DAY, OFF)
@@ -70,7 +70,7 @@ class Stays(unittest.TestCase):
         rows = P.propose([dict(place='the office', arrive='10:27', leave='15:30')], PLACES, [], DAY, OFF)['write']
         rows.append(dict(practice='🍽️ lunch', title='lunch'))
         (s,) = P.stays_of(rows)
-        self.assertEqual(s['place_ref'], 'recOFFICEaaaaaaaa')
+        self.assertEqual(s['place_ref'], 'recOffice')
         self.assertEqual(P.coords(PLACES[0]), (30.1, -97.2))
         self.assertIsNone(P.coords(PLACES[1]))
 
