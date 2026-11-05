@@ -374,8 +374,8 @@ def _norm(t):
 
 
 def fold_into_events(items, start_min=10, end_min=5):
-    """An event is drawn once (4 Nov 2026, her words: Barre with Mel is on here twice … it only needs to show up as
-    one line, and then it can indicate that it covered my hip exercises practice; and for the ECON meeting: I only want
+    """An event is drawn once (4 Nov 2026, her words: my class is on here twice … it only needs to show up as
+    one line, and then it can indicate that it covered my hip exercises practice; and for a meeting: I only want
     to see the calendar event). A lived row is folded into the event it belongs to — its own title, or a row that starts
     within `start_min` of the event and ends with it — and the event's card names what it covered and carries the
     row's links. A moment (a glimmer, a highlight) keeps its own card."""
