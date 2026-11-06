@@ -79,6 +79,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 | key | status | item |
 |---|---|---|
 | 260929_0640 | ⬜ | Move the invariants out of the master instructions into enforced code — **largely shipped as V53 (PRs 7 and 8); close once she has checked** |
+| 261106_ouraclock | ⬜ | The Oura runner writes times on the summer clock after the fall-back. On 6 Nov the morning plan said in bed 11:47 PM to 8:17 AM when it was 10:47 PM to 7:17 AM; the row times (UTC) were right, only the words were an hour ahead, and they were corrected by hand before writing. Cause: `run_oura.sh` uses whatever `look_behind_local.json` is in its folder, and the installed skill's copy still says `utc_offset_hours: -5`; the look behind's `prep` reads the live settings row first (`bedo_settings.py look_behind_local`, which says -6) and the Oura runner doesn't. Fix: the same live-settings line in `run_oura.sh` before `bedo_fetch.py`, and `oura.py` takes the offset from `time_zone` on each day, as `bedo_common`'s clock check does, so the next change in March can't slip either. Her yes, 6 Nov 2026. |
 | 260921_1233 | ⬜ | The record reflects how the day was actually spent — every stretch the story names carries a span (the dusk audit now names what's missing) |
 | 260706_2115c | ⬜ | Recurring-theme detection — flag when the same job appears on more than one row |
 | 261003_1325 | ⬜ | Wire the quickie field into the code — the backup spec, and the read filters |
