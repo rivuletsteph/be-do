@@ -117,7 +117,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 
 | key | status | item |
 |---|---|---|
-| 261106_1613 | ▶️ | The weekly grant watch (`plugins/bedo/skills/grant-watch`): deadlines in the next 12 weeks, new matches and programs applied to before that are open again, from grants.gov's API, with the watch list in a Sheet in her Drive. Shipped as a first version on 6 Nov 2026. Next: the Sheet filled from her Copilot pull, the weekly scheduled task, and a colleague brought in to improve the terms. |
+| 261106_1613 | ▶️ | The weekly grant watch (`plugins/bedo/skills/grant-watch`): deadlines in the next 12 weeks, new matches and programs applied to before that are open again, from grants.gov's API, with the watch list kept inside the page itself. Shipped as a first version on 6 Nov 2026. Next: colleagues confirm the funded list; the weekly scheduled task posts the file each Monday. |
 
 ## Sharing and the next phases
 

@@ -59,3 +59,16 @@ def test_every_past_cycle_is_named():
 def test_unknown_numbers_are_not_searched():
     q = g.queries({"applied": [{"number": "unknown (proposal 2024-06895)"}, {"number": "unknown"}]})
     assert q == []
+
+
+def test_page_carries_its_own_data(tmp_path=None):
+    import tempfile, os
+    import grant_page as gp
+    rep = g.report(WATCH, g.collect(WATCH, fetch), set(), TODAY, 12)
+    w = dict(WATCH, funded=[{"project": "A </script> test", "number": "1", "checked": "yes: named"}])
+    d = tempfile.mkdtemp()
+    out = os.path.join(d, "p.html")
+    open(out, "w").write(gp.page(rep, w))
+    back = gp.extract(out)
+    assert back["watch"]["funded"][0]["project"] == "A </script> test"
+    assert back["seen"] == rep["seen"]

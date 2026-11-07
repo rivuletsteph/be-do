@@ -3,6 +3,11 @@
 
     python3 grant_page.py report.json watch.json out.html [--sheet URL] [--standalone]
 
+    python3 grant_page.py --extract page.html watch.json seen.json
+
+The page carries its own data (the watch list and the seen ids), so --extract
+reads last week's page back into the two files the watch needs.
+
 --standalone writes a whole document to save and share outside Claude; leave
 --sheet off then, so a private list's link isn't passed around.
 
@@ -83,7 +88,34 @@ FONTS = ("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght" + "@" + "7
          "&family=Public+Sans:wght" + "@" + "400;600&family=IBM+Plex+Mono:wght" + "@" + "400;500&display=swap")
 
 
-def page(rep, watch, sheet=None):
+DATA_ID = "grant-watch-data"
+
+
+PRIVATE = ("evidence",)  # her mail's subject lines: in her own page, never in a shared file
+
+
+def data_block(watch, seen, share=False):
+    """The watch list and last week's seen ids, carried inside the page itself:
+    the page is the one record (her word, 6 Nov 2026), so next week reads it back."""
+    if share:
+        watch = dict(watch, applied=[{k: v for k, v in a.items() if k not in PRIVATE}
+                                     for a in watch.get("applied", [])])
+    blob = json.dumps({"watch": watch, "seen": sorted(seen)}, ensure_ascii=False, indent=1)
+    blob = blob.replace("</", "<\\/")
+    return f'<script type="application/json" id="{DATA_ID}">\n{blob}\n</script>'
+
+
+def extract(path):
+    """Read the watch list and seen ids back out of a published page."""
+    import re
+    s = open(path, encoding="utf-8").read()
+    m = re.search(r'<script type="application/json" id="' + DATA_ID + r'">(.*?)</script>', s, re.S)
+    if not m:
+        raise SystemExit("no grant watch data in " + path)
+    return json.loads(m.group(1).replace("<\\/", "</"))
+
+
+def page(rep, watch, sheet=None, share=False):
     weeks = rep["weeks"]
     horizon = weeks * 7
     today = dt.date.fromisoformat(rep["today"])
@@ -256,6 +288,7 @@ footer {{ color: var(--muted); font-size: 13px; border-top: 1px solid var(--line
   {lst(rest)}
 </details>
 {applied_html}
+{data_block(watch, rep.get("seen", []), share)}
 <footer>From grants.gov, posted and forecasted opportunities, read {E(today.strftime("%-d %b %Y"))}. Dollar amounts, salaries and personnel are never kept here{sheet_html}.</footer>
 </div>
 '''
@@ -271,6 +304,12 @@ def standalone(body):
 
 def main(argv=None):
     a = argv or sys.argv[1:]
+    if a and a[0] == "--extract":
+        # grant_page.py --extract page.html watch.json seen.json
+        d = extract(a[1])
+        json.dump(d["watch"], open(a[2], "w"), ensure_ascii=False, indent=1)
+        json.dump(d["seen"], open(a[3], "w"))
+        return 0
     alone = "--standalone" in a
     a = [x for x in a if x != "--standalone"]
     sheet = None
@@ -279,7 +318,7 @@ def main(argv=None):
         sheet = a[i + 1]
         a = a[:i] + a[i + 2:]
     rep, watch, out = json.load(open(a[0])), json.load(open(a[1])), a[2]
-    html_out = page(rep, watch, sheet)
+    html_out = page(rep, watch, sheet, share=alone)
     open(out, "w").write(standalone(html_out) if alone else html_out)
     return 0
 
