@@ -135,6 +135,13 @@ def main():
                              L_('supper', '17:20', '17:50', cat='eat'), L_('a walk', '10:00', '11:50', cat='move')])
     assert [x['t'] for x in out if x.get('column')] == ['long work', '📝 evening work'], out
 
+    # a plan closed by what happened is drawn once (7 Nov 2026)
+    out = flow.fold_done_plans([dict(k='lived', t='pizza for supper, delivered', a='17:12', b='17:22', act=True, pt=True, links=[1]),
+                                dict(k='lived', t='early supper, pizza delivered', a='17:21', b='17:51', cat='eat', pt=False),
+                                dict(k='lived', t='text: pizza tonight', a='11:25', b='11:35', act=True, pt=True)])
+    assert [x['t'] for x in out] == ['early supper, pizza delivered', 'text: pizza tonight'], out
+    assert out[0]['done'] and out[0]['links'] == [1]
+
     # every day page carries the download button (261106_download): the viewer's save prompt, else a Blob download
     for eng in (os.path.join(HERE, '..', 'assets', 'flow_engine.html'),
                 os.path.join(HERE, '..', '..', 'bedo-week-look-behind', 'assets', 'week_look_behind_engine.html')):
@@ -143,7 +150,7 @@ def main():
 
     print('ok — balance is evenness, a goal is her first sentence, buffer counts what is late that morning, '
           'the day holds her free hours, a size is a guess off the words, a session batches one kind at its time, '
-          'an event is drawn once with what it covered, a work drive is work, every day page can download itself, a long stretch is one column')
+          'an event is drawn once with what it covered, a work drive is work, every day page can download itself, a long stretch is one column, a closed plan folds into what happened')
 
 
 if __name__ == '__main__':

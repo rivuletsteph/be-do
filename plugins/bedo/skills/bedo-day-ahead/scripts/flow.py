@@ -438,7 +438,31 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
                           # a feeling or a keeper photo marks what mattered (2 Nov 2026): it stays when the hour folds
                           felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD,
                           keeper=bool(F.get('photo') and 'keeper' in str(c.get(F['photo']) or ''))))   # an action she finished, drawn with its green check (2 Nov 2026)
-    return star_the_highlight(fold_into_events(fill_between(sorted(items, key=lambda x: (x['a'], x['k'] != 'event')))))
+    return star_the_highlight(fold_into_events(fold_done_plans(fill_between(sorted(items, key=lambda x: (x['a'], x['k'] != 'event'))))))
+
+
+def fold_done_plans(items, before=15):
+    """A plan closed by what happened is drawn once (7 Nov 2026, her words: the pizza place plan that didn't happen didn't
+    get replaced by the plan that did). A finished action with no span of its own, at or just before a lived row that
+    shares two of its words, is that row: it folds in, and the row is marked done and carries its links."""
+    mm = lambda t: int(t[:2]) * 60 + int(t[3:5])
+    stop = {'with', 'from', 'that', 'this', 'when', 'then', 'into', 'for', 'the', 'and', 'about'}
+    words = lambda t: {w for w in re.findall(r"[a-z][a-z']{3,}", (t or '').lower()) if w not in stop}
+    gone = set()
+    for x in items:
+        if not (x.get('k') == 'lived' and x.get('act') and x.get('pt')):
+            continue
+        xa, xw = mm(x['a']), words(x['t'])
+        host = next((o for o in items if o is not x and id(o) not in gone and o.get('k') == 'lived' and not o.get('pt')
+                     and not o.get('column') and o.get('cat') not in ('stretch', 'moment', 'sleep')
+                     and mm(o['a']) - before <= xa <= mm(o['b']) and len(xw & words(o['t'])) >= 2), None)
+        if host is None:
+            continue
+        gone.add(id(x))
+        host['done'] = True
+        host['links'] = (host.get('links') or []) + (x.get('links') or [])
+        host.setdefault('closes', []).append(x['t'])
+    return [x for x in items if id(x) not in gone]
 
 
 def opens_to(c, F):
