@@ -94,10 +94,10 @@
   "about_sequences": "Her stated orders, which beat any observed median. 4 Oct 2026: morning movement is early, with the coffee (easy waking-up movements); morning sun comes before the exercise block (hips, strength, breaths); water after the first coffee. Within the block the observed times decide. Dusk is ordered by clock time.",
   "widget": {"bar": {"dawn": "#EFA038", "dusk": "#7B6FD6"}},
   "core": {
-   "dawn": ["🥤 morning water", "🤸🏻‍♀️ morning movement", "☕ coffee", "🪐 morning oura", "🌦️ weather check", "👁️ look ahead", "⚡ intention check", "🙏 gratitude", "📿 morning mantra", "📗 morning book", "🌅 dawn flow close"],
+   "dawn": ["🗞️ morning gate", "🥤 morning water", "🤸🏻‍♀️ morning movement", "☕ coffee", "🪐 morning oura", "🌦️ weather check", "👁️ look ahead", "⚡ intention check", "🙏 gratitude", "📿 morning mantra", "📗 morning book", "🪞 mirror check", "🌅 dawn flow close"],
    "dusk": null
   },
-  "about_core": "A228, 2 Oct 2026, as the one line (20 Oct): the core is named; every other remaining step is its glyph after also:. Nothing leaves the catalog and everything counts toward done. The dusk core is not set yet (null prints every step as core)."
+  "about_core": "A228, 2 Oct 2026, as the one line (20 Oct): the core is named; every other remaining step is its glyph after also:. Nothing leaves the catalog and everything counts toward done. The dusk core is not set yet (null prints every step as core). 7 Nov 2026, her words: I just did my mirror check which was overdue. I really need to do that every day … yeah please make sure mirror check gets every morning — so 🪞 mirror check joins the dawn core. Same morning, 8:20 AM: 🗞️ morning gate is a practice (I think it needs to be a practice), opened on her word after her first entry, so it is named too."
  },
  "about_widget": "The remaining list is never a widget (7, 8, 11 and 20 Oct 2026): it is one horizontal code line. The two bar colours stay, for the day behind. A237, 2 Oct 2026, had the pill strip: dawn's bar is #EFA038, the marigold she named for spirit; dusk's is #7B6FD6, the blue-violet of the ☑️ box — her words 4 Oct 2026: dusk should be more of a purple, something like ☑️.",
  "catalog_fields": {"practice": "practice", "phase": "phase", "group": "group", "order": "order", "active": "active", "zero_duration": "zero duration", "typical_time": "typical time"},
