@@ -369,6 +369,9 @@ contents never pass through the chat.
      artifact (favicon 👁️), then write its link to the look ahead row's
      `deliverable` (`page.row`; if the row isn't written yet, write it with the
      link in it). That row is where every later build finds the link.
+   **Every publish declares `capabilities: {downloads: true}`** (261106_download, her word 7 Nov 2026): the page's
+   *download this page* button saves it as one .html, photos and all, through the viewer's own save prompt; without
+   the capability the button falls back to a plain browser download, which the claude.ai frame may block.
    `artifact_url` in the settings is the old single living page; it is never a
    day's own, and the build ignores it as one. No Drive copy each time: the
    pages are exported at the desktop (her word, 28 Oct 2026).

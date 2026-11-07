@@ -225,6 +225,14 @@ def care_settings(L):
         return {}
 
 
+def with_drives(C, W, L):
+    """The care settings with each drive's parent rhythm beside them, and which rhythms are work (`work_parents`),
+    so a row on a work drive is read as work (7 Nov 2026: a Teams update and a work email, written at home with
+    the family about, were drawn as family care)."""
+    return dict(C, _parent={d['n']: d.get('parent') or '' for d in W.get('drives') or []},
+                _work=frozenset(L.get('work_parents') or ()))
+
+
 def low(p):
     return re.sub(r'^[^\w]+', '', p or '').strip().lower()
 
@@ -252,6 +260,10 @@ def kind_of(c, F, flows, C):
             return 'home'
         if re.search(r'\b(cook|bake|baking|appetizers?|bruschetta|spaghetti|dinner|lunch|breakfast|zombie brains|food)\b', tl):
             return 'cook'
+    # a work drive is work whoever was about: the drive a row serves says what its time was
+    parent = (C.get('_parent') or {}).get(rh, '')
+    if rh and (rh in (C.get('_work') or ()) or parent in (C.get('_work') or ())):
+        return 'work'
     if pr in RECREATION or pr in TV or any(x in rh for x in (C.get('recreation') or {}).get('rhythms') or ()):
         return 'recreation'
     if any(x in rh for x in fam.get('rhythms') or ()) or any(w in who for w in fam.get('people') or ()):
@@ -336,11 +348,18 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
                     if ra.date() == today and rb > ra and rb - ra <= dt.timedelta(hours=6):
                         mine['a'] = hm(ra); mine['b'] = hm(rb)
                 mine.setdefault('rids', []).append(r['id'])   # its photos ride on the event's card too
+                if st not in OPEN:
+                    mine['done'] = True   # its own row closed: it happened, even while her calendar still shows ⬜ (7 Nov 2026)
                 if st not in OPEN and _norm(title) != _norm(mine.get('t')):
                     mine.setdefault('covers', []).append(re.sub(r'^⚡\s*', '', title))
             continue
         t = re.sub(r'^⚡\s*', '', title)
         end = c.get(F['end'])
+        # a session entry still ▶️ in motion is time she spent today: drawn as lived (7 Nov 2026: a Nectar chat at 6:15 PM
+        # was missing from the page because its row stays open for the step after it)
+        if st == '▶️ in motion' and c.get(F['when']) and c.get(F['end']) and to(c[F['when']]).date() == today \
+                and 'written by session-entry' in (c.get(F['details']) or ''):
+            st = '● log'
         if st in OPEN:                                         # a step still to do, at its time today
             tg = c.get(F['target'])
             if not tg or to(tg).date() != today:
@@ -357,7 +376,10 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
             why = (picks or {}).get(r['id']) or (picks or {}).get(c.get(F['key']) or '')
             nx = [ln.split(':', 1)[1].strip() for ln in (c.get(F['details']) or '').split('\n')
                   if re.match(r'(?i)^\s*next( step)?:', ln)]
-            items.append(dict(k='step', t=t, a=hm(a), b=hm(b), drive=rh, done=False, nx=nx[-1] if nx else None,
+            # worked on today and still in motion is not the same as didn't happen (7 Nov 2026, her words: several things
+            # on here should have been reconciled during the QA before this got printed)
+            worked = st == '▶️ in motion' and bool(c.get(F['when'])) and to(c[F['when']]).date() == today
+            items.append(dict(k='step', t=t, a=hm(a), b=hm(b), drive=rh, done=False, nx=nx[-1] if nx else None, worked=worked,
                               key=c.get(F['key']) or None, rid=r['id'],
                               sized=not m or 'guess' in m.group(0).lower(),
                               cat=kind_of(c, F, flows, C), pick=why is not None, why=why or None))
@@ -380,7 +402,10 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
             continue
         if a.date() != today:
             continue
-        real = end and to(end) > a and to(end) - a <= dt.timedelta(hours=6)
+        # a span up to most of a waking day is real (7 Nov 2026: her work from 3:42 to about 10 PM was drawn as ten minutes)
+        # (a session's `stretches:` line still wins over its envelope)
+        long_ok = not re.search(r'(?im)^stretches:', c.get(F['details']) or '')
+        real = end and to(end) > a and to(end) - a <= dt.timedelta(hours=14 if long_ok else 6)
         b = to(end) if real else a + dt.timedelta(minutes=10)
         # a session entry with several stretches keeps its first start and no end; its `stretches:` line holds
         # her real time, so draw each stretch (6 Nov 2026, her words: a lot of gaps in the afternoon)
@@ -400,20 +425,88 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
                 # no tick while the session's notes still list open work (7 Nov 2026, her words: I didn't finish that page)
                 # a card, never the ground band an hour-long action becomes: a session's stretch sits among the
                 # other work it ran beside, so it reads as a card with its tick in the title
-                items.append(dict(k='lived', t=('✅ ' if st == '✅ done' and not re.search(r'(?im)^still open', c.get(F['details']) or '') else '') + t, a=hm(sa), b=hm(sb), drive=rh, done=True,
-                                  cat='stretch',
+                items.append(dict(**opens_to(c, F), k='lived', t=('✅ ' if st == '✅ done' and not re.search(r'(?im)^still open', c.get(F['details']) or '') else '') + t, a=hm(sa), b=hm(sb), drive=rh, done=True,
+                                  cat='stretch', sk=kind_of(c, F, flows, C),   # its kind of time: a be•do chat is be•do, not work (7 Nov 2026)
                                   rid=r['id'] if sa == at(*spans[0][:2], a) else None, links=links_of(c, F) or None,
                                   act=False, pt=False,
                                   felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD))
                 prev = sb
             continue
-        items.append(dict(k='lived', t=t, a=hm(a), b=hm(b), drive=rh, done=True, cat=kind_of(c, F, flows, C), rid=r['id'],
+        items.append(dict(**opens_to(c, F), phase=(C.get('_phase') or {}).get(low(c.get(F['practice']))), k='lived', t=t, a=hm(a), b=hm(b), drive=rh, done=True, cat=kind_of(c, F, flows, C), rid=r['id'],
                           links=links_of(c, F) or None,
                           act=st == '✅ done', pt=not real,
                           # a feeling or a keeper photo marks what mattered (2 Nov 2026): it stays when the hour folds
                           felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD,
                           keeper=bool(F.get('photo') and 'keeper' in str(c.get(F['photo']) or ''))))   # an action she finished, drawn with its green check (2 Nov 2026)
-    return star_the_highlight(fold_into_events(sorted(items, key=lambda x: (x['a'], x['k'] != 'event'))))
+    return star_the_highlight(fold_into_events(fold_done_plans(fill_between(flow_cards(sorted(items, key=lambda x: (x['a'], x['k'] != 'event')))))))
+
+
+def flow_cards(items):
+    """Each flow spans its first step to its close (7 Nov 2026, her words: my dawn flow and dusk flow are completely missing),
+    drawn as a dotted outline in the background around its steps, as the river drew it; its steps keep their own cards.
+    It takes no minutes in how the time went: its steps already do."""
+    mm = lambda t: int(t[:2]) * 60 + int(t[3:5])
+    out = list(items)
+    for ph in sorted({x.get('phase') for x in items if x.get('phase')}, key=lambda p: 'dusk' in p):
+        steps = [x for x in items if x.get('phase') == ph and x.get('k') == 'lived']
+        if len(steps) < 2:
+            continue
+        a, b = min(mm(x['a']) for x in steps), max(mm(x['b']) for x in steps)
+        name = re.sub(r'^\W*', '', ph)
+        out.append(dict(k='lived', t=f"{ph.split()[0]} {name} flow · {len(steps)} steps", a=f'{a // 60:02d}:{a % 60:02d}',
+                        b=f'{b // 60:02d}:{b % 60:02d}', drive='', done=True, cat='flow', nopie=True, flowcard=True,
+                        rid=None, links=None, act=False, pt=False, el=None, el2=None,
+                        members=[dict(t=x['t'], s=mm(x['a']), e=mm(x['b']), act=x.get('act')) for x in steps]))
+    return sorted(out, key=lambda x: (x['a'], x['k'] != 'event'))
+
+
+def fold_done_plans(items, before=15):
+    """A plan closed by what happened is drawn once (7 Nov 2026, her words: the pizza place plan that didn't happen didn't
+    get replaced by the plan that did). A finished action with no span of its own, at or just before a lived row that
+    shares two of its words, is that row: it folds in, and the row is marked done and carries its links."""
+    mm = lambda t: int(t[:2]) * 60 + int(t[3:5])
+    stop = {'with', 'from', 'that', 'this', 'when', 'then', 'into', 'for', 'the', 'and', 'about'}
+    words = lambda t: {w for w in re.findall(r"[a-z][a-z']{3,}", (t or '').lower()) if w not in stop}
+    gone = set()
+    for x in items:
+        if not (x.get('k') == 'lived' and x.get('act') and x.get('pt')):
+            continue
+        xa, xw = mm(x['a']), words(x['t'])
+        host = next((o for o in items if o is not x and id(o) not in gone and o.get('k') == 'lived' and not o.get('pt')
+                     and not o.get('column') and o.get('cat') not in ('stretch', 'moment', 'sleep')
+                     and mm(o['a']) - before <= xa <= mm(o['b']) and len(xw & words(o['t'])) >= 2), None)
+        if host is None:
+            continue
+        gone.add(id(x))
+        host['done'] = True
+        host['links'] = (host.get('links') or []) + (x.get('links') or [])
+        host.setdefault('closes', []).append(x['t'])
+    return [x for x in items if id(x) not in gone]
+
+
+def opens_to(c, F):
+    """What a lived card opens to (7 Nov 2026, her words: click on an event and get all of the relevant info in a really
+    clear visual way): her words (above the divider), who was there, and the feeling she named."""
+    d = c.get(F['details']) or ''
+    her = re.split(r'\n?(?:———|---|——)\n?', d, maxsplit=1)[0].strip() if not d.lstrip().startswith(('———', '---')) else ''
+    her = re.sub(r'(?m)^overlap — .*$', '', her).strip()
+    emo = c.get(F['emotion']) if F.get('emotion') else None
+    emo = ', '.join(emo) if isinstance(emo, list) else (emo or '')
+    return dict(her=her[:700] or None, who=(c.get(F['person']) or '') if F.get('person') else '', felt_word=emo or None)
+
+
+def fill_between(items, long_min=180):
+    """A long stretch of one thing she did whenever nothing else was going on is one running column beside the rest
+    (7 Nov 2026, her words: I was working on the nlgca budget justification from the time we got home until I sent the
+    email … whenever I wasn't eating or doing something else obvious; it would make sense to have that as a whole
+    running effort during that time, a column instead of a bunch of different entries). Drawn as a ground band it read
+    as empty time. A 📝 log row (be•do's own catch-all for time she describes in her words) runs from half that length."""
+    mm = lambda t: int(t[:2]) * 60 + int(t[3:5])
+    for x in items:
+        if (x.get('k') == 'lived' and not x.get('act') and x.get('cat') not in ('sleep', 'stretch', 'moment')
+                and not x.get('pt') and mm(x['b']) - mm(x['a']) >= (long_min // 2 if (x.get('t') or '').startswith('📝') else long_min)):
+            x['column'] = True
+    return items
 
 
 def star_the_highlight(items):
@@ -657,10 +750,15 @@ def build(D, rows, rhythms_read, L, behind_dir):
                 secure=(D.get('secure') or {}).get('state'))
     today_page = next((x for x in D.get('days') or [] if x.get('date') == W['day']), None)
     data['holds'] = day_holds(today_page, L) if today_page else None
+    data['timegoals'] = L.get('time_goals') or {}
+    data['timelimits'] = L.get('time_limits') or {}   # hours a day at most, hers (7 Nov 2026: be•do, one would be good, two at most)   # hours a day for a kind of time, hers (7 Nov 2026: sleep 8, work 4, movement 2, food 1)
+    data['hidden'] = list(L.get('hide_drives') or [])   # build work set aside, as everywhere on the page
+    data['me'] = L.get('self_person') or ''   # her own name, left out of who was with her
     data['calcolors'] = L.get('calendar_colors') or {}   # each calendar's own colour, as Google shows it
     data['intentions'] = [x for x in (D.get('intentions') or []) if x]
     data['schedule'] = schedule_of(today, rows, today_page, F, off, set(L.get('hide_drives') or []),
-                                   L.get('_flows') or frozenset(), care_settings(L), L.get('_picks'))
+                                   L.get('_flows') or frozenset(), dict(with_drives(care_settings(L), W, L), _phase=L.get('_phase') or {}),
+                                   L.get('_picks'))
     # each card opens to what the 28 Oct day ahead showed (2 Nov 2026, her words: it would be so awesome to
     # have the day ahead show the detail about the next steps and everything the way that day ahead did):
     # her words on the row and its ways in (the chat, the deliverable, the links), from card 1's steps
@@ -734,6 +832,21 @@ def build(D, rows, rhythms_read, L, behind_dir):
     return data
 
 
+def phases_of(dd, L):
+    """Each flow practice's phase (dawn or dusk), from the catalog read, when her settings name the catalog's `phase` field."""
+    PF = (L.get('fields') or {}).get('practices') or {}
+    path = os.path.join(dd, 'practices.json')
+    if not PF.get('phase') or not os.path.exists(path):
+        return {}
+    out = {}
+    for r in json.load(open(path, encoding='utf-8')).get('records') or []:
+        c = r.get('cellValuesByFieldId') or {}
+        ph = c.get(PF['phase']); ph = ph.get('name') if isinstance(ph, dict) else ph
+        if ph and re.search(r'dawn|dusk', str(ph)) and c.get(PF.get('active'), True) is not False:
+            out[low(c.get(PF['name']))] = ph
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--day-ahead', required=True)
@@ -758,6 +871,8 @@ def main():
                 seen.add(r['id']); rows.append(r)
     rhythms_read = json.load(open(os.path.join(dd, 'rhythms.json'), encoding='utf-8'))['records']
     L['_picks'] = dict((p.split('::', 1) + [''])[:2] for p in a.pick)
+    L['_phase'] = phases_of(dd, L)
+    L['_flows'] = frozenset(L['_phase'])
     tops = [tuple((t.split('::', 1) + [''])[:2]) for t in a.session_top]
     L['_sessions'] = [dict(session_arg(s), top=tops) for s in a.session]
     L['_photos'] = a.photos

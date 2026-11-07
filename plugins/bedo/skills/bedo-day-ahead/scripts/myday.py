@@ -155,10 +155,17 @@ def build(rows, latest, open_ids, hidden, today, drives, L, local, chain_key, hi
         if r['status'] in WORKING and (r['practice'] or '').startswith(ACTION) and not r['queue']:
             b = _bucket(r['rhythm'], B)
             opened[b] = opened.get(b, 0) + 1
-    ndone = {}
+    ndone, ntoday, nlater = {}, {}, {}
     for (b, _), d in done.items():
         ndone[b] = ndone.get(b, 0) + 1
-    prog = {b: dict(done=ndone.get(b, 0), open=opened.get(b, 0), since=since.get(b) or first)
+        if d == day:
+            ntoday[b] = ntoday.get(b, 0) + 1
+        elif d > day:          # closed after the page's day: not yet done on it (a day behind built the next morning)
+            nlater[b] = nlater.get(b, 0) + 1
+    # how each drive moved that day (7 Nov 2026, her words: I really love how the 30 Oct version shows the actual
+    # progress … looking ahead I can see how it moves, and looking back behind I can see how it moved)
+    prog = {b: dict(done=ndone.get(b, 0) - nlater.get(b, 0), today=ntoday.get(b, 0),
+                    open=opened.get(b, 0) + nlater.get(b, 0), since=since.get(b) or first)
             for b in set(ndone) | set(opened)}
     hist = {b: sorted(d for _, d in v) for b, v in tended.items()}
     past = {}

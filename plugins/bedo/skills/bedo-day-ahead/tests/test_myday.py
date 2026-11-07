@@ -65,7 +65,7 @@ def main():
     assert set(titles) == {'carried from Monday', 'a step for today', 'finished this morning', 'a rhythm step'}, titles
     today = next(s for s in card['steps'] if s['t'] == 'a step for today')
     assert today['det'] == 'my own words' and today['mine'], today
-    assert card['prog'][A] == dict(done=2, open=3, since='2026-02-25'), card['prog'][A]
+    assert card['prog'][A] == dict(done=2, today=1, open=3, since='2026-02-25'), card['prog'][A]   # one closed this morning (7 Nov 2026)
     assert card['drives'][A]['short'] == 'Drive A' and card['drives']['Drive B']['c'] == card['drives'][A]['c']
     assert card['hist']['ev']['Rhythm Two'] == ['2026-03-03'], card['hist']
     assert whole['order'] == ['Rhythm One', 'Rhythm Two'], whole['order']
@@ -85,7 +85,7 @@ def main():
     old = row('⚡ finished long ago', A, status='✅ done', end='2025-12-01T08:00:00Z', created='2025-12-01T08:00:00Z')
     card2, whole2 = myday.build(ROWS, LATEST, OPEN_IDS, lambda r: False, TODAY, DRIVES, {'map_end': '2026-12-31'}, local,
                                 lambda r: r['key'], [old, ROWS[3]])
-    assert card2['prog'][A] == dict(done=3, open=3, since='2025-12-01'), card2['prog'][A]
+    assert card2['prog'][A] == dict(done=3, today=1, open=3, since='2025-12-01'), card2['prog'][A]
     assert whole2['begin'] == '2025-12-01'
     # a step's way in: its deliverable, or nothing, which the page says plainly
     assert all(s['links'] == [] for s in card['steps']), card['steps']

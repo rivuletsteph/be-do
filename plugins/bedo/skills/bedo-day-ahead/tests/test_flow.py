@@ -118,9 +118,39 @@ def main():
     assert call['t'] == 'Team call' and 'covers' not in call and call['links'] == note, call
     assert {x['t'] for x in out} == {'Yoga class', 'a glimmer at yoga', 'Team call', 'Grandparents day',
                                      'sun on the patio', 'lunch'}, [x['t'] for x in out]
+    # a row on a work drive is work, even with the family about (7 Nov 2026); without the drive, they make it family care
+    K = dict(F, person='pe')
+    C = flow.with_drives(dict(care=dict(family=dict(rhythms=['Kid'], people=['Kid']))),
+                         dict(drives=[dict(n='Data Hub', parent='Work Rhythm'), dict(n='Home Drive', parent='Home')]),
+                         dict(work_parents=['Work Rhythm']))
+    cell = lambda rh: dict(t='⚡ posted the update', pr='⚡ action', rh=rh, pe='Kid, Partner')
+    assert flow.kind_of(cell('Data Hub'), K, frozenset(), C) == 'work'
+    assert flow.kind_of(cell('Work Rhythm'), K, frozenset(), C) == 'work'
+    assert flow.kind_of(cell('Home Drive'), K, frozenset(), C) == 'family'
+    assert flow.kind_of(dict(cell('Data Hub'), pr='🍽️ lunch'), K, frozenset(), C) == 'eat'
+
+    # a long stretch done whenever nothing else was going on is one running column (7 Nov 2026)
+    L_ = lambda t, a, b, **k: dict(dict(k='lived', t=t, a=a, b=b, cat='work', pt=False), **k)
+    out = flow.fill_between([L_('long work', '15:40', '20:05'), L_('📝 evening work', '20:05', '22:00'),
+                             L_('supper', '17:20', '17:50', cat='eat'), L_('a walk', '10:00', '11:50', cat='move')])
+    assert [x['t'] for x in out if x.get('column')] == ['long work', '📝 evening work'], out
+
+    # a plan closed by what happened is drawn once (7 Nov 2026)
+    out = flow.fold_done_plans([dict(k='lived', t='pizza for supper, delivered', a='17:12', b='17:22', act=True, pt=True, links=[1]),
+                                dict(k='lived', t='early supper, pizza delivered', a='17:21', b='17:51', cat='eat', pt=False),
+                                dict(k='lived', t='text: pizza tonight', a='11:25', b='11:35', act=True, pt=True)])
+    assert [x['t'] for x in out] == ['early supper, pizza delivered', 'text: pizza tonight'], out
+    assert out[0]['done'] and out[0]['links'] == [1]
+
+    # every day page carries the download button (261106_download): the viewer's save prompt, else a Blob download
+    for eng in (os.path.join(HERE, '..', 'assets', 'flow_engine.html'),
+                os.path.join(HERE, '..', '..', 'bedo-week-look-behind', 'assets', 'week_look_behind_engine.html')):
+        e = open(eng, encoding='utf-8').read()
+        assert "id='bedo-dl'" in e and "c.use('downloads')" in e and 'new Blob(' in e, eng
+
     print('ok — balance is evenness, a goal is her first sentence, buffer counts what is late that morning, '
           'the day holds her free hours, a size is a guess off the words, a session batches one kind at its time, '
-          'an event is drawn once with what it covered')
+          'an event is drawn once with what it covered, a work drive is work, every day page can download itself, a long stretch is one column, a closed plan folds into what happened')
 
 
 if __name__ == '__main__':

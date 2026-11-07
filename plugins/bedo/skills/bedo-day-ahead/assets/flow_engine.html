@@ -231,9 +231,52 @@ html[data-bedo="night"] .cal .ev:not(.gcal), html[data-bedo="night"] .cal .ev:no
 .legend b{font:600 10.5px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-right:-4px}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:11px;height:11px;border-radius:3px;background:var(--fill);border:1.5px solid var(--edge)}
+.spc{padding:12px;display:grid;grid-template-columns:104px minmax(0,1fr);gap:10px;align-items:center}
+.spc svg{width:100%;height:auto;display:block}
+.spl{display:grid;gap:5px}
+.spr{display:grid;grid-template-columns:5.6rem minmax(40px,1fr) 3.6rem;gap:6px;align-items:center}
+.spn{font-size:12.5px;line-height:1.15}
+.spb{position:relative;display:block;height:9px;border-radius:5px;background:var(--card2)}
+.spb i{display:block;height:100%;border-radius:5px;border:1.2px solid;box-sizing:border-box}
+.spb em{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--ink);border-radius:2px}
+.spb em.lim{background:var(--past)}
+.spv{font:500 11.5px var(--mono);color:var(--ink);text-align:right;line-height:1.1}
+.spv small{display:block;font-size:9.5px;color:var(--muted)}
+.spa{font:500 11px var(--mono);color:var(--muted);margin:0}
+@media (max-width:380px){.spc{grid-template-columns:1fr}.spc svg{max-width:140px;margin:0 auto}}
+.mvc{padding:12px 14px;display:grid;gap:14px}
+.mvr .mvn{font-weight:600;font-size:14.5px}
+.mvb{display:flex;height:10px;border-radius:5px;background:var(--rule);overflow:hidden;margin:6px 0 4px}
+.mvb i{display:block;height:100%;background:color-mix(in srgb,var(--dc) 55%,var(--card))}
+.mvb i.t{background:var(--dc)}
+.mvb i.p{background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--dc) 35%,transparent) 0 4px,transparent 4px 8px)}
+.mvl{font:500 12px var(--mono);color:var(--muted)}.mvl b{color:var(--ink)}
+.legend-key{margin:0 0 10px}.legend-key summary{cursor:pointer;font:500 11.5px var(--mono);color:var(--muted)}.legend-key .legend{margin:8px 0 4px}
+.sheet .chips{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px}
+.sheet .chip{display:inline-flex;align-items:center;gap:6px;font:500 13px var(--sans);color:var(--ink);background:var(--card2);border-radius:999px;padding:4px 11px}
+.sheet .chip i{width:12px;height:12px;border-radius:3px}
+.cal .ev .cx{display:flex;gap:6px;align-items:center;margin-top:2px;white-space:nowrap;overflow:hidden}
+.cal .ev .cx .dlk{font:600 10.5px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:0 7px;text-decoration:none;pointer-events:auto}
+.cal .ev .cx .mvt{font:600 10.5px var(--mono);color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:0 6px}
+.sheet .dlv{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.sheet .dlv a{font:600 15px var(--sans);color:#fff;background:var(--dest);border-radius:12px;padding:9px 14px;text-decoration:none}
+.sheet .phs{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;margin-top:8px}
+.sheet .phs .ph{margin:0;max-height:46vh;object-fit:cover;width:100%}
+.sheet .ball{grid-column:1/-1;font:500 15px var(--sans);color:var(--ink);margin-top:10px}.sheet .ball b{color:var(--accent)}
+.sheet .inside .dlk{font:600 11px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:1px 8px;text-decoration:none}
+.sheet .chip.none{color:var(--past);background:var(--past-soft)}
+.sheet .chip.mv{font:500 12.5px var(--mono);color:var(--accent);background:none;border:1.5px solid var(--accent)}
+.sheet .who{grid-column:1/-1;font:400 14.5px var(--sans);color:var(--ink);margin-top:8px}
+.sheet .her a{font:500 12.5px var(--mono);font-style:normal;color:var(--dest);text-decoration:none}
+.sheet .her{grid-column:1/-1;font:italic 400 15.5px/1.45 var(--serif);color:var(--muted);margin:8px 0 0}
+.sheet .her.full{white-space:pre-line;color:var(--ink);font-size:14.5px}
+.sheet details.more{grid-column:1/-1;margin-top:4px}.sheet details.more summary{cursor:pointer;font:500 12px var(--mono);color:var(--muted)}
 .td{--k-logged:#E6DCCF;--k-logged-d:#9A8B79;--k-stretch:#A9D3D6;--k-stretch-d:#3E7F86;--k-event:#5B6FB5;--k-lastmin:#E07A5F;--k-flow:#DDD5C9;--k-flow-d:#8C8174;--k-eat:#86C2A4;--k-eat-d:#3F8A68;--k-move:#B4C987;--k-move-d:#6E8A35;--k-personal:#C3B6E2;--k-personal-d:#6B5BA0;--k-recreation:#9FC4E2;--k-recreation-d:#4A7FAE;--k-travel:#A8D3C9;--k-travel-d:#3E7F74;--k-work:#C9805F;--k-work-d:#8E4A2C;--k-family:#E3A4A8;--k-family-d:#B05E66;--k-pet:#EBB9CB;--k-pet-d:#A85C7A;--k-home:#DDB4A2;--k-home-d:#96604A;--k-cook:#EEB672;--k-cook-d:#B07A2A;--k-drive:#A9B7C2;--k-drive-d:#56697A;--k-system:#DCC89C;--k-system-d:#9C8455;--k-moment:#F2C14E;--k-moment-d:#B8860B}
 html[data-bedo="night"] .td{--k-logged:#4A4540;--k-logged-d:#D9CCBC;--k-stretch:#2F5458;--k-stretch-d:#BDE3E6;--k-event:#7F8FD0;--k-lastmin:#F09A80;--k-flow-d:#BDB3A6;--k-eat-d:#C4E6D4;--k-move-d:#DCE8BC;--k-personal-d:#DED6F4;--k-recreation-d:#CFE2F2;--k-travel-d:#CDEAE4;--k-work-d:#F0C6B2;--k-family-d:#F5D0D2;--k-pet-d:#F6D3E0;--k-home-d:#F0D6CA;--k-cook-d:#F7D9AE;--k-drive-d:#D3DEE7;--k-system-d:#EEE2C6;--k-moment-d:#F2C14E}
 .cal .band{border:2px solid var(--dc);border-left-width:5px;background:color-mix(in srgb,var(--dc) 16%,transparent)}
+.cal .band.flowband{border:2px dashed var(--muted);background:color-mix(in srgb,var(--muted) 6%,transparent);left:0;right:0}
+.cal .band.flowband span{position:absolute;right:8px;bottom:4px;top:auto;font:600 11px var(--sans);color:var(--muted)}
+.bandtop span.fl i{border:2px dashed var(--muted);background:transparent}
 .cal .band span{color:var(--ink);font-weight:700;font-size:12px}
 .cal .band span em{display:block;font:600 9.5px var(--mono);font-style:normal;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
 .cal .ev.event{border:2px solid var(--edge);border-left-width:5px}
@@ -278,6 +321,8 @@ html[data-bedo="night"] .td{--k-logged:#4A4540;--k-logged-d:#D9CCBC;--k-stretch:
 <div class="sum" id="sum"></div>
 <p class="hint">each list runs from the easiest next step · tap anything on the flow to follow it · tap again to see all</p></div>
 <div class="focus" id="focus" hidden></div>
+<section class="sp" id="spent"></section>
+<section class="mv" id="moved"></section>
 <section class="wh" id="wheel"></section>
 </main>
 <script>/*BFJS*/</script>
@@ -526,15 +571,18 @@ function intention(blocks){
      next step. A tap opens its card. */
   const el=document.getElementById('int'); const nt=t=>String(t||'').replace(/^⚡\s*/,'').trim();
   const onCal=new Set((window.__cards||[]).map(x=>nt(x.t)));
-  const late=(window.__nofit||[]).map(x=>({t:x.t,drive:x.drive,sz:x.e-x.s,nx:x.nx,x}));
-  const rest=stars(blocks).filter(s=>!onCal.has(nt(s.a.t))&&!late.some(l=>nt(l.t)===nt(s.a.t))&&!/be•do/.test(s.on))
+  const over_=new Date().toLocaleDateString('en-CA')>D.day;
+  /* a day that is over lists only what was open at its end, reconciled: a session block is only a container, and a step
+     worked on today and still in motion says so (7 Nov 2026, her words: several things on here should have been
+     reconciled during the QA before this got printed). The easiest next steps for later days belong to the day ahead. */
+  const late=(window.__nofit||[]).filter(x=>!(over_&&x.session)).map(x=>({t:x.t,drive:x.drive,sz:x.e-x.s,nx:x.nx,worked:x.worked,x}));
+  const rest=over_?[]:stars(blocks).filter(s=>!onCal.has(nt(s.a.t))&&!late.some(l=>nt(l.t)===nt(s.a.t))&&!/be•do/.test(s.on))
     .map(s=>({t:s.a.t,drive:s.on.trim(),sz:s.a.sz,nx:s.a.nx||null,c:s.c}));
   const all=late.concat(rest), hmz=m=>m>=60?`${Math.floor(m/60)} h${m%60?' '+(m%60)+' min':''}`:`${m} min`;
   if(!all.length){ el.innerHTML=''; return; }
-  const over_=new Date().toLocaleDateString('en-CA')>D.day;
   const free=`<p class="how">${over_?'the day is over; these were open at its end and wait for a time':'the calendar above holds what fits today; these wait for a time'}</p>`;
   el.innerHTML=`<h2>${over_?'still open':'not on today\'s calendar'}</h2>${free}<ul class="nf">${all.map((s,i)=>{ const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===s.drive||(s.drive||'').endsWith(r.n));
-    return `<li data-n="${i}" style="--dc:${col((d&&d.c)||s.c)}"><span class="st">${esc(nt(s.t))}</span><small>${i<late.length?(over_?'didn\'t happen · ':'doesn\'t fit today · '):''}${esc(s.drive||'')}${s.sz?' · about '+hmz(s.sz):''}</small></li>`; }).join('')}</ul>`;
+    return `<li data-n="${i}" style="--dc:${col((d&&d.c)||s.c)}"><span class="st">${esc(nt(s.t))}</span><small>${i<late.length?(over_?(s.worked?'worked on today, still in motion · ':'didn\'t happen · '):'doesn\'t fit today · '):''}${esc(s.drive||'')}${s.sz?' · about '+hmz(s.sz):''}</small></li>`; }).join('')}</ul>`;
   el.querySelectorAll('.nf li').forEach(li=>li.onclick=()=>{ const s=all[+li.dataset.n]; const x=s.x||{k:'step',t:s.t,drive:(s.drive||'').replace(/^\S+\s/,''),nx:s.nx,s:0,e:s.sz||0};
     sheet(Object.assign({},x,{s:x.s||0})); });
 }
@@ -555,11 +603,25 @@ function today(){
      on, drawn behind them; every other event and step is laid end to end in time order, nothing open before
      the clock (she can't go back), each at its own time or as soon as the one before it ends. */
   const all=S.map(x=>({...x,s:min(x.a),e:Math.max(min(x.b),min(x.a)+(x.k==='lived'?(x.pt?10:1):15))}));
+  /* someone else's long event out in town has two moments she can't miss: the drop-off and the pick-up (7 Nov 2026, her
+     words: pick up and drop off are important events on my calendar on Fridays, but they're implied — those are things I just can't miss). Each is its own card in the calendar's colour, while it
+     is still ahead; once past, her own rows (the drive there, the pick-up) are the record */
+  const ahead_=t=>now.toLocaleDateString('en-CA')<D.day||(nowM!=null&&t>nowM);
+  all.filter(x=>x.k==='event'&&x.who&&x.who!=='you'&&x.where&&x.e-x.s>=120).forEach(x=>{
+    const nm=String(x.summary||x.t||'').replace(/^\s*(⬜|✅|✔️|✔)\uFE0F?/,'').trim(), lk=x.link;
+    const one=(w,t,a)=>({...x,t:w+' · '+nm,summary:w+' · '+nm,s:t,e:t+15,a,b:a,handoff:true,star:false,covers:null,photos:null,links:lk?[{l:'calendar event',u:lk}]:null});
+    if(ahead_(x.s)) all.push(one('drop-off',x.s,x.a));
+    if(ahead_(x.e)) all.push(one('pick-up',x.e,x.b)); });
   /* a long event, or a block of hers already done that holds other things (her prep window), is ground */
   /* her own meetings stay cards in their calendar colour (4 Nov 2026, her words: the precipitation check and the
      Louisiana work are purple like on my calendar, but it seems to be missing the work weekly): an event of hers
      is ground only at three hours or more (a party); someone else's long event (Greenhouse) still at two */
-  const bands=all.filter(x=>(x.k==='event'&&x.e-x.s>=(x.who==='you'?180:120))||(x.k==='lived'&&x.act&&x.e-x.s>=60));
+  /* a long stretch of one thing is ground under the day, named at the top, never a card that swallows the hours (7 Nov
+     2026: her Copilot work from getting home until about 10 PM) */
+  /* a flow is ground too: a dotted outline behind its steps, as the river drew it (7 Nov 2026, her words: I loved how the
+     river showed the dawn flow and the dusk flow with a dotted outline around all the different things, in the background,
+     kind of like how you did Greenhouse) */
+  const bands=all.filter(x=>x.flowcard||(x.k==='event'&&x.e-x.s>=(x.who==='you'?180:120))||(x.k==='lived'&&x.cat!=='stretch'&&!x.column&&x.cat!=='sleep'&&((x.act&&x.e-x.s>=60)||x.e-x.s>=180)));
   /* what she has done stays where it happened; what's ahead is laid end to end from the clock */
   /* what's done reads as a list in time (2 Nov 2026, her words: show me my day flow, up to date, for what I've
      already accomplished): an event already over joins the done side, so it never covers what she did in it,
@@ -618,24 +680,38 @@ function today(){
      every card in it has room for its words, so a five-minute step never sits on the one after it */
   const PX=72, MINH=26, minOf=px=>px*60/PX, need=x=>(x.photos&&x.photos.length)?56:past.includes(x)?MINH+4:(x.pick&&x.why?64:48);
   /* the past as it was: two things at once sit side by side, as the calendar does */
-  const cols=[]; past.forEach(x=>{ x.de=x.e; let c=0; while(cols[c]&&cols[c]>x.s) c++; cols[c]=x.de; x.col=c; });
+  const isCol=x=>x.cat==='stretch'||x.column;
+  const cols=[]; past.forEach(x=>{ x.de=x.e; if(isCol(x)){ x.col=0; return; } let c=0; while(cols[c]&&cols[c]>x.s) c++; cols[c]=x.de; x.col=c; });
   /* every card in a run of overlapping ones shares one width, so three at once never sit on each other (4 Nov 2026);
      three or more at once are one card (5 Nov 2026, her words: I wanted to see them combined): the longest of them
      names it — an action she finished first — and the others are its lines, their photos together on it */
   const STACKS=[];
   { let run=[], end=-1; const close=()=>{ const n=1+Math.max(...run.map(o=>o.col));
       if(n>=3){ const st={s:Math.min(...run.map(o=>o.s)),e:Math.max(...run.map(o=>o.de)),m:run.slice().sort((a,b)=>a.s-b.s)};
-        const host=st.m.slice().sort((a,b)=>((b.k==='event'?1:0)-(a.k==='event'?1:0))||((b.act?1:0)-(a.act?1:0))||((b.de-b.s)-(a.de-a.s)))[0];   /* a calendar event heads the group it sits in, in its own colour */
+        /* a calendar event heads the group it sits in, in its own colour; then a finished action that took real time
+           (a ten-minute text never names a two-hour walk, 7 Nov 2026); then the longest of what she did */
+        const host=st.m.slice().sort((a,b)=>((b.k==='event'?1:0)-(a.k==='event'?1:0))||((b.act&&!b.pt?1:0)-(a.act&&!a.pt?1:0))||((b.de-b.s)-(a.de-a.s)))[0];
         st.card=Object.assign({},host,{s:st.s,e:st.e,n:1,col:0,combo:true,
-          members:st.m.filter(o=>o!==host).map(o=>({t:o.t,s:o.s,e:o.de,photos:o.photos,act:o.act})),
-          photos:st.m.flatMap(o=>o.photos||[]),links:st.m.flatMap(o=>o.links||[])});
+          members:st.m.filter(o=>o!==host).map(o=>({t:o.t,s:o.s,e:o.de,photos:o.photos,act:o.act,links:o.links})),
+          photos:st.m.flatMap(o=>o.photos||[]),links:host.links||[]});   /* each deliverable stays with its own line */
         st.m.forEach((o,i)=>{ o.n=1; o.col=0; o.stk=st; o.si=i; }); STACKS.push(st); }
       else run.forEach(o=>o.n=n); run=[]; };
-    past.forEach(x=>{ if(x.k==='event'){ return; } if(run.length&&x.s>=end) close(); run.push(x); end=Math.max(end,x.de); }); if(run.length) close();
+    /* a chat she kept open beside other things is never folded into them, and never joins them into one card (7 Nov 2026:
+       a two-hour phone session through a walk, lunch and work made one card of 10 AM to 2 PM): it keeps its own column */
+    past.forEach(x=>{ if(x.k==='event'||isCol(x)){ return; } if(run.length&&x.s>=end) close(); run.push(x); end=Math.max(end,x.de); }); if(run.length) close();
     /* a calendar event keeps its own card at its own times, beside what she did meanwhile (6 Nov 2026, her words: the
        meeting only went 30 minutes) */
     past.filter(x=>x.k==='event').forEach(x=>{ const o=past.filter(p=>p!==x&&!p.stk&&p.s<x.de&&x.s<p.de); if(o.length){ x.n=2; x.col=0; o.forEach(p=>{ p.n=Math.max(p.n||1,2); if(p.col===0) p.col=1; }); } else { x.n=1; x.col=0; } });
-    STACKS.forEach(st=>{ if(past.some(x=>x.k==='event'&&x.s<st.e&&st.s<x.de)){ st.card.n=2; st.card.col=1; st.m.forEach(o=>{o.n=2;o.col=1;}); } }); }
+    STACKS.forEach(st=>{ if(past.some(x=>x.k==='event'&&x.s<st.e&&st.s<x.de)){ st.card.n=2; st.card.col=1; st.m.forEach(o=>{o.n=2;o.col=1;}); } });
+    /* each chat stretch, and each long running effort, takes the column after whatever it ran beside, the longest first;
+       two of them at once sit side by side */
+    const placed=[];
+    past.filter(isCol).sort((a,b)=>(b.de-b.s)-(a.de-a.s)).forEach(x=>{
+      const ov=p=>p!==x&&p.s<x.de&&x.s<p.de;
+      const o=past.filter(p=>ov(p)&&!isCol(p)), cards=[...new Set(o.map(p=>p.stk?p.stk.card:p))], pc=placed.filter(ov);
+      const k=Math.max(cards.length?Math.max(...cards.map(c=>(c.n||1))):0, pc.length?Math.max(...pc.map(p=>p.col+1)):0), n=k+1;
+      x.col=k; x.n=n; cards.forEach(c=>{ c.n=Math.max(c.n||1,n); }); o.forEach(p=>{ p.n=Math.max(p.n||1,n); }); pc.forEach(p=>{ p.n=Math.max(p.n,n); });
+      placed.push(x); }); }
   const cuts=[...new Set([h0*60,h1*60,...(nowM!=null?[nowM]:[]),...Array.from({length:h1-h0+1},(_,i)=>(h0+i)*60),...all.map(x=>x.s),...all.map(x=>x.e),...its.map(x=>x.s),...its.map(x=>x.e)].filter(m=>m>=h0*60&&m<=h1*60))].sort((a,b)=>a-b);
   const PXP=18;   /* an hour already gone is short: it only grows to fit what's kept in it */
   const segH=cuts.slice(1).map((m,i)=>(m-cuts[i])*(nowM!=null&&m<=nowM?PXP:PX)/60);
@@ -652,7 +728,8 @@ function today(){
   /* an event drawn once names what it covered, and shows it carries a link (4 Nov 2026) */
   const cov=x=>(x.covers&&x.covers.length?`<span class="cov">covered ${x.covers.map(esc).join(' · ')}</span>`:'')+((x.links||[]).length?`<span class="cov">🔗 ${esc(x.links[0].l)}</span>`:'');
   const thumb=x=>(x.photos||[]).length?`<img class="th" alt="" src="${x.photos[0].src}">`:'';
-  const dn=t=>String(t||'').replace(/^\s*(✔️|✔)\uFE0F?/,'✅');
+  /* an event that happened is ✅ here, whether her calendar says ✔️ or still ⬜ while its own row closed (7 Nov 2026) */
+  const dn=(t,done)=>String(t||'').replace(done?/^\s*(✔️|✔|⬜)\uFE0F?/:/^\s*(✔️|✔)\uFE0F?/,'✅');
   /* one shade per kind, the same meaning every day (6 Nov 2026, her words: the coloring's not
      super consistent or easy to follow): a logged row, a work stretch, a moment; events have their own two below */
   /* logged rows wear their being and doing colours, as the look behind draws them (6 Nov 2026, her words: I really love
@@ -667,8 +744,11 @@ function today(){
      doing care tasks, doing my profession, exercise and movement … earthy colors, not a lot of colors to look at) */
   const CH=PICK_DEFAULT;   /* one scheme, chosen for her (6 Nov 2026, her words: just pick the colors that make the most sense) */
   const chunk=c=>({sleep:'sleep',eat:'food',cook:'food',move:'move',family:'care',pet:'care',home:'care',personal:'care',
-    work:'work',stretch:'work',recreation:'play',moment:'play',travel:'travel',drive:'travel',system:'admin',flow:'admin'})[c]||'admin';   /* travelling is its own kind of time, not admin (her words, 6 Nov) */
-  const chc=x=>{ const k0=chunk(x&&x.cat), k=k0==='play'&&x&&(x.hot||x.el==='fire')?'playhot':k0; return CH[k]||PICK_DEFAULT[k]||PICK_DEFAULT.admin; };
+    work:'work',stretch:'work',recreation:'play',moment:'play',travel:'playhot',drive:'playhot',system:'admin',flow:'admin'})[c]||'admin';   /* travelling is its own kind of time, not admin (her words, 6 Nov) */
+  /* a chat stretch takes the kind of the drive it served (7 Nov 2026, her words: how is it that only just over an hour was
+     spent on be•do? her be•do chats were counted as work) */
+  const chc=x=>{ const k0=chunk(x&&(x.cat==='stretch'&&x.sk?x.sk:x.cat)), k=k0==='play'&&x&&(x.hot||x.el==='fire')?'playhot':k0; return CH[k]||PICK_DEFAULT[k]||PICK_DEFAULT.admin; };
+  window.__chc=chc;
   const kvx=x=>{ const k=chc(x); return `--fill:color-mix(in srgb,${k[0]} 52%,#FBF8F4);--edge:${k[0]};--dc:${k[0]}`; };   /* a pastel fill and a deep edge, so the glyphs read */
   /* wellness as dots, one to three, so a row can be heart and water at once (her words: it could be 2 or 3 wellness
      areas, and that is how we show balance) */
@@ -678,14 +758,18 @@ function today(){
   const bandTop=[];
   let g=''; const CARDS=window.__cards=[]; const ci=x=>{ CARDS.push(x); return CARDS.length-1; };
   { let last=-99; for(let h=h0;h<=h1;h++){ const t=y(h*60); if(t-last<14) continue; last=t; g+=`<div class="hr" style="top:${t}px"><span>${lab(h)}</span></div>`; } }   /* hours inside the condensed sleep are not labelled */
-  bands.forEach(x=>{ if(x.k!=='event'){ g+=`<div class="band" title="✅ ${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); });
+  bands.forEach(x=>{ if(x.flowcard){ g+=`<div class="band flowband" style="top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"><span>${esc(String(x.t).split(' · ')[0])}</span></div>`; bandTop.push(`<span class="fl"><i></i>${esc(String(x.t).split(' · ')[0])} · ${tm(x.s)}–${tm(x.e)}</span>`); return; }
+    if(x.k!=='event'){ g+=`<div class="band" title="${x.act?'✅ ':''}${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; if(x.e-x.s>=180) bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.act?'✅ ':''}${esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); });
   past.forEach(x=>{ const w=100/x.n; let top=y(x.s), h=Math.max(MINH,y(x.e)-y(x.s)-1);
     if(x.stk){ if(x.si) return; const c=x.stk.card; h=Math.max(MINH,y(c.e)-y(c.s)-1);
       const ths=(c.photos||[]).slice(0,4).map(p=>`<img alt="" src="${p.src}">`).join('');
-      g+=`<div data-c="${ci(c)}" class="ev lived combo tall${c.k==='event'?' gcal past':''}" title="${esc(c.t)} · ${tm(c.s)}" style="${c.k==='event'?`--gc:${pcol(c)};--gi:${gink(gcol(c))}`:kvx(c)};top:${top}px;height:${h}px;left:calc(${(c.col||0)*100/(c.n||1)}% + 2px);width:calc(${100/(c.n||1)}% - 4px)"><b>${c.k==='event'?esc(dn(c.summary||c.t)):(c.act?'✅ ':'')+esc(c.t)}</b><i>${tm(c.s)}–${tm(c.e)}${c.drive?' · '+esc(c.drive):''}</i>${c.members.map(m=>`<span class="ln">${m.act?'✅ ':''}${esc(m.t)}</span>`).join('')}${ths?`<span class="ths">${ths}</span>`:''}</div>`; return; }
-    if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past${(x.photos||[]).length?' hasph':''}${x.star?' star':''}" style="--gc:${pcol(x)};--gi:${gink(gcol(x))};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${esc(dn(x.summary||x.t))}</b><i>${x.star?'the highlight · ':''}${tm(x.s)}–${tm(x.e)}${x.lastmin?' · last-minute':''}${x.covers&&x.covers.length?` · covers ${x.covers.length}`:''}${(x.links||[]).length?' · 🔗':''}${x.where?', '+esc(x.where):''}</i><span class="rt">${thumb(x)}${dots(x)}</span></div>`; return; }
-    g+=`<div data-c="${ci(x)}" class="ev lived${h>=40?' tall':''}${(x.photos||[]).length?' hasph':''}${x.mom?' mom':''}${x.cat==='sleep'?' slp':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kvx(x)};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${more(x)}<span class="rt">${thumb(x)}${dots(x)}</span></div>`; });
-  its.forEach(x=>{ if(x.k==='event'){ const inner=`<b>${esc(dn(x.summary||x.t))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i>${cov(x)}`;
+      g+=`<div data-c="${ci(c)}" class="ev lived combo tall${c.k==='event'?' gcal past':''}" title="${esc(c.t)} · ${tm(c.s)}" style="${c.k==='event'?`--gc:${pcol(c)};--gi:${gink(gcol(c))}`:kvx(c)};top:${top}px;height:${h}px;left:calc(${(c.col||0)*100/(c.n||1)}% + 2px);width:calc(${100/(c.n||1)}% - 4px)"><b>${c.k==='event'?esc(dn(c.summary||c.t,c.done)):(c.act?'✅ ':'')+esc(c.t)}</b><i>${tm(c.s)}–${tm(c.e)}${c.drive?' · '+esc(c.drive):''}</i>${c.members.map(m=>`<span class="ln">${m.act?'✅ ':''}${esc(m.t)}</span>`).join('')}${ths?`<span class="ths">${ths}</span>`:''}</div>`; return; }
+    if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past${(x.photos||[]).length?' hasph':''}${x.star?' star':''}" style="--gc:${pcol(x)};--gi:${gink(gcol(x))};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${esc(dn(x.summary||x.t,x.done))}</b><i>${x.star?'the highlight · ':''}${tm(x.s)}–${tm(x.e)}${x.lastmin?' · last-minute':''}${x.covers&&x.covers.length?` · covers ${x.covers.length}`:''}${(x.links||[]).length?' · 🔗':''}${x.where?', '+esc(x.where):''}</i><span class="rt">${thumb(x)}${dots(x)}</span></div>`; return; }
+    g+=`<div data-c="${ci(x)}" class="ev lived${h>=40?' tall':''}${(x.photos||[]).length?' hasph':''}${x.mom?' mom':''}${x.cat==='sleep'?' slp':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kvx(x)};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act||(x.closes||[]).length?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${(()=>{ const dl=delivOf(x)[0], mv=movedBy(x);
+      /* on the box itself (7 Nov 2026, her words: when there's a deliverable I would really like for that to show up on the
+         little calendar box; as much of what was meaningful as possible on the entry itself) */
+      return dl||mv?`<span class="cx">${dl?`<a class="dlk" href="${esc(dl.u)}" target="_blank" rel="noopener">📎 ${esc(dl.l==='deliverable'?'deliverable':dl.l)}</a>`:''}${mv?`<span class="mvt">+${mv}%</span>`:''}</span>`:''; })()}${more(x)}<span class="rt">${thumb(x)}${dots(x)}</span></div>`; });
+  its.forEach(x=>{ if(x.k==='event'){ const inner=`<b>${esc(dn(x.summary||x.t,x.done))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i>${cov(x)}`;
     g+=`<div data-c="${ci(x)}" class="ev event gcal" style="--gc:${gcol(x)};--gi:${gink(gcol(x))};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:${x.half?'calc(50% - 5px)':'calc(100% - 6px)'}">${inner}</div>`; return; }
     if(x.session){ const top=(x.list||[]).filter(o=>o.top), rest=(x.list||[]).length-top.length;
       g+=`<div data-c="${ci(x)}" class="ev step session" style="${kvx(x)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:calc(100% - 6px)"><b>${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)} · ${(x.list||[]).length} things · tap for the list</i>${top.map((o,i)=>`<span class="sl">${i+1}. ${esc(o.t)}</span>`).join('')}${rest?`<span class="sl more">+ ${rest} more</span>`:''}</div>`; return; }
@@ -695,11 +779,13 @@ function today(){
   const NAMES={eat:'eating and drinking',move:'moving',personal:'personal care',recreation:'recreation',travel:'travel',
     work:'professional work',family:'family care',pet:'pet care',home:'home care',cook:'making',drive:'driving',system:'be•do',flow:'dawn and dusk',moment:'moments'};
   const on=new Set(all.map(x=>kind(x.cat))), grp=(t,ks)=>{ const h=ks.filter(k=>on.has(k)); return h.length?`<b>${t}</b>`+h.map(k=>`<span style="${kv(k)}"><i></i>${NAMES[k]}</span>`).join(''):''; };
-  const legend=`<div class="legend"><span><b>events</b>&nbsp;your Google Calendar colours while ahead; once past, the colour of how the time went, still a link to the calendar</span></div><div class="legend"><b>time</b>${Object.values(CH).map(k=>`<span><i style="background:color-mix(in srgb,${k[0]} 52%,#FBF8F4);border-color:${k[0]}"></i>${k[2]}</span>`).join('')}</div><div class="legend"><b>wellness</b>${['heart','mind','body','spirit','water','air','earth','fire'].map(k=>`<span>${wicon(k,14)}&nbsp;${k}</span>`).join('')}<span><i style="background:var(--card);border:2px solid var(--k-moment)"></i>gold edge · the highlight or a glimmer</span></div>`;
+  /* the key, folded: swatches and glyphs only (7 Nov 2026, her words: this key has a whole lot of unnecessary and
+     confusing text; what I really want is to click on an event and get all the relevant info) */
+  const legend=`<details class="legend-key"><summary>key</summary><div class="legend">${Object.values(CH).map(k=>`<span><i style="background:color-mix(in srgb,${k[0]} 52%,#FBF8F4);border-color:${k[0]}"></i>${esc(String(k[2]).split(' · ')[0])}</span>`).join('')}</div><div class="legend">${['heart','mind','body','spirit','water','air','earth','fire'].map(k=>`<span>${wicon(k,14)}&nbsp;${k}</span>`).join('')}</div></details>`;
   if(nowM!=null&&nowM>=h0*60&&nowM<=h1*60) g+=`<div class="now" style="top:${y(nowM)}px"></div>`;
   el.innerHTML=(I.length?`<p class="say"><small>your intention</small>${I.map(esc).join('<br>')}</p>`:'')
     +`<div class="sth"><h2>my stream</h2>${folded||window.__showall?`<button class="fold" onclick="window.__showall=!window.__showall;draw()">${window.__showall?'fold the routine away':`show everything · ${folded} more`}</button>`:''}</div>`
-    +(all.length?legend+(its.some(x=>nowM!=null&&x.s>nowM)?`<div class="key2"><span><i style="background:var(--k-flow)"></i>done</span><span><i style="border:2px solid var(--ink)"></i>on your calendar · committed</span><span><i style="border:2px solid #B8860B;box-shadow:0 0 0 2px #F2C14E66"></i>★ be•do's picks</span><span><i style="border:1.5px dashed var(--muted);opacity:.7"></i>your choices</span></div>`:'')+`${bandTop.length?`<div class="bandtop"><b>behind the day</b>${bandTop.join('')}</div>`:''}<div class="cal" style="height:${y(h1*60)}px">${g}</div>`:'');
+    +(all.length?legend.replace('</details>',(its.some(x=>nowM!=null&&x.s>nowM)?`<div class="key2"><span><i style="background:var(--k-flow)"></i>done</span><span><i style="border:2px solid var(--ink)"></i>on your calendar</span><span><i style="border:2px solid #B8860B;box-shadow:0 0 0 2px #F2C14E66"></i>★ be•do's picks</span><span><i style="border:1.5px dashed var(--muted);opacity:.7"></i>your choices</span></div>`:'')+'</details>')+`${bandTop.length?`<div class="bandtop"><b>behind the day</b>${bandTop.join('')}</div>`:''}<div class="cal" style="height:${y(h1*60)}px">${g}</div>`:'');
 }
 /* tap a card on the calendar to read all of it (2 Nov 2026, her words: if I click on the calendar it shows more detail) */
 /* an event looks as it does in Google Calendar (2 Nov 2026, her words: make the colors match what is already on
@@ -716,8 +802,8 @@ const BLOCK='#AFB6E8';
 const gcol=x=>GC[x.color]||((D.calcolors||{})[x.who])||'#039BE5';
 /* once an event has happened it wears its be•do element, pastel, and still links to the calendar event (6 Nov 2026, her
    words: when something is coming up it matches Google Calendar; after it's happened it gets the be•do color) */
-const CHUNKOF={sleep:'sleep',eat:'food',cook:'food',move:'move',family:'care',pet:'care',home:'care',personal:'care',work:'work',stretch:'work',recreation:'play',moment:'play',travel:'travel',drive:'travel'};
-const pcol=x=>{ if(!(x.cat&&x.cat!=='event')) return gcol(x); let k=CHUNKOF[x.cat]||'admin'; if(k==='play'&&(x.hot||x.el==='fire')) k='playhot'; return (PICK_DEFAULT[k]||PICK_DEFAULT.admin)[0]; };
+const CHUNKOF={sleep:'sleep',eat:'food',cook:'food',move:'move',family:'care',pet:'care',home:'care',personal:'care',work:'work',stretch:'work',recreation:'play',moment:'play',travel:'playhot',drive:'playhot'};
+const pcol=x=>{ if(!(x.cat&&x.cat!=='event')) return gcol(x); let k=CHUNKOF[x.cat==='stretch'&&x.sk?x.sk:x.cat]||'admin'; if(k==='play'&&(x.hot||x.el==='fire')) k='playhot'; return (PICK_DEFAULT[k]||PICK_DEFAULT.admin)[0]; };
 /* the wellness symbols, as the stream spells them (6 Nov 2026, her words: the symbol is really what I'm going off of) */
 /* the wellness glyphs are the look behind's own simple line icons (6 Nov 2026, her words: very simple monotone glyphs
    that I've had in different versions of the wellness wheel), copied from bedo-look-behind's engine */
@@ -739,13 +825,24 @@ const wicon=(k,s)=>`<svg viewBox="0 0 20 20" width="${s}" height="${s}" aria-hid
    be•do and admin a quiet background; sleep a short night band */
 /* one family (6 Nov 2026, her words: make all of these colors look like they go together): every hue at one OKLCH lightness
    and chroma (L .76, C .12), sleep a night indigo, travel an asphalt grey, admin a quiet background; yellow sits lighter so it reads yellow */
-const PICKS={work:["#A272D4"],care:["#D06091"],food:["#3DA454"],move:["#DCBC33"],play:["#009ECD"],playhot:["#D46A34"],travel:["#757B81"],admin:["#D9CFC3"],sleep:["#403F7B"]};
-const PICK_NAMES={playhot:'play, energetic',sleep:'sleep',food:'food · eating and prep',move:'movement',care:'care · family, pets, home, you',work:'work · your profession',travel:'travelling',play:'connection, play, reflection, adventures · calm',admin:'be•do and life admin'};
+const PICKS={work:["#A272D4"],care:["#D06091"],food:["#3DA454"],move:["#DCBC33"],play:["#009ECD"],playhot:["#D46A34"],admin:["#D9CFC3"],sleep:["#403F7B"]};
+/* play is what has no resistance, split by its energy: relaxation and recreation; travelling, driving or riding, is
+   adventure (7 Nov 2026, her words: there's play that is relaxation and play that is recreation — their energy is the
+   thing that makes them different; what characterizes play is no resistance; travelling, whether driving or riding in
+   the car, is typically an adventure — that's how I like to look at it; later that day: recreation and adventure go into
+   one category and keep the orange; drop that colour) */
+const PICK_NAMES={playhot:'recreation and adventure · play with energy, travelling',sleep:'sleep',food:'food · eating and prep',move:'movement',care:'care · family, pets, home, you',work:'work · your profession',play:'relaxation · calm play',admin:'be•do and life admin'};
 const PICK_DEFAULT=Object.fromEntries(Object.keys(PICKS).map(k=>[k,[PICKS[k][0],PICKS[k][0],PICK_NAMES[k]]]));
 
 
 /* dark text on a light colour (a yellow calendar), white on the rest */
 const gink=c=>{ const n=parseInt(String(c).replace('#',''),16), r=n>>16&255, g=n>>8&255, b=n&255; return (0.299*r+0.587*g+0.114*b)>165?'#2b2118':'#fff'; };
+/* what a card is worth to its drive (the 30 Oct page's moves it +N%), and its deliverable, first */
+const movedBy=x=>{ const d=(D.drives||[]).find(r=>r.n===x.drive), p=d&&d.prog, tot=p?(p.done||0)+(p.open||0):0;
+  return (x.k==='step'||x.act||(x.closes||[]).length)&&tot&&!(D.hidden||[]).includes(x.drive)?Math.round(100/tot):null; };
+const delivOf=x=>(x.links||[]).filter(l=>l&&l.u&&l.l!=='calendar event');
+const takeHome=x=>{ if(!x.her) return ''; const plain=x.her.replace(/https?:\/\/\S+/g,'').replace(/\s+/g,' ').trim(),
+  m=plain.match(/^.{20,140}?[.!?](\s|$)/); return m?m[0].trim():plain.slice(0,140)+(plain.length>140?'…':''); };
 const photosOf=x=>(x.photos||[]).map(p=>p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener"><img class="ph" alt="" src="${p.src}"></a>`:`<img class="ph" alt="" src="${p.src}">`).join('');
 function sheet(x){
   let s=document.getElementById('sheet'); if(!s){ s=document.createElement('div'); s.id='sheet'; s.className='sheet'; document.body.appendChild(s); }
@@ -771,14 +868,40 @@ function sheet(x){
       +(rest.length?`<details class="sess"><summary>the rest · ${rest.length}</summary><ul class="sess">${rest.map(li).join('')}</ul></details>`:'')
       +`<div class="det sd">Each one is about ${(x.list[0]||{}).sz||15} minutes by default — be•do has no history of how long these take yet.</div></div>`;
     requestAnimationFrame(()=>s.classList.add('on')); s.querySelector('.x').onclick=()=>s.classList.remove('on'); return; }
-  s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${x.s?t12(x.s):'later'}</div>`
+  if(x.k==='lived'){
+    /* what was meaningful, not the details (7 Nov 2026, her words: the deliverable is high priority; if there's a picture
+       it should be featured; what's the take-home message — what was the effort, did I move the ball forward, what was
+       meaningful about it; I don't need to read little details) */
+    const kind=window.__chc?window.__chc(x):null, wl=[x.el,x.el2].filter((k,i,a)=>k&&WDOM[k]&&a.indexOf(k)===i), mv=movedBy(x), dl=delivOf(x);
+    const who=String(x.who||'').split(',').map(n=>n.trim()).filter(n=>n&&n!==D.me), th=takeHome(x);
+    s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${t12(x.s)}${x.e>x.s+1?`<br>${t12(x.e)}`:''}</div>`
+      +`<div class="ttl">${x.act||(x.closes||[]).length?'✅ ':''}${esc(x.t)}</div>`
+      +(dl.length?`<div class="dlv">${dl.map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">📎 ${esc(l.l==='deliverable'?'open the deliverable':l.l==='the page'?'open the page':l.l==='notes'?'open the notes':l.l)} ↗</a>`).join('')}</div>`:'')
+      +((x.photos||[]).length?`<div class="phs">${photosOf(x)}</div>`:'')
+      +(mv?`<div class="ball">moved ${esc(x.drive)} forward <b>+${mv}%</b></div>`:'')
+      +(th?`<div class="her">${esc(th)}</div>`:'')
+      +(x.flowcard?'':`<div class="chips">${kind?`<span class="chip"><i style="background:${kind[0]}"></i>${esc(String(kind[2]).split(' · ')[0])}</span>`:''}${wl.map(k=>`<span class="chip">${wicon(k,15)} ${k}</span>`).join('')}${x.felt_word?`<span class="chip">${esc(x.felt_word)}</span>`:''}${x.drive?`<span class="chip">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</span>`:`<span class="chip none">no drive or rhythm yet</span>`}${who.length?`<span class="chip">👥 ${esc(who.join(', '))}</span>`:''}</div>`)
+      +(x.members&&x.members.length?`<ul class="inside">${x.members.map(m=>`<li>${m.act?'✅ ':''}${esc(m.t)} <small>${t12(m.s)}–${t12(m.e)}</small>${delivOf(m).map(l=>` <a class="dlk" href="${esc(l.u)}" target="_blank" rel="noopener">📎 ${esc(l.l)}</a>`).join('')}</li>`).join('')}</ul>`:'')
+      +`</div>`;
+    requestAnimationFrame(()=>s.classList.add('on')); s.querySelector('.x').onclick=()=>s.classList.remove('on'); return; }
+  const kind=x.k==='lived'&&window.__chc?window.__chc(x):null, wl=[x.el,x.el2].filter(k=>k&&WDOM[k]);
+  const chips=x.k==='lived'?`<div class="chips">${kind?`<span class="chip"><i style="background:${kind[0]}"></i>${esc(String(kind[2]).split(' · ')[0])}</span>`:''}${wl.map(k=>`<span class="chip">${wicon(k,15)} ${k}</span>`).join('')}${x.felt_word?`<span class="chip">${esc(x.felt_word)}</span>`:''}${x.drive?`<span class="chip">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</span>`:''}</div>`:'';
+  s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${x.s?t12(x.s):'later'}${x.k==='lived'&&x.e>x.s+1?`<br>${t12(x.e)}`:''}</div>`
     +`<div class="ttl">${x.k==='event'?'🗓️ ':`<span class="bx${done?' ok':''}"></span>${x.k==='step'||x.act?'<span class="bolt">⚡</span>':''}`}${esc(x.t)}</div>`
-    +(x.drive?`<div class="dv">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</div>`:'')
+    +chips+(()=>{ const w=String(x.who||'').split(',').map(n=>n.trim()).filter(n=>n&&n!==D.me); return w.length?`<div class="who">👥 with ${esc(w.join(', '))}</div>`:''; })()+((x.closes||[]).length?`<div class="who">✅ ${x.closes.map(esc).join(' · ')}</div>`:'')+(x.her?(()=>{ /* one line of her words; the rest folded (7 Nov 2026, her words: the level of detail on the cards is too great,
+       I'm never going to read all that — shoot for something like the 28 Oct card) */
+      const lk=t=>esc(t).replace(/https?:\/\/[^\s<]+/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]} ↗</a>`);
+      const plain=x.her.replace(/https?:\/\/\S+/g,'').replace(/\s+/g,' ').trim(), m=plain.match(/^.{20,140}?[.!?](\s|$)/), one=m?m[0].trim():plain.slice(0,140)+(plain.length>140?'…':'');
+      return `<div class="her">${esc(one)}</div>`+(plain.length>one.length+2?`<details class="more"><summary>her words</summary><div class="her full">${lk(x.her)}</div></details>`:''); })():'')
+    +(x.drive&&x.k!=='lived'?`<div class="dv">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</div>`:'')
+    +(()=>{ /* what one step is worth to its drive, as the 30 Oct page showed it (moves it +50%) */
+      const p=d&&d.prog, tot=p?(p.done||0)+(p.open||0):0;
+      return (x.k==='step'||x.act)&&tot&&!(D.hidden||[]).includes(x.drive)?`<div class="chips"><span class="chip mv">${x.done||x.act?'moved':'moves'} it +${Math.round(100/tot)}%</span></div>`:''; })()
     +(x.k==='lived'?'':(x.nx?`<div class="nx">${esc(x.nx.replace(/\s*\((?:https?|claude):[^)]*\)|\s*(?:https?|claude):\/\/\S+/g,''))}</div>`:`<div class="nx none">no next step named yet</div>`))
     +(L?`<div class="lks">${L}</div>`:'')
     +(x.wait?`<div class="wt">⏸ waiting on ${esc(x.wait)}</div>`:'')
     +(x.why?`<div class="why">${esc(x.why)}</div>`:'')
-    +(x.det?`<div class="det">${esc(x.det)}</div>`:'')
+    +(x.det&&!x.her?`<div class="det">${esc(x.det)}</div>`:'')
     +(x.members&&x.members.length?`<ul class="inside">${x.members.map(m=>`<li>${m.act?'✅ ':''}${esc(m.t)} <small>${t12(m.s)}–${t12(m.e)}</small></li>`).join('')}</ul>`:'')
     +photosOf(x)+`</div>`;
   requestAnimationFrame(()=>s.classList.add('on'));
@@ -832,9 +955,99 @@ function wheel(){
   el.querySelectorAll('.wk').forEach(n=>n.addEventListener('click',()=>{WF=WF===n.dataset.k?'':n.dataset.k;wheel();}));
   const c=document.getElementById('wclr'); if(c) c.onclick=e=>{e.preventDefault();WF='';wheel();};
 }
-function draw(){ today(); card(); const b=shape(); lists(b); intention(b); flow(b); wheel(); }
+/* how the drives move today (7 Nov 2026, her words: I really love how the 30 Oct version shows the actual progress;
+   looking out ahead I can see how it moves, and looking back behind I can see how it moved). Each drive with a step
+   today: the share of its steps done before today, what today closed, and what today still holds. */
+function moved(){
+  const el=document.getElementById('moved'); if(!el) return;
+  const over=new Date().toLocaleDateString('en-CA')>D.day, pc=(a,t)=>t?Math.round(100*a/t):0;
+  const planned={}; (D.schedule||[]).forEach(x=>{ if(x.k==='step'&&!x.done&&!x.session&&x.drive) planned[x.drive]=(planned[x.drive]||0)+1; });
+  const rows=(D.drives||[]).filter(d=>d.prog&&(d.prog.today||planned[d.n])&&!(D.hidden||[]).includes(d.n)).map(d=>{
+    const p=d.prog, tot=(p.done||0)+(p.open||0), before=Math.max(0,(p.done||0)-(p.today||0)), plan=over?0:(planned[d.n]||0);
+    const now=pc(p.done,tot), was=pc(before,tot), to=pc((p.done||0)+plan,tot);
+    const line=over?(p.today?`${was}% → <b>${now}%</b> · moved +${now-was}% today`:`${now}% · didn't move today`)
+                    :(p.today?`<b>${now}%</b> · +${now-was}% so far today`:`<b>${now}%</b>`)+(plan?` · today's step${plan>1?'s take':' takes'} it to ${to}%`:'');
+    return `<div class="mvr" style="--dc:${col(d.c)}"><div class="mvn">${esc((d.g||'')+' '+(d.short||d.n))}</div>`
+      +`<div class="mvb"><i style="width:${was}%"></i><i class="t" style="width:${now-was}%"></i><i class="p" style="width:${to-now}%"></i></div>`
+      +`<div class="mvl">${line} · ${p.done} of ${tot} steps since ${esc(fmt(p.since))}</div></div>`; });
+  el.innerHTML=rows.length?`<h2 class="ftitle">${over?'how the drives moved':'how today moves the drives'}</h2><div class="card mvc">${rows.join('')}</div>`:'';
+}
+/* how the time went, as a pie of the whole 24 hours (7 Nov 2026, her words: an updated graphic like the day behind's that
+   matches those categories; then: instead of this list, a pie chart, and 24 hours has to be the total). Every minute of
+   the day goes somewhere: to the kinds of the lived cards that cover it, shared equally when two kinds overlap (a meal
+   eaten during a long stretch of work is half each), and otherwise to not logged, or, on a day still going, to still
+   ahead. A moment, or a row with no span of its own, takes no minutes. */
+function spent(){
+  const el=document.getElementById('spent'); if(!el||!window.__chc) return;
+  const mm=t=>{ const [h,m]=String(t).split(':').map(Number); return h*60+m; };
+  const now=new Date(), today=now.toLocaleDateString('en-CA')===D.day, ahead0=today?now.getHours()*60+now.getMinutes():1440;
+  const iv=[]; (D.schedule||[]).forEach(x=>{ if(!(x.k==='lived'||(x.k==='event'&&x.done&&x.cat&&x.cat!=='event'))||x.pt||x.nopie||x.cat==='moment') return;
+    const k=window.__chc(x), a=Math.max(0,mm(x.a)), b=Math.min(1440,mm(x.b)); if(b>a) iv.push([a,b,k]); });
+  if(!iv.length){ el.innerHTML=''; return; }
+  const by={};
+  for(let m=0;m<1440;m++){
+    const ks=[...new Map(iv.filter(v=>v[0]<=m&&m<v[1]).map(v=>[v[2][2],v[2]])).values()];
+    if(ks.length) ks.forEach(k=>{ (by[k[2]]=by[k[2]]||{n:k[2],c:k[0],m:0}).m+=1/ks.length; });
+    else { const n=m>=ahead0?'still ahead':'not logged'; (by[n]=by[n]||{n,c:m>=ahead0?'transparent':'var(--rule)',m:0,gap:true}).m+=1; }
+  }
+  /* whole minutes that still add up to exactly 24 h: floor each, then the largest remainders take the minutes left */
+  const all_=Object.values(by).map(r=>({...r,f:r.m,m:Math.floor(r.m)})), left=1440-all_.reduce((a,r)=>a+r.m,0);
+  all_.slice().sort((p,q)=>(q.f-q.m)-(p.f-p.m)).slice(0,left).forEach(r=>{ r.m+=1; });
+  const rows=all_.filter(r=>r.m>0);
+  const order=r=>/^sleep/.test(r.n)?0:r.gap?2:1;
+  rows.sort((p,q)=>order(p)-order(q)||q.m-p.m);
+  const hm=m=>m>=60?`${Math.floor(m/60)} h ${String(m%60).padStart(2,'0')}`:`${m} min`;
+  const R=80, r0=50, C=100, arc=(a0,a1)=>{ const P=(a,rr)=>[C+rr*Math.sin(a),C-rr*Math.cos(a)], big=a1-a0>Math.PI?1:0, [x0,y0]=P(a0,R),[x1,y1]=P(a1,R),[x2,y2]=P(a1,r0),[x3,y3]=P(a0,r0);
+    return `M${x0.toFixed(1)} ${y0.toFixed(1)}A${R} ${R} 0 ${big} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}L${x2.toFixed(1)} ${y2.toFixed(1)}A${r0} ${r0} 0 ${big} 0 ${x3.toFixed(1)} ${y3.toFixed(1)}Z`; };
+  let at=0; const segs=rows.map(r=>{ const a0=at/1440*2*Math.PI, a1=(at+r.m)/1440*2*Math.PI; at+=r.m;
+    const fill=r.gap?(r.n==='still ahead'?'none':'var(--rule)'):`color-mix(in srgb,${r.c} 60%,var(--card))`;
+    return `<path d="${arc(a0,Math.min(a1,a0+2*Math.PI-1e-4))}" fill="${fill}" stroke="${r.gap?'var(--rule)':r.c}" stroke-width="1"${r.n==='still ahead'?' stroke-dasharray="3 3"':''}><title>${esc(String(r.n).split(' · ')[0])} · ${hm(r.m)}</title></path>`; }).join('');
+  const over=now.toLocaleDateString('en-CA')>D.day;
+  /* the running bars under the pie, each against its goal (7 Nov 2026, her words: the pie chart with the running categories
+     underneath, because that's actually very useful, and show what the goal is — sleep 8 hours, work 4, movement 2, food 1).
+     The goals are hers, `time_goals` in her settings: hours by the kind's first word */
+  /* goals can be by the shape of the day (7 Nov 2026, her words: an ideal weekday is probably 7 hours of sleep, 4 of work,
+     4 of care, 2 of movement, 2 of food): `weekday`, `saturday`, `sunday`, else one set for every day */
+  const dow=new Date(D.day+'T12:00:00Z').getUTCDay(), shape_=dow===0?'sunday':dow===6?'saturday':'weekday';
+  const pick=o=>o&&(o.weekday||o.saturday||o.sunday)?(o[shape_]||{}):(o||{});
+  const G=pick(D.timegoals), X=pick(D.timelimits), key=(o,r)=>o[String(r.n).split(' · ')[0]]??o[String(r.n).split(' ')[0]];
+  const goal=r=>{ const h=key(G,r); return h?h*60:0; }, limit=r=>{ const v=key(X,r); return v?[].concat(v).map(h=>h*60):[]; };
+  const top=Math.max(...rows.filter(r=>r.n!=='still ahead').map(r=>Math.max(r.m,goal(r),...limit(r))),60);
+  const short=n=>String(n).split(' · ')[0].replace(' and life admin',' & admin').replace(' and ',' & ');
+  const lg=rows.filter(r=>r.n!=='still ahead').map(r=>{ const g=goal(r), lim=limit(r), fill=r.gap?'var(--rule)':`color-mix(in srgb,${r.c} 60%,var(--card))`;
+    const note=g?`of ${hm(g).replace(' 00','')}`:lim.length?`≤ ${lim.map(m=>String(m/60)).join('–')} h`:'';
+    return `<div class="spr"><span class="spn">${esc(short(r.n))}</span><span class="spb"><i style="width:${Math.max(2,100*r.m/top)}%;background:${fill};border-color:${r.gap?'var(--muted)':r.c}"></i>${g?`<em style="left:${100*g/top}%"></em>`:''}${lim.map(m=>`<em class="lim" style="left:${100*m/top}%"></em>`).join('')}</span><span class="spv">${hm(r.m)}${note?`<small>${note}</small>`:''}</span></div>`; }).join('')
+    +(by['still ahead']?`<p class="spa">${hm(rows.find(r=>r.n==='still ahead').m)} still ahead</p>`:'');
+  el.innerHTML=`<h2 class="ftitle">${over?'how the time went':'how the time is going'}</h2><div class="card spc"><svg viewBox="0 0 200 200" role="img" aria-label="the day's 24 hours by kind">${segs}</svg><div class="spl">${lg}</div></div>`;
+}
+function draw(){ today(); card(); const b=shape(); lists(b); intention(b); flow(b); spent(); moved(); wheel(); }
 document.addEventListener('bedo-theme',draw);
 draw();
+</script>
+<script>
+/* download HTML (261106_download, her words 6 Nov 2026: on the day behind, I'd like to be able to download that as an
+   HTML … I like saving the tokens): the page saves itself as one .html, photos and all, at her click — no storage, no
+   connector, no tokens. In claude.ai the viewer's own save prompt (the `downloads` capability, declared at publish);
+   anywhere else, a plain Blob download. What the page drew for this viewer is left out, so the copy draws itself
+   fresh when it is opened. */
+(function(){
+  function src(){ var h=document.documentElement.cloneNode(true);
+    h.querySelectorAll('[data-dyn],#sheet,#bedo-dl').forEach(function(n){ n.remove(); });
+    return '<!doctype html>\n'+h.outerHTML; }
+  function name(){ var t=(document.title||'').replace(/[^A-Za-z0-9 ._-]+/g,' ').replace(/\s+/g,' ').trim(); return (t||'be-do page')+'.html'; }
+  function blob(){ var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([src()],{type:'text/html'})); a.download=name();
+    document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500); }
+  var b=document.createElement('button'); b.id='bedo-dl'; b.type='button'; b.textContent='\u2913 download this page'; b.title='save this page as one .html file';
+  b.style.cssText='display:block;margin:28px auto 8px;font:500 12px ui-monospace,Menlo,monospace;color:inherit;opacity:.75;background:none;border:1px solid currentColor;border-radius:999px;padding:5px 14px;cursor:pointer';
+  b.onclick=function(){
+    var c=window.claude; if(!c||!c.use){ blob(); return; }
+    c.use('downloads').then(function(d){
+      if(!d){ blob(); return; }
+      return d.save({filename:name(), data:new Blob([src()],{type:'text/html'})}).catch(function(e){
+        if(e&&/^(unavailable|not_granted|capability_disabled|capability_removed)$/.test(e.code)) blob(); });
+    }, blob); };
+  (document.querySelector('main')||document.body).appendChild(b);
+})();
 </script>
 </body>
 </html>
