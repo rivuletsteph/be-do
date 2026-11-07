@@ -3,7 +3,9 @@
     "allow": [
       "mcp__Gmail__unlabel_thread",
       "mcp__Gmail__label_thread",
-      "mcp__Google_Drive__trash_file"
+      "mcp__Google_Drive__trash_file",
+      "mcp__Airtable__create_records_for_table",
+      "mcp__Airtable__update_records_for_table"
     ]
   },
   "hooks": {
