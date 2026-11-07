@@ -999,7 +999,11 @@ function spent(){
   /* the running bars under the pie, each against its goal (7 Nov 2026, her words: the pie chart with the running categories
      underneath, because that's actually very useful, and show what the goal is — sleep 8 hours, work 4, movement 2, food 1).
      The goals are hers, `time_goals` in her settings: hours by the kind's first word */
-  const G=D.timegoals||{}, X=D.timelimits||{}, key=(o,r)=>o[String(r.n).split(' · ')[0]]??o[String(r.n).split(' ')[0]];
+  /* goals can be by the shape of the day (7 Nov 2026, her words: an ideal weekday is probably 7 hours of sleep, 4 of work,
+     4 of care, 2 of movement, 2 of food): `weekday`, `saturday`, `sunday`, else one set for every day */
+  const dow=new Date(D.day+'T12:00:00Z').getUTCDay(), shape_=dow===0?'sunday':dow===6?'saturday':'weekday';
+  const pick=o=>o&&(o.weekday||o.saturday||o.sunday)?(o[shape_]||{}):(o||{});
+  const G=pick(D.timegoals), X=pick(D.timelimits), key=(o,r)=>o[String(r.n).split(' · ')[0]]??o[String(r.n).split(' ')[0]];
   const goal=r=>{ const h=key(G,r); return h?h*60:0; }, limit=r=>{ const v=key(X,r); return v?[].concat(v).map(h=>h*60):[]; };
   const top=Math.max(...rows.filter(r=>r.n!=='still ahead').map(r=>Math.max(r.m,goal(r),...limit(r))),60);
   const short=n=>String(n).split(' · ')[0].replace(' and life admin',' & admin').replace(' and ',' & ');
