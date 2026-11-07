@@ -803,7 +803,11 @@ const wicon=(k,s)=>`<svg viewBox="0 0 20 20" width="${s}" height="${s}" aria-hid
 /* one family (6 Nov 2026, her words: make all of these colors look like they go together): every hue at one OKLCH lightness
    and chroma (L .76, C .12), sleep a night indigo, travel an asphalt grey, admin a quiet background; yellow sits lighter so it reads yellow */
 const PICKS={work:["#A272D4"],care:["#D06091"],food:["#3DA454"],move:["#DCBC33"],play:["#009ECD"],playhot:["#D46A34"],travel:["#757B81"],admin:["#D9CFC3"],sleep:["#403F7B"]};
-const PICK_NAMES={playhot:'play, energetic',sleep:'sleep',food:'food · eating and prep',move:'movement',care:'care · family, pets, home, you',work:'work · your profession',travel:'travelling',play:'connection, play, reflection, adventures · calm',admin:'be•do and life admin'};
+/* play is what has no resistance, split by its energy: relaxation and recreation; travelling, driving or riding, is
+   adventure (7 Nov 2026, her words: there's play that is relaxation and play that is recreation — their energy is the
+   thing that makes them different; what characterizes play is no resistance; travelling, whether driving or riding in
+   the car, is typically an adventure — that's how I like to look at it) */
+const PICK_NAMES={playhot:'recreation · play with energy',sleep:'sleep',food:'food · eating and prep',move:'movement',care:'care · family, pets, home, you',work:'work · your profession',travel:'adventure · travelling, driving or riding',play:'relaxation · calm play',admin:'be•do and life admin'};
 const PICK_DEFAULT=Object.fromEntries(Object.keys(PICKS).map(k=>[k,[PICKS[k][0],PICKS[k][0],PICK_NAMES[k]]]));
 
 
