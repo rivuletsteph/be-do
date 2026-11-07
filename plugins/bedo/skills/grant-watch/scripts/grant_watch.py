@@ -44,6 +44,13 @@ def parse_date(s):
         return None
 
 
+def is_number(n):
+    """An opportunity number, not a note: "unknown (proposal 2024-06895)" once
+    went in as a search term and brought back every open opportunity."""
+    n = (n or "").strip()
+    return bool(n) and " " not in n and not n.lower().startswith("unknown")
+
+
 def prefix(number):
     """USDA-NIFA-NLGCA-011938 → USDA-NIFA-NLGCA: a program across its cycles."""
     parts = (number or "").split("-")
@@ -64,7 +71,9 @@ def queries(watch):
     for c in watch.get("assistance_listings", []):
         out.append(("listing", c, {"cfda": c}))
     for a in watch.get("applied", []):
-        p = prefix(a.get("number", ""))
+        if not is_number(a.get("number")):
+            continue
+        p = prefix(a["number"])
         if p and p not in watch.get("programs", []):
             out.append(("applied", p, {"keyword": p}))
     return out
@@ -84,7 +93,7 @@ def report(watch, found, seen, today, weeks):
     horizon = today + dt.timedelta(weeks=weeks)
     applied = {}
     for a in watch.get("applied", []):
-        if a.get("number"):
+        if is_number(a.get("number")):
             applied.setdefault(prefix(a["number"]), []).append(a)
     skip = set(watch.get("ignore", []))
     skip_agency = set(watch.get("ignore_agencies", []))

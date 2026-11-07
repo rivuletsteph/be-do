@@ -54,3 +54,8 @@ def test_every_past_cycle_is_named():
     w = dict(WATCH, applied=WATCH["applied"] + [{"number": "USDA-NIFA-NLGCA-011938", "year": 2026, "status": "not submitted"}])
     rep = g.report(w, g.collect(w, fetch), set(), TODAY, 12)
     assert "applied 2024 declined; 2026 not submitted" in g.text(rep)
+
+
+def test_unknown_numbers_are_not_searched():
+    q = g.queries({"applied": [{"number": "unknown (proposal 2024-06895)"}, {"number": "unknown"}]})
+    assert q == []

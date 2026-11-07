@@ -59,7 +59,13 @@ left, and the grants.gov link:
 3. **Applied before, open again**: a program from the applied tab that has a
    new cycle.
 
-Write it at the top of the reports tab, and give her the first part in chat
-(three lines at most), with the Sheet's link. Opportunities that keep showing up
+**She reads it as a page** (her word, 6 Nov 2026: much easier to read than
+the Sheet). Build it with `scripts/grant_page.py report.json watch.json
+grant-watch.html --sheet <Sheet link>` and republish the one grant watch
+artifact, keeping its link. The page leads with what fits the work: a program
+applied to before, a watched program or agency, or a keyword in the title. The
+rest (a keyword found only in a long description) is folded away. Write the
+rows at the top of the reports tab too, and give her the nearest fitting
+deadlines in chat (three lines at most) with the page link. Opportunities that keep showing up
 and never fit go into `ignore` or `ignore_agencies` *with her yes*. Nothing is
 dropped on be•do's own call.
