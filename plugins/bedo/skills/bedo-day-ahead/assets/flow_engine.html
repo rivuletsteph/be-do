@@ -633,7 +633,7 @@ function today(){
       else run.forEach(o=>o.n=n); run=[]; };
     past.forEach(x=>{ if(x.k==='event'){ return; } if(run.length&&x.s>=end) close(); run.push(x); end=Math.max(end,x.de); }); if(run.length) close();
     /* a calendar event keeps its own card at its own times, beside what she did meanwhile (6 Nov 2026, her words: the
-       Neches meeting only went 30 minutes) */
+       meeting only went 30 minutes) */
     past.filter(x=>x.k==='event').forEach(x=>{ const o=past.filter(p=>p!==x&&!p.stk&&p.s<x.de&&x.s<p.de); if(o.length){ x.n=2; x.col=0; o.forEach(p=>{ p.n=Math.max(p.n||1,2); if(p.col===0) p.col=1; }); } else { x.n=1; x.col=0; } });
     STACKS.forEach(st=>{ if(past.some(x=>x.k==='event'&&x.s<st.e&&st.s<x.de)){ st.card.n=2; st.card.col=1; st.m.forEach(o=>{o.n=2;o.col=1;}); } }); }
   const cuts=[...new Set([h0*60,h1*60,...(nowM!=null?[nowM]:[]),...Array.from({length:h1-h0+1},(_,i)=>(h0+i)*60),...all.map(x=>x.s),...all.map(x=>x.e),...its.map(x=>x.s),...its.map(x=>x.e)].filter(m=>m>=h0*60&&m<=h1*60))].sort((a,b)=>a-b);
@@ -734,7 +734,7 @@ const WICON = {
 const wicon=(k,s)=>`<svg viewBox="0 0 20 20" width="${s}" height="${s}" aria-hidden="true" style="overflow:visible;vertical-align:-2px"><g fill="${WDOM[k].c}" stroke="${WDOM[k].d}" stroke-width="1" stroke-linejoin="round">${WICON[k]}</g></svg>`;
 /* her own colours, picked on the page (6 Nov 2026, her words: I want to pick the colors … more vibrant, more earthy,
    a little bit of brown is good): four swatches a chunk, the first is the starting one */
-/* her colours, in her words (6 Nov 2026): work in Tarleton purple; care pink; food green; movement yellow; connection,
+/* her colours, in her words (6 Nov 2026): work in her university purple; care pink; food green; movement yellow; connection,
    play, reflection and adventures by their energy, a calm teal-blue like sitting by a still lake, or fiery when energetic;
    be•do and admin a quiet background; sleep a short night band */
 /* one family (6 Nov 2026, her words: make all of these colors look like they go together): every hue at one OKLCH lightness
