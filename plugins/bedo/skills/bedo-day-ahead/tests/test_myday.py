@@ -85,7 +85,7 @@ def main():
     old = row('⚡ finished long ago', A, status='✅ done', end='2025-12-01T08:00:00Z', created='2025-12-01T08:00:00Z')
     card2, whole2 = myday.build(ROWS, LATEST, OPEN_IDS, lambda r: False, TODAY, DRIVES, {'map_end': '2026-12-31'}, local,
                                 lambda r: r['key'], [old, ROWS[3]])
-    assert card2['prog'][A] == dict(done=3, open=3, since='2025-12-01'), card2['prog'][A]
+    assert card2['prog'][A] == dict(done=3, today=1, open=3, since='2025-12-01'), card2['prog'][A]
     assert whole2['begin'] == '2025-12-01'
     # a step's way in: its deliverable, or nothing, which the page says plainly
     assert all(s['links'] == [] for s in card['steps']), card['steps']

@@ -838,7 +838,7 @@ function sheet(x){
     +(L?`<div class="lks">${L}</div>`:'')
     +(x.wait?`<div class="wt">⏸ waiting on ${esc(x.wait)}</div>`:'')
     +(x.why?`<div class="why">${esc(x.why)}</div>`:'')
-    +(x.det?`<div class="det">${esc(x.det)}</div>`:'')
+    +(x.det&&!x.her?`<div class="det">${esc(x.det)}</div>`:'')
     +(x.members&&x.members.length?`<ul class="inside">${x.members.map(m=>`<li>${m.act?'✅ ':''}${esc(m.t)} <small>${t12(m.s)}–${t12(m.e)}</small></li>`).join('')}</ul>`:'')
     +photosOf(x)+`</div>`;
   requestAnimationFrame(()=>s.classList.add('on'));
