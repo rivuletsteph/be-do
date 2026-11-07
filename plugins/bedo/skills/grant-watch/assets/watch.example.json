@@ -1,0 +1,14 @@
+{
+ "weeks": 12,
+ "agencies": ["USDA-NIFA"],
+ "programs": ["USDA-NIFA-NLGCA"],
+ "assistance_listings": ["10.326"],
+ "keywords": ["water quality", "aquifer", "groundwater", "rural water", "data center water"],
+ "applied": [
+  {"program": "Capacity Building Grants for Non-Land-Grant Colleges of Agriculture",
+   "agency": "USDA NIFA", "number": "USDA-NIFA-NLGCA-000000",
+   "cycle": "November", "year": 2024, "status": "declined", "role": "budget",
+   "keywords": "example row"}
+ ],
+ "ignore": []
+}
