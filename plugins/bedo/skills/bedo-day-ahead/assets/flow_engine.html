@@ -231,13 +231,23 @@ html[data-bedo="night"] .cal .ev:not(.gcal), html[data-bedo="night"] .cal .ev:no
 .legend b{font:600 10.5px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-right:-4px}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:11px;height:11px;border-radius:3px;background:var(--fill);border:1.5px solid var(--edge)}
+.mvc{padding:12px 14px;display:grid;gap:14px}
+.mvr .mvn{font-weight:600;font-size:14.5px}
+.mvb{display:flex;height:10px;border-radius:5px;background:var(--rule);overflow:hidden;margin:6px 0 4px}
+.mvb i{display:block;height:100%;background:color-mix(in srgb,var(--dc) 55%,var(--card))}
+.mvb i.t{background:var(--dc)}
+.mvb i.p{background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--dc) 35%,transparent) 0 4px,transparent 4px 8px)}
+.mvl{font:500 12px var(--mono);color:var(--muted)}.mvl b{color:var(--ink)}
 .legend-key{margin:0 0 10px}.legend-key summary{cursor:pointer;font:500 11.5px var(--mono);color:var(--muted)}.legend-key .legend{margin:8px 0 4px}
 .sheet .chips{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px}
 .sheet .chip{display:inline-flex;align-items:center;gap:6px;font:500 13px var(--sans);color:var(--ink);background:var(--card2);border-radius:999px;padding:4px 11px}
 .sheet .chip i{width:12px;height:12px;border-radius:3px}
+.sheet .chip.mv{font:500 12.5px var(--mono);color:var(--accent);background:none;border:1.5px solid var(--accent)}
 .sheet .who{grid-column:1/-1;font:400 14.5px var(--sans);color:var(--ink);margin-top:8px}
 .sheet .her a{font:500 12.5px var(--mono);font-style:normal;color:var(--dest);text-decoration:none}
-.sheet .her{grid-column:1/-1;font:italic 400 15.5px/1.5 var(--serif);color:var(--ink);margin:10px 0 0;padding:8px 0 8px 14px;border-left:3px solid var(--rule);white-space:pre-line}
+.sheet .her{grid-column:1/-1;font:italic 400 15.5px/1.45 var(--serif);color:var(--muted);margin:8px 0 0}
+.sheet .her.full{white-space:pre-line;color:var(--ink);font-size:14.5px}
+.sheet details.more{grid-column:1/-1;margin-top:4px}.sheet details.more summary{cursor:pointer;font:500 12px var(--mono);color:var(--muted)}
 .td{--k-logged:#E6DCCF;--k-logged-d:#9A8B79;--k-stretch:#A9D3D6;--k-stretch-d:#3E7F86;--k-event:#5B6FB5;--k-lastmin:#E07A5F;--k-flow:#DDD5C9;--k-flow-d:#8C8174;--k-eat:#86C2A4;--k-eat-d:#3F8A68;--k-move:#B4C987;--k-move-d:#6E8A35;--k-personal:#C3B6E2;--k-personal-d:#6B5BA0;--k-recreation:#9FC4E2;--k-recreation-d:#4A7FAE;--k-travel:#A8D3C9;--k-travel-d:#3E7F74;--k-work:#C9805F;--k-work-d:#8E4A2C;--k-family:#E3A4A8;--k-family-d:#B05E66;--k-pet:#EBB9CB;--k-pet-d:#A85C7A;--k-home:#DDB4A2;--k-home-d:#96604A;--k-cook:#EEB672;--k-cook-d:#B07A2A;--k-drive:#A9B7C2;--k-drive-d:#56697A;--k-system:#DCC89C;--k-system-d:#9C8455;--k-moment:#F2C14E;--k-moment-d:#B8860B}
 html[data-bedo="night"] .td{--k-logged:#4A4540;--k-logged-d:#D9CCBC;--k-stretch:#2F5458;--k-stretch-d:#BDE3E6;--k-event:#7F8FD0;--k-lastmin:#F09A80;--k-flow-d:#BDB3A6;--k-eat-d:#C4E6D4;--k-move-d:#DCE8BC;--k-personal-d:#DED6F4;--k-recreation-d:#CFE2F2;--k-travel-d:#CDEAE4;--k-work-d:#F0C6B2;--k-family-d:#F5D0D2;--k-pet-d:#F6D3E0;--k-home-d:#F0D6CA;--k-cook-d:#F7D9AE;--k-drive-d:#D3DEE7;--k-system-d:#EEE2C6;--k-moment-d:#F2C14E}
 .cal .band{border:2px solid var(--dc);border-left-width:5px;background:color-mix(in srgb,var(--dc) 16%,transparent)}
@@ -285,6 +295,7 @@ html[data-bedo="night"] .td{--k-logged:#4A4540;--k-logged-d:#D9CCBC;--k-stretch:
 <div class="sum" id="sum"></div>
 <p class="hint">each list runs from the easiest next step · tap anything on the flow to follow it · tap again to see all</p></div>
 <div class="focus" id="focus" hidden></div>
+<section class="mv" id="moved"></section>
 <section class="wh" id="wheel"></section>
 </main>
 <script>/*BFJS*/</script>
@@ -814,8 +825,15 @@ function sheet(x){
   const chips=x.k==='lived'?`<div class="chips">${kind?`<span class="chip"><i style="background:${kind[0]}"></i>${esc(String(kind[2]).split(' · ')[0])}</span>`:''}${wl.map(k=>`<span class="chip">${wicon(k,15)} ${k}</span>`).join('')}${x.felt_word?`<span class="chip">${esc(x.felt_word)}</span>`:''}${x.drive?`<span class="chip">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</span>`:''}</div>`:'';
   s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${x.s?t12(x.s):'later'}${x.k==='lived'&&x.e>x.s+1?`<br>${t12(x.e)}`:''}</div>`
     +`<div class="ttl">${x.k==='event'?'🗓️ ':`<span class="bx${done?' ok':''}"></span>${x.k==='step'||x.act?'<span class="bolt">⚡</span>':''}`}${esc(x.t)}</div>`
-    +chips+(()=>{ const w=String(x.who||'').split(',').map(n=>n.trim()).filter(n=>n&&n!==D.me); return w.length?`<div class="who">👥 with ${esc(w.join(', '))}</div>`:''; })()+((x.closes||[]).length?`<div class="who">✅ ${x.closes.map(esc).join(' · ')}</div>`:'')+(x.her?`<div class="her">${esc(x.her).replace(/https?:\/\/[^\s<]+/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]} ↗</a>`)}</div>`:'')
+    +chips+(()=>{ const w=String(x.who||'').split(',').map(n=>n.trim()).filter(n=>n&&n!==D.me); return w.length?`<div class="who">👥 with ${esc(w.join(', '))}</div>`:''; })()+((x.closes||[]).length?`<div class="who">✅ ${x.closes.map(esc).join(' · ')}</div>`:'')+(x.her?(()=>{ /* one line of her words; the rest folded (7 Nov 2026, her words: the level of detail on the cards is too great,
+       I'm never going to read all that — shoot for something like the 28 Oct card) */
+      const lk=t=>esc(t).replace(/https?:\/\/[^\s<]+/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]} ↗</a>`);
+      const plain=x.her.replace(/https?:\/\/\S+/g,'').replace(/\s+/g,' ').trim(), m=plain.match(/^.{20,140}?[.!?](\s|$)/), one=m?m[0].trim():plain.slice(0,140)+(plain.length>140?'…':'');
+      return `<div class="her">${esc(one)}</div>`+(plain.length>one.length+2?`<details class="more"><summary>her words</summary><div class="her full">${lk(x.her)}</div></details>`:''); })():'')
     +(x.drive&&x.k!=='lived'?`<div class="dv">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</div>`:'')
+    +(()=>{ /* what one step is worth to its drive, as the 30 Oct page showed it (moves it +50%) */
+      const p=d&&d.prog, tot=p?(p.done||0)+(p.open||0):0;
+      return (x.k==='step'||x.act)&&tot&&!(D.hidden||[]).includes(x.drive)?`<div class="chips"><span class="chip mv">${x.done||x.act?'moved':'moves'} it +${Math.round(100/tot)}%</span></div>`:''; })()
     +(x.k==='lived'?'':(x.nx?`<div class="nx">${esc(x.nx.replace(/\s*\((?:https?|claude):[^)]*\)|\s*(?:https?|claude):\/\/\S+/g,''))}</div>`:`<div class="nx none">no next step named yet</div>`))
     +(L?`<div class="lks">${L}</div>`:'')
     +(x.wait?`<div class="wt">⏸ waiting on ${esc(x.wait)}</div>`:'')
@@ -874,7 +892,24 @@ function wheel(){
   el.querySelectorAll('.wk').forEach(n=>n.addEventListener('click',()=>{WF=WF===n.dataset.k?'':n.dataset.k;wheel();}));
   const c=document.getElementById('wclr'); if(c) c.onclick=e=>{e.preventDefault();WF='';wheel();};
 }
-function draw(){ today(); card(); const b=shape(); lists(b); intention(b); flow(b); wheel(); }
+/* how the drives move today (7 Nov 2026, her words: I really love how the 30 Oct version shows the actual progress;
+   looking out ahead I can see how it moves, and looking back behind I can see how it moved). Each drive with a step
+   today: the share of its steps done before today, what today closed, and what today still holds. */
+function moved(){
+  const el=document.getElementById('moved'); if(!el) return;
+  const over=new Date().toLocaleDateString('en-CA')>D.day, pc=(a,t)=>t?Math.round(100*a/t):0;
+  const planned={}; (D.schedule||[]).forEach(x=>{ if(x.k==='step'&&!x.done&&!x.session&&x.drive) planned[x.drive]=(planned[x.drive]||0)+1; });
+  const rows=(D.drives||[]).filter(d=>d.prog&&(d.prog.today||planned[d.n])&&!(D.hidden||[]).includes(d.n)).map(d=>{
+    const p=d.prog, tot=(p.done||0)+(p.open||0), before=Math.max(0,(p.done||0)-(p.today||0)), plan=over?0:(planned[d.n]||0);
+    const now=pc(p.done,tot), was=pc(before,tot), to=pc((p.done||0)+plan,tot);
+    const line=over?(p.today?`${was}% → <b>${now}%</b> · moved +${now-was}% today`:`${now}% · didn't move today`)
+                    :(p.today?`<b>${now}%</b> · +${now-was}% so far today`:`<b>${now}%</b>`)+(plan?` · today's step${plan>1?'s take':' takes'} it to ${to}%`:'');
+    return `<div class="mvr" style="--dc:${col(d.c)}"><div class="mvn">${esc((d.g||'')+' '+(d.short||d.n))}</div>`
+      +`<div class="mvb"><i style="width:${was}%"></i><i class="t" style="width:${now-was}%"></i><i class="p" style="width:${to-now}%"></i></div>`
+      +`<div class="mvl">${line} · ${p.done} of ${tot} steps since ${esc(fmt(p.since))}</div></div>`; });
+  el.innerHTML=rows.length?`<h2 class="ftitle">${over?'how the drives moved':'how today moves the drives'}</h2><div class="card mvc">${rows.join('')}</div>`:'';
+}
+function draw(){ today(); card(); const b=shape(); lists(b); intention(b); flow(b); moved(); wheel(); }
 document.addEventListener('bedo-theme',draw);
 draw();
 </script>

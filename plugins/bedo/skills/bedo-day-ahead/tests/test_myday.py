@@ -65,7 +65,7 @@ def main():
     assert set(titles) == {'carried from Monday', 'a step for today', 'finished this morning', 'a rhythm step'}, titles
     today = next(s for s in card['steps'] if s['t'] == 'a step for today')
     assert today['det'] == 'my own words' and today['mine'], today
-    assert card['prog'][A] == dict(done=2, open=3, since='2026-02-25'), card['prog'][A]
+    assert card['prog'][A] == dict(done=2, today=1, open=3, since='2026-02-25'), card['prog'][A]   # one closed this morning (7 Nov 2026)
     assert card['drives'][A]['short'] == 'Drive A' and card['drives']['Drive B']['c'] == card['drives'][A]['c']
     assert card['hist']['ev']['Rhythm Two'] == ['2026-03-03'], card['hist']
     assert whole['order'] == ['Rhythm One', 'Rhythm Two'], whole['order']

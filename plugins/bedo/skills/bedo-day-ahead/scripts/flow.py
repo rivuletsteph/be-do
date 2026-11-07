@@ -731,6 +731,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
                 secure=(D.get('secure') or {}).get('state'))
     today_page = next((x for x in D.get('days') or [] if x.get('date') == W['day']), None)
     data['holds'] = day_holds(today_page, L) if today_page else None
+    data['hidden'] = list(L.get('hide_drives') or [])   # build work set aside, as everywhere on the page
     data['me'] = L.get('self_person') or ''   # her own name, left out of who was with her
     data['calcolors'] = L.get('calendar_colors') or {}   # each calendar's own colour, as Google shows it
     data['intentions'] = [x for x in (D.get('intentions') or []) if x]
