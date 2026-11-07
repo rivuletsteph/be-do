@@ -442,10 +442,9 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
 
 
 def flow_cards(items):
-    """Each flow is one card from its first step to its close (7 Nov 2026, her words: my dawn flow and dusk flow are completely
-    missing — every step is a moment, so the page folded them away). The card is a column beside the day and lists its
-    steps; a step with a kind of its own (the morning movement, the water) keeps its card too, and only the flow's own
-    moments (a check, a close) fold into it. The card takes no minutes in how the time went: its steps already do."""
+    """Each flow spans its first step to its close (7 Nov 2026, her words: my dawn flow and dusk flow are completely missing),
+    drawn as a dotted outline in the background around its steps, as the river drew it; its steps keep their own cards.
+    It takes no minutes in how the time went: its steps already do."""
     mm = lambda t: int(t[:2]) * 60 + int(t[3:5])
     out = list(items)
     for ph in sorted({x.get('phase') for x in items if x.get('phase')}, key=lambda p: 'dusk' in p):
@@ -455,10 +454,9 @@ def flow_cards(items):
         a, b = min(mm(x['a']) for x in steps), max(mm(x['b']) for x in steps)
         name = re.sub(r'^\W*', '', ph)
         out.append(dict(k='lived', t=f"{ph.split()[0]} {name} flow · {len(steps)} steps", a=f'{a // 60:02d}:{a % 60:02d}',
-                        b=f'{b // 60:02d}:{b % 60:02d}', drive='', done=True, cat='flow', column=True, nopie=True, flowcard=True,
+                        b=f'{b // 60:02d}:{b % 60:02d}', drive='', done=True, cat='flow', nopie=True, flowcard=True,
                         rid=None, links=None, act=False, pt=False, el=None, el2=None,
                         members=[dict(t=x['t'], s=mm(x['a']), e=mm(x['b']), act=x.get('act')) for x in steps]))
-        out = [x for x in out if not (x.get('phase') == ph and x.get('cat') == 'flow' and x.get('pt'))]
     return sorted(out, key=lambda x: (x['a'], x['k'] != 'event'))
 
 

@@ -274,6 +274,9 @@ html[data-bedo="night"] .cal .ev:not(.gcal), html[data-bedo="night"] .cal .ev:no
 .td{--k-logged:#E6DCCF;--k-logged-d:#9A8B79;--k-stretch:#A9D3D6;--k-stretch-d:#3E7F86;--k-event:#5B6FB5;--k-lastmin:#E07A5F;--k-flow:#DDD5C9;--k-flow-d:#8C8174;--k-eat:#86C2A4;--k-eat-d:#3F8A68;--k-move:#B4C987;--k-move-d:#6E8A35;--k-personal:#C3B6E2;--k-personal-d:#6B5BA0;--k-recreation:#9FC4E2;--k-recreation-d:#4A7FAE;--k-travel:#A8D3C9;--k-travel-d:#3E7F74;--k-work:#C9805F;--k-work-d:#8E4A2C;--k-family:#E3A4A8;--k-family-d:#B05E66;--k-pet:#EBB9CB;--k-pet-d:#A85C7A;--k-home:#DDB4A2;--k-home-d:#96604A;--k-cook:#EEB672;--k-cook-d:#B07A2A;--k-drive:#A9B7C2;--k-drive-d:#56697A;--k-system:#DCC89C;--k-system-d:#9C8455;--k-moment:#F2C14E;--k-moment-d:#B8860B}
 html[data-bedo="night"] .td{--k-logged:#4A4540;--k-logged-d:#D9CCBC;--k-stretch:#2F5458;--k-stretch-d:#BDE3E6;--k-event:#7F8FD0;--k-lastmin:#F09A80;--k-flow-d:#BDB3A6;--k-eat-d:#C4E6D4;--k-move-d:#DCE8BC;--k-personal-d:#DED6F4;--k-recreation-d:#CFE2F2;--k-travel-d:#CDEAE4;--k-work-d:#F0C6B2;--k-family-d:#F5D0D2;--k-pet-d:#F6D3E0;--k-home-d:#F0D6CA;--k-cook-d:#F7D9AE;--k-drive-d:#D3DEE7;--k-system-d:#EEE2C6;--k-moment-d:#F2C14E}
 .cal .band{border:2px solid var(--dc);border-left-width:5px;background:color-mix(in srgb,var(--dc) 16%,transparent)}
+.cal .band.flowband{border:2px dashed var(--muted);background:color-mix(in srgb,var(--muted) 6%,transparent);left:0;right:0}
+.cal .band.flowband span{position:absolute;right:8px;bottom:4px;top:auto;font:600 11px var(--sans);color:var(--muted)}
+.bandtop span.fl i{border:2px dashed var(--muted);background:transparent}
 .cal .band span{color:var(--ink);font-weight:700;font-size:12px}
 .cal .band span em{display:block;font:600 9.5px var(--mono);font-style:normal;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
 .cal .ev.event{border:2px solid var(--edge);border-left-width:5px}
@@ -615,7 +618,10 @@ function today(){
      is ground only at three hours or more (a party); someone else's long event (Greenhouse) still at two */
   /* a long stretch of one thing is ground under the day, named at the top, never a card that swallows the hours (7 Nov
      2026: her Copilot work from getting home until about 10 PM) */
-  const bands=all.filter(x=>(x.k==='event'&&x.e-x.s>=(x.who==='you'?180:120))||(x.k==='lived'&&x.cat!=='stretch'&&!x.column&&x.cat!=='sleep'&&((x.act&&x.e-x.s>=60)||x.e-x.s>=180)));
+  /* a flow is ground too: a dotted outline behind its steps, as the river drew it (7 Nov 2026, her words: I loved how the
+     river showed the dawn flow and the dusk flow with a dotted outline around all the different things, in the background,
+     kind of like how you did Greenhouse) */
+  const bands=all.filter(x=>x.flowcard||(x.k==='event'&&x.e-x.s>=(x.who==='you'?180:120))||(x.k==='lived'&&x.cat!=='stretch'&&!x.column&&x.cat!=='sleep'&&((x.act&&x.e-x.s>=60)||x.e-x.s>=180)));
   /* what she has done stays where it happened; what's ahead is laid end to end from the clock */
   /* what's done reads as a list in time (2 Nov 2026, her words: show me my day flow, up to date, for what I've
      already accomplished): an event already over joins the done side, so it never covers what she did in it,
@@ -752,7 +758,8 @@ function today(){
   const bandTop=[];
   let g=''; const CARDS=window.__cards=[]; const ci=x=>{ CARDS.push(x); return CARDS.length-1; };
   { let last=-99; for(let h=h0;h<=h1;h++){ const t=y(h*60); if(t-last<14) continue; last=t; g+=`<div class="hr" style="top:${t}px"><span>${lab(h)}</span></div>`; } }   /* hours inside the condensed sleep are not labelled */
-  bands.forEach(x=>{ if(x.k!=='event'){ g+=`<div class="band" title="${x.act?'✅ ':''}${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; if(x.e-x.s>=180) bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.act?'✅ ':''}${esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); });
+  bands.forEach(x=>{ if(x.flowcard){ g+=`<div class="band flowband" style="top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"><span>${esc(String(x.t).split(' · ')[0])}</span></div>`; bandTop.push(`<span class="fl"><i></i>${esc(String(x.t).split(' · ')[0])} · ${tm(x.s)}–${tm(x.e)}</span>`); return; }
+    if(x.k!=='event'){ g+=`<div class="band" title="${x.act?'✅ ':''}${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; if(x.e-x.s>=180) bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.act?'✅ ':''}${esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); });
   past.forEach(x=>{ const w=100/x.n; let top=y(x.s), h=Math.max(MINH,y(x.e)-y(x.s)-1);
     if(x.stk){ if(x.si) return; const c=x.stk.card; h=Math.max(MINH,y(c.e)-y(c.s)-1);
       const ths=(c.photos||[]).slice(0,4).map(p=>`<img alt="" src="${p.src}">`).join('');
