@@ -191,6 +191,8 @@ html[data-bedo="night"] .cal .ev:not(.gcal), html[data-bedo="night"] .cal .ev:no
 .cal .ev.combo .ths img{width:40px;height:40px;object-fit:cover;border-radius:4px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
 .cal .ev.combo{padding-right:8px}
 .sheet .inside{margin:8px 0 0;padding-left:18px}
+/* the list of what a combined card holds spans the panel's text column, never the narrow time column (7 Nov 2026) */
+.sheet .sc .inside,.sheet .sc>.ph,.sheet .sc>a{grid-column:2}
 .sheet .inside li{margin:0 0 6px}
 .sheet .inside small{color:var(--muted)}
 .cal .ev .th{position:absolute;right:3px;top:3px;bottom:3px;width:44px;max-height:48px;object-fit:cover;border-radius:4px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
