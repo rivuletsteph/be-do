@@ -209,6 +209,15 @@ def one_day(w, out, loc, rows):
     """--day: the same page for a single day (20 Oct 2026), its own words on top. The
     night that ended that morning counts whole; words written for another day are refused."""
     o = out.replace('week.html', 'day.html')
+    sf = loc['fields']['stream']
+
+    def gate_row(details, pr='🌄 dusk flow close'):   # written after midnight: the record, not a row of Tuesday
+        x = row('close', '', LOG, '2026-09-30T00:30:00.000Z')
+        x['cellValuesByFieldId'].update({sf['practice']: pr, sf['details']: details})
+        return x
+    final = gate_row('———\n[be•do] day ahead 2026-09-29 · final · v7', '👁️ look ahead')
+    qa = gate_row('———\n[be•do] closed.\ndayqa shown 2026-09-29 23:50 · 0 proposed')
+    rows = list(rows)
 
     def run(words):
         return subprocess.run([sys.executable, BUILDER, '--day', '2026-09-29', '--words', w('words.json', words),
@@ -216,7 +225,17 @@ def one_day(w, out, loc, rows):
                                '--rhythms', w('rhythms3.json', dump(RHYTHMS)), '--template', ENGINE, '--out', o],
                               capture_output=True, text=True, encoding='utf-8', timeout=60,
                               env=dict(os.environ, PYTHONIOENCODING='utf-8'))
-    rr = run({'day': '2026-09-29', 'lead': 'a walk and a show', 'story': [['🚶', 'the walk'], ['📺', 'the show']]})
+    words = {'day': '2026-09-29', 'lead': 'a walk and a show', 'story': [['🚶', 'the walk'], ['📺', 'the show']]}
+    # the day ahead first, then its QA, then the day behind (her amendment, 6 Nov 2026). The week's dayqa lines sit on
+    # a plan, not the dusk close row, and no day ahead is final: closed, both named
+    rr = run(words)
+    assert rr.returncode and 'look_behind.day_ahead_first' in rr.stderr and 'no final day ahead for Tue 29 Sep' in rr.stderr \
+        and 'is on a plan, not the dusk close row' in rr.stderr and not os.path.exists(o), rr.stderr
+    rows.append(final)                                   # the day ahead final, the QA not yet in the close row
+    rr = run(words)
+    assert rr.returncode and 'no final day ahead' not in rr.stderr and 'not the dusk close row' in rr.stderr, rr.stderr
+    rows.append(qa)                                      # both: it builds
+    rr = run(words)
     if rr.returncode:
         sys.exit(rr.stdout + rr.stderr)
     html = open(o, encoding='utf-8').read()
@@ -228,7 +247,8 @@ def one_day(w, out, loc, rows):
     assert (X['day'], X['title'], X['draft']) == ('2026-09-29', 'a walk and a show', {'lead': False, 'story': False}), X['draft']
     assert not [m for d in X['stream']['days'] for m in d['stones']], 'Wednesday\'s moments are not Tuesday\'s'
     assert run({'day': '2026-09-30', 'lead': 'x', 'story': []}).returncode, 'words for another day must be refused'
-    print('ok — one day: its own window, the whole night before, its own words, and no one else\'s')
+    print('ok — one day: refused until the day ahead is final and QA\'d, then its own window, the whole night before, '
+          'its own words, and no one else\'s')
     day_map(w, out, loc, rows, X)
     photos(w, out, loc, rows)
 
@@ -310,6 +330,11 @@ def photos(w, out, loc, rows):
     wed = os.path.join(tmp, 'small-wed')
     os.makedirs(wed, exist_ok=True)
     Image.new('RGB', (40, 50), (1, 2, 3)).save(os.path.join(wed, 'PXL_20260930_190100000.jpg'))
+    sf = loc['fields']['stream']
+    shut = row('close', '', LOG, '2026-10-01T00:30:00.000Z')          # Wednesday's gate, open: final and QA'd
+    shut['cellValuesByFieldId'].update({sf['practice']: '🌄 dusk flow close', sf['details']:
+                                        '———\n[be•do] day ahead 2026-09-30 · final\ndayqa shown 2026-09-30 23:40 · 0 proposed'})
+    rows = rows + [shut]
     r = subprocess.run([sys.executable, BUILDER, '--day', '2026-09-30', '--photos', wed, '--local', w('local4.json', loc),
                         '--stream', w('w40d.json', dump(rows)), '--rhythms', w('rhythms4.json', dump(RHYTHMS)),
                         '--template', ENGINE, '--out', o], capture_output=True, text=True, encoding='utf-8',

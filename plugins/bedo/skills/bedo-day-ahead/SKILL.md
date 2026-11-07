@@ -375,6 +375,35 @@ contents never pass through the chat.
 7. **Log the step**: the ◉ 👁️ look ahead row, dawn, with the day's page as its
    deliverable and one `[be•do]` line naming the three, the gaps and the clashes.
 
+## The day done: the final version, before any day behind (6 Nov 2026)
+
+Her words: *Finish the day ahead. Make sure you QA it, then do the day
+behind* — finishing the day ahead first is a gate to the day behind. Once the
+day is over, the my day page is rebuilt one last time to **the whole day as
+lived**: `fetch`, then `build` (with the Drive key here, so her keeper photos
+are on their cards), then republish to `page.url`. Then:
+
+```
+bash run_day_ahead.sh final YYYY-MM-DD [version]
+```
+
+It checks that the stream reaches bedtime (the night's 😴 sleep row, written
+from the morning Oura row), that the page was built from the last fetch, and
+that the keeper photos the rows hold are on the page. Each gap is a `FIX`;
+clear it and run it again. When it is whole it prints the record:
+
+```
+[be•do] day ahead YYYY-MM-DD · final · v7
+```
+
+Write that line in the `[be•do]` block of the day's 👁️ look ahead row (the
+row whose deliverable is the page, `page.row`), the version being the one the
+Artifact tool gave the last publish. Then the day's QA (`run_checks.sh dayqa`,
+its last line in the dusk close row), and only then the day behind: the look
+behind's builders refuse while either line is missing
+(`look_behind.day_ahead_first`, `core/bedo_daygate.py`). The line is the
+record, never a promise: don't write it ahead of the last rebuild.
+
 **Saving to Drive from the cloud** is the Drive connector's `create_file`,
 `contentMimeType` `text/html`, conversion off, into the week's folder found by
 name (created by the same rule if missing, and said so). The page passes

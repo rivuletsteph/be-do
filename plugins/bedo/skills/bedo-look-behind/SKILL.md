@@ -211,6 +211,36 @@ Airtable token is.
   `[{"text": "<json>"}]`, which the builder unwraps itself) — at ~45k tokens
   a build. Say so in one line, and prefer a cloud session.
 
+## The day ahead first: the gate (6 Nov 2026)
+
+Her words: *I very much want an amendment that makes it clear that finishing
+the day ahead first is a gate to doing the day behind.* And: *Finish the day
+ahead. Make sure you QA it, then do the day behind.* For every day:
+
+1. **The day ahead is final.** The day's one my day page has been rebuilt to
+   the whole day as lived — her keeper photos on it, the stream through
+   bedtime — and republished to its link. `run_day_ahead.sh final YYYY-MM-DD
+   [vN]` checks that and prints the record, which goes in the `[be•do]` block
+   of the day's 👁️ look ahead row (the row whose deliverable is the page):
+   `[be•do] day ahead YYYY-MM-DD · final · v7`. It works the way `[be•do] look
+   behind YYYY-MM-DD · final` works on the look behind's log row: the date it
+   names is the day it stands for, and `· draft` does not count.
+2. **The day is QA'd.** `run_checks.sh dayqa YYYY-MM-DD` has run against the
+   finished day, what she accepted is written, and the dusk close row's
+   `[be•do]` block carries its last line, `dayqa shown YYYY-MM-DD …`. The line
+   on any other row doesn't open the gate: move it to the close row.
+3. **Only then is the day behind built.**
+
+`run_look_behind.sh gate YYYY-MM-DD` (or `run_checks.sh daygate YYYY-MM-DD`)
+prints both, `ok` or `FIX`, and exits 1 while the gate is closed. `build` and
+`canon` run it first and stop; `week_look_behind.py --day` and
+`look_behind.py` refuse on the same check themselves (`core/bedo_daygate.py`,
+check `look_behind.day_ahead_first`). There is no flag around it: not the
+03:00 routine, not preflight's morning offer, not a branch, not a chat. A day
+behind built before the gate opened is premature: never show it to her as the
+day's look behind. `qa` still prints the QA block while the gate is closed,
+naming it under `day_ahead_first`, since it writes no page.
+
 ## Steps
 
 Every step is one runner command. Nothing about the rows passes through the
@@ -238,7 +268,10 @@ chat except the digest the words are written from.
    state is written only when the user names a knock-back — so the day page
    reads it as secure, starred as assumed, and you say the row was absent. (Her word on this is still being asked for;
    until it comes, this is the rule.)
-4. **QA, then build** — `bash run_look_behind.sh qa YYYY-MM-DD` prints the QA
+4. **QA, then build** — first the gate (above): `bash run_look_behind.sh
+   gate YYYY-MM-DD` must print `open`; while it is closed, finish the day
+   ahead and its dayqa, and build nothing. Then `bash run_look_behind.sh qa
+   YYYY-MM-DD` prints the QA
    block; clear it (below) in the stream, `prep` again so the build reads the
    fixes, then `bash run_look_behind.sh build YYYY-MM-DD`. The day page reads
    the secure base from the ⏏️ row itself (none means secure, starred as
@@ -364,7 +397,9 @@ it's missing some little detail). The page always builds. The QA block's
 - more than 10% of the day's rows that happened lacking device or wellness;
 - any row spanning more than 12 hours (an old row closed with today's end) —
   its minutes are left out of the day, so it can't draw 680 minutes again;
-- no `dayqa shown …` line in the day's rows, if dayqa wasn't run at dusk.
+- no `dayqa shown …` line in the day's rows, if dayqa wasn't run at dusk
+  (since 6 Nov 2026 the gate above stops the build until the dusk close row
+  carries it).
 
 Fix what's quick from the clues; don't hold the page for the rest.
 
@@ -449,7 +484,8 @@ dusk close.
 Nothing builds the look behind on a schedule. The 03:00 routine was paused on
 11 Oct 2026, and on 24 Oct the user's word was to keep it that way: *I don't
 want anything to build at 3am. Let's get a version I'm happy with working and
-I'll build it manually.* The day behind is built when the user asks for it.
+I'll build it manually.* The day behind is built when the user asks for it —
+and only once the gate is open: the day ahead final, then its QA (6 Nov 2026).
 `MORNING.md` still describes the unattended run, for the day a routine is
 wanted again; don't create or re-enable one unasked.
 

@@ -131,6 +131,14 @@ block says which page the row stands for (`· draft` at dusk, `· final` in the
 morning). `scripts/look_behind_log.py` reads those rows to say which days still
 need their final; `MORNING.md` is the routine that builds them.
 
+**The day ahead comes first** (6 Nov 2026): no day behind is built until the
+day's 👁️ look ahead row carries `[be•do] day ahead YYYY-MM-DD · final` (the
+my day page finished to the whole day as lived; `run_day_ahead.sh final`
+prints the line) and the dusk close row carries the day's `dayqa shown` line.
+`plugins/bedo/core/bedo_daygate.py` is the check (`look_behind.day_ahead_first`);
+both day-behind builders, the runner and the routine refuse on it, and
+preflight's morning line offers the day ahead instead.
+
 ## Local settings — `look_behind_local.json`
 
 Same rule as the day ahead, and the same abort on a missing field id.

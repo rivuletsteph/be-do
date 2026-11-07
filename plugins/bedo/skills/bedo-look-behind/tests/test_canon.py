@@ -290,8 +290,15 @@ EXPECT = {
              'done': STEPS},
         ]},
     ],
-    'read': 'w39 · 34/34',
+    'read': 'w39 · 35/35',                  # 34 rows of the day and the gate's close row, after midnight
 }
+
+
+# the gate (6 Nov 2026): the day ahead final and the day QA'd, on a dusk close written after midnight, so
+# the record opens the gate without being a row of the day. Any row may carry the final line; it names its date.
+STREAM.append(row('🌄 dusk flow close', 24 * 60 + 30, title='close', details=(
+    '———\n[be•do] day ahead 2026-09-20 · final · v3\n'
+    'dayqa shown 2026-09-20 00:20 · 0 proposed')))
 
 
 def dump(records):
@@ -374,8 +381,10 @@ def main():
           {p['k']: (p['logged'], p['est']) for p in D['pie'] if not p.get('rest')},
           EXPECT['pie_minutes'])
     check('pie slices', [p['k'] for p in D['pie']], ['bed', 'move', 'food', 'dev', 'play', 'log', 'else'])
-    check('a fixture with no dayqa and no device builds, and its QA names both',
-          len(json.loads(r.stdout[r.stdout.index('{'):])['qa'].get('not_yet_whole', [])), 2)
+    check('a fixture with no device builds, and its QA names it',
+          len(json.loads(r.stdout[r.stdout.index('{'):])['qa'].get('not_yet_whole', [])), 1)
+    check('the gate is open: no day_ahead_first in its QA',
+          'day_ahead_first' in json.loads(r.stdout[r.stdout.index('{'):])['qa'], False)
     rest = [p for p in D['pie'] if p.get('rest')][0]
     check('pie rest slice', rest['n'], 'Everything else')
     # the rest slice counts what a row covers but no slice names, so the engine can
