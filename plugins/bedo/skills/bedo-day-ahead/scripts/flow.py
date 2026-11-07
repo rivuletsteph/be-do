@@ -425,20 +425,31 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
                 # no tick while the session's notes still list open work (7 Nov 2026, her words: I didn't finish that page)
                 # a card, never the ground band an hour-long action becomes: a session's stretch sits among the
                 # other work it ran beside, so it reads as a card with its tick in the title
-                items.append(dict(k='lived', t=('✅ ' if st == '✅ done' and not re.search(r'(?im)^still open', c.get(F['details']) or '') else '') + t, a=hm(sa), b=hm(sb), drive=rh, done=True,
+                items.append(dict(**opens_to(c, F), k='lived', t=('✅ ' if st == '✅ done' and not re.search(r'(?im)^still open', c.get(F['details']) or '') else '') + t, a=hm(sa), b=hm(sb), drive=rh, done=True,
                                   cat='stretch',
                                   rid=r['id'] if sa == at(*spans[0][:2], a) else None, links=links_of(c, F) or None,
                                   act=False, pt=False,
                                   felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD))
                 prev = sb
             continue
-        items.append(dict(k='lived', t=t, a=hm(a), b=hm(b), drive=rh, done=True, cat=kind_of(c, F, flows, C), rid=r['id'],
+        items.append(dict(**opens_to(c, F), k='lived', t=t, a=hm(a), b=hm(b), drive=rh, done=True, cat=kind_of(c, F, flows, C), rid=r['id'],
                           links=links_of(c, F) or None,
                           act=st == '✅ done', pt=not real,
                           # a feeling or a keeper photo marks what mattered (2 Nov 2026): it stays when the hour folds
                           felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD,
                           keeper=bool(F.get('photo') and 'keeper' in str(c.get(F['photo']) or ''))))   # an action she finished, drawn with its green check (2 Nov 2026)
     return star_the_highlight(fold_into_events(fill_between(sorted(items, key=lambda x: (x['a'], x['k'] != 'event')))))
+
+
+def opens_to(c, F):
+    """What a lived card opens to (7 Nov 2026, her words: click on an event and get all of the relevant info in a really
+    clear visual way): her words (above the divider), who was there, and the feeling she named."""
+    d = c.get(F['details']) or ''
+    her = re.split(r'\n?(?:———|---|——)\n?', d, maxsplit=1)[0].strip() if not d.lstrip().startswith(('———', '---')) else ''
+    her = re.sub(r'(?m)^overlap — .*$', '', her).strip()
+    emo = c.get(F['emotion']) if F.get('emotion') else None
+    emo = ', '.join(emo) if isinstance(emo, list) else (emo or '')
+    return dict(her=her[:700] or None, who=(c.get(F['person']) or '') if F.get('person') else '', felt_word=emo or None)
 
 
 def fill_between(items, long_min=180):
@@ -696,6 +707,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
                 secure=(D.get('secure') or {}).get('state'))
     today_page = next((x for x in D.get('days') or [] if x.get('date') == W['day']), None)
     data['holds'] = day_holds(today_page, L) if today_page else None
+    data['me'] = L.get('self_person') or ''   # her own name, left out of who was with her
     data['calcolors'] = L.get('calendar_colors') or {}   # each calendar's own colour, as Google shows it
     data['intentions'] = [x for x in (D.get('intentions') or []) if x]
     data['schedule'] = schedule_of(today, rows, today_page, F, off, set(L.get('hide_drives') or []),

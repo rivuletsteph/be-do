@@ -231,6 +231,13 @@ html[data-bedo="night"] .cal .ev:not(.gcal), html[data-bedo="night"] .cal .ev:no
 .legend b{font:600 10.5px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-right:-4px}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:11px;height:11px;border-radius:3px;background:var(--fill);border:1.5px solid var(--edge)}
+.legend-key{margin:0 0 10px}.legend-key summary{cursor:pointer;font:500 11.5px var(--mono);color:var(--muted)}.legend-key .legend{margin:8px 0 4px}
+.sheet .chips{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px}
+.sheet .chip{display:inline-flex;align-items:center;gap:6px;font:500 13px var(--sans);color:var(--ink);background:var(--card2);border-radius:999px;padding:4px 11px}
+.sheet .chip i{width:12px;height:12px;border-radius:3px}
+.sheet .who{grid-column:1/-1;font:400 14.5px var(--sans);color:var(--ink);margin-top:8px}
+.sheet .her a{font:500 12.5px var(--mono);font-style:normal;color:var(--dest);text-decoration:none}
+.sheet .her{grid-column:1/-1;font:italic 400 15.5px/1.5 var(--serif);color:var(--ink);margin:10px 0 0;padding:8px 0 8px 14px;border-left:3px solid var(--rule);white-space:pre-line}
 .td{--k-logged:#E6DCCF;--k-logged-d:#9A8B79;--k-stretch:#A9D3D6;--k-stretch-d:#3E7F86;--k-event:#5B6FB5;--k-lastmin:#E07A5F;--k-flow:#DDD5C9;--k-flow-d:#8C8174;--k-eat:#86C2A4;--k-eat-d:#3F8A68;--k-move:#B4C987;--k-move-d:#6E8A35;--k-personal:#C3B6E2;--k-personal-d:#6B5BA0;--k-recreation:#9FC4E2;--k-recreation-d:#4A7FAE;--k-travel:#A8D3C9;--k-travel-d:#3E7F74;--k-work:#C9805F;--k-work-d:#8E4A2C;--k-family:#E3A4A8;--k-family-d:#B05E66;--k-pet:#EBB9CB;--k-pet-d:#A85C7A;--k-home:#DDB4A2;--k-home-d:#96604A;--k-cook:#EEB672;--k-cook-d:#B07A2A;--k-drive:#A9B7C2;--k-drive-d:#56697A;--k-system:#DCC89C;--k-system-d:#9C8455;--k-moment:#F2C14E;--k-moment-d:#B8860B}
 html[data-bedo="night"] .td{--k-logged:#4A4540;--k-logged-d:#D9CCBC;--k-stretch:#2F5458;--k-stretch-d:#BDE3E6;--k-event:#7F8FD0;--k-lastmin:#F09A80;--k-flow-d:#BDB3A6;--k-eat-d:#C4E6D4;--k-move-d:#DCE8BC;--k-personal-d:#DED6F4;--k-recreation-d:#CFE2F2;--k-travel-d:#CDEAE4;--k-work-d:#F0C6B2;--k-family-d:#F5D0D2;--k-pet-d:#F6D3E0;--k-home-d:#F0D6CA;--k-cook-d:#F7D9AE;--k-drive-d:#D3DEE7;--k-system-d:#EEE2C6;--k-moment-d:#F2C14E}
 .cal .band{border:2px solid var(--dc);border-left-width:5px;background:color-mix(in srgb,var(--dc) 16%,transparent)}
@@ -698,6 +705,7 @@ function today(){
   const chunk=c=>({sleep:'sleep',eat:'food',cook:'food',move:'move',family:'care',pet:'care',home:'care',personal:'care',
     work:'work',stretch:'work',recreation:'play',moment:'play',travel:'travel',drive:'travel',system:'admin',flow:'admin'})[c]||'admin';   /* travelling is its own kind of time, not admin (her words, 6 Nov) */
   const chc=x=>{ const k0=chunk(x&&x.cat), k=k0==='play'&&x&&(x.hot||x.el==='fire')?'playhot':k0; return CH[k]||PICK_DEFAULT[k]||PICK_DEFAULT.admin; };
+  window.__chc=chc;
   const kvx=x=>{ const k=chc(x); return `--fill:color-mix(in srgb,${k[0]} 52%,#FBF8F4);--edge:${k[0]};--dc:${k[0]}`; };   /* a pastel fill and a deep edge, so the glyphs read */
   /* wellness as dots, one to three, so a row can be heart and water at once (her words: it could be 2 or 3 wellness
      areas, and that is how we show balance) */
@@ -724,7 +732,9 @@ function today(){
   const NAMES={eat:'eating and drinking',move:'moving',personal:'personal care',recreation:'recreation',travel:'travel',
     work:'professional work',family:'family care',pet:'pet care',home:'home care',cook:'making',drive:'driving',system:'be•do',flow:'dawn and dusk',moment:'moments'};
   const on=new Set(all.map(x=>kind(x.cat))), grp=(t,ks)=>{ const h=ks.filter(k=>on.has(k)); return h.length?`<b>${t}</b>`+h.map(k=>`<span style="${kv(k)}"><i></i>${NAMES[k]}</span>`).join(''):''; };
-  const legend=`<div class="legend"><span><b>events</b>&nbsp;your Google Calendar colours while ahead; once past, the colour of how the time went, still a link to the calendar</span></div><div class="legend"><b>time</b>${Object.values(CH).map(k=>`<span><i style="background:color-mix(in srgb,${k[0]} 52%,#FBF8F4);border-color:${k[0]}"></i>${k[2]}</span>`).join('')}</div><div class="legend"><b>wellness</b>${['heart','mind','body','spirit','water','air','earth','fire'].map(k=>`<span>${wicon(k,14)}&nbsp;${k}</span>`).join('')}<span><i style="background:var(--card);border:2px solid var(--k-moment)"></i>gold edge · the highlight or a glimmer</span></div>`;
+  /* the key, folded: swatches and glyphs only (7 Nov 2026, her words: this key has a whole lot of unnecessary and
+     confusing text; what I really want is to click on an event and get all the relevant info) */
+  const legend=`<details class="legend-key"><summary>key</summary><div class="legend">${Object.values(CH).map(k=>`<span><i style="background:color-mix(in srgb,${k[0]} 52%,#FBF8F4);border-color:${k[0]}"></i>${esc(String(k[2]).split(' · ')[0])}</span>`).join('')}</div><div class="legend">${['heart','mind','body','spirit','water','air','earth','fire'].map(k=>`<span>${wicon(k,14)}&nbsp;${k}</span>`).join('')}</div></details>`;
   if(nowM!=null&&nowM>=h0*60&&nowM<=h1*60) g+=`<div class="now" style="top:${y(nowM)}px"></div>`;
   el.innerHTML=(I.length?`<p class="say"><small>your intention</small>${I.map(esc).join('<br>')}</p>`:'')
     +`<div class="sth"><h2>my stream</h2>${folded||window.__showall?`<button class="fold" onclick="window.__showall=!window.__showall;draw()">${window.__showall?'fold the routine away':`show everything · ${folded} more`}</button>`:''}</div>`
@@ -800,9 +810,12 @@ function sheet(x){
       +(rest.length?`<details class="sess"><summary>the rest · ${rest.length}</summary><ul class="sess">${rest.map(li).join('')}</ul></details>`:'')
       +`<div class="det sd">Each one is about ${(x.list[0]||{}).sz||15} minutes by default — be•do has no history of how long these take yet.</div></div>`;
     requestAnimationFrame(()=>s.classList.add('on')); s.querySelector('.x').onclick=()=>s.classList.remove('on'); return; }
-  s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${x.s?t12(x.s):'later'}</div>`
+  const kind=x.k==='lived'&&window.__chc?window.__chc(x):null, wl=[x.el,x.el2].filter(k=>k&&WDOM[k]);
+  const chips=x.k==='lived'?`<div class="chips">${kind?`<span class="chip"><i style="background:${kind[0]}"></i>${esc(String(kind[2]).split(' · ')[0])}</span>`:''}${wl.map(k=>`<span class="chip">${wicon(k,15)} ${k}</span>`).join('')}${x.felt_word?`<span class="chip">${esc(x.felt_word)}</span>`:''}${x.drive?`<span class="chip">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</span>`:''}</div>`:'';
+  s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${x.s?t12(x.s):'later'}${x.k==='lived'&&x.e>x.s+1?`<br>${t12(x.e)}`:''}</div>`
     +`<div class="ttl">${x.k==='event'?'🗓️ ':`<span class="bx${done?' ok':''}"></span>${x.k==='step'||x.act?'<span class="bolt">⚡</span>':''}`}${esc(x.t)}</div>`
-    +(x.drive?`<div class="dv">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</div>`:'')
+    +chips+(()=>{ const w=String(x.who||'').split(',').map(n=>n.trim()).filter(n=>n&&n!==D.me); return w.length?`<div class="who">👥 with ${esc(w.join(', '))}</div>`:''; })()+(x.her?`<div class="her">${esc(x.her).replace(/https?:\/\/[^\s<]+/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]} ↗</a>`)}</div>`:'')
+    +(x.drive&&x.k!=='lived'?`<div class="dv">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</div>`:'')
     +(x.k==='lived'?'':(x.nx?`<div class="nx">${esc(x.nx.replace(/\s*\((?:https?|claude):[^)]*\)|\s*(?:https?|claude):\/\/\S+/g,''))}</div>`:`<div class="nx none">no next step named yet</div>`))
     +(L?`<div class="lks">${L}</div>`:'')
     +(x.wait?`<div class="wt">⏸ waiting on ${esc(x.wait)}</div>`:'')
