@@ -293,10 +293,18 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
         if a.date() != today or not e.get('when'):
             continue
         b = clock(today, e.get('end')) or a + dt.timedelta(hours=1)
+        # put on the calendar the same day it happened: last-minute (6 Nov 2026, her words:
+        # it was definitely an event that should have been on the calendar; it was just a last-minute thing)
+        made = CREATED.get(re.search(r'[?&]eid=([^&#]+)', e.get('link') or '') and re.search(r'[?&]eid=([^&#]+)', e.get('link')).group(1))
+        lastmin = bool(made) and (dt.datetime.fromisoformat(made.replace('Z', '+00:00')) + off).date() == today
         summ = e.get('summary') or ''
         items.append(dict(k='event', t=e.get('title') or summ, a=hm(a), b=hm(b), drive=e.get('drive'), who=e.get('who'),
                           done=summ.startswith(('✅', '✔')), link=e.get('link'), cat='event',
-                          summary=summ, where=e.get('where') or None, color=e.get('color'), meet=e.get('meet')))
+                          summary=summ, where=e.get('where') or None, color=e.get('color'), lastmin=lastmin,
+                          # an event out in town with other people is no solo work block (6 Nov 2026, her words: the
+                          # Expo center event needs to be highlighted better): only her office or a call stays light
+                          meet=e.get('meet') or bool((e.get('where') or '').strip()
+                                                     and not re.search(r'(?i)office|teams|zoom|virtual', e.get('where') or ''))))
         if e.get('link'):
             links.add(e['link'].split('&')[0])
         if e.get('match'):
@@ -317,6 +325,17 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
                                              and x['link'].split('&')[0] == ev.split('&')[0]), None)
             if mine is not None:
                 mine.setdefault('links', []).extend(links_of(c, F))
+                mine['el'] = mine.get('el') or wellness_of(c, F)   # once it has happened, the event wears its row's element
+                mine['cat'] = kind_of(c, F, flows, C)   # and its time chunk
+                mine['el2'] = mine.get('el2') or second_element(c, F)
+                # what happened wins over what was scheduled (6 Nov 2026, her words: why is there a gap between
+                # the game and the drive home — we hung out at the end of the game): the event's own row, done,
+                # stretches the card to the row's real start and end
+                if st not in OPEN and c.get(F['when']) and c.get(F['end']):
+                    ra, rb = to(c[F['when']]), to(c[F['end']])
+                    if ra.date() == today and rb > ra and rb - ra <= dt.timedelta(hours=6):
+                        mine['a'] = hm(ra); mine['b'] = hm(rb)
+                mine.setdefault('rids', []).append(r['id'])   # its photos ride on the event's card too
                 if st not in OPEN and _norm(title) != _norm(mine.get('t')):
                     mine.setdefault('covers', []).append(re.sub(r'^⚡\s*', '', title))
             continue
@@ -346,17 +365,75 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
         if st in NOT_LIVED or not c.get(F['when']):            # skipped, dropped, a potential
             continue
         a = to(c[F['when']])
-        if a.date() != today or low(c.get(F['practice'])) in SLEEP:
+        if low(c.get(F['practice'])) in SLEEP:
+            # sleep is on the timeline too, clipped to the day: the night before at the start, tonight at the end
+            # (6 Nov 2026, her words: I want to know when was I sleeping; that should go on my timeline)
+            if c.get(F['end']):
+                z = to(c[F['end']])
+                d0 = a.replace(year=today.year, month=today.month, day=today.day, hour=0, minute=0, second=0, microsecond=0)
+                d1 = d0 + dt.timedelta(hours=23, minutes=59)
+                sa, sb = max(a, d0), min(z, d1)
+                if sb > sa and sb - sa >= dt.timedelta(minutes=20):
+                    t12 = lambda d: f"{d.hour % 12 or 12}:{d.minute:02d} {'AM' if d.hour < 12 else 'PM'}"
+                    items.append(dict(k='lived', t=f'😴 sleep {t12(sa)}–{t12(sb)}', a=hm(sa), b=hm(sb), drive='', done=True, cat='sleep',
+                                      rid=None, links=None, act=False, pt=False, felt=False, el='body', el2=None, mom=False))
+            continue
+        if a.date() != today:
             continue
         real = end and to(end) > a and to(end) - a <= dt.timedelta(hours=6)
         b = to(end) if real else a + dt.timedelta(minutes=10)
+        # a session entry with several stretches keeps its first start and no end; its `stretches:` line holds
+        # her real time, so draw each stretch (6 Nov 2026, her words: a lot of gaps in the afternoon)
+        sm = None if real else re.search(r'(?im)^stretches:\s*(.+)$', c.get(F['details']) or '')
+        spans = re.findall(r'(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})', sm.group(1)) if sm else []
+        if len(spans) > 1:
+            base = a.replace(hour=0, minute=0, second=0, microsecond=0)
+            def at(h, m, after):
+                ms = [base + dt.timedelta(minutes=(int(h) % 12) * 60 + int(m) + k) for k in (0, 720)]
+                ok = [x for x in ms if x >= after - dt.timedelta(minutes=5)]
+                return min(ok) if ok else ms[-1]
+            prev = a
+            for h1, m1, h2, m2 in spans:
+                sa = at(h1, m1, prev); sb = at(h2, m2, sa)
+                if sb <= sa or sb - sa > dt.timedelta(hours=6):
+                    continue
+                # no tick while the session's notes still list open work (7 Nov 2026, her words: I didn't finish that page)
+                # a card, never the ground band an hour-long action becomes: a session's stretch sits among the
+                # other work it ran beside, so it reads as a card with its tick in the title
+                items.append(dict(k='lived', t=('✅ ' if st == '✅ done' and not re.search(r'(?im)^still open', c.get(F['details']) or '') else '') + t, a=hm(sa), b=hm(sb), drive=rh, done=True,
+                                  cat='stretch',
+                                  rid=r['id'] if sa == at(*spans[0][:2], a) else None, links=links_of(c, F) or None,
+                                  act=False, pt=False,
+                                  felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD))
+                prev = sb
+            continue
         items.append(dict(k='lived', t=t, a=hm(a), b=hm(b), drive=rh, done=True, cat=kind_of(c, F, flows, C), rid=r['id'],
                           links=links_of(c, F) or None,
                           act=st == '✅ done', pt=not real,
                           # a feeling or a keeper photo marks what mattered (2 Nov 2026): it stays when the hour folds
-                          felt=bool(F.get('emotion') and c.get(F['emotion'])),
+                          felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD,
                           keeper=bool(F.get('photo') and 'keeper' in str(c.get(F['photo']) or ''))))   # an action she finished, drawn with its green check (2 Nov 2026)
-    return fold_into_events(sorted(items, key=lambda x: (x['a'], x['k'] != 'event')))
+    return star_the_highlight(fold_into_events(sorted(items, key=lambda x: (x['a'], x['k'] != 'event'))))
+
+
+def star_the_highlight(items):
+    """The highlight is drawn on the moment it names, at its own time (6 Nov 2026, her words: mark the actual event that
+    was the highlight, not when I chose the highlight): a ⭐ highlight row whose words name an earlier card stars that
+    card and is not drawn again at the hour she said it."""
+    stop = {'the', 'and', 'with', 'for', 'was', 'that', 'there', 'him', 'her', 'his', 'highlight', 'game', 'everyone'}
+    words = lambda t: {w for w in re.findall(r"[a-z][a-z']{2,}", (t or '').lower()) if w not in stop}
+    out = []
+    for x in items:
+        if x.get('k') == 'lived' and re.match(r'^\W*⭐', x.get('t') or ''):
+            hw = words(x['t'])
+            cands = [o for o in items if o is not x and o.get('a', '99') < x.get('a', '') and o.get('k') in ('event', 'lived')
+                     and len(hw & words((o.get('summary') or '') + ' ' + o.get('t', '') + ' ' + ' '.join(o.get('covers') or []))) >= 1]
+            if cands:
+                best = max(cands, key=lambda o: (len(hw & words((o.get('summary') or '') + ' ' + o.get('t', ''))), o.get('k') == 'event'))
+                best['star'] = True
+                continue
+        out.append(x)
+    return out
 
 
 def links_of(c, F):
@@ -367,6 +444,52 @@ def links_of(c, F):
                 'the page' if 'claude.ai' in u else 'deliverable')
         out.append(dict(l=kind, u=u))
     return out
+
+
+def _created_map():
+    import base64
+    out = {}
+    for f in glob.glob(os.path.join(os.environ.get('BEDO_CAL_DIR') or 'cal', '*.json')):
+        try:
+            d = json.load(open(f, encoding='utf-8'))
+        except (OSError, ValueError):
+            continue
+        for e in (d.get('events') or []) if isinstance(d, dict) else []:
+            if e.get('created') and e.get('htmlLink'):
+                m = re.search(r'[?&]eid=([^&#]+)', e['htmlLink'])
+                if m:
+                    out[m.group(1)] = e['created']
+    return out
+
+
+CREATED = _created_map()
+
+
+def wellness_of(c, F):
+    """The row's wellness element, one word (heart, mind, body, spirit, water, air, earth, fire), or None."""
+    g = c.get(F['wellness']) if F.get('wellness') else None
+    g = g.get('name') if isinstance(g, dict) else g
+    m = re.search(r'(heart|mind|body|spirit|water|air|earth|fire)', (g or '').lower())
+    return m.group(1) if m else None
+
+
+def second_element(c, F):
+    """A second element (6 Nov 2026, her pick: a main element and a second, drawn as a split): for now a
+    `second element: 🌊 water` line in the row's words or [be•do] block, until the stream has a field for it."""
+    m = re.search(r'(?im)^\W*second element:\s*\W*(heart|mind|body|spirit|water|air|earth|fire)\b', c.get(F['details']) or '')
+    return m.group(1).lower() if m else None
+
+
+GOLD = {'highlight', 'glimmer', 'milestone'}   # gold marks what mattered, nothing else (6 Nov 2026)
+
+
+class _Gold(set):
+    # anyone's highlight practice (a family member's highlight, say) is gold too
+    def __contains__(self, x):
+        return super().__contains__(x) or (isinstance(x, str) and x.endswith('highlight'))
+
+
+GOLD = _Gold(GOLD)
 
 
 def _norm(t):
@@ -390,6 +513,12 @@ def fold_into_events(items, start_min=10, end_min=5):
             xa, xb = mm(x['a']), mm(x['b'])
             same = bool(en) and _norm(x['t']) == en and xa < eb and ea < xb
             inside = e.get('who') in (None, 'you') and ea <= xa <= ea + start_min and xb <= eb + end_min
+            # a row inside two events goes to the one that starts nearest it (6 Nov 2026, her words: the Expo center
+            # event needs to be highlighted better — a free ticket-email event at 5 had swallowed the open house at 5:15)
+            if inside and not same and any(o is not e and o.get('who') in (None, 'you') and xa - mm(o['b']) < 0
+                                           and abs(xa - mm(o['a'])) < abs(xa - ea) and mm(o['a']) <= xa <= mm(o['a']) + start_min
+                                           and xb <= mm(o['b']) + end_min for o in evs):
+                continue
             if same or inside:
                 gone.add(id(x))
                 e.setdefault('rids', []).append(x.get('rid'))
@@ -436,13 +565,25 @@ def photos_onto(items, today, rows, F, off, folder, me=''):
         pe = g(c, 'person')
         lived.append(dict(id=r['id'], title=c.get(F['title']) or '', practice=g(c, 'practice') or '',
                           person=', '.join(pe) if isinstance(pe, list) else (pe or ''), photo=g(c, 'photo'),
-                          details=c.get(F['details']) or '', photo_links=g(c, 'photo_links') or '', _a=a, _b=b))
+                          details=c.get(F['details']) or '', photo_links=g(c, 'photo_links') or '', _a=a, _b=b,
+                          felt=bool(g(c, 'emotion'))))
     placed, _ = bedo_photos.place(lived, pics, me)
     # selective, as the day behind is (2 Nov 2026, her words: less photos is good, like no more than six)
     # a row that names its photos holds only those (5 Nov 2026, her words: I really don't want to see a picture of
     # the TV on the wall — it was placed on the show's row by its time, though the row linked another)
     placed = [p for p in placed if p['row'] and (not bedo_photos.linked(p['row']) or p['file'] in bedo_photos.linked(p['row']))]
-    placed, _ = bedo_photos.select([p for p in placed if p['keeper'] and p['row']], me)
+    # one photo a card, as the day behind keeps it (never two of one moment), so six reach six moments
+    seen, one = set(), []
+    for p in sorted([p for p in placed if p['keeper'] and p['row']], key=lambda p: (not p.get('linked'), p['t'])):
+        k = p['row']['id']
+        if k not in seen or (p['row'].get('felt') and not p.get('file') and sum(x['row']['id'] == k for x in one) < 2):
+            seen.add(k); one.append(p)
+    # a moment she named a feeling for ranks with a moment with people (6 Nov 2026: the open house was very
+    # important, meaningful, and its one photo was losing its place to a photo someone sent her)
+    for p in one:
+        if p['row'].get('felt') and not [x for x in (p['row'].get('person') or '').split(',') if x.strip() and x.strip() != me]:
+            p['row'] = dict(p['row'], person=(p['row'].get('person') or '') + ', (felt)')
+    placed, _ = bedo_photos.select(sorted(one, key=lambda p: p['t']), me, n=int(os.environ.get('BEDO_DAY_PHOTOS') or 0) or None)
     card = {}
     for x in items:
         for rid in [x.get('rid')] + (x.get('rids') or []):
