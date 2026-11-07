@@ -9,6 +9,7 @@
   "event_aliases": {},
   "work_parents": [],
   "tending": [],
+  "time_goals": {"sleep": 8, "work": 4, "movement": 2, "food": 1},
   "sunday_morning": "reflection",
   "sunday_morning_until": "12:00",
   "saturday_lead": "",
