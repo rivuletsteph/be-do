@@ -573,7 +573,7 @@ function today(){
      is ground only at three hours or more (a party); someone else's long event (Greenhouse) still at two */
   /* a long stretch of one thing is ground under the day, named at the top, never a card that swallows the hours (7 Nov
      2026: her Copilot work from getting home until about 10 PM) */
-  const bands=all.filter(x=>(x.k==='event'&&x.e-x.s>=(x.who==='you'?180:120))||(x.k==='lived'&&x.cat!=='stretch'&&x.cat!=='sleep'&&((x.act&&x.e-x.s>=60)||x.e-x.s>=180)));
+  const bands=all.filter(x=>(x.k==='event'&&x.e-x.s>=(x.who==='you'?180:120))||(x.k==='lived'&&x.cat!=='stretch'&&!x.column&&x.cat!=='sleep'&&((x.act&&x.e-x.s>=60)||x.e-x.s>=180)));
   /* what she has done stays where it happened; what's ahead is laid end to end from the clock */
   /* what's done reads as a list in time (2 Nov 2026, her words: show me my day flow, up to date, for what I've
      already accomplished): an event already over joins the done side, so it never covers what she did in it,
@@ -632,7 +632,8 @@ function today(){
      every card in it has room for its words, so a five-minute step never sits on the one after it */
   const PX=72, MINH=26, minOf=px=>px*60/PX, need=x=>(x.photos&&x.photos.length)?56:past.includes(x)?MINH+4:(x.pick&&x.why?64:48);
   /* the past as it was: two things at once sit side by side, as the calendar does */
-  const cols=[]; past.forEach(x=>{ x.de=x.e; if(x.cat==='stretch'){ x.col=0; return; } let c=0; while(cols[c]&&cols[c]>x.s) c++; cols[c]=x.de; x.col=c; });
+  const isCol=x=>x.cat==='stretch'||x.column;
+  const cols=[]; past.forEach(x=>{ x.de=x.e; if(isCol(x)){ x.col=0; return; } let c=0; while(cols[c]&&cols[c]>x.s) c++; cols[c]=x.de; x.col=c; });
   /* every card in a run of overlapping ones shares one width, so three at once never sit on each other (4 Nov 2026);
      three or more at once are one card (5 Nov 2026, her words: I wanted to see them combined): the longest of them
      names it — an action she finished first — and the others are its lines, their photos together on it */
@@ -649,16 +650,20 @@ function today(){
       else run.forEach(o=>o.n=n); run=[]; };
     /* a chat she kept open beside other things is never folded into them, and never joins them into one card (7 Nov 2026:
        a two-hour phone session through a walk, lunch and work made one card of 10 AM to 2 PM): it keeps its own column */
-    past.forEach(x=>{ if(x.k==='event'||x.cat==='stretch'){ return; } if(run.length&&x.s>=end) close(); run.push(x); end=Math.max(end,x.de); }); if(run.length) close();
+    past.forEach(x=>{ if(x.k==='event'||isCol(x)){ return; } if(run.length&&x.s>=end) close(); run.push(x); end=Math.max(end,x.de); }); if(run.length) close();
     /* a calendar event keeps its own card at its own times, beside what she did meanwhile (6 Nov 2026, her words: the
        meeting only went 30 minutes) */
     past.filter(x=>x.k==='event').forEach(x=>{ const o=past.filter(p=>p!==x&&!p.stk&&p.s<x.de&&x.s<p.de); if(o.length){ x.n=2; x.col=0; o.forEach(p=>{ p.n=Math.max(p.n||1,2); if(p.col===0) p.col=1; }); } else { x.n=1; x.col=0; } });
     STACKS.forEach(st=>{ if(past.some(x=>x.k==='event'&&x.s<st.e&&st.s<x.de)){ st.card.n=2; st.card.col=1; st.m.forEach(o=>{o.n=2;o.col=1;}); } });
-    /* each chat stretch takes the column after whatever it ran beside */
-    past.filter(x=>x.cat==='stretch').forEach(x=>{
-      const o=past.filter(p=>p!==x&&p.cat!=='stretch'&&p.s<x.de&&x.s<p.de), cards=[...new Set(o.map(p=>p.stk?p.stk.card:p))];
-      const k=cards.length?Math.max(...cards.map(c=>(c.n||1))):0; x.col=k; x.n=k+1;
-      cards.forEach(c=>{ c.n=k+1; if(c.combo) c.n=k+1; }); o.forEach(p=>{ p.n=k+1; }); }); }
+    /* each chat stretch, and each long running effort, takes the column after whatever it ran beside, the longest first;
+       two of them at once sit side by side */
+    const placed=[];
+    past.filter(isCol).sort((a,b)=>(b.de-b.s)-(a.de-a.s)).forEach(x=>{
+      const ov=p=>p!==x&&p.s<x.de&&x.s<p.de;
+      const o=past.filter(p=>ov(p)&&!isCol(p)), cards=[...new Set(o.map(p=>p.stk?p.stk.card:p))], pc=placed.filter(ov);
+      const k=Math.max(cards.length?Math.max(...cards.map(c=>(c.n||1))):0, pc.length?Math.max(...pc.map(p=>p.col+1)):0), n=k+1;
+      x.col=k; x.n=n; cards.forEach(c=>{ c.n=Math.max(c.n||1,n); }); o.forEach(p=>{ p.n=Math.max(p.n||1,n); }); pc.forEach(p=>{ p.n=Math.max(p.n,n); });
+      placed.push(x); }); }
   const cuts=[...new Set([h0*60,h1*60,...(nowM!=null?[nowM]:[]),...Array.from({length:h1-h0+1},(_,i)=>(h0+i)*60),...all.map(x=>x.s),...all.map(x=>x.e),...its.map(x=>x.s),...its.map(x=>x.e)].filter(m=>m>=h0*60&&m<=h1*60))].sort((a,b)=>a-b);
   const PXP=18;   /* an hour already gone is short: it only grows to fit what's kept in it */
   const segH=cuts.slice(1).map((m,i)=>(m-cuts[i])*(nowM!=null&&m<=nowM?PXP:PX)/60);

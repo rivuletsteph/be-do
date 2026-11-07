@@ -441,35 +441,18 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
     return star_the_highlight(fold_into_events(fill_between(sorted(items, key=lambda x: (x['a'], x['k'] != 'event')))))
 
 
-def fill_between(items, long_min=180, least=10):
-    """A long stretch of one thing she did whenever nothing else was going on fills the gaps between the rest, as
-    cards of its own (7 Nov 2026, her words: I was working on the nlgca budget justification from the time we got home
-    until I sent the email … whenever I wasn't eating or doing something else obvious; this is still too
-    sparse, I've been really clear about what I was working on). Drawn as a ground band it read as empty time. Every
-    other lived card holds its own minutes (a moment sits beside, as it always does); what is left, ten minutes or
-    more, is the long stretch, each piece with its title and the first with its row."""
+def fill_between(items, long_min=180):
+    """A long stretch of one thing she did whenever nothing else was going on is one running column beside the rest
+    (7 Nov 2026, her words: I was working on the nlgca budget justification from the time we got home until I sent the
+    email … whenever I wasn't eating or doing something else obvious; it would make sense to have that as a whole
+    running effort during that time, a column instead of a bunch of different entries). Drawn as a ground band it read
+    as empty time. A 📝 log row (be•do's own catch-all for time she describes in her words) runs from half that length."""
     mm = lambda t: int(t[:2]) * 60 + int(t[3:5])
-    hm = lambda m: f'{m // 60:02d}:{m % 60:02d}'
-    out = []
     for x in items:
-        if not (x.get('k') == 'lived' and not x.get('act') and x.get('cat') not in ('sleep', 'stretch', 'moment')
-                and not x.get('pt') and mm(x['b']) - mm(x['a']) >= long_min):
-            out.append(x)
-            continue
-        a0, b0 = mm(x['a']), mm(x['b'])
-        busy = sorted((max(a0, mm(o['a'])), min(b0, max(mm(o['b']), mm(o['a']) + 10))) for o in items
-                      if o is not x and o.get('k') == 'lived' and o.get('cat') not in ('moment', 'sleep')
-                      and mm(o['a']) < b0 and max(mm(o['b']), mm(o['a']) + 10) > a0)
-        at, pieces = a0, []
-        for s_, e_ in busy:
-            if s_ - at >= least:
-                pieces.append((at, s_))
-            at = max(at, e_)
-        if b0 - at >= least:
-            pieces.append((at, b0))
-        for i, (s_, e_) in enumerate(pieces):
-            out.append(dict(x, a=hm(s_), b=hm(e_), rid=x.get('rid') if i == 0 else None, piece=i, filled=True))
-    return sorted(out, key=lambda x: (x['a'], x['k'] != 'event'))
+        if (x.get('k') == 'lived' and not x.get('act') and x.get('cat') not in ('sleep', 'stretch', 'moment')
+                and not x.get('pt') and mm(x['b']) - mm(x['a']) >= (long_min // 2 if (x.get('t') or '').startswith('📝') else long_min)):
+            x['column'] = True
+    return items
 
 
 def star_the_highlight(items):

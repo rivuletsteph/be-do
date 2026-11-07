@@ -129,13 +129,11 @@ def main():
     assert flow.kind_of(cell('Home Drive'), K, frozenset(), C) == 'family'
     assert flow.kind_of(dict(cell('Data Hub'), pr='🍽️ lunch'), K, frozenset(), C) == 'eat'
 
-    # a long stretch done whenever nothing else was going on fills the gaps between the rest (7 Nov 2026)
+    # a long stretch done whenever nothing else was going on is one running column (7 Nov 2026)
     L_ = lambda t, a, b, **k: dict(dict(k='lived', t=t, a=a, b=b, cat='work', pt=False), **k)
-    out = flow.fill_between([L_('long work', '15:40', '20:05', rid='r1'), L_('supper', '17:20', '17:50', cat='eat'),
-                             L_('a glimmer', '18:00', '18:05', cat='moment'), L_('a note', '19:00', '19:00', pt=True)])
-    work = [(x['a'], x['b']) for x in out if x['t'] == 'long work']
-    assert work == [('15:40', '17:20'), ('17:50', '19:00'), ('19:10', '20:05')], work
-    assert [x.get('rid') for x in out if x['t'] == 'long work'] == ['r1', None, None]
+    out = flow.fill_between([L_('long work', '15:40', '20:05'), L_('📝 evening work', '20:05', '22:00'),
+                             L_('supper', '17:20', '17:50', cat='eat'), L_('a walk', '10:00', '11:50', cat='move')])
+    assert [x['t'] for x in out if x.get('column')] == ['long work', '📝 evening work'], out
 
     # every day page carries the download button (261106_download): the viewer's save prompt, else a Blob download
     for eng in (os.path.join(HERE, '..', 'assets', 'flow_engine.html'),
@@ -145,7 +143,7 @@ def main():
 
     print('ok — balance is evenness, a goal is her first sentence, buffer counts what is late that morning, '
           'the day holds her free hours, a size is a guess off the words, a session batches one kind at its time, '
-          'an event is drawn once with what it covered, a work drive is work, every day page can download itself, a long stretch fills the gaps')
+          'an event is drawn once with what it covered, a work drive is work, every day page can download itself, a long stretch is one column')
 
 
 if __name__ == '__main__':
