@@ -355,6 +355,11 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
             continue
         t = re.sub(r'^⚡\s*', '', title)
         end = c.get(F['end'])
+        # a session entry still ▶️ in motion is time she spent today: drawn as lived (7 Nov 2026: a Nectar chat at 6:15 PM
+        # was missing from the page because its row stays open for the step after it)
+        if st == '▶️ in motion' and c.get(F['when']) and c.get(F['end']) and to(c[F['when']]).date() == today \
+                and 'written by session-entry' in (c.get(F['details']) or ''):
+            st = '● log'
         if st in OPEN:                                         # a step still to do, at its time today
             tg = c.get(F['target'])
             if not tg or to(tg).date() != today:
@@ -371,7 +376,10 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
             why = (picks or {}).get(r['id']) or (picks or {}).get(c.get(F['key']) or '')
             nx = [ln.split(':', 1)[1].strip() for ln in (c.get(F['details']) or '').split('\n')
                   if re.match(r'(?i)^\s*next( step)?:', ln)]
-            items.append(dict(k='step', t=t, a=hm(a), b=hm(b), drive=rh, done=False, nx=nx[-1] if nx else None,
+            # worked on today and still in motion is not the same as didn't happen (7 Nov 2026, her words: several things
+            # on here should have been reconciled during the QA before this got printed)
+            worked = st == '▶️ in motion' and bool(c.get(F['when'])) and to(c[F['when']]).date() == today
+            items.append(dict(k='step', t=t, a=hm(a), b=hm(b), drive=rh, done=False, nx=nx[-1] if nx else None, worked=worked,
                               key=c.get(F['key']) or None, rid=r['id'],
                               sized=not m or 'guess' in m.group(0).lower(),
                               cat=kind_of(c, F, flows, C), pick=why is not None, why=why or None))

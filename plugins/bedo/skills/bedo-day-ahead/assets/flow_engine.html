@@ -526,15 +526,18 @@ function intention(blocks){
      next step. A tap opens its card. */
   const el=document.getElementById('int'); const nt=t=>String(t||'').replace(/^⚡\s*/,'').trim();
   const onCal=new Set((window.__cards||[]).map(x=>nt(x.t)));
-  const late=(window.__nofit||[]).map(x=>({t:x.t,drive:x.drive,sz:x.e-x.s,nx:x.nx,x}));
-  const rest=stars(blocks).filter(s=>!onCal.has(nt(s.a.t))&&!late.some(l=>nt(l.t)===nt(s.a.t))&&!/be•do/.test(s.on))
+  const over_=new Date().toLocaleDateString('en-CA')>D.day;
+  /* a day that is over lists only what was open at its end, reconciled: a session block is only a container, and a step
+     worked on today and still in motion says so (7 Nov 2026, her words: several things on here should have been
+     reconciled during the QA before this got printed). The easiest next steps for later days belong to the day ahead. */
+  const late=(window.__nofit||[]).filter(x=>!(over_&&x.session)).map(x=>({t:x.t,drive:x.drive,sz:x.e-x.s,nx:x.nx,worked:x.worked,x}));
+  const rest=over_?[]:stars(blocks).filter(s=>!onCal.has(nt(s.a.t))&&!late.some(l=>nt(l.t)===nt(s.a.t))&&!/be•do/.test(s.on))
     .map(s=>({t:s.a.t,drive:s.on.trim(),sz:s.a.sz,nx:s.a.nx||null,c:s.c}));
   const all=late.concat(rest), hmz=m=>m>=60?`${Math.floor(m/60)} h${m%60?' '+(m%60)+' min':''}`:`${m} min`;
   if(!all.length){ el.innerHTML=''; return; }
-  const over_=new Date().toLocaleDateString('en-CA')>D.day;
   const free=`<p class="how">${over_?'the day is over; these were open at its end and wait for a time':'the calendar above holds what fits today; these wait for a time'}</p>`;
   el.innerHTML=`<h2>${over_?'still open':'not on today\'s calendar'}</h2>${free}<ul class="nf">${all.map((s,i)=>{ const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===s.drive||(s.drive||'').endsWith(r.n));
-    return `<li data-n="${i}" style="--dc:${col((d&&d.c)||s.c)}"><span class="st">${esc(nt(s.t))}</span><small>${i<late.length?(over_?'didn\'t happen · ':'doesn\'t fit today · '):''}${esc(s.drive||'')}${s.sz?' · about '+hmz(s.sz):''}</small></li>`; }).join('')}</ul>`;
+    return `<li data-n="${i}" style="--dc:${col((d&&d.c)||s.c)}"><span class="st">${esc(nt(s.t))}</span><small>${i<late.length?(over_?(s.worked?'worked on today, still in motion · ':'didn\'t happen · '):'doesn\'t fit today · '):''}${esc(s.drive||'')}${s.sz?' · about '+hmz(s.sz):''}</small></li>`; }).join('')}</ul>`;
   el.querySelectorAll('.nf li').forEach(li=>li.onclick=()=>{ const s=all[+li.dataset.n]; const x=s.x||{k:'step',t:s.t,drive:(s.drive||'').replace(/^\S+\s/,''),nx:s.nx,s:0,e:s.sz||0};
     sheet(Object.assign({},x,{s:x.s||0})); });
 }
@@ -555,6 +558,15 @@ function today(){
      on, drawn behind them; every other event and step is laid end to end in time order, nothing open before
      the clock (she can't go back), each at its own time or as soon as the one before it ends. */
   const all=S.map(x=>({...x,s:min(x.a),e:Math.max(min(x.b),min(x.a)+(x.k==='lived'?(x.pt?10:1):15))}));
+  /* someone else's long event out in town has two moments she can't miss: the drop-off and the pick-up (7 Nov 2026, her
+     words: pick up and drop off are important events on my calendar on Fridays, but they're implied — those are things I just can't miss). Each is its own card in the calendar's colour, while it
+     is still ahead; once past, her own rows (the drive there, the pick-up) are the record */
+  const ahead_=t=>now.toLocaleDateString('en-CA')<D.day||(nowM!=null&&t>nowM);
+  all.filter(x=>x.k==='event'&&x.who&&x.who!=='you'&&x.where&&x.e-x.s>=120).forEach(x=>{
+    const nm=String(x.summary||x.t||'').replace(/^\s*(⬜|✅|✔️|✔)\uFE0F?/,'').trim(), lk=x.link;
+    const one=(w,t,a)=>({...x,t:w+' · '+nm,summary:w+' · '+nm,s:t,e:t+15,a,b:a,handoff:true,star:false,covers:null,photos:null,links:lk?[{l:'calendar event',u:lk}]:null});
+    if(ahead_(x.s)) all.push(one('drop-off',x.s,x.a));
+    if(ahead_(x.e)) all.push(one('pick-up',x.e,x.b)); });
   /* a long event, or a block of hers already done that holds other things (her prep window), is ground */
   /* her own meetings stay cards in their calendar colour (4 Nov 2026, her words: the precipitation check and the
      Louisiana work are purple like on my calendar, but it seems to be missing the work weekly): an event of hers
