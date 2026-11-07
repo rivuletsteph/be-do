@@ -42,9 +42,15 @@ def test_report():
     rep = g.report(WATCH, g.collect(WATCH, fetch), {"2"}, TODAY, 12)
     soon = rep["soon"]
     assert [r["number"] for r in soon] == ["USDA-NIFA-NLGCA-011938"]
-    assert soon[0]["days_left"] == 4 and soon[0]["applied_before"]["year"] == 2024
+    assert soon[0]["days_left"] == 4 and soon[0]["applied_before"][0]["year"] == 2024
     assert sorted(soon[0]["matched"]) == ["agency: USDA-NIFA", "applied: USDA-NIFA-NLGCA"]
     assert rep["new"] == []                      # id 2 was seen last week
     assert "3" not in [r["id"] for r in soon + rep["new"]]   # closed: dropped
     assert "4" not in rep["seen"] or all(r["id"] != "4" for r in soon)  # ignored agency
     assert g.text(rep).count("Far & away") == 0  # beyond the window, not new
+
+
+def test_every_past_cycle_is_named():
+    w = dict(WATCH, applied=WATCH["applied"] + [{"number": "USDA-NIFA-NLGCA-011938", "year": 2026, "status": "not submitted"}])
+    rep = g.report(w, g.collect(w, fetch), set(), TODAY, 12)
+    assert "applied 2024 declined; 2026 not submitted" in g.text(rep)

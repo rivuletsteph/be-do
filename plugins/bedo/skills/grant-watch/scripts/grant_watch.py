@@ -82,7 +82,10 @@ def collect(watch, fetch=search):
 
 def report(watch, found, seen, today, weeks):
     horizon = today + dt.timedelta(weeks=weeks)
-    applied = {prefix(a.get("number")): a for a in watch.get("applied", []) if a.get("number")}
+    applied = {}
+    for a in watch.get("applied", []):
+        if a.get("number"):
+            applied.setdefault(prefix(a["number"]), []).append(a)
     skip = set(watch.get("ignore", []))
     skip_agency = set(watch.get("ignore_agencies", []))
     rows = []
@@ -103,7 +106,9 @@ def report(watch, found, seen, today, weeks):
             "days_left": (close - today).days if close else None,
             "soon": bool(close and close <= horizon),
             "new": h["id"] not in seen,
-            "applied_before": ({k: past.get(k) for k in ("year", "status", "role")} if past else None),
+            "applied_before": ([{k: a.get(k) for k in ("year", "status", "role")}
+                                for a in sorted(past, key=lambda a: str(a.get("year")))]
+                               if past else None),
             "matched": sorted(set(h["matched"])),
             "link": VIEW.format(id=h["id"]),
         })
@@ -125,8 +130,8 @@ def line(r):
     if r["new"]:
         tags.append("new")
     if r["applied_before"]:
-        a = r["applied_before"]
-        tags.append(f"applied {a.get('year') or '?'}, {a.get('status') or '?'}")
+        tags.append("applied " + "; ".join(f"{a.get('year') or '?'} {a.get('status') or '?'}"
+                                           for a in r["applied_before"]))
     tag = f" [{', '.join(tags)}]" if tags else ""
     return f"- {r['title']} · {r['agency']} · {r['number']} · {when}{tag}\n  {r['link']}"
 
