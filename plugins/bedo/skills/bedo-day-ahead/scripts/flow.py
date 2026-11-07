@@ -432,13 +432,34 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
                                   felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD))
                 prev = sb
             continue
-        items.append(dict(**opens_to(c, F), k='lived', t=t, a=hm(a), b=hm(b), drive=rh, done=True, cat=kind_of(c, F, flows, C), rid=r['id'],
+        items.append(dict(**opens_to(c, F), phase=(C.get('_phase') or {}).get(low(c.get(F['practice']))), k='lived', t=t, a=hm(a), b=hm(b), drive=rh, done=True, cat=kind_of(c, F, flows, C), rid=r['id'],
                           links=links_of(c, F) or None,
                           act=st == '✅ done', pt=not real,
                           # a feeling or a keeper photo marks what mattered (2 Nov 2026): it stays when the hour folds
                           felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD,
                           keeper=bool(F.get('photo') and 'keeper' in str(c.get(F['photo']) or ''))))   # an action she finished, drawn with its green check (2 Nov 2026)
-    return star_the_highlight(fold_into_events(fold_done_plans(fill_between(sorted(items, key=lambda x: (x['a'], x['k'] != 'event'))))))
+    return star_the_highlight(fold_into_events(fold_done_plans(fill_between(flow_cards(sorted(items, key=lambda x: (x['a'], x['k'] != 'event')))))))
+
+
+def flow_cards(items):
+    """Each flow is one card from its first step to its close (7 Nov 2026, her words: my dawn flow and dusk flow are completely
+    missing — every step is a moment, so the page folded them away). The card is a column beside the day and lists its
+    steps; a step with a kind of its own (the morning movement, the water) keeps its card too, and only the flow's own
+    moments (a check, a close) fold into it. The card takes no minutes in how the time went: its steps already do."""
+    mm = lambda t: int(t[:2]) * 60 + int(t[3:5])
+    out = list(items)
+    for ph in sorted({x.get('phase') for x in items if x.get('phase')}, key=lambda p: 'dusk' in p):
+        steps = [x for x in items if x.get('phase') == ph and x.get('k') == 'lived']
+        if len(steps) < 2:
+            continue
+        a, b = min(mm(x['a']) for x in steps), max(mm(x['b']) for x in steps)
+        name = re.sub(r'^\W*', '', ph)
+        out.append(dict(k='lived', t=f"{ph.split()[0]} {name} flow · {len(steps)} steps", a=f'{a // 60:02d}:{a % 60:02d}',
+                        b=f'{b // 60:02d}:{b % 60:02d}', drive='', done=True, cat='flow', column=True, nopie=True, flowcard=True,
+                        rid=None, links=None, act=False, pt=False, el=None, el2=None,
+                        members=[dict(t=x['t'], s=mm(x['a']), e=mm(x['b']), act=x.get('act')) for x in steps]))
+        out = [x for x in out if not (x.get('phase') == ph and x.get('cat') == 'flow' and x.get('pt'))]
+    return sorted(out, key=lambda x: (x['a'], x['k'] != 'event'))
 
 
 def fold_done_plans(items, before=15):
@@ -738,7 +759,8 @@ def build(D, rows, rhythms_read, L, behind_dir):
     data['calcolors'] = L.get('calendar_colors') or {}   # each calendar's own colour, as Google shows it
     data['intentions'] = [x for x in (D.get('intentions') or []) if x]
     data['schedule'] = schedule_of(today, rows, today_page, F, off, set(L.get('hide_drives') or []),
-                                   L.get('_flows') or frozenset(), with_drives(care_settings(L), W, L), L.get('_picks'))
+                                   L.get('_flows') or frozenset(), dict(with_drives(care_settings(L), W, L), _phase=L.get('_phase') or {}),
+                                   L.get('_picks'))
     # each card opens to what the 28 Oct day ahead showed (2 Nov 2026, her words: it would be so awesome to
     # have the day ahead show the detail about the next steps and everything the way that day ahead did):
     # her words on the row and its ways in (the chat, the deliverable, the links), from card 1's steps
@@ -812,6 +834,21 @@ def build(D, rows, rhythms_read, L, behind_dir):
     return data
 
 
+def phases_of(dd, L):
+    """Each flow practice's phase (dawn or dusk), from the catalog read, when her settings name the catalog's `phase` field."""
+    PF = (L.get('fields') or {}).get('practices') or {}
+    path = os.path.join(dd, 'practices.json')
+    if not PF.get('phase') or not os.path.exists(path):
+        return {}
+    out = {}
+    for r in json.load(open(path, encoding='utf-8')).get('records') or []:
+        c = r.get('cellValuesByFieldId') or {}
+        ph = c.get(PF['phase']); ph = ph.get('name') if isinstance(ph, dict) else ph
+        if ph and re.search(r'dawn|dusk', str(ph)) and c.get(PF.get('active'), True) is not False:
+            out[low(c.get(PF['name']))] = ph
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--day-ahead', required=True)
@@ -836,6 +873,8 @@ def main():
                 seen.add(r['id']); rows.append(r)
     rhythms_read = json.load(open(os.path.join(dd, 'rhythms.json'), encoding='utf-8'))['records']
     L['_picks'] = dict((p.split('::', 1) + [''])[:2] for p in a.pick)
+    L['_phase'] = phases_of(dd, L)
+    L['_flows'] = frozenset(L['_phase'])
     tops = [tuple((t.split('::', 1) + [''])[:2]) for t in a.session_top]
     L['_sessions'] = [dict(session_arg(s), top=tops) for s in a.session]
     L['_photos'] = a.photos

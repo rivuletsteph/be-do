@@ -873,7 +873,7 @@ function sheet(x){
       +((x.photos||[]).length?`<div class="phs">${photosOf(x)}</div>`:'')
       +(mv?`<div class="ball">moved ${esc(x.drive)} forward <b>+${mv}%</b></div>`:'')
       +(th?`<div class="her">${esc(th)}</div>`:'')
-      +`<div class="chips">${kind?`<span class="chip"><i style="background:${kind[0]}"></i>${esc(String(kind[2]).split(' · ')[0])}</span>`:''}${wl.map(k=>`<span class="chip">${wicon(k,15)} ${k}</span>`).join('')}${x.felt_word?`<span class="chip">${esc(x.felt_word)}</span>`:''}${x.drive?`<span class="chip">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</span>`:`<span class="chip none">no drive or rhythm yet</span>`}${who.length?`<span class="chip">👥 ${esc(who.join(', '))}</span>`:''}</div>`
+      +(x.flowcard?'':`<div class="chips">${kind?`<span class="chip"><i style="background:${kind[0]}"></i>${esc(String(kind[2]).split(' · ')[0])}</span>`:''}${wl.map(k=>`<span class="chip">${wicon(k,15)} ${k}</span>`).join('')}${x.felt_word?`<span class="chip">${esc(x.felt_word)}</span>`:''}${x.drive?`<span class="chip">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</span>`:`<span class="chip none">no drive or rhythm yet</span>`}${who.length?`<span class="chip">👥 ${esc(who.join(', '))}</span>`:''}</div>`)
       +(x.members&&x.members.length?`<ul class="inside">${x.members.map(m=>`<li>${m.act?'✅ ':''}${esc(m.t)} <small>${t12(m.s)}–${t12(m.e)}</small>${delivOf(m).map(l=>` <a class="dlk" href="${esc(l.u)}" target="_blank" rel="noopener">📎 ${esc(l.l)}</a>`).join('')}</li>`).join('')}</ul>`:'')
       +`</div>`;
     requestAnimationFrame(()=>s.classList.add('on')); s.querySelector('.x').onclick=()=>s.classList.remove('on'); return; }
@@ -974,7 +974,7 @@ function spent(){
   const el=document.getElementById('spent'); if(!el||!window.__chc) return;
   const mm=t=>{ const [h,m]=String(t).split(':').map(Number); return h*60+m; };
   const now=new Date(), today=now.toLocaleDateString('en-CA')===D.day, ahead0=today?now.getHours()*60+now.getMinutes():1440;
-  const iv=[]; (D.schedule||[]).forEach(x=>{ if(!(x.k==='lived'||(x.k==='event'&&x.done&&x.cat&&x.cat!=='event'))||x.pt||x.cat==='moment') return;
+  const iv=[]; (D.schedule||[]).forEach(x=>{ if(!(x.k==='lived'||(x.k==='event'&&x.done&&x.cat&&x.cat!=='event'))||x.pt||x.nopie||x.cat==='moment') return;
     const k=window.__chc(x), a=Math.max(0,mm(x.a)), b=Math.min(1440,mm(x.b)); if(b>a) iv.push([a,b,k]); });
   if(!iv.length){ el.innerHTML=''; return; }
   const by={};
