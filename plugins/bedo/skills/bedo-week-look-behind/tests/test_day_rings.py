@@ -368,3 +368,21 @@ from week_look_behind import split_places  # noqa: E402
 what, where = split_places(ROWS + STAYS)
 assert where == STAYS and what == ROWS
 print('ok — a 📍 stay is where, not what: the rings, the wheel and the who card are the same with it; the page sets it apart')
+
+# One set of time for the timeline and the wheel (7 Nov 2026): with `time_kinds: "nine"` the bands hold work, care,
+# food, movement, calm and energetic play, travel and be•do. Personal care is care, prep is food, driving is travel,
+# play with a 🟡/🔴 feeling is energetic, and be•do counts its flows.
+L9 = dict(L, time_kinds='nine')
+N9 = ROWS + [row('🥣 dinner prep', '17:30', '18:00', title='soup for us'),
+             row('🎲 game', '19:10', '19:40', emotion=['🟡 high energy, pleasant'], title='tag in the yard')]
+R9 = day_rings(N9, DAY, L9, flows={'morning mantra', 'highlight'}, not_lived={'⬜ intention'})
+K9 = {b['k']: {k['k']: k['min'] for k in b['kinds']} for b in R9['bands']}
+assert R9['nine'] and not R['nine']
+assert set(K9['being']) == {'food', 'move', 'calm', 'energetic', 'travel'}, K9['being']
+assert set(K9['doing']) == {'work', 'care', 'system'}, K9['doing']
+assert K9['being']['energetic'] == 30                              # the game of tag
+assert K9['being']['food'] >= 30 + 15                              # the prep and the lunch
+assert K9['being']['travel'] >= 60 + 30                            # the flight and the drives
+assert K9['doing']['care'] >= 20                                   # the shower is care
+assert K9['doing']['system'] >= sum(1 for _ in range(5))           # the flow step counts toward be•do
+print('ok — the nine: care holds personal care, food holds prep, travel holds driving, energetic play, be•do with its flows')

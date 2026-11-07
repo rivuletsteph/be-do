@@ -740,7 +740,7 @@ const wicon=(k,s)=>`<svg viewBox="0 0 20 20" width="${s}" height="${s}" aria-hid
 /* one family (6 Nov 2026, her words: make all of these colors look like they go together): every hue at one OKLCH lightness
    and chroma (L .76, C .12), sleep a night indigo, travel an asphalt grey, admin a quiet background; yellow sits lighter so it reads yellow */
 const PICKS={work:["#A272D4"],care:["#D06091"],food:["#3DA454"],move:["#DCBC33"],play:["#009ECD"],playhot:["#D46A34"],travel:["#757B81"],admin:["#D9CFC3"],sleep:["#403F7B"]};
-const PICK_NAMES={playhot:'play, energetic',sleep:'sleep',food:'food · eating and prep',move:'movement',care:'care · family, pets, home, you',work:'work · your profession',travel:'travelling',play:'connection, play, reflection, adventures · calm',admin:'be•do and life admin'};
+const PICK_NAMES={playhot:'energetic play',sleep:'sleep',food:'food · eating and prep',move:'movement',care:'care',work:'work',travel:'travel',play:'calm play',admin:'be•do'};
 const PICK_DEFAULT=Object.fromEntries(Object.keys(PICKS).map(k=>[k,[PICKS[k][0],PICKS[k][0],PICK_NAMES[k]]]));
 
 

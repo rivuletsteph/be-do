@@ -219,6 +219,10 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
     # no row covers is not alone; it is with the household, unless a row there names no one or only her
     default_with = 'family' if household and L.get('with_family_by_default', True) else 'alone'
     system = L.get('system_rhythm') or 'be•do'
+    # one set of time for the timeline and the wheel (7 Nov 2026, her words: I want to make a decision so they're
+    # consistent ... really easy to go between the timeline and the wheel): `time_kinds: "nine"` draws and counts
+    # work, care, food, movement, calm play, energetic play, travel, be•do and sleep, as the my day page does
+    nine = L.get('time_kinds') == 'nine'
     shared = (bedo_reader.FACTS.get('garden') or {}).get('shared_pattern')
 
     def local(ts):
@@ -250,6 +254,7 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
     zero_pr = {low(x) for x in (L.get('zero_practices') or ())}
     mentioned = []                       # people named in the day's rows, whether or not they were there
     lived = []                          # (a, b, row) for the synergy read
+    HOT = [False] * 1440                # play with energy in it: a 🟡/🔴 feeling or fire (the my day page's own rule)
 
     def paint(arr, kind, a, b, t=None, own=False):
         i, j = max(0, mins(a)), min(1440, mins(b))
@@ -335,12 +340,19 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
             nights.append(dict(a=max(0, mins(a)), b=min(1440, mins(b)), inbed=int((b - a).total_seconds() // 60),
                                asleep=asleep_min(r.get('details')), ra=mins(a), rb=mins(b)))
         said = ((r.get('title') or '') + ' ' + (r.get('details') or '').split('———')[0]).lower()
+        hot = wk == 'fire' or bool(re.search(r'🟡|🔴|high energy', str(r.get('emotion') or '')))
+        if hot and span:
+            for pa, pb in pieces:
+                for m in range(max(0, mins(pa)), min(1440, mins(pb))):
+                    HOT[m] = True
         # making is cooking she creates, and any making (28 Oct); quick food is care for whoever it fed
         quick = pr in COOK and pr not in MAKE and not any(w in said for w in MADE)
         if (pr in COOK or pr in MAKE) and not quick:
             paint('cook', 'cook', a, bb, t)
-        if pr in EAT:
-            paint('eat', 'eat', a, bb, t)
+        if pr in EAT or (nine and quick):
+            paint('eat', 'eat', a, bb, t)            # food is eating and its prep, under nine (7 Nov 2026)
+        if nine and quick:
+            quick = False                            # its prep is food, never care too
         if pr in MOVE:
             paint('move', 'move', a, bb, t)
         rh, who = (r.get('rhythm') or ''), names(r.get('person'))
@@ -502,6 +514,35 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         care_of = [x for x in care_of if x[1]]
         sets['doing'] = [(s - CARE_KINDS) | ({'care'} if s & CARE_KINDS else set()) for s in sets['doing']]
     sources = {'flow': ('flow',), 'being': ('eat', 'move', 'personal', 'recreation', 'travel'), 'doing': ('work', 'cook', 'drive'), 'screen': ('screen',)}
+    as_kind = lambda k, m: k   # noqa: E731  (a source row's kind as the band names it)
+    if nine:
+        # the nine (7 Nov 2026): personal care is care, every care is one care; eating and prep are food; driving and
+        # being carried are travel; recreation, social time and making are play, energetic where the row held a
+        # 🟡/🔴 feeling or fire, calm otherwise; the flows and be•do sessions are be•do. Sleep is the night under it all.
+        PLAY = {'recreation', 'social', 'cook'}
+        play = lambda m: 'energetic' if HOT[m] else 'calm'   # noqa: E731
+        def as_kind(k, m):
+            return ('care' if k in CARE_KINDS or k == 'personal' else 'food' if k == 'eat' else
+                    'travel' if k == 'drive' else play(m) if k in PLAY else k)
+        bands_def = [('flow', 'be•do', [('flow', 'dawn and dusk')]),
+                     ('being', 'Being', [('food', 'food'), ('move', 'movement'), ('calm', 'calm play'),
+                                         ('energetic', 'energetic play'), ('travel', 'travel')]),
+                     ('doing', 'Doing', [('work', 'work'), ('care', 'care'), ('system', 'be•do')]),
+                     ('screen', 'On a screen', [('screen', 'on a screen')])]
+        order = {k: [kk for kk, _ in kinds] for k, _, kinds in bands_def}
+        care_of = sorted(([kk, sum(1 for m in range(1440) if kk in WK[m] or (kk == 'personal' and A['personal'][m]))]
+                          for kk in ('family', 'community', 'pet', 'home', 'personal')), key=lambda x: -x[1])
+        care_of = [x for x in care_of if x[1]]
+        being, doing = [], []
+        for m in range(1440):
+            bs = {as_kind(k, m) for k in (A['eat'][m], A['move'][m], A['recreation'][m], A['cook'][m],
+                                          A['travel'][m], A['drive'][m]) if k}
+            ds = {as_kind(k, m) for k in WK[m]} | ({'care'} if A['personal'][m] else set())
+            being.append(bs)
+            doing.append(ds)
+        sets['being'], sets['doing'] = being, doing
+        sources = {'flow': ('flow',), 'being': ('eat', 'move', 'recreation', 'cook', 'travel', 'drive'),
+                   'doing': ('work', 'personal'), 'screen': ('screen',)}
 
     def runs(band):
         key = [tuple(k for k in order[band] if k in s) for s in sets[band]] + [()]
@@ -514,7 +555,7 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         for run in out:                       # what the chunk was: its own kind's rows, in order
             for m in range(run[1], run[2]):
                 for k, t in (y for s in sources[band] for y in seen_titles.get((s, m), [])):
-                    if (k == run[0] or (run[0] == 'care' and k in CARE_KINDS)) and t not in run[3]:
+                    if (as_kind(k, m) == run[0] or (run[0] == 'care' and k in CARE_KINDS)) and t not in run[3]:
                         run[3].append(t)
             run[3] = run[3][:4]
         return out
@@ -533,6 +574,11 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
                           kinds=[dict(k=kk, n=nn, min=round(sum(weight(m, kk, s) for m, s in enumerate(ss) if kk in s)),
                                       **({'of': care_of} if kk == 'care' else {}))
                                  for kk, nn in kinds]))
+    if nine:   # be•do counts its flows too: one bar, the time the system took (7 Nov 2026)
+        for bd in bands:
+            for kd in bd['kinds']:
+                if bd['k'] == 'doing' and kd['k'] == 'system':
+                    kd['min'] = sum(1 for m in range(1440) if 'system' in sets['doing'][m] or sets['flow'][m])
     # synergy, as her words say it: a stretch where two things at once helped each other, or got in each
     # other's way (28 Oct: "it would be neat to show that on the graphic")
     synergy, at_once = [], [sum(len(sets[k][m]) for k in ('being', 'doing')) for m in range(1440)]
@@ -649,4 +695,4 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
                 inbed_day=night['inbed'], asleep_day=night['asleep'], asleep_from=night['source'],
                 ideal_bed=goals.get('inbed') or IDEAL_BED, span=SPAN, bands=bands, win=win, goals=goals,
                 moments=sorted(moments, key=lambda x: x['m']), theirs=sorted(theirs, key=lambda x: x['a']),
-                synergy=synergy, with_others=with_others, who=who_card, energy=energy)
+                synergy=synergy, with_others=with_others, who=who_card, energy=energy, nine=nine)
