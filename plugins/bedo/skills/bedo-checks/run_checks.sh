@@ -10,6 +10,8 @@
 #   bash run_checks.sh places    --stays stays.json [--json]   # the map check: her Timeline screenshot's stays as 📍 rows, new places to ask
 #   bash run_checks.sh dayqa     YYYY-MM-DD [--calendar day.json …] [--photos folder.json] [--sleep oura.json] [--sessions chats.json] [--json]
 #                                # be•do's calls on the day first (bedo_categorize), the day's records read, then one list to accept
+#   bash run_checks.sh daygate   YYYY-MM-DD [--rows day.json]   # look_behind.day_ahead_first: the day ahead final and the
+#                                # day QA'd, before any day behind (6 Nov 2026); exits 1 while the gate is closed
 #   bash run_checks.sh entry     row.json [--base "w41 be•do"] [--chat MMDD] [--catalog practices.json] [--rhythms rhythms.json] [--day today.json]
 #                                # MMDD: a my day chat's date, from its title; the catalog and rhythms let it deduce
 #                                # wellness and know a flow step; the day's rows let it see two things at once
@@ -33,6 +35,7 @@
 #   meals     --day today.json
 #   places    --stays stays.json --day today.json --places places.json
 #   dayqa     --day today.json --catalog practices.json --rhythms rhythms.json --connections connections.json
+#   daygate   --rows day.json   (the day's rows and the next morning's: its 👁️ look ahead row and its dusk close row)
 # A command given no files and no token says so and exits 3.
 #
 # Overrides: BC_DIR (where the core is kept, default ~/bedo-checks),
@@ -123,6 +126,11 @@ case "$CMD" in
     D=${1:?usage: run_checks.sh dayqa YYYY-MM-DD [--json] [files]}; shift
     if live_or_files "--day today.json --catalog practices.json --rhythms rhythms.json --connections connections.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_dayqa.py" --date "$D" "$@" ;;
+  daygate)    # 6 Nov 2026, her words: finish the day ahead, make sure you QA it, then do the day behind
+    [ -d "$W/core" ] || fetch_core; find_local
+    D=${1:?usage: run_checks.sh daygate YYYY-MM-DD [--rows day.json]}; shift
+    if live_or_files "--rows day.json" "$@"; then set -- --live "$@"; fi
+    "$PY" "$W/core/bedo_daygate.py" check --date "$D" "$@" ;;
   order)
     [ -d "$W/core" ] || fetch_core; find_local
     if has_files "$@"; then :; elif (cd "$W/core" && "$PY" -c 'import bedo_air, sys; sys.exit(0 if bedo_air.can_read() else 1)'); then set -- --live "$@"
@@ -197,5 +205,5 @@ E
   usage)      # 4 Nov 2026: what the checks spend, so the plan can be sized from real numbers
     [ -d "$W/core" ] || fetch_core
     "$PY" "$W/core/bedo_air.py" usage "$@" ;;
-  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|entry|stretches|order|close|calendar|inbox|chats|usage [args]"; exit 2 ;;
+  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|daygate|entry|stretches|order|close|calendar|inbox|chats|usage [args]"; exit 2 ;;
 esac

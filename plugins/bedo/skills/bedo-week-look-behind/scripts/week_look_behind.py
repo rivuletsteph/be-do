@@ -33,6 +33,7 @@ import bedo_photos  # noqa: E402
 import bedo_forecast  # noqa: E402
 import bedo_categorize  # noqa: E402
 import bedo_dayaudit  # noqa: E402
+import bedo_daygate  # noqa: E402
 from day_rings import day_rings  # noqa: E402
 
 STREAM_KEYS = ('title', 'key', 'when', 'end', 'status', 'rhythm')
@@ -839,6 +840,10 @@ def main():
     if words and words.get('day') not in (None, day.isoformat()):
         die(f"{a.words} holds the words for {words.get('day')}, not {day}")
     rows, reads = load(a.stream, F)
+    if a.day:   # the day ahead first, then its QA, then the day behind (her amendment, 6 Nov 2026): no way around it
+        closed = bedo_daygate.refusal(rows, day)
+        if closed:
+            die(closed)
     rows, places = split_places(rows)
     if not a.day:
         missing = unqad(rows, sun)

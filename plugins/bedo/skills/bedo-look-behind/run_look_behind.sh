@@ -3,10 +3,17 @@
 # except the digest the lead and story are written from.
 #
 #   bash run_look_behind.sh prep  YYYY-MM-DD           # fetch + print the day's digest
+#   bash run_look_behind.sh gate  YYYY-MM-DD           # the day ahead first: is the day ahead final and the day QA'd?
 #   bash run_look_behind.sh qa    YYYY-MM-DD           # the QA list to clear before building (no page)
 #   bash run_look_behind.sh build YYYY-MM-DD           # after the words are written: the day page (rainbow, moments, stream)
 #   bash run_look_behind.sh canon YYYY-MM-DD <secure>  # the old canon page (21 Sep 2026), kept for comparison
 #   bash run_look_behind.sh words YYYY-MM-DD [edits…]  # read the lead and story back, or change them
+#
+# The gate (her amendment, 6 Nov 2026: finish the day ahead, make sure you QA it, then do
+# the day behind): `build` and `canon` run `gate` first and stop while it is closed — the
+# day's 👁️ look ahead row carries no `[be•do] day ahead YYYY-MM-DD · final` line, or the
+# dusk close row no `dayqa shown YYYY-MM-DD` line. The builders refuse on the same check,
+# so nothing builds the day behind early (core/bedo_daygate.py, look_behind.day_ahead_first).
 #
 # The words live in words-YYYY-MM-DD.json, written with scripts/words.py (a scheduled
 # run adds --draft). `words` with no edits prints them numbered; with --set-lead,
@@ -77,6 +84,10 @@ if [ "$MODE" = prep ]; then
   "$PY" scripts/bedo_fetch.py --day "$DAY" --local look_behind_local.json "${SECARGS[@]}" --out data
   STREAMS=$(ls -r data/w*.json | sed 's/^/--stream /' | tr '\n' ' ')
   "$PY" scripts/day_digest.py --day "$DAY" --local look_behind_local.json $STREAMS --width 130
+elif [ "$MODE" = gate ]; then
+  need_local
+  STREAMS=$(ls -r data/w*.json | sed 's/^/--stream /' | tr '\n' ' ')
+  "$PY" scripts/bedo_daygate.py check --date "$DAY" --local look_behind_local.json $STREAMS
 elif [ "$MODE" = qa ]; then
   # the checks live in the canon builder; run it for its QA block alone, nothing to publish
   need_local
@@ -89,6 +100,9 @@ elif [ "$MODE" = qa ]; then
 elif [ "$MODE" = build ] || [ "$MODE" = canon ]; then
   need_local
   STREAMS=$(ls -r data/w*.json | sed 's/^/--stream /' | tr '\n' ' ')
+  # the day ahead first, then its QA, then the day behind (6 Nov 2026): closed means no page, whoever asks
+  if ! "$PY" scripts/bedo_daygate.py check --date "$DAY" --local look_behind_local.json $STREAMS; then
+    echo "not built: the day behind for $DAY waits for the day ahead's final version and the day's dayqa"; exit 4; fi
   # the day's own words file, unless a words.json written since is newer (the older habit)
   WORDS=words.json
   if [ -f "words-$DAY.json" ] && { [ ! -f words.json ] || [ "words-$DAY.json" -nt words.json ]; }; then
@@ -140,5 +154,5 @@ elif [ "$MODE" = words ]; then
     if mkdir -p "$OUT" 2>/dev/null; then cp "$DAY-day-behind.html" "$OUT/"
       echo "also copied to $OUT/"; fi;; esac
 else
-  echo "usage: run_look_behind.sh prep|qa|build|canon|words YYYY-MM-DD [secure (canon) | edits… (words)]"; exit 2
+  echo "usage: run_look_behind.sh prep|gate|qa|build|canon|words YYYY-MM-DD [secure (canon) | edits… (words)]"; exit 2
 fi

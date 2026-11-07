@@ -54,6 +54,27 @@ def main():
     assert [p['url'] for p in items2[0]['photos']] == [link('fidTable000001')], items2
     assert flow.photos_onto(items, DAY, rows, F, OFF, None) == 0
     print('ok — a keeper photo lands on its row by link, an info photo stays off, an event carries its rows\' photos')
+    own_row()
+
+
+def own_row():
+    """An event's own row, folded onto its event card, passes its photos on (found 6 Nov 2026, the morning Thursday's
+    day ahead was finished: the card never listed the row's id in its rids, so its keeper never reached the page)."""
+    FF = dict(F, rhythm='rh', event='ev', key='k', target='tg')
+    d = tempfile.mkdtemp()
+    open(os.path.join(d, 'PXL_20260304_231000000.jpg'), 'wb').write(b'\xff\xd8\xff')
+    json.dump({'PXL_20260304_231000000.jpg': 'fidGame0000001'}, open(os.path.join(d, 'index.json'), 'w'))
+    rows = [row('r9', '🏀 the game', '2026-03-04T23:00:00.000Z', '2026-03-05T00:30:00.000Z',
+                pr='🗓️ calendar event', ph='keeper', pl=link('fidGame0000001'))]
+    page = {'events': [{'sort': '2026-03-04T17:00:00', 'when': '5p', 'end': '6:30p', 'title': '🏀 the game',
+                        'match': '🏀 the game', 'link': 'https://calendar.example.invalid/event?eid=ZXhhbXBsZQ'}]}
+    items = flow.schedule_of(DAY, rows, page, FF, OFF, set())
+    card = next(x for x in items if x['k'] == 'event')
+    assert not [x for x in items if x['k'] == 'lived'], items           # the row is the event, drawn once
+    assert 'r9' in (card.get('rids') or []), card                     # and the card holds its id
+    assert flow.photos_onto(items, DAY, rows, FF, OFF, d, me='me') == 1
+    assert [p['url'] for p in card['photos']] == [link('fidGame0000001')], card
+    print('ok — an event\'s own row, folded onto its card, brings its keeper photo with it')
 
 
 if __name__ == '__main__':

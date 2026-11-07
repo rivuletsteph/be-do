@@ -9,6 +9,9 @@
 #        e.g. build 2026-09-28 secure --secure-words "…" --now 07:10 --intention "…"
 #        (twice at dawn: --draft with no intention before the intention check, so the three are
 #         in view; then the final, with her one intention)
+#   bash run_day_ahead.sh final YYYY-MM-DD [version]  # the day done: is the my day page whole (the stream
+#        through bedtime, her keeper photos, built from the last fetch)? Prints the line its 👁️ look ahead
+#        row carries — `[be•do] day ahead YYYY-MM-DD · final · vN` — the day behind's gate (6 Nov 2026)
 #
 # Needs, in the working folder: day_ahead_local.json (or LB_LOCAL pointing at it) and
 # the Airtable token: bedo_secrets.json (there, in the folder above it, or at
@@ -71,7 +74,7 @@ fetch_airtable() {
   "$PY" scripts/bedo_fetch.py --day "$DAY" --local day_ahead_local.json "${SECARGS[@]}" --out data
 }
 
-[ -n "$DAY" ] || { echo "usage: run_day_ahead.sh prep|cal|fetch|build YYYY-MM-DD [secure] [builder args…]"; exit 2; }
+[ -n "$DAY" ] || { echo "usage: run_day_ahead.sh prep|cal|fetch|build|final YYYY-MM-DD [secure] [builder args…]"; exit 2; }
 
 if [ "$MODE" = prep ]; then
   rm -rf be-do-main
@@ -140,6 +143,15 @@ elif [ "$MODE" = build ]; then
   OUT=${LB_OUT:-/mnt/user-data/outputs}
   if mkdir -p "$OUT" 2>/dev/null; then cp "$DAY-day-ahead.html" "$DAY-myday.html" "$OUT/"
     echo "also copied to $OUT/"; fi
+elif [ "$MODE" = final ]; then
+  # her amendment, 6 Nov 2026: finish the day ahead, make sure you QA it, then do the day behind.
+  # Run after the last fetch and build of the day, once the page is republished to its link.
+  need_local
+  ls data/w*.json >/dev/null 2>&1 || { echo "no data/w*.json — run fetch, then build, first"; exit 1; }
+  STREAMS=$(ls -r data/w*.json | sed 's/^/--stream /' | tr '\n' ' ')
+  VER=(); [ -n "${3:-}" ] && VER=(--version "${3#v}")
+  "$PY" scripts/bedo_daygate.py final --date "$DAY" --local day_ahead_local.json $STREAMS \
+    --page "$DAY-myday.html" "${VER[@]}"
 else
-  echo "usage: run_day_ahead.sh prep|cal|fetch|build YYYY-MM-DD [secure] [builder args…]"; exit 2
+  echo "usage: run_day_ahead.sh prep|cal|fetch|build|final YYYY-MM-DD [secure] [builder args…]"; exit 2
 fi

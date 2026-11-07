@@ -24,6 +24,15 @@ day. If a dusk chat did leave words in a look behind row, the routine uses
 them as they stand. The morning chat shows the draft and she edits or accepts
 it there (`SKILL.md`, *Editing is one command*).
 
+**The day ahead comes first** (her amendment, 6 Nov 2026: *finish the day
+ahead. Make sure you QA it, then do the day behind*). On Thu 5 Nov a look
+behind was built at 03:00 before the record was complete, and she caught it.
+The routine builds yesterday only when yesterday's 👁️ look ahead row carries
+`[be•do] day ahead YYYY-MM-DD · final` and its dusk close row carries the
+day's `dayqa shown YYYY-MM-DD …` line (step 3½). At 03:00 the day ahead is
+rarely final — the night's sleep row isn't written yet — so most nights the
+routine stops there, and that is the gate working, not a failure to chase.
+
 **Failures reach her phone, never the page.** The routine is created with push
 notifications on. A run that cannot build publishes nothing — the page keeps
 the last good day — and its final message opens with `FAILED <date>:` and the
@@ -103,6 +112,17 @@ it is the only place the routine looks.
    ```
    If yesterday is not in `to_build`, a final already exists: say so, stop.
    Any older day in `to_build` is named in the account, not built.
+3½. **The gate: the day ahead first** (`look_behind.day_ahead_first`).
+   ```
+   bash run_look_behind.sh gate <yesterday>
+   ```
+   Exit 1 means the gate is closed: yesterday's day ahead has no final line,
+   or its dusk close row no dayqa line. Build nothing and publish nothing —
+   no words, no page, no log row. The account opens `FAILED <date>: the day
+   ahead first —` and copies each `FIX` line. Finishing the day ahead and the
+   QA are the morning chat's (preflight's `first` line offers them); the
+   routine never does either. `build` runs the same check, and the builder
+   refuses on it too, so a skipped step still builds nothing.
 4. **Yesterday:**
    1. **The words, from the dusk row.**
       ```
@@ -165,6 +185,8 @@ it is the only place the routine looks.
 ## What it never does
 
 - Build today. Build from a partial read. Fall back to last week's base.
+- Build a day whose day ahead isn't final, or whose dusk close row carries no
+  dayqa line (6 Nov 2026), or write either line itself to open the gate.
 - Invent a lead or a story from the section totals, or rewrite words the user
   touched.
 - Print a token: it never holds one.

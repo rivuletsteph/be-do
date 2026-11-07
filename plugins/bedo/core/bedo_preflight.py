@@ -29,6 +29,12 @@ returned instead, so the turn pastes it rather than composes it (A219).
              when yesterday's final is there. Otherwise it says plainly that
              yesterday's page wasn't built, and which day the page still shows
              (27 Oct 2026: Sunday's day behind was offered as Monday's).
+             And the day ahead comes first (her amendment, 6 Nov 2026: finish
+             the day ahead, make sure you QA it, then do the day behind): while
+             yesterday's day ahead has no final line or its dusk close row no
+             dayqa line (bedo_daygate, look_behind.day_ahead_first), the line
+             offers to finish the day ahead and run the QA — never to build
+             the day behind, and never shows one built early as yesterday's.
   due        what the skills schedule (facts skills_schedule) says is due now:
              dawn before noon, dusk after 7 PM, the close on Sunday, the ahead
              review by the 5th (20 Oct 2026: so she doesn't have to remember)
@@ -45,6 +51,7 @@ import datetime as dt, glob, json, re, sys
 
 from bedo_reader import FACTS, as_rows, complete, load_local, offset_hours, read_dump
 from bedo_entry import utc, week_number
+import bedo_daygate
 import bedo_rules
 
 MARK = chr(int(FACTS['glyph_codepoints']['mark'][2:], 16))
@@ -162,6 +169,7 @@ def quest_line(local):
             "once he's rested (the page names its day)") if url else None
 
 
+LOG_FIELDS = ('datetime', 'details', 'deliverable', 'practice', 'title')
 LOG_HEAD = re.compile(r'^\[be\u2022do\] look behind (\d{4}-\d{2}-\d{2})(?:\s*\u00b7\s*(draft|final))?\s*$', re.M)
 
 
@@ -176,17 +184,39 @@ def built_pages(rows):
     return out
 
 
-def yesterday_line(day, url, built=None):
+GATE_TODO = {
+    'day ahead': "finish yesterday's day ahead — its my day page rebuilt to the whole day as lived (her keeper "
+                 "photos, the stream through bedtime), republished, then `run_day_ahead.sh final {y}` and its "
+                 "line on the 👁️ look ahead row",
+    'dayqa': "run its QA — `run_checks.sh dayqa {y}` against the finished day, its last line in the dusk close row",
+}
+GATE_MISSING = {'day ahead': "its day ahead isn't final", 'dayqa': "its dayqa isn't in the dusk close row"}
+
+
+def yesterday_line(day, url, built=None, log_rows=None):
     """What the morning chat shows first: yesterday's look behind, and the
     title yesterday's chat takes once she has seen it. `built` is
-    built_pages() of the log rows; None when they could not be read."""
+    built_pages() of the log rows; None when they could not be read.
+    `log_rows` are the same rows (the look behind's log rows, the look ahead
+    rows, the dusk close rows), for the day ahead first gate (6 Nov 2026)."""
     y = day - dt.timedelta(days=1)
     seen = chat_name(y, status=FACTS['chat_status']['window_closed'])
     if built is None:
         return (f'first  yesterday\'s look behind · {url or "the look behind page (no link in the settings)"}'
-                ' — not checked: no log rows were read, so open it and check its date before calling it yesterday\'s\n'
+                ' — not checked: no log rows were read, so open it and check its date before calling it yesterday\'s,'
+                ' and nothing builds it until yesterday\'s day ahead is final and QA\'d (`run_look_behind.sh gate`)\n'
                 f'       once she has seen it, yesterday\'s chat becomes {seen}')
     page, link = built.get(y.isoformat(), (None, None))
+    if log_rows is not None:
+        left = [what for ok, what, _ in bedo_daygate.findings(log_rows, y) if not ok]
+        if left:
+            early = (' A look behind was built before the gate opened: it is premature, so never show it as '
+                     'yesterday\'s.' if page == 'final' else '')
+            return (f'first  yesterday\'s day ahead comes first: {y:%a %d %b} isn\'t ready for its day behind '
+                    f'({" and ".join(GATE_MISSING[w] for w in left)}).{early}\n'
+                    f'       Offer to {", then ".join(GATE_TODO[w].format(y=y.isoformat()) for w in left)}. '
+                    f'Not the day behind: it waits until both are recorded (finish the day ahead, QA it, then the '
+                    f'day behind). {seen} waits until she has seen it')
     if page == 'final':
         return (f'first  yesterday\'s look behind · {link or url or "the look behind page (no link in the settings)"}\n'
                 f'       once she has seen it, yesterday\'s chat becomes {seen}')
@@ -200,13 +230,17 @@ def yesterday_line(day, url, built=None):
 
 def read_log_rows(air, names, day, local):
     """The look behind's log rows from the bases in play, dated from four days
-    before `day`: a handful of rows, details and deliverable only."""
+    before `day` — and the rows the day ahead first gate reads: a final day
+    ahead line (the 👁️ look ahead row) and a dayqa line (the dusk close row).
+    A handful of rows, details, deliverable, practice and title only."""
     sf = local['stream_fields']
     f, d = sf['datetime'], sf['details']
     since = (day - dt.timedelta(days=4)).isoformat()
-    formula = (f"AND(FIND('[be\u2022do] look behind ', {{{d}}}), "
+    finds = ', '.join(f"FIND('{t}', {{{d}}})" for t in ('[be\u2022do] look behind ', bedo_daygate.G['head'] + ' ',
+                                                       bedo_daygate.QA_MARK + ' '))
+    formula = (f"AND(OR({finds}), "
                f"NOT(IS_BEFORE({{{f}}}, DATETIME_PARSE('{since}'))))")
-    fields = {k: sf[k] for k in ('datetime', 'details', 'deliverable') if sf.get(k)}
+    fields = {k: sf[k] for k in LOG_FIELDS if sf.get(k)}
     rows = []
     for name in bases_in_play(day, local):
         if name in names:
@@ -232,7 +266,7 @@ def due(now_local):
 
 
 def report(local, names, rows, now=None, kind='day', part=None, week=None, handoff=None, amendments=None,
-           built=None):
+           built=None, log_rows=None):
     now, now_local, off, probs = clock(local, now)
     day = now_local.date()
     want, bprobs, stop = check_base(names, rows, now, day, local, handoff)
@@ -243,7 +277,7 @@ def report(local, names, rows, now=None, kind='day', part=None, week=None, hando
     if t:
         lines.append(f'newest {(now - t).total_seconds() / 3600:.1f} h ago')
     if kind == 'day':
-        lines.append(yesterday_line(day, look_behind_url(local), built))
+        lines.append(yesterday_line(day, look_behind_url(local), built, log_rows))
         if quest_line(local):
             lines.append(quest_line(local))
     d = due(now_local)
@@ -268,7 +302,8 @@ def main(argv=None):
     ap.add_argument('--week', type=int, help='the week under review, for a my week chat')
     ap.add_argument('--handoff', help='the week\'s handoff file')
     ap.add_argument('--amendments', help='a read of the amendments table')
-    ap.add_argument('--look-behind', help="a read of the look behind's log rows (details and deliverable)")
+    ap.add_argument('--look-behind', help="a read of the look behind's log rows, with the look ahead and dusk close "
+                                          "rows of the last days (details, deliverable, practice): read_log_rows' formula")
     a = ap.parse_args(argv)
     L = load_local()
     fields = {'datetime': L.get('stream_fields', {}).get('datetime', 'datetime')}
@@ -285,7 +320,8 @@ def main(argv=None):
                            formula=f"IS_BEFORE({{{f}}}, NOW())",
                            **{'sort[0][field]': f, 'sort[0][direction]': 'desc'})
             rows = as_rows(src['records'], fields)
-        built = built_pages(read_log_rows(air, names, now_local.date(), L)) if a.kind == 'day' else None
+        log_rows = read_log_rows(air, names, now_local.date(), L) if a.kind == 'day' else None
+        built = built_pages(log_rows) if log_rows is not None else None
         amend = (L.get('bases') or {}).get('amendments')
         st = (L.get('amendments_fields') or {}).get('status', 'status')
         amendments = (bedo_rules.active(air.records(*amend, by_id=bool(L.get('amendments_fields')), ttl=SLOW,
@@ -298,11 +334,11 @@ def main(argv=None):
         rows = stream_rows(a.stream, fields)
         amendments = bedo_rules.active(complete(a.amendments, 'amendments'), L) if a.amendments else None
         sf = L.get('stream_fields') or {}
-        built = (built_pages(as_rows(complete(a.look_behind, 'look behind log rows'),
-                                     {k: sf.get(k, k) for k in ('datetime', 'details', 'deliverable')}))
-                 if a.look_behind else None)
+        log_rows = (as_rows(complete(a.look_behind, 'look behind log rows'), {k: sf.get(k, k) for k in LOG_FIELDS})
+                    if a.look_behind else None)
+        built = built_pages(log_rows) if log_rows is not None else None
     handoff = open(a.handoff, encoding='utf-8').read() if a.handoff else None
-    text, stop = report(L, names, rows, now, a.kind, a.part, a.week, handoff, amendments, built)
+    text, stop = report(L, names, rows, now, a.kind, a.part, a.week, handoff, amendments, built, log_rows)
     print(text)
     sys.exit(1 if stop else 0)
 

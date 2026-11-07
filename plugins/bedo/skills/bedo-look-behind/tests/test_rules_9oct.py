@@ -57,7 +57,19 @@ class Fixture:
         self.row('🌄 dusk flow close', 1300, title='close',
                  details='———\n[be•do] dayqa shown 2026-10-08 21:40 · 3 proposed')
 
-    def build(self, local_over=None, connections=()):
+    def gate(self, which='open'):
+        """The day ahead first (6 Nov 2026), recorded the next morning, so the record is no row of the day:
+        'open' — the final day ahead and the dusk close row's dayqa line; 'final' — the final day ahead only."""
+        nxt = DAY + dt.timedelta(days=1)
+        self.row('👁️ look ahead', iso(8 * 60, nxt), title='look ahead',
+                 details=f'———\n[be•do] day ahead {DAY.isoformat()} · final · v7')
+        if which == 'open':
+            self.row('🌄 dusk flow close', iso(30, nxt), title='close',
+                     details=f'———\n[be•do] closed.\ndayqa shown {DAY.isoformat()} 00:20 · 0 proposed')
+
+    def build(self, local_over=None, connections=(), gate='open', words=True):
+        if gate:
+            self.gate(gate)
         tmp = tempfile.mkdtemp(prefix='lb9-')
 
         def w(name, obj):
@@ -92,7 +104,8 @@ class Fixture:
         args = [sys.executable, BUILDER, '--day', DAY.isoformat(), '--local', w('local.json', local),
                 '--stream', w('w41.json', dump(self.rows)), '--rhythms', w('rhythms.json', dump(rhy)),
                 '--connections', w('connections.json', dump(con)),
-                '--words', w('words.json', {'lead': 'an invented day', 'story': [['🌱', 'invented']]}),
+                *(['--words', w('words.json', {'lead': 'an invented day', 'story': [['🌱', 'invented']]})]
+                  if words else ['--allow-unwritten']),
                 '--template', ENGINE, '--out', os.path.join(tmp, 'page.html')]
         r = subprocess.run(args, capture_output=True, text=True, encoding='utf-8',
                            env=dict(os.environ, PYTHONIOENCODING='utf-8'))
@@ -199,11 +212,45 @@ class Gate(unittest.TestCase):
         self.assertEqual(pie(D)['dev'], 0)
         self.assertEqual(D['balance']['domains']['air'], 1.0)      # its band, not 600 minutes
 
-    def test_the_page_builds_before_dayqa_and_says_so(self):
+    def test_no_page_without_the_day_aheads_final(self):
+        # her amendment, 6 Nov 2026: finish the day ahead, make sure you QA it, then do the day behind
+        f = Fixture(); f.whole_day()                          # QA'd at the dusk close, the day ahead never finished
+        r, D = f.build(gate=None)
+        self.assertIsNone(D)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn('look_behind.day_ahead_first', r.stderr)
+        self.assertIn('no final day ahead for Thu 08 Oct', r.stderr)
+        self.assertNotIn('dayqa:', r.stderr)                  # the QA is there; only the day ahead is named
+
+    def test_no_page_without_the_dayqa_line_in_the_close_row(self):
         f = Fixture()
         f.row('😴 sleep', 0, 420)
-        r, D = f.build()
+        r, D = f.build(gate='final')                          # the day ahead final, the QA never run
+        self.assertIsNone(D)
+        self.assertIn('no `dayqa shown 2026-10-08` line in the dusk close row', r.stderr)
+        self.assertNotIn('no final day ahead', r.stderr)
+        g = Fixture()
+        g.row('😴 sleep', 0, 420)
+        g.row('📝 log', 1290, title='a note', details='———\n[be•do] dayqa shown 2026-10-08 21:30 · 2 proposed')
+        r, D = g.build(gate='final')                          # the line on another row: named, still closed
+        self.assertIsNone(D)
+        self.assertIn('is on a note, not the dusk close row', r.stderr)
+
+    def test_with_both_the_day_behind_builds(self):
+        f = Fixture()
+        f.row('😴 sleep', 0, 420)
+        r, D = f.build(gate='open')
         self.assertIsNotNone(D, r.stderr)
+        self.assertNotIn('day_ahead_first', json.loads(r.stdout[r.stdout.index('{'):])['qa'])
+
+    def test_a_shape_check_writes_no_day_behind_and_names_the_gate(self):
+        # --allow-unwritten (run_look_behind.sh qa): no lead, no story, deleted after; it names the gate in the QA
+        f = Fixture()
+        f.row('😴 sleep', 0, 420)
+        r, D = f.build(gate=None, words=False)
+        self.assertIsNotNone(D, r.stderr)
+        qa = json.loads(r.stdout[r.stdout.index('{'):])['qa']
+        self.assertEqual(len(qa['day_ahead_first']), 2)
         self.assertIn('dayqa has not been shown', self.qa(r))
 
 

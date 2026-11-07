@@ -40,6 +40,7 @@ import bedo_people  # noqa: E402  (the core, beside or three folders up)
 import bedo_drives  # noqa: E402
 import bedo_photos  # noqa: E402
 import bedo_forecast  # noqa: E402
+import bedo_daygate  # noqa: E402  (look_behind.day_ahead_first, 6 Nov 2026)
 from bedo_fill import word as practice_word  # noqa: E402
 
 # The field maps are the base's, not the builder's. install_local() fills them
@@ -359,7 +360,7 @@ def split_do(rows, rhythms, L):
 
 
 # ── the gate ──────────────────────────────────────────────────────────────
-def gate(day_rows, L, day):
+def gate(day_rows, L, day, all_rows=None):
     """What the day is still missing, for the QA block — never a stopped build.
     Her words, 9 Oct: don't stop the process because it's missing some little
     detail that doesn't really matter in the scheme of things. So the page
@@ -380,7 +381,8 @@ def gate(day_rows, L, day):
         if a and b and b - a > dt.timedelta(hours=hours):
             out.append(f'{r["_title"][:40]} spans {(b - a).total_seconds() / 3600:.0f} h '
                        f'({a:%d %b %H:%M} to {b:%d %b %H:%M}), over {hours} h')
-    if not any(GATE['marker'] in (r.get('details') or '') for r in day_rows):
+    # the marker names the day it covers, so a dusk close written after midnight still counts (as in the week's)
+    if not any(f"{GATE['marker']} {day.isoformat()}" in (r.get('details') or '') for r in (all_rows or day_rows)):
         out.append(f'dayqa has not been shown for {day}: run_checks.sh dayqa {day}, show her the list, '
                    f'write what she accepts, and put its marker line ({GATE["marker"]} …) in the dusk close row')
     return out
@@ -459,6 +461,11 @@ def main():
             'Pass them with --words (see SKILL.md), or --allow-unwritten for a shape check.')
 
     rows, chains, latest, reads = load_stream(a.stream)
+    # the day ahead first, then its QA, then the day behind (her amendment, 6 Nov 2026). A page with words
+    # is a day behind, so it refuses; a shape check (--allow-unwritten, no lead, no story) only names it in the QA
+    closed = bedo_daygate.refusal(rows, day)
+    if closed and not a.allow_unwritten:
+        die(closed)
     rhythms, nrh = load_rhythms(a.rhythms)
     practices = load_practices(a.practices, L)
     circles = load_connections(a.connections)
@@ -663,9 +670,11 @@ def main():
     for a_, b_ in zip(work, work[1:]):
         if b_['_s'] < a_['_e']:
             qa['overlapping_work'].append(f"{a_['_title'][:50]} / {b_['_title'][:50]}")
-    missing = gate(day_rows, L, day)
+    missing = gate(day_rows, L, day, rows)
     if missing:
         qa['not_yet_whole'] = missing
+    if closed:
+        qa['day_ahead_first'] = [f'{w}: {y}' for ok, w, y in bedo_daygate.findings(rows, day) if not ok]
     # forecasts due today, from every row read (a forecast rides the split, 20 Oct 2026)
     d0 = dt.datetime.combine(day, dt.time(), dt.timezone.utc) - UTC_OFFSET
     due = bedo_forecast.due_in([dict(r, title=r.get('title') or '') for r in latest.values()],

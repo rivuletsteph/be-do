@@ -60,6 +60,10 @@ ROWS = [
         details='The highlight of my day was lunch by the creek with the sycamores.'),
     row('⚡ action', 'the site report', '15:00', '16:00', status='✅ done', rhythm='Paid Work', deliv='https://example.org/report'),
 ]
+# the day ahead first, then its QA (6 Nov 2026): the record, written the next morning, so it is no row of the day
+ROWS.append({'id': 'recGate1', 'createdTime': '2026-10-07T00:30:00.000Z', 'cellValuesByFieldId': {
+    F['practice']: '🌄 dusk flow close', F['title']: 'close', F['when']: '2026-10-07T00:30:00.000Z', F['status']: '● log',
+    F['details']: f'———\n[be•do] day ahead {DAY} · final · v5\ndayqa shown {DAY} 23:58 · 0 proposed'}})
 PHOTOS = {'PXL_20261006_081400000.jpg': 'fileBed00001', 'PXL_20261006_083000000.jpg': 'fileSwing0001',
           'PXL_20261006_083100000.jpg': None,      # beside the swing, linked by no row: placed only by its time
           'PXL_20261006_130100000.jpg': 'fileCreek001', 'PXL_20261006_131200000.jpg': 'fileCreek002',

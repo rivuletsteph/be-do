@@ -50,6 +50,10 @@ CHECKS = {
     'dayqa.synergy_count': 'bedo_dayqa — two things at once with no answer are counted, never asked the next day',
     'preflight.look_behind_date': "bedo_preflight — yesterday's look behind only when its log row says it was built",
     'look_behind.gate': 'look_behind — no build past 10% rows unfilled, a row over 12 h, or before dayqa was shown',
+    'look_behind.day_ahead_first': ("bedo_daygate + look_behind + week_look_behind + bedo_preflight — no day behind "
+                                    "(the builders, run_look_behind.sh, the 03:00 routine) until the day ahead's final "
+                                    "line is on its look ahead row and the dusk close row carries the day's dayqa line; "
+                                    "preflight offers the day ahead, not the day behind"),
     'look_behind.people': 'look_behind — people only from rows that happened, matched on any alias',
     'look_behind.moving': 'look_behind — movement is Moving, and Moving wins the minute',
     'look_behind.play': 'look_behind — show, movie, video and game are Play, never a drive slice',

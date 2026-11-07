@@ -373,5 +373,12 @@
   "_kept": "Her answer sticks (5 Nov 2026, her words: everything on yours to decide is in motion): when she says keep, the row's [be•do] block takes a line `chat sweep: kept YYYY-MM-DD`, and the quiet days count from the newest of that and the chat's last activity.",
   "finished_statuses": ["✅ done", "✖️ dropped"],
   "routine_tags": ["trigger", "scheduled", "routine"]
+ },
+ "day_ahead_first": {
+  "_about": "6 Nov 2026, her words: I very much want an amendment that makes it clear that finishing the day ahead first is a gate to doing the day behind; finish the day ahead, make sure you QA it, then do the day behind. The gate, for every day: (1) the day's my day page is finished to the whole day as lived, with her keeper photos and the stream through bedtime, and its 👁️ look ahead row's [be•do] block carries the line `[be•do] day ahead YYYY-MM-DD · final` (run_day_ahead.sh final prints it); (2) the dusk close row's [be•do] block carries the day's `dayqa shown YYYY-MM-DD …` line. Only then is the day behind built — by the builders, the 03:00 routine, preflight's morning offer, a branch or a chat alike (check look_behind.day_ahead_first, core/bedo_daygate.py).",
+  "head": "[be•do] day ahead",
+  "states": ["draft", "final"],
+  "bedtime_from": "18:00",
+  "bedtime_until": "12:00"
  }
 }
