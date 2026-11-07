@@ -125,8 +125,10 @@ def page(rep, watch, sheet=None):
     funded = watch.get("funded", [])
 
     def frow(f):
-        ok = (f.get("checked") or "").lower().startswith("yes")
-        mark = '<span class="st funded">checked</span>' if ok else '<span class="st">from Gemini</span>'
+        c = (f.get("checked") or "").lower()
+        mark = ('<span class="st funded">checked</span>' if c.startswith(("yes", "partly"))
+                else '<span class="st submitted">likely</span>' if c.startswith("likely")
+                else '<span class="st">not yet checked</span>')
         src = f'<a href="{E(f["source"])}" target="_blank" rel="noopener">source</a>' if f.get("source") else ""
         return (f'<tr><td>{E(f.get("years") or "")}</td><td>{E(f.get("project") or "")}'
                 f'<div class="meta"><span>{E(f.get("funder") or "")} · {E(f.get("program") or "")}</span></div></td>'
