@@ -559,7 +559,9 @@ function today(){
   /* her own meetings stay cards in their calendar colour (4 Nov 2026, her words: the precipitation check and the
      Louisiana work are purple like on my calendar, but it seems to be missing the work weekly): an event of hers
      is ground only at three hours or more (a party); someone else's long event (Greenhouse) still at two */
-  const bands=all.filter(x=>(x.k==='event'&&x.e-x.s>=(x.who==='you'?180:120))||(x.k==='lived'&&x.act&&x.e-x.s>=60));
+  /* a long stretch of one thing is ground under the day, named at the top, never a card that swallows the hours (7 Nov
+     2026: her Copilot work from getting home until about 10 PM) */
+  const bands=all.filter(x=>(x.k==='event'&&x.e-x.s>=(x.who==='you'?180:120))||(x.k==='lived'&&x.cat!=='stretch'&&x.cat!=='sleep'&&((x.act&&x.e-x.s>=60)||x.e-x.s>=180)));
   /* what she has done stays where it happened; what's ahead is laid end to end from the clock */
   /* what's done reads as a list in time (2 Nov 2026, her words: show me my day flow, up to date, for what I've
      already accomplished): an event already over joins the done side, so it never covers what she did in it,
@@ -688,7 +690,7 @@ function today(){
   const bandTop=[];
   let g=''; const CARDS=window.__cards=[]; const ci=x=>{ CARDS.push(x); return CARDS.length-1; };
   { let last=-99; for(let h=h0;h<=h1;h++){ const t=y(h*60); if(t-last<14) continue; last=t; g+=`<div class="hr" style="top:${t}px"><span>${lab(h)}</span></div>`; } }   /* hours inside the condensed sleep are not labelled */
-  bands.forEach(x=>{ if(x.k!=='event'){ g+=`<div class="band" title="✅ ${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); });
+  bands.forEach(x=>{ if(x.k!=='event'){ g+=`<div class="band" title="${x.act?'✅ ':''}${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; if(x.e-x.s>=180) bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.act?'✅ ':''}${esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); });
   past.forEach(x=>{ const w=100/x.n; let top=y(x.s), h=Math.max(MINH,y(x.e)-y(x.s)-1);
     if(x.stk){ if(x.si) return; const c=x.stk.card; h=Math.max(MINH,y(c.e)-y(c.s)-1);
       const ths=(c.photos||[]).slice(0,4).map(p=>`<img alt="" src="${p.src}">`).join('');

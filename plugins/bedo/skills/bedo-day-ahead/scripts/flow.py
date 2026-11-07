@@ -394,7 +394,10 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
             continue
         if a.date() != today:
             continue
-        real = end and to(end) > a and to(end) - a <= dt.timedelta(hours=6)
+        # a span up to most of a waking day is real (7 Nov 2026: her work from 3:42 to about 10 PM was drawn as ten minutes)
+        # (a session's `stretches:` line still wins over its envelope)
+        long_ok = not re.search(r'(?im)^stretches:', c.get(F['details']) or '')
+        real = end and to(end) > a and to(end) - a <= dt.timedelta(hours=14 if long_ok else 6)
         b = to(end) if real else a + dt.timedelta(minutes=10)
         # a session entry with several stretches keeps its first start and no end; its `stretches:` line holds
         # her real time, so draw each stretch (6 Nov 2026, her words: a lot of gaps in the afternoon)
