@@ -402,6 +402,22 @@ page goes out:
   a simple meal 15, a straightforward dinner 30, a cooked dinner 45) and its
   eating; write them ESTIMATED FROM CONTEXT, then show her the list as what went
   in the record and ask if it's accurate. Timeline beats the defaults.
+- `places` — **the map check writes where she was** (5 Nov 2026, her words: the
+  location on the stream, integrated, with the coordinates kept in the location
+  table, so the system can help her plan the day ahead). Read the day's Timeline
+  screenshot(s) and write what they show as a stays file: one stay per place she
+  stopped, her clock, the place as Timeline names it (or her name for it), its
+  Google place id when the screenshot or Maps gives it, who was there, her words.
+  Leave out home and the drives: home gets no row, and the drives are already
+  their own `🚗 driving` rows. Then `bash run_checks.sh places --stays stays.json`
+  turns each stay into one `📍 location` row (● log, arrived to left, `place: rec…`
+  in the `[be•do]` block), skips any already written, and prints the new places.
+  Write the rows in one batch. **A new place enters the places base only with her
+  yes**: put each `ask` line to her, and on a yes add its row (`place`, `standing`
+  been, `where` in words, `google place id`, and `coordinates` as "lat, lng" from
+  Maps), then patch the stay's `place: new` to its record id. Coordinates never go
+  on a stream row. A 📍 row is where, never what: the page keeps it out of the
+  time, the areas and the rings, and draws it on the day's map.
 - `no_sleep` — no sleep row for last night, so the morning draws as nothing
   logged. Write it from the morning Oura row (in bed to out of bed).
 - And the calendar: read the day's events after the user has corrected them, give

@@ -59,6 +59,7 @@ if [ "$MODE" = prep ]; then
   # the day page is the week builder's --day mode since 25 Oct 2026 (docs/day-behind-cards.md)
   cp be-do-main/plugins/bedo/skills/bedo-week-look-behind/scripts/*.py scripts/
   cp be-do-main/plugins/bedo/skills/bedo-week-look-behind/assets/week_look_behind_engine.html .
+  cp be-do-main/plugins/bedo/skills/bedo-week-look-behind/assets/leaflet-1.9.4.css .   # the day's map carries Leaflet's style in the page
   cp be-do-main/plugins/bedo/core/*.py be-do-main/plugins/bedo/core/facts.json scripts/   # the one reader (I11 I15 I5)
   # an escape hatch: anything in overlay/ wins over the version store for this run
   if [ -d overlay ]; then cp overlay/*.py scripts/ 2>/dev/null || true
@@ -108,8 +109,10 @@ elif [ "$MODE" = build ] || [ "$MODE" = canon ]; then
     CONN=; [ -f data/connections.json ] && CONN="--connections data/connections.json"
     # a picture of each deliverable, when the chat made them (deliverable_thumbs.py --out thumbs-DAY; 4 Nov 2026)
     THUMBS=; [ -f "thumbs-$DAY/index.json" ] && THUMBS="--thumbs thumbs-$DAY"
+    # where she was (5 Nov 2026): the places base puts the day's 📍 stays on a map; without it there is no map
+    PLACES=; [ -f data/places.json ] && PLACES="--places data/places.json"
     "$PY" scripts/week_look_behind.py --day "$DAY" --words "$WORDS" --local look_behind_local.json $STREAMS \
-      --rhythms data/rhythms.json --practices data/practices.json $CONN \
+      --rhythms data/rhythms.json --practices data/practices.json $CONN $PLACES \
       --template week_look_behind_engine.html $PHOTOS $SLEEPARG $THUMBS --out "$DAY-day-behind.html"
   else
   # typical lengths, the median of the user's own timed rows (scripts/typical_time.py)

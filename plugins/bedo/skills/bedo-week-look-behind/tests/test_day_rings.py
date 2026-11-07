@@ -355,3 +355,16 @@ E15 = NIGHT + [row('⚡ action', '16:00', '18:00', wellness='🩷 heart', title=
                row('📝 log', '17:00', '18:00', wellness='🩷 heart', title='the living room after')]   # inside it: once
 assert day_rings(E15, DAY, L)['energy']['min']['heart'] == 120
 print('ok — the wheel counts a minute once per kind, however many rows hold it')
+
+# A 📍 place says where she was, never what (5 Nov 2026): one row per stay, with the
+# people there. Adding stays changes nothing on the rainbow, the wheel or the who card.
+STAYS = [row('📍 location', '09:00', '12:40', title='📍 the office', wellness='🌎 earth', person=['Fern Moss'],
+             status='● log'),
+         row('📍 location', '16:00', '17:00', title='📍 the trampoline park', wellness='🤸‍♀️ body', status='● log')]
+plain, placed = day_rings(ROWS, DAY, L), day_rings(ROWS + STAYS, DAY, L)
+for k in ('bands', 'energy', 'who', 'moments'):
+    assert plain.get(k) == placed.get(k), k
+from week_look_behind import split_places  # noqa: E402
+what, where = split_places(ROWS + STAYS)
+assert where == STAYS and what == ROWS
+print('ok — a 📍 stay is where, not what: the rings, the wheel and the who card are the same with it; the page sets it apart')

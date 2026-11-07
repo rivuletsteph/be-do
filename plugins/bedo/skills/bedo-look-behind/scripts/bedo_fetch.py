@@ -7,7 +7,8 @@ local settings file, and the token from a secrets file that never ships.
         [--secrets bedo_secrets.json] --out .
 
 Writes w##.json (the day's week), w##.json (the week before, when its base
-exists), rhythms.json, practices.json, connections.json. Prints one line per
+exists), rhythms.json, practices.json, connections.json, and places.json when
+the settings name the places base. Prints one line per
 file. Nothing about the rows passes through a chat.
 
 Where the token comes from, in this order:
@@ -189,9 +190,10 @@ def main():
         files[f'w{wk}.json'] = shape(air.records(base, tab[0]['id'], have))
 
     # ── the reference tables ──
-    for name in ('rhythms', 'practices', 'connections'):
+    # places (5 Nov 2026): the location table, whose coordinates put the day's 📍 stays on its map
+    for name in ('rhythms', 'practices', 'connections', 'places'):
         base, table = L.get(f'{name}_base'), L.get(f'{name}_table')
-        if not (base and table):
+        if not (base and table and F.get(name)):
             continue
         fids = list(dict.fromkeys(F[name].values()))
         tmeta = next((t for t in air.tables(base) if t['id'] == table), None)
