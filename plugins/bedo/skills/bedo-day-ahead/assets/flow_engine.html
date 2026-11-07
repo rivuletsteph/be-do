@@ -231,6 +231,13 @@ html[data-bedo="night"] .cal .ev:not(.gcal), html[data-bedo="night"] .cal .ev:no
 .legend b{font:600 10.5px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-right:-4px}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:11px;height:11px;border-radius:3px;background:var(--fill);border:1.5px solid var(--edge)}
+.spc{padding:12px 14px;display:grid;gap:10px}
+.spc hr{border:0;border-top:1px solid var(--rule);margin:2px 0}
+.spr{display:grid;grid-template-columns:8.5rem minmax(0,1fr) 4.4rem;gap:10px;align-items:center}
+.spn{font-size:15px}
+.spb{display:block;height:14px;border-radius:7px;background:var(--card2);overflow:hidden}
+.spb i{display:block;height:100%;border-radius:7px;border:1.5px solid;box-sizing:border-box}
+.spv{font:500 14px var(--mono);text-align:right;color:var(--ink)}
 .mvc{padding:12px 14px;display:grid;gap:14px}
 .mvr .mvn{font-weight:600;font-size:14.5px}
 .mvb{display:flex;height:10px;border-radius:5px;background:var(--rule);overflow:hidden;margin:6px 0 4px}
@@ -305,6 +312,7 @@ html[data-bedo="night"] .td{--k-logged:#4A4540;--k-logged-d:#D9CCBC;--k-stretch:
 <div class="sum" id="sum"></div>
 <p class="hint">each list runs from the easiest next step · tap anything on the flow to follow it · tap again to see all</p></div>
 <div class="focus" id="focus" hidden></div>
+<section class="sp" id="spent"></section>
 <section class="mv" id="moved"></section>
 <section class="wh" id="wheel"></section>
 </main>
@@ -724,7 +732,7 @@ function today(){
      doing care tasks, doing my profession, exercise and movement … earthy colors, not a lot of colors to look at) */
   const CH=PICK_DEFAULT;   /* one scheme, chosen for her (6 Nov 2026, her words: just pick the colors that make the most sense) */
   const chunk=c=>({sleep:'sleep',eat:'food',cook:'food',move:'move',family:'care',pet:'care',home:'care',personal:'care',
-    work:'work',stretch:'work',recreation:'play',moment:'play',travel:'travel',drive:'travel',system:'admin',flow:'admin'})[c]||'admin';   /* travelling is its own kind of time, not admin (her words, 6 Nov) */
+    work:'work',stretch:'work',recreation:'play',moment:'play',travel:'playhot',drive:'playhot',system:'admin',flow:'admin'})[c]||'admin';   /* travelling is its own kind of time, not admin (her words, 6 Nov) */
   const chc=x=>{ const k0=chunk(x&&x.cat), k=k0==='play'&&x&&(x.hot||x.el==='fire')?'playhot':k0; return CH[k]||PICK_DEFAULT[k]||PICK_DEFAULT.admin; };
   window.__chc=chc;
   const kvx=x=>{ const k=chc(x); return `--fill:color-mix(in srgb,${k[0]} 52%,#FBF8F4);--edge:${k[0]};--dc:${k[0]}`; };   /* a pastel fill and a deep edge, so the glyphs read */
@@ -779,7 +787,7 @@ const BLOCK='#AFB6E8';
 const gcol=x=>GC[x.color]||((D.calcolors||{})[x.who])||'#039BE5';
 /* once an event has happened it wears its be•do element, pastel, and still links to the calendar event (6 Nov 2026, her
    words: when something is coming up it matches Google Calendar; after it's happened it gets the be•do color) */
-const CHUNKOF={sleep:'sleep',eat:'food',cook:'food',move:'move',family:'care',pet:'care',home:'care',personal:'care',work:'work',stretch:'work',recreation:'play',moment:'play',travel:'travel',drive:'travel'};
+const CHUNKOF={sleep:'sleep',eat:'food',cook:'food',move:'move',family:'care',pet:'care',home:'care',personal:'care',work:'work',stretch:'work',recreation:'play',moment:'play',travel:'playhot',drive:'playhot'};
 const pcol=x=>{ if(!(x.cat&&x.cat!=='event')) return gcol(x); let k=CHUNKOF[x.cat]||'admin'; if(k==='play'&&(x.hot||x.el==='fire')) k='playhot'; return (PICK_DEFAULT[k]||PICK_DEFAULT.admin)[0]; };
 /* the wellness symbols, as the stream spells them (6 Nov 2026, her words: the symbol is really what I'm going off of) */
 /* the wellness glyphs are the look behind's own simple line icons (6 Nov 2026, her words: very simple monotone glyphs
@@ -802,12 +810,13 @@ const wicon=(k,s)=>`<svg viewBox="0 0 20 20" width="${s}" height="${s}" aria-hid
    be•do and admin a quiet background; sleep a short night band */
 /* one family (6 Nov 2026, her words: make all of these colors look like they go together): every hue at one OKLCH lightness
    and chroma (L .76, C .12), sleep a night indigo, travel an asphalt grey, admin a quiet background; yellow sits lighter so it reads yellow */
-const PICKS={work:["#A272D4"],care:["#D06091"],food:["#3DA454"],move:["#DCBC33"],play:["#009ECD"],playhot:["#D46A34"],travel:["#757B81"],admin:["#D9CFC3"],sleep:["#403F7B"]};
+const PICKS={work:["#A272D4"],care:["#D06091"],food:["#3DA454"],move:["#DCBC33"],play:["#009ECD"],playhot:["#D46A34"],admin:["#D9CFC3"],sleep:["#403F7B"]};
 /* play is what has no resistance, split by its energy: relaxation and recreation; travelling, driving or riding, is
    adventure (7 Nov 2026, her words: there's play that is relaxation and play that is recreation — their energy is the
    thing that makes them different; what characterizes play is no resistance; travelling, whether driving or riding in
-   the car, is typically an adventure — that's how I like to look at it) */
-const PICK_NAMES={playhot:'recreation · play with energy',sleep:'sleep',food:'food · eating and prep',move:'movement',care:'care · family, pets, home, you',work:'work · your profession',travel:'adventure · travelling, driving or riding',play:'relaxation · calm play',admin:'be•do and life admin'};
+   the car, is typically an adventure — that's how I like to look at it; later that day: recreation and adventure go into
+   one category and keep the orange; drop that colour) */
+const PICK_NAMES={playhot:'recreation and adventure · play with energy, travelling',sleep:'sleep',food:'food · eating and prep',move:'movement',care:'care · family, pets, home, you',work:'work · your profession',play:'relaxation · calm play',admin:'be•do and life admin'};
 const PICK_DEFAULT=Object.fromEntries(Object.keys(PICKS).map(k=>[k,[PICKS[k][0],PICKS[k][0],PICK_NAMES[k]]]));
 
 
@@ -948,7 +957,23 @@ function moved(){
       +`<div class="mvl">${line} · ${p.done} of ${tot} steps since ${esc(fmt(p.since))}</div></div>`; });
   el.innerHTML=rows.length?`<h2 class="ftitle">${over?'how the drives moved':'how today moves the drives'}</h2><div class="card mvc">${rows.join('')}</div>`:'';
 }
-function draw(){ today(); card(); const b=shape(); lists(b); intention(b); flow(b); moved(); wheel(); }
+/* how the time went (7 Nov 2026, her words: add an updated graphic like the day behind's, that matches those categories).
+   Each kind's minutes from the day's lived cards, a span counted once however many cards share it; a moment or a row
+   with no span of its own counts nothing. Sleep first, then the kinds from the most time to the least. */
+function spent(){
+  const el=document.getElementById('spent'); if(!el||!window.__chc) return;
+  const mm=t=>{ const [h,m]=String(t).split(':').map(Number); return h*60+m; }, by={};
+  (D.schedule||[]).forEach(x=>{ if(!(x.k==='lived'||(x.k==='event'&&x.done&&x.cat&&x.cat!=='event'))||x.pt||x.cat==='moment') return;
+    const k=window.__chc(x), a=mm(x.a), b=mm(x.b); if(!(b>a)) return; (by[k[2]]=by[k[2]]||{c:k[0],n:k[2],iv:[]}).iv.push([a,b]); });
+  const tot=iv=>{ iv.sort((p,q)=>p[0]-q[0]); let t=0,e=-1; iv.forEach(([a,b])=>{ if(b<=e) return; t+=b-Math.max(a,e); e=b; }); return t; };
+  const rows=Object.values(by).map(r=>({...r,m:tot(r.iv)})).filter(r=>r.m>0);
+  const sleep=rows.filter(r=>/^sleep/.test(r.n)), rest=rows.filter(r=>!/^sleep/.test(r.n)).sort((p,q)=>q.m-p.m), max=Math.max(...rows.map(r=>r.m),60);
+  const hm=m=>m>=60?`${Math.floor(m/60)} h ${String(m%60).padStart(2,'0')}`:`${m} min`;
+  const over=new Date().toLocaleDateString('en-CA')>D.day;
+  const row=r=>`<div class="spr"><span class="spn">${esc(String(r.n).split(' · ')[0])}</span><span class="spb"><i style="width:${Math.max(2,100*r.m/max)}%;background:color-mix(in srgb,${r.c} 55%,var(--card));border-color:${r.c}"></i></span><span class="spv">${hm(r.m)}</span></div>`;
+  el.innerHTML=rows.length?`<h2 class="ftitle">${over?'how the time went':'how the time is going'}</h2><div class="card spc">${sleep.map(row).join('')}${sleep.length&&rest.length?'<hr>':''}${rest.map(row).join('')}</div>`:'';
+}
+function draw(){ today(); card(); const b=shape(); lists(b); intention(b); flow(b); spent(); moved(); wheel(); }
 document.addEventListener('bedo-theme',draw);
 draw();
 </script>
