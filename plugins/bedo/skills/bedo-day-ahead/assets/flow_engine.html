@@ -242,6 +242,16 @@ html[data-bedo="night"] .cal .ev:not(.gcal), html[data-bedo="night"] .cal .ev:no
 .sheet .chips{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px}
 .sheet .chip{display:inline-flex;align-items:center;gap:6px;font:500 13px var(--sans);color:var(--ink);background:var(--card2);border-radius:999px;padding:4px 11px}
 .sheet .chip i{width:12px;height:12px;border-radius:3px}
+.cal .ev .cx{display:flex;gap:6px;align-items:center;margin-top:2px;white-space:nowrap;overflow:hidden}
+.cal .ev .cx .dlk{font:600 10.5px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:0 7px;text-decoration:none;pointer-events:auto}
+.cal .ev .cx .mvt{font:600 10.5px var(--mono);color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:0 6px}
+.sheet .dlv{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.sheet .dlv a{font:600 15px var(--sans);color:#fff;background:var(--dest);border-radius:12px;padding:9px 14px;text-decoration:none}
+.sheet .phs{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;margin-top:8px}
+.sheet .phs .ph{margin:0;max-height:46vh;object-fit:cover;width:100%}
+.sheet .ball{grid-column:1/-1;font:500 15px var(--sans);color:var(--ink);margin-top:10px}.sheet .ball b{color:var(--accent)}
+.sheet .inside .dlk{font:600 11px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:1px 8px;text-decoration:none}
+.sheet .chip.none{color:var(--past);background:var(--past-soft)}
 .sheet .chip.mv{font:500 12.5px var(--mono);color:var(--accent);background:none;border:1.5px solid var(--accent)}
 .sheet .who{grid-column:1/-1;font:400 14.5px var(--sans);color:var(--ink);margin-top:8px}
 .sheet .her a{font:500 12.5px var(--mono);font-style:normal;color:var(--dest);text-decoration:none}
@@ -662,8 +672,8 @@ function today(){
            (a ten-minute text never names a two-hour walk, 7 Nov 2026); then the longest of what she did */
         const host=st.m.slice().sort((a,b)=>((b.k==='event'?1:0)-(a.k==='event'?1:0))||((b.act&&!b.pt?1:0)-(a.act&&!a.pt?1:0))||((b.de-b.s)-(a.de-a.s)))[0];
         st.card=Object.assign({},host,{s:st.s,e:st.e,n:1,col:0,combo:true,
-          members:st.m.filter(o=>o!==host).map(o=>({t:o.t,s:o.s,e:o.de,photos:o.photos,act:o.act})),
-          photos:st.m.flatMap(o=>o.photos||[]),links:st.m.flatMap(o=>o.links||[])});
+          members:st.m.filter(o=>o!==host).map(o=>({t:o.t,s:o.s,e:o.de,photos:o.photos,act:o.act,links:o.links})),
+          photos:st.m.flatMap(o=>o.photos||[]),links:host.links||[]});   /* each deliverable stays with its own line */
         st.m.forEach((o,i)=>{ o.n=1; o.col=0; o.stk=st; o.si=i; }); STACKS.push(st); }
       else run.forEach(o=>o.n=n); run=[]; };
     /* a chat she kept open beside other things is never folded into them, and never joins them into one card (7 Nov 2026:
@@ -732,7 +742,10 @@ function today(){
       const ths=(c.photos||[]).slice(0,4).map(p=>`<img alt="" src="${p.src}">`).join('');
       g+=`<div data-c="${ci(c)}" class="ev lived combo tall${c.k==='event'?' gcal past':''}" title="${esc(c.t)} · ${tm(c.s)}" style="${c.k==='event'?`--gc:${pcol(c)};--gi:${gink(gcol(c))}`:kvx(c)};top:${top}px;height:${h}px;left:calc(${(c.col||0)*100/(c.n||1)}% + 2px);width:calc(${100/(c.n||1)}% - 4px)"><b>${c.k==='event'?esc(dn(c.summary||c.t,c.done)):(c.act?'✅ ':'')+esc(c.t)}</b><i>${tm(c.s)}–${tm(c.e)}${c.drive?' · '+esc(c.drive):''}</i>${c.members.map(m=>`<span class="ln">${m.act?'✅ ':''}${esc(m.t)}</span>`).join('')}${ths?`<span class="ths">${ths}</span>`:''}</div>`; return; }
     if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past${(x.photos||[]).length?' hasph':''}${x.star?' star':''}" style="--gc:${pcol(x)};--gi:${gink(gcol(x))};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${esc(dn(x.summary||x.t,x.done))}</b><i>${x.star?'the highlight · ':''}${tm(x.s)}–${tm(x.e)}${x.lastmin?' · last-minute':''}${x.covers&&x.covers.length?` · covers ${x.covers.length}`:''}${(x.links||[]).length?' · 🔗':''}${x.where?', '+esc(x.where):''}</i><span class="rt">${thumb(x)}${dots(x)}</span></div>`; return; }
-    g+=`<div data-c="${ci(x)}" class="ev lived${h>=40?' tall':''}${(x.photos||[]).length?' hasph':''}${x.mom?' mom':''}${x.cat==='sleep'?' slp':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kvx(x)};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${more(x)}<span class="rt">${thumb(x)}${dots(x)}</span></div>`; });
+    g+=`<div data-c="${ci(x)}" class="ev lived${h>=40?' tall':''}${(x.photos||[]).length?' hasph':''}${x.mom?' mom':''}${x.cat==='sleep'?' slp':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kvx(x)};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act||(x.closes||[]).length?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${(()=>{ const dl=delivOf(x)[0], mv=movedBy(x);
+      /* on the box itself (7 Nov 2026, her words: when there's a deliverable I would really like for that to show up on the
+         little calendar box; as much of what was meaningful as possible on the entry itself) */
+      return dl||mv?`<span class="cx">${dl?`<a class="dlk" href="${esc(dl.u)}" target="_blank" rel="noopener">📎 ${esc(dl.l==='deliverable'?'deliverable':dl.l)}</a>`:''}${mv?`<span class="mvt">+${mv}%</span>`:''}</span>`:''; })()}${more(x)}<span class="rt">${thumb(x)}${dots(x)}</span></div>`; });
   its.forEach(x=>{ if(x.k==='event'){ const inner=`<b>${esc(dn(x.summary||x.t,x.done))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i>${cov(x)}`;
     g+=`<div data-c="${ci(x)}" class="ev event gcal" style="--gc:${gcol(x)};--gi:${gink(gcol(x))};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:${x.half?'calc(50% - 5px)':'calc(100% - 6px)'}">${inner}</div>`; return; }
     if(x.session){ const top=(x.list||[]).filter(o=>o.top), rest=(x.list||[]).length-top.length;
@@ -796,6 +809,12 @@ const PICK_DEFAULT=Object.fromEntries(Object.keys(PICKS).map(k=>[k,[PICKS[k][0],
 
 /* dark text on a light colour (a yellow calendar), white on the rest */
 const gink=c=>{ const n=parseInt(String(c).replace('#',''),16), r=n>>16&255, g=n>>8&255, b=n&255; return (0.299*r+0.587*g+0.114*b)>165?'#2b2118':'#fff'; };
+/* what a card is worth to its drive (the 30 Oct page's moves it +N%), and its deliverable, first */
+const movedBy=x=>{ const d=(D.drives||[]).find(r=>r.n===x.drive), p=d&&d.prog, tot=p?(p.done||0)+(p.open||0):0;
+  return (x.k==='step'||x.act||(x.closes||[]).length)&&tot&&!(D.hidden||[]).includes(x.drive)?Math.round(100/tot):null; };
+const delivOf=x=>(x.links||[]).filter(l=>l&&l.u&&l.l!=='calendar event');
+const takeHome=x=>{ if(!x.her) return ''; const plain=x.her.replace(/https?:\/\/\S+/g,'').replace(/\s+/g,' ').trim(),
+  m=plain.match(/^.{20,140}?[.!?](\s|$)/); return m?m[0].trim():plain.slice(0,140)+(plain.length>140?'…':''); };
 const photosOf=x=>(x.photos||[]).map(p=>p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener"><img class="ph" alt="" src="${p.src}"></a>`:`<img class="ph" alt="" src="${p.src}">`).join('');
 function sheet(x){
   let s=document.getElementById('sheet'); if(!s){ s=document.createElement('div'); s.id='sheet'; s.className='sheet'; document.body.appendChild(s); }
@@ -820,6 +839,22 @@ function sheet(x){
       +`<ol class="sess">${top.map(li).join('')}</ol>`
       +(rest.length?`<details class="sess"><summary>the rest · ${rest.length}</summary><ul class="sess">${rest.map(li).join('')}</ul></details>`:'')
       +`<div class="det sd">Each one is about ${(x.list[0]||{}).sz||15} minutes by default — be•do has no history of how long these take yet.</div></div>`;
+    requestAnimationFrame(()=>s.classList.add('on')); s.querySelector('.x').onclick=()=>s.classList.remove('on'); return; }
+  if(x.k==='lived'){
+    /* what was meaningful, not the details (7 Nov 2026, her words: the deliverable is high priority; if there's a picture
+       it should be featured; what's the take-home message — what was the effort, did I move the ball forward, what was
+       meaningful about it; I don't need to read little details) */
+    const kind=window.__chc?window.__chc(x):null, wl=[x.el,x.el2].filter((k,i,a)=>k&&WDOM[k]&&a.indexOf(k)===i), mv=movedBy(x), dl=delivOf(x);
+    const who=String(x.who||'').split(',').map(n=>n.trim()).filter(n=>n&&n!==D.me), th=takeHome(x);
+    s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${t12(x.s)}${x.e>x.s+1?`<br>${t12(x.e)}`:''}</div>`
+      +`<div class="ttl">${x.act||(x.closes||[]).length?'✅ ':''}${esc(x.t)}</div>`
+      +(dl.length?`<div class="dlv">${dl.map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">📎 ${esc(l.l==='deliverable'?'open the deliverable':l.l==='the page'?'open the page':l.l==='notes'?'open the notes':l.l)} ↗</a>`).join('')}</div>`:'')
+      +((x.photos||[]).length?`<div class="phs">${photosOf(x)}</div>`:'')
+      +(mv?`<div class="ball">moved ${esc(x.drive)} forward <b>+${mv}%</b></div>`:'')
+      +(th?`<div class="her">${esc(th)}</div>`:'')
+      +`<div class="chips">${kind?`<span class="chip"><i style="background:${kind[0]}"></i>${esc(String(kind[2]).split(' · ')[0])}</span>`:''}${wl.map(k=>`<span class="chip">${wicon(k,15)} ${k}</span>`).join('')}${x.felt_word?`<span class="chip">${esc(x.felt_word)}</span>`:''}${x.drive?`<span class="chip">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</span>`:`<span class="chip none">no drive or rhythm yet</span>`}${who.length?`<span class="chip">👥 ${esc(who.join(', '))}</span>`:''}</div>`
+      +(x.members&&x.members.length?`<ul class="inside">${x.members.map(m=>`<li>${m.act?'✅ ':''}${esc(m.t)} <small>${t12(m.s)}–${t12(m.e)}</small>${delivOf(m).map(l=>` <a class="dlk" href="${esc(l.u)}" target="_blank" rel="noopener">📎 ${esc(l.l)}</a>`).join('')}</li>`).join('')}</ul>`:'')
+      +`</div>`;
     requestAnimationFrame(()=>s.classList.add('on')); s.querySelector('.x').onclick=()=>s.classList.remove('on'); return; }
   const kind=x.k==='lived'&&window.__chc?window.__chc(x):null, wl=[x.el,x.el2].filter(k=>k&&WDOM[k]);
   const chips=x.k==='lived'?`<div class="chips">${kind?`<span class="chip"><i style="background:${kind[0]}"></i>${esc(String(kind[2]).split(' · ')[0])}</span>`:''}${wl.map(k=>`<span class="chip">${wicon(k,15)} ${k}</span>`).join('')}${x.felt_word?`<span class="chip">${esc(x.felt_word)}</span>`:''}${x.drive?`<span class="chip">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</span>`:''}</div>`:'';
