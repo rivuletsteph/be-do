@@ -618,24 +618,33 @@ function today(){
      every card in it has room for its words, so a five-minute step never sits on the one after it */
   const PX=72, MINH=26, minOf=px=>px*60/PX, need=x=>(x.photos&&x.photos.length)?56:past.includes(x)?MINH+4:(x.pick&&x.why?64:48);
   /* the past as it was: two things at once sit side by side, as the calendar does */
-  const cols=[]; past.forEach(x=>{ x.de=x.e; let c=0; while(cols[c]&&cols[c]>x.s) c++; cols[c]=x.de; x.col=c; });
+  const cols=[]; past.forEach(x=>{ x.de=x.e; if(x.cat==='stretch'){ x.col=0; return; } let c=0; while(cols[c]&&cols[c]>x.s) c++; cols[c]=x.de; x.col=c; });
   /* every card in a run of overlapping ones shares one width, so three at once never sit on each other (4 Nov 2026);
      three or more at once are one card (5 Nov 2026, her words: I wanted to see them combined): the longest of them
      names it — an action she finished first — and the others are its lines, their photos together on it */
   const STACKS=[];
   { let run=[], end=-1; const close=()=>{ const n=1+Math.max(...run.map(o=>o.col));
       if(n>=3){ const st={s:Math.min(...run.map(o=>o.s)),e:Math.max(...run.map(o=>o.de)),m:run.slice().sort((a,b)=>a.s-b.s)};
-        const host=st.m.slice().sort((a,b)=>((b.k==='event'?1:0)-(a.k==='event'?1:0))||((b.act?1:0)-(a.act?1:0))||((b.de-b.s)-(a.de-a.s)))[0];   /* a calendar event heads the group it sits in, in its own colour */
+        /* a calendar event heads the group it sits in, in its own colour; then a finished action that took real time
+           (a ten-minute text never names a two-hour walk, 7 Nov 2026); then the longest of what she did */
+        const host=st.m.slice().sort((a,b)=>((b.k==='event'?1:0)-(a.k==='event'?1:0))||((b.act&&!b.pt?1:0)-(a.act&&!a.pt?1:0))||((b.de-b.s)-(a.de-a.s)))[0];
         st.card=Object.assign({},host,{s:st.s,e:st.e,n:1,col:0,combo:true,
           members:st.m.filter(o=>o!==host).map(o=>({t:o.t,s:o.s,e:o.de,photos:o.photos,act:o.act})),
           photos:st.m.flatMap(o=>o.photos||[]),links:st.m.flatMap(o=>o.links||[])});
         st.m.forEach((o,i)=>{ o.n=1; o.col=0; o.stk=st; o.si=i; }); STACKS.push(st); }
       else run.forEach(o=>o.n=n); run=[]; };
-    past.forEach(x=>{ if(x.k==='event'){ return; } if(run.length&&x.s>=end) close(); run.push(x); end=Math.max(end,x.de); }); if(run.length) close();
+    /* a chat she kept open beside other things is never folded into them, and never joins them into one card (7 Nov 2026:
+       a two-hour phone session through a walk, lunch and work made one card of 10 AM to 2 PM): it keeps its own column */
+    past.forEach(x=>{ if(x.k==='event'||x.cat==='stretch'){ return; } if(run.length&&x.s>=end) close(); run.push(x); end=Math.max(end,x.de); }); if(run.length) close();
     /* a calendar event keeps its own card at its own times, beside what she did meanwhile (6 Nov 2026, her words: the
        meeting only went 30 minutes) */
     past.filter(x=>x.k==='event').forEach(x=>{ const o=past.filter(p=>p!==x&&!p.stk&&p.s<x.de&&x.s<p.de); if(o.length){ x.n=2; x.col=0; o.forEach(p=>{ p.n=Math.max(p.n||1,2); if(p.col===0) p.col=1; }); } else { x.n=1; x.col=0; } });
-    STACKS.forEach(st=>{ if(past.some(x=>x.k==='event'&&x.s<st.e&&st.s<x.de)){ st.card.n=2; st.card.col=1; st.m.forEach(o=>{o.n=2;o.col=1;}); } }); }
+    STACKS.forEach(st=>{ if(past.some(x=>x.k==='event'&&x.s<st.e&&st.s<x.de)){ st.card.n=2; st.card.col=1; st.m.forEach(o=>{o.n=2;o.col=1;}); } });
+    /* each chat stretch takes the column after whatever it ran beside */
+    past.filter(x=>x.cat==='stretch').forEach(x=>{
+      const o=past.filter(p=>p!==x&&p.cat!=='stretch'&&p.s<x.de&&x.s<p.de), cards=[...new Set(o.map(p=>p.stk?p.stk.card:p))];
+      const k=cards.length?Math.max(...cards.map(c=>(c.n||1))):0; x.col=k; x.n=k+1;
+      cards.forEach(c=>{ c.n=k+1; if(c.combo) c.n=k+1; }); o.forEach(p=>{ p.n=k+1; }); }); }
   const cuts=[...new Set([h0*60,h1*60,...(nowM!=null?[nowM]:[]),...Array.from({length:h1-h0+1},(_,i)=>(h0+i)*60),...all.map(x=>x.s),...all.map(x=>x.e),...its.map(x=>x.s),...its.map(x=>x.e)].filter(m=>m>=h0*60&&m<=h1*60))].sort((a,b)=>a-b);
   const PXP=18;   /* an hour already gone is short: it only grows to fit what's kept in it */
   const segH=cuts.slice(1).map((m,i)=>(m-cuts[i])*(nowM!=null&&m<=nowM?PXP:PX)/60);
@@ -652,7 +661,8 @@ function today(){
   /* an event drawn once names what it covered, and shows it carries a link (4 Nov 2026) */
   const cov=x=>(x.covers&&x.covers.length?`<span class="cov">covered ${x.covers.map(esc).join(' · ')}</span>`:'')+((x.links||[]).length?`<span class="cov">🔗 ${esc(x.links[0].l)}</span>`:'');
   const thumb=x=>(x.photos||[]).length?`<img class="th" alt="" src="${x.photos[0].src}">`:'';
-  const dn=t=>String(t||'').replace(/^\s*(✔️|✔)\uFE0F?/,'✅');
+  /* an event that happened is ✅ here, whether her calendar says ✔️ or still ⬜ while its own row closed (7 Nov 2026) */
+  const dn=(t,done)=>String(t||'').replace(done?/^\s*(✔️|✔|⬜)\uFE0F?/:/^\s*(✔️|✔)\uFE0F?/,'✅');
   /* one shade per kind, the same meaning every day (6 Nov 2026, her words: the coloring's not
      super consistent or easy to follow): a logged row, a work stretch, a moment; events have their own two below */
   /* logged rows wear their being and doing colours, as the look behind draws them (6 Nov 2026, her words: I really love
@@ -682,10 +692,10 @@ function today(){
   past.forEach(x=>{ const w=100/x.n; let top=y(x.s), h=Math.max(MINH,y(x.e)-y(x.s)-1);
     if(x.stk){ if(x.si) return; const c=x.stk.card; h=Math.max(MINH,y(c.e)-y(c.s)-1);
       const ths=(c.photos||[]).slice(0,4).map(p=>`<img alt="" src="${p.src}">`).join('');
-      g+=`<div data-c="${ci(c)}" class="ev lived combo tall${c.k==='event'?' gcal past':''}" title="${esc(c.t)} · ${tm(c.s)}" style="${c.k==='event'?`--gc:${pcol(c)};--gi:${gink(gcol(c))}`:kvx(c)};top:${top}px;height:${h}px;left:calc(${(c.col||0)*100/(c.n||1)}% + 2px);width:calc(${100/(c.n||1)}% - 4px)"><b>${c.k==='event'?esc(dn(c.summary||c.t)):(c.act?'✅ ':'')+esc(c.t)}</b><i>${tm(c.s)}–${tm(c.e)}${c.drive?' · '+esc(c.drive):''}</i>${c.members.map(m=>`<span class="ln">${m.act?'✅ ':''}${esc(m.t)}</span>`).join('')}${ths?`<span class="ths">${ths}</span>`:''}</div>`; return; }
-    if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past${(x.photos||[]).length?' hasph':''}${x.star?' star':''}" style="--gc:${pcol(x)};--gi:${gink(gcol(x))};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${esc(dn(x.summary||x.t))}</b><i>${x.star?'the highlight · ':''}${tm(x.s)}–${tm(x.e)}${x.lastmin?' · last-minute':''}${x.covers&&x.covers.length?` · covers ${x.covers.length}`:''}${(x.links||[]).length?' · 🔗':''}${x.where?', '+esc(x.where):''}</i><span class="rt">${thumb(x)}${dots(x)}</span></div>`; return; }
+      g+=`<div data-c="${ci(c)}" class="ev lived combo tall${c.k==='event'?' gcal past':''}" title="${esc(c.t)} · ${tm(c.s)}" style="${c.k==='event'?`--gc:${pcol(c)};--gi:${gink(gcol(c))}`:kvx(c)};top:${top}px;height:${h}px;left:calc(${(c.col||0)*100/(c.n||1)}% + 2px);width:calc(${100/(c.n||1)}% - 4px)"><b>${c.k==='event'?esc(dn(c.summary||c.t,c.done)):(c.act?'✅ ':'')+esc(c.t)}</b><i>${tm(c.s)}–${tm(c.e)}${c.drive?' · '+esc(c.drive):''}</i>${c.members.map(m=>`<span class="ln">${m.act?'✅ ':''}${esc(m.t)}</span>`).join('')}${ths?`<span class="ths">${ths}</span>`:''}</div>`; return; }
+    if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past${(x.photos||[]).length?' hasph':''}${x.star?' star':''}" style="--gc:${pcol(x)};--gi:${gink(gcol(x))};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${esc(dn(x.summary||x.t,x.done))}</b><i>${x.star?'the highlight · ':''}${tm(x.s)}–${tm(x.e)}${x.lastmin?' · last-minute':''}${x.covers&&x.covers.length?` · covers ${x.covers.length}`:''}${(x.links||[]).length?' · 🔗':''}${x.where?', '+esc(x.where):''}</i><span class="rt">${thumb(x)}${dots(x)}</span></div>`; return; }
     g+=`<div data-c="${ci(x)}" class="ev lived${h>=40?' tall':''}${(x.photos||[]).length?' hasph':''}${x.mom?' mom':''}${x.cat==='sleep'?' slp':''}" title="${esc(x.t)} · ${tm(x.s)}" style="${kvx(x)};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.act?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${more(x)}<span class="rt">${thumb(x)}${dots(x)}</span></div>`; });
-  its.forEach(x=>{ if(x.k==='event'){ const inner=`<b>${esc(dn(x.summary||x.t))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i>${cov(x)}`;
+  its.forEach(x=>{ if(x.k==='event'){ const inner=`<b>${esc(dn(x.summary||x.t,x.done))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i>${cov(x)}`;
     g+=`<div data-c="${ci(x)}" class="ev event gcal" style="--gc:${gcol(x)};--gi:${gink(gcol(x))};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:${x.half?'calc(50% - 5px)':'calc(100% - 6px)'}">${inner}</div>`; return; }
     if(x.session){ const top=(x.list||[]).filter(o=>o.top), rest=(x.list||[]).length-top.length;
       g+=`<div data-c="${ci(x)}" class="ev step session" style="${kvx(x)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:calc(100% - 6px)"><b>${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)} · ${(x.list||[]).length} things · tap for the list</i>${top.map((o,i)=>`<span class="sl">${i+1}. ${esc(o.t)}</span>`).join('')}${rest?`<span class="sl more">+ ${rest} more</span>`:''}</div>`; return; }

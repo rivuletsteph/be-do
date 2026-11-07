@@ -118,9 +118,20 @@ def main():
     assert call['t'] == 'Team call' and 'covers' not in call and call['links'] == note, call
     assert {x['t'] for x in out} == {'Yoga class', 'a glimmer at yoga', 'Team call', 'Grandparents day',
                                      'sun on the patio', 'lunch'}, [x['t'] for x in out]
+    # a row on a work drive is work, even with the family about (7 Nov 2026); without the drive, they make it family care
+    K = dict(F, person='pe')
+    C = flow.with_drives(dict(care=dict(family=dict(rhythms=['Kid'], people=['Kid']))),
+                         dict(drives=[dict(n='Data Hub', parent='Work Rhythm'), dict(n='Home Drive', parent='Home')]),
+                         dict(work_parents=['Work Rhythm']))
+    cell = lambda rh: dict(t='⚡ posted the update', pr='⚡ action', rh=rh, pe='Kid, Partner')
+    assert flow.kind_of(cell('Data Hub'), K, frozenset(), C) == 'work'
+    assert flow.kind_of(cell('Work Rhythm'), K, frozenset(), C) == 'work'
+    assert flow.kind_of(cell('Home Drive'), K, frozenset(), C) == 'family'
+    assert flow.kind_of(dict(cell('Data Hub'), pr='🍽️ lunch'), K, frozenset(), C) == 'eat'
+
     print('ok — balance is evenness, a goal is her first sentence, buffer counts what is late that morning, '
           'the day holds her free hours, a size is a guess off the words, a session batches one kind at its time, '
-          'an event is drawn once with what it covered')
+          'an event is drawn once with what it covered, a work drive is work')
 
 
 if __name__ == '__main__':

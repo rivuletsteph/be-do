@@ -225,6 +225,14 @@ def care_settings(L):
         return {}
 
 
+def with_drives(C, W, L):
+    """The care settings with each drive's parent rhythm beside them, and which rhythms are work (`work_parents`),
+    so a row on a work drive is read as work (7 Nov 2026: a Teams update and a work email, written at home with
+    the family about, were drawn as family care)."""
+    return dict(C, _parent={d['n']: d.get('parent') or '' for d in W.get('drives') or []},
+                _work=frozenset(L.get('work_parents') or ()))
+
+
 def low(p):
     return re.sub(r'^[^\w]+', '', p or '').strip().lower()
 
@@ -252,6 +260,10 @@ def kind_of(c, F, flows, C):
             return 'home'
         if re.search(r'\b(cook|bake|baking|appetizers?|bruschetta|spaghetti|dinner|lunch|breakfast|zombie brains|food)\b', tl):
             return 'cook'
+    # a work drive is work whoever was about: the drive a row serves says what its time was
+    parent = (C.get('_parent') or {}).get(rh, '')
+    if rh and (rh in (C.get('_work') or ()) or parent in (C.get('_work') or ())):
+        return 'work'
     if pr in RECREATION or pr in TV or any(x in rh for x in (C.get('recreation') or {}).get('rhythms') or ()):
         return 'recreation'
     if any(x in rh for x in fam.get('rhythms') or ()) or any(w in who for w in fam.get('people') or ()):
@@ -336,6 +348,8 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
                     if ra.date() == today and rb > ra and rb - ra <= dt.timedelta(hours=6):
                         mine['a'] = hm(ra); mine['b'] = hm(rb)
                 mine.setdefault('rids', []).append(r['id'])   # its photos ride on the event's card too
+                if st not in OPEN:
+                    mine['done'] = True   # its own row closed: it happened, even while her calendar still shows ⬜ (7 Nov 2026)
                 if st not in OPEN and _norm(title) != _norm(mine.get('t')):
                     mine.setdefault('covers', []).append(re.sub(r'^⚡\s*', '', title))
             continue
@@ -660,7 +674,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
     data['calcolors'] = L.get('calendar_colors') or {}   # each calendar's own colour, as Google shows it
     data['intentions'] = [x for x in (D.get('intentions') or []) if x]
     data['schedule'] = schedule_of(today, rows, today_page, F, off, set(L.get('hide_drives') or []),
-                                   L.get('_flows') or frozenset(), care_settings(L), L.get('_picks'))
+                                   L.get('_flows') or frozenset(), with_drives(care_settings(L), W, L), L.get('_picks'))
     # each card opens to what the 28 Oct day ahead showed (2 Nov 2026, her words: it would be so awesome to
     # have the day ahead show the detail about the next steps and everything the way that day ahead did):
     # her words on the row and its ways in (the chat, the deliverable, the links), from card 1's steps
