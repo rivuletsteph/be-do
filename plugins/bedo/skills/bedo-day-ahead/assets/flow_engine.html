@@ -737,7 +737,9 @@ function today(){
   const CH=PICK_DEFAULT;   /* one scheme, chosen for her (6 Nov 2026, her words: just pick the colors that make the most sense) */
   const chunk=c=>({sleep:'sleep',eat:'food',cook:'food',move:'move',family:'care',pet:'care',home:'care',personal:'care',
     work:'work',stretch:'work',recreation:'play',moment:'play',travel:'playhot',drive:'playhot',system:'admin',flow:'admin'})[c]||'admin';   /* travelling is its own kind of time, not admin (her words, 6 Nov) */
-  const chc=x=>{ const k0=chunk(x&&x.cat), k=k0==='play'&&x&&(x.hot||x.el==='fire')?'playhot':k0; return CH[k]||PICK_DEFAULT[k]||PICK_DEFAULT.admin; };
+  /* a chat stretch takes the kind of the drive it served (7 Nov 2026, her words: how is it that only just over an hour was
+     spent on be•do? her be•do chats were counted as work) */
+  const chc=x=>{ const k0=chunk(x&&(x.cat==='stretch'&&x.sk?x.sk:x.cat)), k=k0==='play'&&x&&(x.hot||x.el==='fire')?'playhot':k0; return CH[k]||PICK_DEFAULT[k]||PICK_DEFAULT.admin; };
   window.__chc=chc;
   const kvx=x=>{ const k=chc(x); return `--fill:color-mix(in srgb,${k[0]} 52%,#FBF8F4);--edge:${k[0]};--dc:${k[0]}`; };   /* a pastel fill and a deep edge, so the glyphs read */
   /* wellness as dots, one to three, so a row can be heart and water at once (her words: it could be 2 or 3 wellness
@@ -792,7 +794,7 @@ const gcol=x=>GC[x.color]||((D.calcolors||{})[x.who])||'#039BE5';
 /* once an event has happened it wears its be•do element, pastel, and still links to the calendar event (6 Nov 2026, her
    words: when something is coming up it matches Google Calendar; after it's happened it gets the be•do color) */
 const CHUNKOF={sleep:'sleep',eat:'food',cook:'food',move:'move',family:'care',pet:'care',home:'care',personal:'care',work:'work',stretch:'work',recreation:'play',moment:'play',travel:'playhot',drive:'playhot'};
-const pcol=x=>{ if(!(x.cat&&x.cat!=='event')) return gcol(x); let k=CHUNKOF[x.cat]||'admin'; if(k==='play'&&(x.hot||x.el==='fire')) k='playhot'; return (PICK_DEFAULT[k]||PICK_DEFAULT.admin)[0]; };
+const pcol=x=>{ if(!(x.cat&&x.cat!=='event')) return gcol(x); let k=CHUNKOF[x.cat==='stretch'&&x.sk?x.sk:x.cat]||'admin'; if(k==='play'&&(x.hot||x.el==='fire')) k='playhot'; return (PICK_DEFAULT[k]||PICK_DEFAULT.admin)[0]; };
 /* the wellness symbols, as the stream spells them (6 Nov 2026, her words: the symbol is really what I'm going off of) */
 /* the wellness glyphs are the look behind's own simple line icons (6 Nov 2026, her words: very simple monotone glyphs
    that I've had in different versions of the wellness wheel), copied from bedo-look-behind's engine */

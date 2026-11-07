@@ -426,7 +426,7 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
                 # a card, never the ground band an hour-long action becomes: a session's stretch sits among the
                 # other work it ran beside, so it reads as a card with its tick in the title
                 items.append(dict(**opens_to(c, F), k='lived', t=('✅ ' if st == '✅ done' and not re.search(r'(?im)^still open', c.get(F['details']) or '') else '') + t, a=hm(sa), b=hm(sb), drive=rh, done=True,
-                                  cat='stretch',
+                                  cat='stretch', sk=kind_of(c, F, flows, C),   # its kind of time: a be•do chat is be•do, not work (7 Nov 2026)
                                   rid=r['id'] if sa == at(*spans[0][:2], a) else None, links=links_of(c, F) or None,
                                   act=False, pt=False,
                                   felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD))
