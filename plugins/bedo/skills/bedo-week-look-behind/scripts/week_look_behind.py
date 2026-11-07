@@ -399,7 +399,10 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset(), ndays=7, words=N
     def marked(r):
         pr = norm(r.get('practice'))
         return (pr in kinds or bool(shared_rx.search(pr)) or 'synergiz' in hers(r).lower()
-                or (len(hers(r)) >= long_words and pr != action and bool(r.get('end'))))   # something she did and wrote about at length
+                or (len(hers(r)) >= long_words and pr != action and bool(r.get('end')))   # something she did and wrote about at length
+                # an action she named a feeling for and kept a photo of is a moment too (6 Nov 2026, her words: the
+                # Expo center event … was very important, meaningful; it needs to be highlighted better)
+                or (bool(r.get('emotion')) and r.get('photo') == 'keeper' and bool(r.get('end'))))
 
     stones = {}
     for r in sorted(lived, key=lambda r: (r['_a'], r.get('created') or '')):
@@ -485,7 +488,24 @@ def stream(rows, rhythms, start, L, local, flowset=frozenset(), ndays=7, words=N
     placed, _ = bedo_photos.place(lived, photos or [], me, prefer=lambda r, t: (
         not bedo_photos.has_photo(r), not marked(r), abs((r['_a'] - t).total_seconds())))
     if ndays == 1:      # the day page: at most six, never two of one moment (2 Nov 2026)
-        placed, _ = bedo_photos.select(placed, me)
+        # one photo a moment, the linked one first; a moment she named a feeling for ranks with one with people
+        # (6 Nov 2026, her words: the Expo center event needs to be highlighted better)
+        seen, one = set(), []
+        for p in sorted(placed, key=lambda p: (not p.get('linked'), p['t'])):
+            k = (p['row'] or {}).get('id') or id(p)
+            if k not in seen or ((p['row'] or {}).get('emotion') and not p.get('file') and sum(((x['row'] or {}).get('id') == k) for x in one) < 2):
+                seen.add(k); one.append(p)
+        for p in one:
+            r = p['row'] or {}
+            if r and r.get('emotion') and not [x for x in (r.get('person') or '').split(',') if x.strip() and x.strip() != me]:
+                p['row'] = dict(r, person=(r.get('person') or '') + ', (felt)')
+            # the family-highlight practice is a highlight too (her words: that was actually a highlight … that was beautiful)
+            if r and re.search(r"(?i)\bhighlight\b", r.get('practice') or ''):
+                p['row'] = dict(p['row'], practice='⭐ highlight')
+            # a photo someone sent her ranks below the ones she took
+            if r and re.search(r'(?i)photo sent to me', r.get('title') or ''):
+                p['row'] = dict(p['row'], person='', photo='keeper')
+        placed, _ = bedo_photos.select(sorted(one, key=lambda p: p['t']), me, n=int(os.environ.get('BEDO_DAY_PHOTOS') or 0) or None)
     for p in placed:
         best = p['row']
         if best is not None and best['id'] in by_row:
