@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """grant_page: the grant watch report as one readable page.
 
-    python3 grant_page.py report.json watch.json out.html [--sheet URL]
+    python3 grant_page.py report.json watch.json out.html [--sheet URL] [--standalone]
+
+--standalone writes a whole document to save and share outside Claude; leave
+--sheet off then, so a private list's link isn't passed around.
 
 report.json is grant_watch.py --json; watch.json is the same watch list.
 The page leads with what fits the work (a program applied to before, a watched
@@ -130,8 +133,11 @@ def page(rep, watch, sheet=None):
                 else '<span class="st submitted">likely</span>' if c.startswith("likely")
                 else '<span class="st">not yet checked</span>')
         src = f'<a href="{E(f["source"])}" target="_blank" rel="noopener">source</a>' if f.get("source") else ""
+        note = f.get("checked") or ""
+        note = note.split(":", 1)[1].strip() if ":" in note else ""
+        note_html = f'<div class="note">{E(note)}</div>' if note else ""
         return (f'<tr><td>{E(f.get("years") or "")}</td><td>{E(f.get("project") or "")}'
-                f'<div class="meta"><span>{E(f.get("funder") or "")} · {E(f.get("program") or "")}</span></div></td>'
+                f'<div class="meta"><span>{E(f.get("funder") or "")} · {E(f.get("program") or "")}</span></div>{note_html}</td>'
                 f'<td>{E(f.get("role") or "")}</td><td><code>{E(f.get("number") or "")}</code></td><td>{mark} {src}</td></tr>')
 
     funded_html = ""
@@ -208,6 +214,7 @@ details {{ background: var(--panel); border: 1px solid var(--line); border-radiu
 summary {{ cursor: pointer; font-weight: 600; }}
 summary span {{ color: var(--muted); font-weight: 400; }}
 details .opps {{ margin-top: 10px; }}
+.note {{ font-size: 12.5px; color: var(--muted); margin-top: 3px; }}
 .none {{ color: var(--muted); margin: 0; }}
 .scroll {{ overflow-x: auto; }}
 table {{ border-collapse: collapse; width: 100%; font-size: 14px; }}
@@ -254,15 +261,26 @@ footer {{ color: var(--muted); font-size: 13px; border-top: 1px solid var(--line
 '''
 
 
+def standalone(body):
+    """A whole document, for a file saved and shared outside Claude (OneDrive)."""
+    return ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+            '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
+            + body.replace("<div class=\"wrap\">", "</head>\n<body>\n<div class=\"wrap\">", 1)
+            + "</body>\n</html>\n")
+
+
 def main(argv=None):
     a = argv or sys.argv[1:]
+    alone = "--standalone" in a
+    a = [x for x in a if x != "--standalone"]
     sheet = None
     if "--sheet" in a:
         i = a.index("--sheet")
         sheet = a[i + 1]
         a = a[:i] + a[i + 2:]
     rep, watch, out = json.load(open(a[0])), json.load(open(a[1])), a[2]
-    open(out, "w").write(page(rep, watch, sheet))
+    html_out = page(rep, watch, sheet)
+    open(out, "w").write(standalone(html_out) if alone else html_out)
     return 0
 
 

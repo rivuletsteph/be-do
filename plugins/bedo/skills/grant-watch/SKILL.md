@@ -64,6 +64,12 @@ left, and the grants.gov link:
 3. **Applied before, open again**: a program from the applied tab that has a
    new cycle.
 
+**The file is what gets shared** (her word, 6 Nov 2026: not a Sheet on her
+personal account). `--standalone` without `--sheet` writes one whole HTML
+document she saves to OneDrive and shares with colleagues. The Sheet stays
+private to her and is never shared. Each funded row shows why it is checked or
+likely, so a reader can confirm it.
+
 **She reads it as a page** (her word, 6 Nov 2026: much easier to read than
 the Sheet). Build it with `scripts/grant_page.py report.json watch.json
 grant-watch.html --sheet <Sheet link>` and republish the one grant watch
