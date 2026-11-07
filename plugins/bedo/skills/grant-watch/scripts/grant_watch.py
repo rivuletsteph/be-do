@@ -176,7 +176,7 @@ def main(argv=None):
     rep = report(watch, found, seen, today, weeks)
     if a.seen and not seen and not a.offline:
         # first run: nothing is "new" yet; say so instead of listing everything
-        for r in rep["new"]:
+        for r in rep["soon"] + rep["new"] + rep["reopened"]:
             r["new"] = False
         rep["new"] = []
     if a.seen:
