@@ -80,8 +80,8 @@ class TheGate(unittest.TestCase):
 
     def test_it_is_a_registered_check(self):
         self.assertIn(G.CHECK, RU.CHECKS)
-        m = {'recIrpEXAMPLE0000': [G.CHECK]}
-        self.assertEqual(RU.on_paper([('recIrpEXAMPLE0000', '2026-11-06', 'GATE')], m), [])
+        m = {'recGATE': [G.CHECK]}
+        self.assertEqual(RU.on_paper([('recGATE', '2026-11-06', 'GATE')], m), [])
 
 
 class TheCommand(unittest.TestCase):
