@@ -232,7 +232,8 @@ class Remaining(unittest.TestCase):
         self.assertNotIn('🥤', line)                               # done steps are left off
         self.assertNotIn('☕', line)                               # skipped is captured too
         self.assertIn(' · 📿 morning mantra · ', line)             # the name alone (A227)
-        self.assertTrue(line.endswith(' · also: 🔅 🪞 😶'))         # the rest as glyphs, last
+        self.assertIn(' · 🪞 mirror check · ', line)               # core since 7 Nov 2026: every morning
+        self.assertTrue(line.endswith(' · also: 🔅 😶'))           # the rest as glyphs, last
 
     def test_a_skin_tone_is_the_same_step(self):
         day = [row('🤸‍♀️ morning movement', '2026-10-04 07:10', status=DONE_LOG)]
