@@ -130,6 +130,7 @@ When one ships, its line moves to **Done** with the PR that closed it.
 
 | key | status | item |
 |---|---|---|
+| 261107_tworhythms | ▫️ | A drive under two rhythms. Her words, 7 Nov 2026, on the new drive to buy a car: I would argue it's both, and maybe it's okay to have a drive under two rhythms; it's like home maintenance, like vehicle maintenance, but buying one is more of a financial decision than anything. Today a drive has one `parent`; a second parent would count its time and steps under both (the wheel and the day page split or share them). Placed under its main rhythm for now. |
 | 260905_0725 | ▫️ | A clickable interface for the drives — deadlines, goals, steps, read live from the rhythms table |
 | 260918_1648 | ▫️ | Drives check themselves — is this still the objective, is this still the timeline |
 
