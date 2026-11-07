@@ -122,6 +122,24 @@ def page(rep, watch, sheet=None):
   <tbody>{"".join(arow(a) for a in sorted(applied, key=lambda a: str(a.get("year")), reverse=True))}</tbody></table></div>
 </section>'''
 
+    funded = watch.get("funded", [])
+
+    def frow(f):
+        ok = (f.get("checked") or "").lower().startswith("yes")
+        mark = '<span class="st funded">checked</span>' if ok else '<span class="st">from Gemini</span>'
+        src = f'<a href="{E(f["source"])}" target="_blank" rel="noopener">source</a>' if f.get("source") else ""
+        return (f'<tr><td>{E(f.get("years") or "")}</td><td>{E(f.get("project") or "")}'
+                f'<div class="meta"><span>{E(f.get("funder") or "")} · {E(f.get("program") or "")}</span></div></td>'
+                f'<td>{E(f.get("role") or "")}</td><td><code>{E(f.get("number") or "")}</code></td><td>{mark} {src}</td></tr>')
+
+    funded_html = ""
+    if funded:
+        funded_html = f'''<section>
+  <h3>Funded projects <span class="n">{len(funded)}</span></h3>
+  <div class="scroll"><table><thead><tr><th>Years</th><th>Project</th><th>His role</th><th>Award</th><th>Record</th></tr></thead>
+  <tbody>{"".join(frow(f) for f in sorted(funded, key=lambda f: str(f.get("years") or "0"), reverse=True))}</tbody></table></div>
+</section>'''
+
     sheet_html = f' · <a href="{E(sheet)}" target="_blank" rel="noopener">the watch list (Sheet)</a>' if sheet else ""
     return f'''<title>Grant watch</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -215,6 +233,7 @@ footer {{ color: var(--muted); font-size: 13px; border-top: 1px solid var(--line
   <div class="scale" aria-hidden="true"><span>today</span><span>{weeks // 2} weeks</span><span>{weeks} weeks</span></div>
   {lst(good)}
 </section>
+{funded_html}
 <section>
   <h3>New since last week <span class="n">{len(new)}</span></h3>
   {lst(new)}

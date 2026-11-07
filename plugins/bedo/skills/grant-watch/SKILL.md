@@ -26,6 +26,11 @@ Three tabs:
   (an opportunity number without its last part, such as `USDA-NIFA-NLGCA`, so
   every cycle is caught), `assistance_listings` (such as `10.326`),
   `ignore_agencies` and `ignore`.
+- **funded**: projects that were funded, from public sources (news releases,
+  NIFA records, paper acknowledgments). Columns: project, funder, program, award
+  number, years, his role, partners, keywords, confirmed, checked by Claude,
+  source. They go into `watch.json` as `funded` and show on the page. A row is
+  marked checked only when a source was read and names him.
 - **reports**: one block per week, newest at the top, plus the `seen` ids the
   next run compares against.
 
