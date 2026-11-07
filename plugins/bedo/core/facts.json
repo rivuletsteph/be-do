@@ -364,5 +364,14 @@
   "_about": "1 Nov 2026: on a Sunday, once the dawn flow is closed and no my week chat has a row yet, remaining ends with this line; on her yes the my day chat opens the my week chat (create_session, told what the day chat holds) and the two talk by send_message. Sunday morning is held for reflection, named at the open.",
   "window": "my week",
   "line": "next: ready for the transition to the next week? say yes and I'll open the my week chat"
+ },
+ "chats": {
+  "_about": "2 and 5 Nov 2026: the chat sweep, at every dusk close and the weekly close. Her words: I really want that organizational work to fall to the system; for each chat there should be a clear objective, and if it wasn't accomplished it should be picked up in a new chat; hold me accountable that I'm finishing the chats and able to archive them. A chat she touched in the last busy_minutes is left alone (she may be closing it herself); one in motion and quiet for more than quiet_days goes on her one list.",
+  "busy_minutes": 20,
+  "quiet_days": 7,
+  "kept_marker": "chat sweep: kept",
+  "_kept": "Her answer sticks (5 Nov 2026, her words: everything on yours to decide is in motion): when she says keep, the row's [be•do] block takes a line `chat sweep: kept YYYY-MM-DD`, and the quiet days count from the newest of that and the chat's last activity.",
+  "finished_statuses": ["✅ done", "✖️ dropped"],
+  "routine_tags": ["trigger", "scheduled", "routine"]
  }
 }

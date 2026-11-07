@@ -19,6 +19,9 @@
 #   bash run_checks.sh calendar event.json [--readback read.json --from CALENDAR_ID] [--rhythms rhythms.json]
 #                                # every calendar write: named, read back, work in purple
 #   bash run_checks.sh inbox threads.json [--archive planned.json]   # before the inbox sweep archives anything
+#   bash run_checks.sh chats --sessions mine.json [--sessions other.json] [--rows rows.json] [--json]
+#                                # the chat sweep, at the dusk close and the weekly close: every open chat
+#                                # against its objective and its row; what be•do does on its own, and her one list
 #   bash run_checks.sh usage [days]          # the Airtable calls made from here, by day and by script
 #
 # With an Airtable token (AIRTABLE_PAT, a bedo_secrets.json, or a Claude cloud
@@ -142,6 +145,13 @@ case "$CMD" in
   inbox)      # 22, 25 and 26 Oct 2026: automatic keeps, archive by rule, the nudge before archiving
     [ -d "$W/core" ] || fetch_core; find_local
     "$PY" "$W/core/bedo_inbox.py" "$@" ;;
+  chats)      # 2 and 5 Nov 2026: the chat sweep — every open chat against its objective and its row
+    [ -d "$W/core" ] || fetch_core; find_local
+    if has_files "$@"; then :
+    elif (cd "$W/core" && "$PY" -c 'import bedo_air, sys; sys.exit(0 if bedo_air.can_read() else 1)'); then set -- --live "$@"
+    else echo "NO TOKEN HERE: expected in Cowork or a plain chat, not a failure. Don't run the checks by hand."
+         echo "Read the ⚡ rows with a chat link (this week's base and the one before) through the connector and run this again with --rows FILE"; exit 3; fi
+    "$PY" "$W/core/bedo_chats.py" "$@" ;;
   entry)
     [ -d "$W/core" ] || fetch_core; find_local
     ROW=${1:?usage: run_checks.sh entry row.json [--base NAME] [--chat MMDD] [--catalog FILE] [--rhythms FILE] [--day FILE]}; shift
@@ -187,5 +197,5 @@ E
   usage)      # 4 Nov 2026: what the checks spend, so the plan can be sized from real numbers
     [ -d "$W/core" ] || fetch_core
     "$PY" "$W/core/bedo_air.py" usage "$@" ;;
-  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|entry|stretches|order|close|calendar|inbox|usage [args]"; exit 2 ;;
+  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|entry|stretches|order|close|calendar|inbox|chats|usage [args]"; exit 2 ;;
 esac
