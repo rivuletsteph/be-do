@@ -846,5 +846,30 @@ function draw(){ today(); card(); const b=shape(); lists(b); intention(b); flow(
 document.addEventListener('bedo-theme',draw);
 draw();
 </script>
+<script>
+/* download HTML (261106_download, her words 6 Nov 2026: on the day behind, I'd like to be able to download that as an
+   HTML … I like saving the tokens): the page saves itself as one .html, photos and all, at her click — no storage, no
+   connector, no tokens. In claude.ai the viewer's own save prompt (the `downloads` capability, declared at publish);
+   anywhere else, a plain Blob download. What the page drew for this viewer is left out, so the copy draws itself
+   fresh when it is opened. */
+(function(){
+  function src(){ var h=document.documentElement.cloneNode(true);
+    h.querySelectorAll('[data-dyn],#sheet,#bedo-dl').forEach(function(n){ n.remove(); });
+    return '<!doctype html>\n'+h.outerHTML; }
+  function name(){ var t=(document.title||'').replace(/[^A-Za-z0-9 ._-]+/g,' ').replace(/\s+/g,' ').trim(); return (t||'be-do page')+'.html'; }
+  function blob(){ var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([src()],{type:'text/html'})); a.download=name();
+    document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500); }
+  var b=document.createElement('button'); b.id='bedo-dl'; b.type='button'; b.textContent='\u2913 download this page'; b.title='save this page as one .html file';
+  b.style.cssText='display:block;margin:28px auto 8px;font:500 12px ui-monospace,Menlo,monospace;color:inherit;opacity:.75;background:none;border:1px solid currentColor;border-radius:999px;padding:5px 14px;cursor:pointer';
+  b.onclick=function(){
+    var c=window.claude; if(!c||!c.use){ blob(); return; }
+    c.use('downloads').then(function(d){
+      if(!d){ blob(); return; }
+      return d.save({filename:name(), data:new Blob([src()],{type:'text/html'})}).catch(function(e){
+        if(e&&/^(unavailable|not_granted|capability_disabled|capability_removed)$/.test(e.code)) blob(); });
+    }, blob); };
+  (document.querySelector('main')||document.body).appendChild(b);
+})();
+</script>
 </body>
 </html>

@@ -129,9 +129,15 @@ def main():
     assert flow.kind_of(cell('Home Drive'), K, frozenset(), C) == 'family'
     assert flow.kind_of(dict(cell('Data Hub'), pr='🍽️ lunch'), K, frozenset(), C) == 'eat'
 
+    # every day page carries the download button (261106_download): the viewer's save prompt, else a Blob download
+    for eng in (os.path.join(HERE, '..', 'assets', 'flow_engine.html'),
+                os.path.join(HERE, '..', '..', 'bedo-week-look-behind', 'assets', 'week_look_behind_engine.html')):
+        e = open(eng, encoding='utf-8').read()
+        assert "id='bedo-dl'" in e and "c.use('downloads')" in e and 'new Blob(' in e, eng
+
     print('ok — balance is evenness, a goal is her first sentence, buffer counts what is late that morning, '
           'the day holds her free hours, a size is a guess off the words, a session batches one kind at its time, '
-          'an event is drawn once with what it covered, a work drive is work')
+          'an event is drawn once with what it covered, a work drive is work, every day page can download itself')
 
 
 if __name__ == '__main__':

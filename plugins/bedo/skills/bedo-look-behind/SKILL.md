@@ -262,7 +262,9 @@ chat except the digest the words are written from.
    with `time_zone` on that day — all three are the settings file's to fix,
    never worked around.
 5. **Publish** to the living page: the Artifact tool, `url` set to
-   `artifact_url` from the settings file, the same file path every day. One
+   `artifact_url` from the settings file, the same file path every day, with
+   `capabilities: {downloads: true}` so its *download this page* button can save
+   it as one .html (261106_download, her word 7 Nov 2026). One
    living page, republished in place; every republish is kept as a version
    (the user's choice, 25 Oct 2026, when the day page took it over).
 5b. **His quest page, with every look behind** (her word, 4 Nov 2026: build

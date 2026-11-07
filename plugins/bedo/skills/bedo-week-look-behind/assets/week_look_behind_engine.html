@@ -329,7 +329,7 @@ if (quiet.length) {
   document.getElementById("quietdrives").innerHTML = quiet.map(node).join("");
 } else document.getElementById("quiet").remove();
 if ((DATA.forecasts || []).length)   // 🔭 forecasts due in the window, hers to say how each turned out (20 Oct 2026)
-  document.getElementById("foot").insertAdjacentHTML("beforebegin", `<section aria-label="forecasts due"><p class="note">\u{1F52D} forecasts due this ${SP} \u00B7 how did each turn out? in your words</p><ul>${DATA.forecasts.map(f => `<li>${esc(f.t)}</li>`).join("")}</ul></section>`);
+  document.getElementById("foot").insertAdjacentHTML("beforebegin", `<section data-dyn aria-label="forecasts due"><p class="note">\u{1F52D} forecasts due this ${SP} \u00B7 how did each turn out? in your words</p><ul>${DATA.forecasts.map(f => `<li>${esc(f.t)}</li>`).join("")}</ul></section>`);
 document.getElementById("foot").innerHTML = `read ${esc(DATA.read)}` +
   (DATA.loops.length ? `<br><span class="warn">feeds loops — fix in the base: ${DATA.loops.map(esc).join(" · ")}</span>` : "") +
   `<br>not built yet: the reading, the wheel, who was there`;
@@ -551,7 +551,7 @@ const mapStar = (c, n) => `<svg viewBox="-12 -12 24 24" width="${n}" height="${n
 const dayMap = M => {
   const el = document.getElementById("daymap");
   if (!el) return;
-  if (M.css) { const st = document.createElement("style"); st.textContent = M.css; document.head.appendChild(st); }
+  if (M.css) { const st = document.createElement("style"); st.dataset.dyn = "1"; st.textContent = M.css; document.head.appendChild(st); }
   const go = () => {
     const Lf = window.L, T = M.tiles || {};
     const map = Lf.map(el, {minZoom: M.zoom[0], maxZoom: M.zoom[1], attributionControl: !!M.attribution});
@@ -590,7 +590,7 @@ const dayMap = M => {
     new ResizeObserver(() => { map.invalidateSize({animate: false}); fit(); }).observe(el);
   };
   if (window.L) return go();
-  const sc = document.createElement("script");
+  const sc = document.createElement("script"); sc.dataset.dyn = "1";
   sc.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
   sc.onload = go;
   document.head.appendChild(sc);
@@ -894,5 +894,30 @@ ${rest ? `<p class="restline">${rest}</p>` : ""}`;
     rbd.addEventListener("click", show); rbd.addEventListener("focusin", show); }
   if (DATA.map) dayMap(DATA.map);
 }
+</script>
+<script>
+/* download HTML (261106_download, her words 6 Nov 2026: on the day behind, I'd like to be able to download that as an
+   HTML … I like saving the tokens): the page saves itself as one .html, photos and all, at her click — no storage, no
+   connector, no tokens. In claude.ai the viewer's own save prompt (the `downloads` capability, declared at publish);
+   anywhere else, a plain Blob download. What the page drew for this viewer is left out, so the copy draws itself
+   fresh when it is opened. */
+(function(){
+  function src(){ var h=document.documentElement.cloneNode(true);
+    h.querySelectorAll('[data-dyn],#sheet,#bedo-dl').forEach(function(n){ n.remove(); });
+    return '<!doctype html>\n'+h.outerHTML; }
+  function name(){ var t=(document.title||'').replace(/[^A-Za-z0-9 ._-]+/g,' ').replace(/\s+/g,' ').trim(); return (t||'be-do page')+'.html'; }
+  function blob(){ var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([src()],{type:'text/html'})); a.download=name();
+    document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500); }
+  var b=document.createElement('button'); b.id='bedo-dl'; b.type='button'; b.textContent='\u2913 download this page'; b.title='save this page as one .html file';
+  b.style.cssText='display:block;margin:28px auto 8px;font:500 12px ui-monospace,Menlo,monospace;color:inherit;opacity:.75;background:none;border:1px solid currentColor;border-radius:999px;padding:5px 14px;cursor:pointer';
+  b.onclick=function(){
+    var c=window.claude; if(!c||!c.use){ blob(); return; }
+    c.use('downloads').then(function(d){
+      if(!d){ blob(); return; }
+      return d.save({filename:name(), data:new Blob([src()],{type:'text/html'})}).catch(function(e){
+        if(e&&/^(unavailable|not_granted|capability_disabled|capability_removed)$/.test(e.code)) blob(); });
+    }, blob); };
+  (document.querySelector('main')||document.body).appendChild(b);
+})();
 </script>
 </body></html>
