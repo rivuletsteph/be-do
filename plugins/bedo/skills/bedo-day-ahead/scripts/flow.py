@@ -438,7 +438,38 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
                           # a feeling or a keeper photo marks what mattered (2 Nov 2026): it stays when the hour folds
                           felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD,
                           keeper=bool(F.get('photo') and 'keeper' in str(c.get(F['photo']) or ''))))   # an action she finished, drawn with its green check (2 Nov 2026)
-    return star_the_highlight(fold_into_events(sorted(items, key=lambda x: (x['a'], x['k'] != 'event'))))
+    return star_the_highlight(fold_into_events(fill_between(sorted(items, key=lambda x: (x['a'], x['k'] != 'event')))))
+
+
+def fill_between(items, long_min=180, least=10):
+    """A long stretch of one thing she did whenever nothing else was going on fills the gaps between the rest, as
+    cards of its own (7 Nov 2026, her words: I was working on the nlgca budget justification from the time we got home
+    until I sent the email … whenever I wasn't eating or doing something else obvious; this is still too
+    sparse, I've been really clear about what I was working on). Drawn as a ground band it read as empty time. Every
+    other lived card holds its own minutes (a moment sits beside, as it always does); what is left, ten minutes or
+    more, is the long stretch, each piece with its title and the first with its row."""
+    mm = lambda t: int(t[:2]) * 60 + int(t[3:5])
+    hm = lambda m: f'{m // 60:02d}:{m % 60:02d}'
+    out = []
+    for x in items:
+        if not (x.get('k') == 'lived' and not x.get('act') and x.get('cat') not in ('sleep', 'stretch', 'moment')
+                and not x.get('pt') and mm(x['b']) - mm(x['a']) >= long_min):
+            out.append(x)
+            continue
+        a0, b0 = mm(x['a']), mm(x['b'])
+        busy = sorted((max(a0, mm(o['a'])), min(b0, max(mm(o['b']), mm(o['a']) + 10))) for o in items
+                      if o is not x and o.get('k') == 'lived' and o.get('cat') not in ('moment', 'sleep')
+                      and mm(o['a']) < b0 and max(mm(o['b']), mm(o['a']) + 10) > a0)
+        at, pieces = a0, []
+        for s_, e_ in busy:
+            if s_ - at >= least:
+                pieces.append((at, s_))
+            at = max(at, e_)
+        if b0 - at >= least:
+            pieces.append((at, b0))
+        for i, (s_, e_) in enumerate(pieces):
+            out.append(dict(x, a=hm(s_), b=hm(e_), rid=x.get('rid') if i == 0 else None, piece=i, filled=True))
+    return sorted(out, key=lambda x: (x['a'], x['k'] != 'event'))
 
 
 def star_the_highlight(items):
