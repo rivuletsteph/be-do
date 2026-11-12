@@ -161,6 +161,96 @@ def focus_practice(rows, raw, L, start, end, given=None):
     return dict(name=name, days=days, n=len(seen), of=WEEK)
 
 
+# ------------------------------------------------------------------ the calendar, by weight
+# Her words, 12 Nov 2026: too many things on the calendar — and the answer is not to take things
+# out. I want to see the family's recurring events so I can prepare for them. Drop only what is not
+# happening (✖️ and duplicates), and fix the crowding with weight: mine first and full, theirs
+# quieter but plainly there.
+#
+# So nothing that is happening leaves the page. Two kinds of event do:
+#   ✖️   an event whose own title opens with ✖️ is called off. Until now the mark was stripped
+#        with the others and the event drawn as if it were on — a cancelled meeting, a class on
+#        Thanksgiving break, an entry she had marked "duplicate" herself.
+#   twice  one happening on two calendars: the same title at the same time, or a family event that
+#        overlaps one of hers and shares a telling word with it (her subbing at his school is one
+#        morning, not two). The one that stays is hers, and it says whose calendar also holds it
+#        and when theirs ends, because a pick-up time is the thing she cannot miss.
+# Everything else stays, and each card says whose it is: `mine` is drawn full, a family event
+# quieter. An all-day event is a band across its day, never a card at midnight.
+OFF = ('✖', '⨂')
+DUP_STOP = frozenset('''with from then maybe this that have your their about into over after before
+meeting school class lesson weekly monthly session lunch dinner visit trip drive drives home'''.split())
+
+
+def _telling(title):
+    """The words of a title that say what it is — four letters or more, none of the filler."""
+    return {w for w in re.findall(r"[a-z][a-z'’&]{3,}", (title or '').lower()) if w not in DUP_STOP}
+
+
+def _mm(hhmm):
+    h, m = hhmm.split(':')
+    return int(h) * 60 + int(m)
+
+
+def weigh_day(cards, day, evs, self_cal):
+    """One day's cards with the called-off and the twice-told taken out and every calendar event
+    marked mine or theirs. Returns (cards, bands, left) — `left` names what was taken out and why,
+    so the page can say it rather than hide it."""
+    allday = {(e['who'], e['title']) for e in evs if e['allday'] and e['a'].date() <= day
+              <= (e['b'] - dt.timedelta(seconds=1)).date()}
+    out, bands, left = [], [], []
+    for x in cards:
+        if x.get('k') != 'event':
+            out.append(x)
+            continue
+        raw = (x.get('summary') or x.get('t') or '').lstrip()
+        if raw.startswith(OFF):
+            left.append(dict(t=x['t'], who=x.get('who'), why='off'))
+            continue
+        x['mine'] = x.get('who') == self_cal
+        if raw.startswith('▫'):
+            x['maybe'] = True
+        if (x.get('who'), x['t']) in allday:
+            bands.append(dict(t=x['t'], who=x.get('who'), mine=x['mine'], link=x.get('link')))
+            continue
+        # a stay that runs over midnight (a night at his grandparents') says so: on the day it
+        # starts it runs to the day's end and names when it ends; on the day it ends, when it began
+        e = next((e for e in evs if e['who'] == x.get('who') and e['title'] == x['t'] and not e['allday']
+                  and e['a'].date() <= day <= e['b'].date() and e['a'].date() != e['b'].date()), None)
+        if e and e['a'].date() == day:
+            x['b'], x['till'] = '23:59', dict(d=DAY3[e['b'].weekday()], t=hm(e['b']))
+        elif e:
+            x['since'] = dict(d=DAY3[e['a'].weekday()], t=hm(e['a']))
+        out.append(x)
+    # the same thing twice. Hers stays; within one calendar the first stays.
+    keep = []
+    for x in sorted(out, key=lambda x: (x.get('k') != 'event', not x.get('mine'), x['a'])):
+        if x.get('k') != 'event':
+            keep.append(x)
+            continue
+        twin = None
+        for y in keep:
+            if y.get('k') != 'event':
+                continue
+            a, b, c, d = _mm(x['a']), _mm(x['b']), _mm(y['a']), _mm(y['b'])
+            both = min(b, d) - max(a, c)
+            same = x['t'].strip().lower() == y['t'].strip().lower() and a == c
+            near = (y.get('mine') and not x.get('mine') and both > 0
+                    and both * 2 >= min(b - a, d - c) and _telling(x['t']) & _telling(y['t']))
+            if same or near:
+                twin = y
+                break
+        if twin is None:
+            keep.append(x)
+            continue
+        if x.get('who') != twin.get('who'):
+            twin.setdefault('also', []).append(dict(who=x.get('who'), a=x['a'], b=x['b'], t=x['t'],
+                                                    link=x.get('link')))
+        left.append(dict(t=x['t'], who=x.get('who'), why='twice'))
+    keep.sort(key=lambda x: x['a'])
+    return keep, bands, left
+
+
 # ------------------------------------------------------------------ the week
 def day_cards(day, raw, day_page, L, C, flows, picks):
     """One day of the week, as the my day page draws a day: its calendar events, what she lived,
@@ -579,8 +669,14 @@ def build(a, L):
 
     # the three calendars, read into one day page each — the day page's own reader, over 21 days
     days, gaps, clashes, away, evs, conflicts = DA.calendar(cal, rows, open_rows, start, WEEK + AHEAD, L)
-    shape = DA.week_shape(days[:WEEK], evs, conflicts, L, cap=WEEK)
-    lead = DA.week_lead(shape)
+    # every day's events carry the drive their glyph names — the day page does this for its own
+    # day only, and a week's card leads to its drive on all seven (her words, 11 Nov 2026)
+    by_link = {e['link']: e for e in evs if e.get('link')}
+    for pg in days[1:]:
+        for it in pg.get('events') or []:
+            e = by_link.get(it.get('link'))
+            if e and not it.get('drive'):
+                it['drive'] = DA.bucket_for(e, rhythms, L)[0]
 
     C = FL.with_drives(FL.care_settings(L), dict(drives=[
         dict(n=c.get(L['fields']['rhythms']['name']), parent=c.get(L['fields']['rhythms']['parent']))
@@ -598,17 +694,50 @@ def build(a, L):
     paths, nxt = paths_of(open_rows, chains, rhythms, today, L, calendared, cap=a.paths,
                           skip=pushed)
 
+    # the calendar by weight: the called-off and the twice-told out, each event mine or theirs
+    self_cal = L['self_calendar']
+    off_ev = lambda e: e['summary'].lstrip().startswith(OFF)
+    weighed, gone, seen_left = {}, set(), []
+    for i in range(WEEK + AHEAD):
+        d = start + dt.timedelta(days=i)
+        page = next((x for x in days if x.get('date') == d.isoformat()), None)
+        cards, bands, left = weigh_day(day_cards(d, raw, page, L, C, flows, picks), d, evs, self_cal)
+        for t in (page or {}).get('bands') or []:      # the middle days of a stay, by title
+            e = next((e for e in evs if e['title'] == t), None)
+            if (e and off_ev(e)) or any(b['t'] == t for b in bands):
+                continue
+            who = (e or {}).get('who') or self_cal
+            bands.append(dict(t=t, who=who, mine=who == self_cal, link=(e or {}).get('link')))
+        # every all-day thing still on is a band on each day it covers — the day page's cards skip
+        # an event with no hour, so a report due, a holiday or the last day of a trip was nowhere
+        for e in evs:
+            if (e['allday'] and not off_ev(e) and e['a'].date() <= d <= (e['b'] - dt.timedelta(seconds=1)).date()
+                    and not any(b['t'] == e['title'] for b in bands)):
+                bands.append(dict(t=e['title'], who=e['who'], mine=e['who'] == self_cal, link=e.get('link')))
+        gone |= {(l['who'], l['t'], d) for l in left}
+        # a stay that runs over midnight is one thing left off, said once, on the day it starts
+        prev = weighed.get(d - dt.timedelta(days=1), ((), (), ()))[2]
+        said = {(l['who'], l['t'], l['why']) for l in prev} | {(l['who'], l['t'], l['why']) for l in seen_left}
+        seen_left = [l for l in left if (l['who'], l['t'], l['why']) in said]
+        left = [l for l in left if (l['who'], l['t'], l['why']) not in said]
+        weighed[d] = (cards, bands, left)
+    # the week's shape and its clashes are read off what is really happening: a meeting that was
+    # called off is not a clash, and her subbing at his school is not two things at one time
+    kept = [e for e in evs if not off_ev(e) and (e['who'], e['title'], e['a'].date()) not in gone]
+    conflicts = DA.find_conflicts(kept, start, WEEK + AHEAD, L)
+    shape = DA.week_shape(days[:WEEK], kept, conflicts, L, cap=WEEK)
+    lead = DA.week_lead(shape)
+
     out_days = []
     for i in range(WEEK):
         d = start + dt.timedelta(days=i)
-        page = next((x for x in days if x.get('date') == d.isoformat()), None)
-        cards = day_cards(d, raw, page, L, C, flows, picks)
+        cards, bands, left = weighed[d]
         sh = next((w for w in shape if w['date'] == d.isoformat()), {})
         out_days.append(dict(d=d.isoformat(), label=DA.fmt_day(d), dow=DOW[d.weekday()],
                              day3=DAY3[d.weekday()], weekend=d.weekday() >= 5,
                              today=d == today, past=d < today,
                              tags=sh.get('tags') or [], notes=sh.get('notes') or [],
-                             hours=sh.get('hours'), n=sh.get('n'), bands=(page or {}).get('bands') or [],
+                             hours=sh.get('hours'), n=sh.get('n'), bands=bands, left=left,
                              cards=cards))
 
     ahead = []
@@ -623,16 +752,24 @@ def build(a, L):
             # the same cards the week above is drawn with, so the two weeks after read as an
             # agenda in her calendar's own look — the colours, the glyphs, what she committed to —
             # and not as a stripped-down list that drops the context (her words, 12 Nov 2026)
+            cards, bands, left = weighed[d]
             ds.append(dict(d=d.isoformat(), label=DA.fmt_day(d), day3=DAY3[d.weekday()],
                            weekend=d.weekday() >= 5, today=False, past=False,
-                           cards=day_cards(d, raw, page, L, C, flows, picks),
-                           events=page.get('events') or [], due=page.get('due') or [],
-                           bands=page.get('bands') or []))
+                           cards=cards, due=page.get('due') or [], bands=bands, left=left))
         ahead.append(dict(n=n + w, label=f'W{n + w}', span=f'{DA.fmt_day(s)} – {DA.fmt_day(s + dt.timedelta(days=6))}',
                           days=ds))
 
     mv = lambda r, step=None: DA.next_move(r, chains.get(r['id']) or [], step, L['self_person'])
     hz = DA.horizon(open_rows, start, L, mv)
+
+    RF = L['fields']['rhythms']
+    tree = {}
+    for c in (r['cellValuesByFieldId'] for r in rh_recs):
+        nm = c.get(RF['name'])
+        if nm and c.get(RF['status']) == 'active':
+            tree[nm] = dict(g=c.get(RF['emoji']) or '', parent=c.get(RF['parent']) or None,
+                            drive=str(c.get(RF['type']) or '').endswith('drive'))
+    lefts = [l for v in weighed.values() for l in v[2]]
 
     word = word_slot(rows, L, start, end, a.word)
     data = dict(
@@ -660,11 +797,25 @@ def build(a, L):
         baseflow=base_flow(raw, rh_recs, L, start, a.behind, min(end, today)),
         calcolors=L.get('calendar_colors') or {},
         hidden=list(L.get('hide_drives') or ()),
-        me=L.get('self_person') or '',
+        me=L.get('self_person') or '', mycal=self_cal, tree=tree,
         read=dict(rows=len(rows), open=len(open_rows), events=sum(len(d.get('events') or []) for d in days),
-                  gaps=gaps, clashes=clashes, dropped=len(dropped)),
+                  gaps=gaps, clashes=clashes, dropped=len(dropped),
+                  off=sum(1 for l in lefts if l['why'] == 'off'),
+                  twice=sum(1 for l in lefts if l['why'] == 'twice')),
     )
     return data
+
+
+def day_six(engine):
+    """The my day page's own highlights rule — EMO, MEANT, sixOf, glyphOf, sixLine — cut out of its
+    engine at the build, so a day that is over folds on the week exactly as it folds on its own
+    page, and a change to the rule there lands here at the next build. The my day engine is read,
+    never written."""
+    h = open(engine, encoding='utf-8').read()
+    a, b = h.find('\nconst EMO='), h.find('\nfunction sixCard(')
+    if a < 0 or b < a or 'function sixOf(' not in h[a:b]:
+        die(f'{engine} does not carry the highlights rule where the my week page reads it')
+    return h[a:b]
 
 
 def main():
@@ -679,6 +830,8 @@ def main():
     ap.add_argument('--practices')
     ap.add_argument('--day-ahead', help='a built day-ahead page, for the palette its :root carries')
     ap.add_argument('--template', required=True)
+    ap.add_argument('--day-engine', help="the my day page's engine, for its highlights rule; by default "
+                                         "the one in the skill next door, or beside the template")
     ap.add_argument('--behind', help="a folder of the week's day behinds, for balance")
     ap.add_argument('--word', help="the week's word, hers, when the chat has it and the row does not")
     ap.add_argument('--focus', help='her one focus practice for the week')
@@ -711,6 +864,12 @@ def main():
     if not root or not night:
         die(f'{src} carries no palette')
     page = parts.fill(page.replace('/*ROOT*/', root.group(0)).replace('/*NIGHT*/', night.group(0)))
+    eng = a.day_engine or next((p for p in (
+        os.path.join(DAY_DIR, '..', 'assets', 'flow_engine.html'),
+        os.path.join(os.path.dirname(os.path.abspath(a.template)), 'flow_engine.html')) if os.path.exists(p)), '')
+    if not eng:
+        die('no my day engine to read the highlights rule from: pass --day-engine')
+    page = page.replace('/*DAYSIX*/', day_six(eng))
     page = page.replace('/*DATA*/', json.dumps(data, ensure_ascii=False).replace('</', '<\\/'))
     esc = lambda t: t.replace('&', '&amp;').replace('<', '&lt;')
     page = page.replace('<title>My week</title>', f'<title>{esc(data["chip"])}</title>', 1)
@@ -718,6 +877,7 @@ def main():
     json.dump(data, open(a.out + '.plan.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print(json.dumps(dict(out=a.out, week=data['week'], span=data['span'], word=data['word'],
                           paths=len(data['paths']), overdue=len(data['overdue']),
+                          left=[f"{l['who']}: {l['t']} ({l['why']})" for d in data['days'] + [x for w in data['ahead'] for x in w['days']] for l in d['left']],
                           read=data['read']), ensure_ascii=False))
 
 
