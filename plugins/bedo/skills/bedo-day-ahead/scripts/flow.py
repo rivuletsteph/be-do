@@ -461,6 +461,9 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
             m = re.search(r'(?im)^.*?\bsize:\s*(\d+)\s*min\b(.*)$', c.get(F['details']) or '')
             mins_ = int(m.group(1)) if m else min(size_guess(t), 120)
             b = a + dt.timedelta(minutes=mins_)
+            # its own end wins, as the docstring says (12 Nov 2026: leaving the office at 3:45 drew an hour long)
+            if end and a < to(end) and to(end).date() == today:
+                b = to(end)
             why = (picks or {}).get(r['id']) or (picks or {}).get(c.get(F['key']) or '')
             nx = [ln.split(':', 1)[1].strip() for ln in (c.get(F['details']) or '').split('\n')
                   if re.match(r'(?i)^\s*next( step)?:', ln)]
