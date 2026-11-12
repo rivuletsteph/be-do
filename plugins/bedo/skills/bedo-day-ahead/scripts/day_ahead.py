@@ -1138,6 +1138,7 @@ def main():
     calendared = {e['match_row']['id'] for e in evs if e.get('match_row')}
     calendared |= {r['id'] for e in evs for r in (e.get('maybe') or [])}
     picks, nxt, more = pareto(open_rows, chains, rhythms, today, L, calendared)
+    later_picks = []
     if a.pick:
         # the three as weighed in the chat (9 Oct 2026: the day chat's three were the right
         # ones). Each names a live row; any status, so a pick closed during the day draws as
@@ -1153,15 +1154,19 @@ def main():
         ids = {c['row']['id'] for c in chosen}
         # a fourth and fifth --pick are the chat's next in line (12 Nov 2026: getting ready for next week was hers to
         # see, and the builder's own next in line had stepped in instead)
+        # picks four to nine are be•do's next three and the three after that (12 Nov 2026, her words: the order during
+        # the work day is my stream, be•do's three, then maybe be•do's next three, and then three after that)
         mine = []
-        for spec in a.pick[3:5]:
+        for spec in a.pick[3:9]:
             ref, _, why = spec.partition('::')
             r = by.get(ref.strip())
             if not r:
                 die(f'--pick {ref.strip()!r}: no row with that key or record id in the stream read')
-            mine.append(dict(kind=why.strip() or 'next', title=clean_title(r['title'])))
+            mine.append(dict(kind='', row=r, why=why.strip()))
             ids.add(r['id'])
-        nxt = (mine + [dict(kind=p['kind'], title=clean_title(p['row']['title'])) for p in picks if p['row']['id'] not in ids])[:2]
+        later_picks = mine
+        nxt = ([dict(kind='next', title=clean_title(m['row']['title'])) for m in mine]
+               + [dict(kind=p['kind'], title=clean_title(p['row']['title'])) for p in picks if p['row']['id'] not in ids])[:2]
         more = [m for m in more if m['id'] not in ids]
         picks = chosen
     plan = look_ahead_plan(evs, conflicts, rows, open_rows, chains, rhythms, today, a, L)
@@ -1320,6 +1325,9 @@ def main():
                      emoji=(rhythms.get(p['row']['rhythm'] or '') or {}).get('emoji') or '·', why=p['why'], st=p['row']['status'][:2],
                      date=local(p['row']['target']).date().isoformat() if p['row']['target'] else None,
                      move=move(p['row'])) for p in picks],
+        pareto_more=[dict(kind=p['kind'], title=clean_title(p['row']['title']), drive=p['row']['rhythm'] or '',
+                          emoji=(rhythms.get(p['row']['rhythm'] or '') or {}).get('emoji') or '·', why=p['why'], st=p['row']['status'][:2],
+                          move=move(p['row'])) for p in later_picks],
         next=nxt, tasks=tasks, max_tasks=cap, horizon=ahead_,
         intentions=(a.intention or [None])[:3], draft=a.draft,
         drives=plan['drives'],

@@ -381,9 +381,15 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
             a = dt.datetime.fromisoformat(e['sort'])
         except (KeyError, ValueError):
             continue
-        if a.date() != today or not e.get('when'):
+        if not e.get('when'):
             continue
         b = clock(today, e.get('end')) or a + dt.timedelta(hours=1)
+        if a.date() != today:
+            # a stay that began before today and ends today is part of the day's background (12 Nov 2026, her words:
+            # where's the fact that he's at his grandparents', please?): it starts the day at midnight
+            if not (a.date() < today and b.date() == today):
+                continue
+            a = dt.datetime.combine(today, dt.time(0))
         # put on the calendar the same day it happened: last-minute (6 Nov 2026, her words:
         # it was definitely an event that should have been on the calendar; it was just a last-minute thing)
         made = CREATED.get(re.search(r'[?&]eid=([^&#]+)', e.get('link') or '') and re.search(r'[?&]eid=([^&#]+)', e.get('link')).group(1))
@@ -455,6 +461,9 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
             m = re.search(r'(?im)^.*?\bsize:\s*(\d+)\s*min\b(.*)$', c.get(F['details']) or '')
             mins_ = int(m.group(1)) if m else min(size_guess(t), 120)
             b = a + dt.timedelta(minutes=mins_)
+            # its own end wins, as the docstring says (12 Nov 2026: leaving the office at 3:45 drew an hour long)
+            if end and a < to(end) and to(end).date() == today:
+                b = to(end)
             why = (picks or {}).get(r['id']) or (picks or {}).get(c.get(F['key']) or '')
             nx = [ln.split(':', 1)[1].strip() for ln in (c.get(F['details']) or '').split('\n')
                   if re.match(r'(?i)^\s*next( step)?:', ln)]
@@ -1100,6 +1109,9 @@ def build(D, rows, rhythms_read, L, behind_dir):
                           links=(p.get('move') or {}).get('links') or [], waiting=(p.get('move') or {}).get('waiting'))
                      for p in (D.get('pareto') or [])]
     data['three_next'] = [dict(t=x.get('title'), kind=x.get('kind')) for x in (D.get('next') or [])]
+    data['three_more'] = [dict(t=p.get('title'), why=p.get('why'), drive=p.get('drive'), g=p.get('emoji'), st=(p.get('st') or '').strip(),
+                               nx=((p.get('move') or {}).get('step')), links=(p.get('move') or {}).get('links') or [])
+                          for p in (D.get('pareto_more') or [])]
     data['baseflow'] = dict(week=week, parts=[dict(name=k, value=t[k]) for k in keys if t[k] is not None],
                             missing=[k for k in keys if t[k] is None])
     return data
