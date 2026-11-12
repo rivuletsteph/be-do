@@ -1100,6 +1100,9 @@ def build(D, rows, rhythms_read, L, behind_dir):
                           links=(p.get('move') or {}).get('links') or [], waiting=(p.get('move') or {}).get('waiting'))
                      for p in (D.get('pareto') or [])]
     data['three_next'] = [dict(t=x.get('title'), kind=x.get('kind')) for x in (D.get('next') or [])]
+    data['three_more'] = [dict(t=p.get('title'), why=p.get('why'), drive=p.get('drive'), g=p.get('emoji'), st=(p.get('st') or '').strip(),
+                               nx=((p.get('move') or {}).get('step')), links=(p.get('move') or {}).get('links') or [])
+                          for p in (D.get('pareto_more') or [])]
     data['baseflow'] = dict(week=week, parts=[dict(name=k, value=t[k]) for k in keys if t[k] is not None],
                             missing=[k for k in keys if t[k] is None])
     return data
