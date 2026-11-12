@@ -1152,8 +1152,10 @@ function arrange(){
      how the time is going is pretty irrelevant at this stage in the day … till after my work day has started … after 10
      o'clock; this is where it's helpful to see the calendar) */
   const early=day===D.day&&now.getHours()<10;
+  /* once the workday starts, base flow goes to the bottom (12 Nov 2026, her words: once I start my workday, the
+     baseflow needs to move to the bottom) */
   const ids=early?['rv','three','leannote','today','sat','int','flowwrap','moved','spent','wheel']
-    :am?['rv','three','leannote'].concat(after):['spent','wheel','three'].concat(after.slice(2),base);
+    :am?['three','spent','wheel'].concat(after.slice(2),base):['spent','wheel','three'].concat(after.slice(2),base);
   /* NOW and NEXT lead whenever there is a plan for the rest of today; the three then wait below the calendar (12 Nov 2026) */
   let L_=ids; if((D.plan||[]).length&&!(day>D.day)){ L_=L_.filter(i=>i!=='three'); const k=L_.indexOf('today'); L_.splice(k<0?L_.length:k+1,0,'three'); L_=['now'].concat(L_); }
   let at=m; L_.forEach(id=>{ const n=$(id); if(n){ at.after(n); at=n; } });
