@@ -241,6 +241,16 @@ actively working, so that bar should extend all the way across … if there's a 
 show the breaks kind of overlapping it). A running effort of three hours or more is drawn behind at full width (two at
 once share it), and what she did meanwhile — the meal, the photo, the sunset — is drawn across it on top.
 
+**One view for how things flow and how the drives moved, and the day's artifacts up top** (261111_d7, her notes of
+11 Nov 2026: flow steps go to the wheel by their wellness, the day's artifacts sit up top, the two views merge). *How
+things flow* ends on the wheel's eight elements, paired being and doing, each with its share of the day so far. Each
+rhythm lands on its own element (the rhythms table's element, `rhythm_elements` in flow.py). The day's dawn and dusk
+practices go straight to their own wellness, one line per phase and element (😶 wake is body). Each drive carries how it
+moved on its node: the share done before today, what today closed, and what today's steps would add; the separate *how
+the drives moved* section is gone. *What the day made* sits under the date: every deliverable, page and notes linked
+from a row she lived, once, in the order it happened; the flow's own pages stay on their cards. Before 10 it sits under
+base flow. The page's new name is hers, once she has seen it.
+
 **Every card leads to its drive and its rhythm** (11 Nov 2026, her words: I want each of those cards to link to the drive
 that they were part of, to the rhythm they were part of … all linked up so that it's all coherent): a card's sheet carries
 its drive and the rhythm above it; a tap goes to that node in *How things flow* and opens its steps.

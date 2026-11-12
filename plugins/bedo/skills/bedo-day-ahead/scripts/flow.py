@@ -989,6 +989,31 @@ def sized(acts):
     return [dict(a, sz=size_guess(a.get('t')), szg=True) for a in acts]
 
 
+ELEMENT = re.compile(r'^\W*(earth|water|air|fire)\s*$', re.I)
+
+
+def rhythm_elements(rhythms_read, RF):
+    """Each rhythm's doing element (earth, water, air, fire), so How things flow lands it on its part of the wheel
+    (261111_d7). The field is `fields.rhythms.element` when her settings name it; otherwise the one field whose values
+    read as an element (🌎 earth, 🌊 water…), found from the read itself."""
+    recs = [r.get('cellValuesByFieldId') or r.get('fields') or {} for r in rhythms_read or []]
+    val = lambda v: (v.get('name') if isinstance(v, dict) else v) if v else None
+    fid = RF.get('element')
+    if not fid:
+        hits = {}
+        for c in recs:
+            for k, v in c.items():
+                if isinstance(val(v), str) and ELEMENT.match(val(v)):
+                    hits[k] = hits.get(k, 0) + 1
+        fid = max(hits, key=hits.get) if hits else None
+    out = {}
+    for c in recs:
+        m = fid and isinstance(val(c.get(fid)), str) and ELEMENT.match(val(c.get(fid)))
+        if m and c.get(RF.get('name')):
+            out[c[RF['name']]] = m.group(1).lower()
+    return out
+
+
 def build(D, rows, rhythms_read, L, behind_dir):
     F = L['fields']['stream']
     RF = L['fields']['rhythms']
@@ -996,10 +1021,11 @@ def build(D, rows, rhythms_read, L, behind_dir):
     local = lambda ts: (dt.datetime.fromisoformat(ts.replace('Z', '+00:00')) + off).date()
     W, C = D['whole'], D['card']
     today = dt.date.fromisoformat(W['day'])
+    els = rhythm_elements(rhythms_read, RF)
     data = dict(day=W['day'], chip=D['chip'], label=D['dateLabel'], word=(D.get('word') or {}).get('word'),
                 drives=[{k: d[k] for k in ('n', 'short', 'g', 'c', 'parent', 'dest', 'prog')} | dict(acts=sized(d['acts']))
                         for d in W['drives']],
-                rhythms=[{k: r[k] for k in ('n', 'short', 'g', 'c')} | dict(acts=sized(r['acts'])) for r in W['rhythms']],
+                rhythms=[{k: r[k] for k in ('n', 'short', 'g', 'c')} | dict(acts=sized(r['acts']), el=els.get(r['n'])) for r in W['rhythms']],
                 order=W['order'], dest=W['dest'],
                 done=[dict(t=x['t'], rd=x['rd']) for x in C['steps'] if x['s'] == 'done'],
                 secure=(D.get('secure') or {}).get('state'))

@@ -230,6 +230,13 @@ html[data-bedo="night"] .cal .ev:not(.gcal), html[data-bedo="night"] .cal .ev:no
 .spv small{display:block;font-size:9.5px;color:var(--muted)}
 .spa{font:500 11px var(--mono);color:var(--muted);margin:0}
 
+/* the day's artifacts, up top (261111_d7) */
+.arts h2{font:italic 400 22px var(--serif);color:var(--accent);margin:10px 0 6px}
+.arts ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.arts a{display:grid;grid-template-columns:1.6rem minmax(0,1fr);gap:0 6px;align-items:baseline;background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:8px 12px;text-decoration:none;color:var(--ink)}
+.arts a:hover,.arts a:focus-visible{border-color:var(--accent)}
+.arts .g{grid-row:span 2;font-size:17px}.arts .t{font-weight:600;font-size:14.5px;line-height:1.3;min-width:0}
+.arts .w{font:500 11px var(--mono);color:var(--muted)}
 .mvc{padding:12px 14px;display:grid;gap:14px}
 .mvr .mvn{font-weight:600;font-size:14.5px}
 .mvb{display:flex;height:10px;border-radius:5px;background:var(--rule);overflow:hidden;margin:6px 0 4px}
@@ -336,6 +343,7 @@ html[data-bedo="night"] .td{--k-logged:#4A4540;--k-logged-d:#D9CCBC;--k-stretch:
 <p class="chip" id="chip"></p>
 <h1 id="h1"></h1>
 <section class="now" id="now"></section>
+<section class="arts" id="arts"></section>
 <section class="sat" id="sat"></section>
 <section class="td" id="today"></section>
 <section class="three" id="three"></section>
@@ -344,13 +352,12 @@ html[data-bedo="night"] .td{--k-logged:#4A4540;--k-logged-d:#D9CCBC;--k-stretch:
 <p class="leannote" id="leannote"></p>
 <div id="flowwrap"><details class="allsteps"><summary>every step, by rhythm</summary><div class="blocks" id="blocks"></div></details>
 <h2 class="ftitle">How things flow</h2>
-<p class="fsub">today's steps → the drives they serve → the rhythms → ☸️ the wellness wheel, and on to where each drive leads. Tap anything to follow it.</p>
+<p class="fsub">the day's flow and today's steps → the drives they serve, and how each moved → the rhythms → ☸️ the wheel's eight elements, and on to where each drive leads. Tap anything to follow it.</p>
 <div class="card"><div class="scroll"><svg id="flow" role="img" aria-label="Steps flowing into drives, rhythms, the wellness wheel and destinations"></svg></div>
 <div class="sum" id="sum"></div>
 <p class="hint">each list runs from the easiest next step · tap anything on the flow to follow it · tap again to see all</p></div>
 <div class="focus" id="focus" hidden></div></div>
 <section class="sp" id="spent"></section>
-<section class="mv" id="moved"></section>
 <section class="wh" id="wheel"></section>
 <p id="questlink" style="text-align:center;margin:28px 0 0" hidden></p>
 </main>
@@ -438,68 +445,113 @@ function lists(blocks){
   }).join('');
 }
 
-// the flow: steps → drives → rhythms → the wheel; each drive also on to its destinations
+/* one view for how things flow and how the drives moved (261111_d7, her notes of 11 Nov 2026: flow steps go to the
+   wheel by their wellness; the two views merge). Steps → drives → rhythms → the wheel's eight elements. Each drive
+   carries how it moved: the share done before today, what today closed, what today's steps would add. The day's
+   flow practices go straight to their own wellness element, gathered one line per phase and element. */
+const elsInOrder=()=>WPAIRS.flat();   /* body earth · heart water · mind air · spirit fire (WPAIRS is set further down) */
+const BEING=new Set(['body','mind','heart','spirit']);
+function rhythmEl(R){ if(R.el) return R.el;
+  /* without the rhythm's element in the read, the doing element its own lived rows lean to today */
+  const kids=new Set((D.drives||[]).filter(d=>d.parent===R.n).map(d=>d.n).concat([R.n])), n={};
+  (D.schedule||[]).forEach(x=>{ if(x.k==='lived'&&kids.has(x.drive)&&x.el&&!BEING.has(x.el)) n[x.el]=(n[x.el]||0)+1; });
+  return Object.keys(n).sort((a,b)=>n[b]-n[a])[0]||null; }
+function flowSteps(){
+  /* the day's dawn and dusk practices, by phase and element, in the order they happened */
+  const g={}, order=[];
+  (D.schedule||[]).filter(x=>x.k==='lived'&&x.phase&&x.el&&!x.flowcard).sort((a,b)=>String(a.a).localeCompare(String(b.a))).forEach(x=>{
+    const ph=/dusk/.test(x.phase)?'dusk':'dawn', k=ph+':'+x.el;
+    if(!g[k]){ g[k]={ph,el:x.el,glyph:ph==='dusk'?'🌄':'🌅',items:[]}; order.push(k); }
+    g[k].items.push({t:x.t,done:true,today:true}); });
+  return order.map(k=>g[k]).sort((a,b)=>(a.ph===b.ph?0:a.ph==='dawn'?-1:1)||elsInOrder().indexOf(a.el)-elsInOrder().indexOf(b.el));
+}
+function driveMove(d){
+  const over=new Date().toLocaleDateString('en-CA')>D.day, p=d.prog||{}, tot=(p.done||0)+(p.open||0);
+  if(!tot) return null;
+  const plan=over?0:(D.schedule||[]).filter(x=>x.k==='step'&&!x.done&&!x.session&&x.drive===d.n).length;
+  const pc=a=>Math.round(100*a/tot), before=Math.max(0,(p.done||0)-(p.today||0));
+  return {tot, was:pc(before), now:pc(p.done||0), to:pc(Math.min(tot,(p.done||0)+plan)), today:p.today||0, done:p.done||0, since:p.since, over};
+}
 function flow(blocks){
   const svg=document.getElementById('flow'); svg.textContent=''; cur=null; part={}; document.getElementById('focus').hidden=true;
-  const ROW=24, TOP=34, GAP=12, X0=12, XS=330, XD=500, XR=680, XO=860;
+  const ROW=24, TOP=34, GAP=12, X0=12, XS=330, XD=480, XR=690, XW=850, DMIN=40;
   const reg=(k,e)=>{(part[k]=part[k]||[]).push(e);};
-  const rows=[], drs=[], rhs=[];
+  const rows=[], drs=[], rhs=[], fl=flowSteps();
   let y=TOP;
-  blocks.forEach(b=>{ const y0=y, R=b.R;
-    const own=[...b.done,...b.shown].map(a=>({a,to:'r'}));
-    own.forEach(s=>{ s.y=y+ROW/2; rows.push({...s,b}); y+=ROW; });
-    b.drives.forEach(x=>{ const dy0=y; const acts=[...x.done,...x.shown]; acts.forEach(a=>{ rows.push({a,to:'d',x,b,y:y+ROW/2}); y+=ROW; });
-      if(!acts.length){ y+=ROW*.75; } x.y0=dy0; x.y1=y; x.ym=(dy0+y)/2; drs.push({x,b}); });
+  if(fl.length){ fl.forEach(f=>{ rows.push({a:{t:`${f.glyph} ${f.ph} · ${f.items.length} ${f.items.length===1?'step':'steps'}`,done:true,today:true},to:'w',f,y:y+ROW/2}); y+=ROW; }); y+=GAP*1.5; }
+  blocks.forEach(b=>{ const y0=y;
+    [...b.done,...b.shown].forEach(a=>{ rows.push({a,to:'r',b,y:y+ROW/2}); y+=ROW; });
+    b.drives.forEach(x=>{ const dy0=y, acts=[...x.done,...x.shown]; acts.forEach(a=>{ rows.push({a,to:'d',x,b,y:y+ROW/2}); y+=ROW; });
+      x.mv=driveMove(x.d); if(y-dy0<(x.mv?DMIN:ROW*.75)) y=dy0+(x.mv?DMIN:ROW*.75);
+      x.y0=dy0; x.y1=y; x.ym=(dy0+y)/2; drs.push({x,b}); });
     b.y0=y0; b.y1=y; b.ym=(y0+y)/2; if(!b.loose) rhs.push(b); y+=GAP; });
+  // the wheel's eight elements, paired being and doing, in the last column
+  const W=(D.wheel&&D.wheel.domains)||{}, wt=Object.values(W).reduce((s,v)=>s+v,0), EH=26, EG=4, PG=12;
+  const ELS=elsInOrder(), elY={}; let ey=TOP; ELS.forEach((k,i)=>{ elY[k]=ey+EH/2; ey+=EH+(i%2?PG:EG); });
   const dests={}; drs.forEach(({x})=>x.d.dest.forEach(n=>{ (dests[n]=dests[n]||[]).push(x); }));
-  const H=Math.max(y, TOP+60+Object.keys(dests).length*34)+10; svg.setAttribute('viewBox',`0 0 1000 ${H}`);
-  [['steps',X0,'start'],['drives',XD+10,'start'],['rhythms',XR+10,'start'],['what they rest on · where they lead',XO,'start']].forEach(([t,x,a])=>T(t,{x,y:20,'font-family':MONO,'font-size':11,fill:cv('--muted'),'text-anchor':a},svg));
-  const G={b:S('g',{},svg),n:S('g',{},svg)};
-  // the wheel, the foundation, at the top of the last column; the destinations under it
-  const wheelY=TOP+6, wH=Math.max(26,rhs.length*10);
-  const wn=S('g',{class:'n'},G.n); reg('wheel',wn);
-  S('rect',{x:XO,y:wheelY,width:10,height:wH,rx:4,fill:cv('--accent')},wn);
-  T('☸️ a balanced wellness wheel',{x:XO+16,y:wheelY+wH/2+3,'font-size':13,'font-weight':600},wn);
-  T('the foundation',{x:XO+16,y:wheelY+wH/2+17,'font-family':MONO,'font-size':10,fill:cv('--muted')},wn);
-  wn.addEventListener('click',()=>focus('wheel',{title:'☸️ a balanced wellness wheel — the foundation', list:rows.filter(r=>r.to==='r').map(r=>r.a)}));
   const dn=Object.keys(dests).map(n=>({n,ym:dests[n].reduce((s,x)=>s+x.ym,0)/dests[n].length})).sort((a,b)=>a.ym-b.ym);
-  let oy=wheelY+wH+40; dn.forEach(o=>{ o.y=Math.max(oy,o.ym-10); oy=o.y+34; });
+  let oy=ey+30; dn.forEach(o=>{ o.y=Math.max(oy,o.ym-10); oy=o.y+30; });
   const dY={}; dn.forEach(o=>dY[o.n]=o.y+10);
-  // rhythms → wheel
+  const H=Math.max(y, oy)+10; svg.setAttribute('viewBox',`0 0 1000 ${H}`);
+  [['steps',X0],['drives · how each moved',XD],['rhythms',XR],['☸️ the wheel',XW]].forEach(([t,x])=>T(t,{x,y:20,'font-family':MONO,'font-size':11,fill:cv('--muted')},svg));
+  if(dn.length) T('where they lead',{x:XW,y:ey+20,'font-family':MONO,'font-size':11,fill:cv('--muted')},svg);
+  const G={b:S('g',{},svg),n:S('g',{},svg)};
   window.__fnode={};
-  rhs.forEach(b=>{ const c=col(b.R.c), k='r:'+b.R.n;
-    const p=S('path',{d:`M${XR+10},${b.ym} C${XR+90},${b.ym} ${XO-90},${wheelY+wH/2} ${XO},${wheelY+wH/2}`,fill:'none',stroke:c,'stroke-width':5,opacity:.35},G.b); reg(k,p); reg('wheel',p);
-    const n=S('g',{class:'n'},G.n); reg(k,n); window.__fnode[k]=n;
+  const into=k=>rows.filter(r=>(r.to==='w'&&r.f.el===k)||(r.to!=='w'&&r.b&&!r.b.loose&&rhythmEl(r.b.R)===k));
+  ELS.forEach(k=>{ const n=S('g',{class:'n'},G.n), key='w:'+k, v=W[k]||0, Wd=WDOM[k]; reg(key,n); window.__fnode[key]=n;
+    S('rect',{x:XW,y:elY[k]-EH/2,width:10,height:EH,rx:4,fill:Wd.c,stroke:Wd.d,'stroke-width':1,opacity:v?1:.35},n);
+    const ic=S('g',{transform:`translate(${XW+16} ${elY[k]-8}) scale(.8)`,fill:Wd.c,stroke:Wd.d,'stroke-width':1,'stroke-linejoin':'round',opacity:v?1:.4},n); ic.innerHTML=WICON[k];
+    T(k,{x:XW+38,y:elY[k]+4,'font-size':12.5,'font-weight':BEING.has(k)?400:600,fill:v?cv('--ink'):cv('--muted')},n);
+    if(wt) T(v?`${Math.round(100*v/wt)}%`:'—',{x:XW+96,y:elY[k]+4,'font-family':MONO,'font-size':10.5,fill:cv('--muted')},n);
+    n.addEventListener('click',()=>focus(key,{title:`☸️ ${k} · ${Wd.f}`, list:into(k).flatMap(r=>r.f?r.f.items:[r.a])})); });
+  // rhythms → their element
+  rhs.forEach(b=>{ const c=col(b.R.c), k='r:'+b.R.n, el=rhythmEl(b.R);
+    if(el&&elY[el]!=null){ const p=S('path',{d:`M${XR+10},${b.ym} C${XR+80},${b.ym} ${XW-80},${elY[el]} ${XW},${elY[el]}`,fill:'none',stroke:c,'stroke-width':5,opacity:.35},G.b); reg(k,p); reg('w:'+el,p); }
+    const n=S('g',{class:'n'},G.n); reg(k,n); window.__fnode[k]=n; if(el) reg('w:'+el,n);
     S('rect',{x:XR,y:b.y0,width:10,height:Math.max(12,b.y1-b.y0),rx:4,fill:c},n);
-    T(cut((b.R.g||'')+' '+(b.R.short||b.R.n),20),{x:XR+16,y:b.ym+4,'font-size':12.5,'font-weight':600},n);
+    T(cut((b.R.g||'')+' '+(b.R.short||b.R.n),18),{x:XR+16,y:b.ym+4,'font-size':12.5,'font-weight':600},n);
     n.addEventListener('click',()=>focus(k,{title:(b.R.g||'')+' '+b.R.n, list:rows.filter(r=>r.b===b).map(r=>r.a)})); });
-  // drives → their rhythm, and on to their destinations
-  drs.forEach(({x,b})=>{ const c=col(x.d.c), k='d:'+x.d.n;
-    if(!b.loose){ const p=S('path',{d:`M${XD+10},${x.ym} C${XD+80},${x.ym} ${XR-80},${b.ym} ${XR},${b.ym}`,fill:'none',stroke:c,'stroke-width':3,opacity:.4},G.b); reg(k,p); reg('r:'+b.R.n,p); }
-    x.d.dest.forEach(n=>{ if(dY[n]==null) return; const p=S('path',{d:`M${XD+10},${x.ym} C${XD+200},${x.ym} ${XO-160},${dY[n]} ${XO},${dY[n]}`,fill:'none',stroke:c,'stroke-width':2,opacity:.28,'stroke-dasharray':'2 4'},G.b); reg(k,p); reg('o:'+n,p); });
-    const n=S('g',{class:'n'},G.n); reg(k,n); window.__fnode[k]=n; if(!b.loose) reg('r:'+b.R.n,n);
-    S('rect',{x:XD,y:x.y0,width:8,height:Math.max(10,x.y1-x.y0),rx:3,fill:c,opacity:x.shown.length||x.done.length?1:.4},n);
-    const P=x.d.prog||{}, tot=(P.done||0)+(P.open||0), nd=x.done.length;
-    T(cut((x.d.g||'')+' '+(x.d.short||x.d.n),20),{x:XD+14,y:x.ym-(tot?1:-4),'font-size':12.5},n);
-    if(tot) T(nd?`${Math.round(100*Math.max(0,P.done-nd)/tot)}% → ${Math.round(100*P.done/tot)}% today`:`${Math.round(100*P.done/tot)}%`,{x:XD+14,y:x.ym+12,'font-family':MONO,'font-size':10.5,fill:cv('--muted')},n);
-    n.addEventListener('click',()=>focus(k,{title:(x.d.g||'')+' '+x.d.n, list:x.open.concat(x.done)})); });
+  // drives → their rhythm and on to their destinations, each with how it moved
+  drs.forEach(({x,b})=>{ const c=col(x.d.c), k='d:'+x.d.n, el=b.loose?null:rhythmEl(b.R);
+    if(!b.loose){ const p=S('path',{d:`M${XD+10},${x.ym} C${XD+90},${x.ym} ${XR-80},${b.ym} ${XR},${b.ym}`,fill:'none',stroke:c,'stroke-width':3,opacity:.4},G.b); reg(k,p); reg('r:'+b.R.n,p); if(el) reg('w:'+el,p); }
+    x.d.dest.forEach(n=>{ if(dY[n]==null) return; const p=S('path',{d:`M${XD+10},${x.ym} C${XD+220},${x.ym} ${XW-160},${dY[n]} ${XW},${dY[n]}`,fill:'none',stroke:c,'stroke-width':2,opacity:.22,'stroke-dasharray':'2 4'},G.b); reg(k,p); reg('o:'+n,p); });
+    const n=S('g',{class:'n'},G.n); reg(k,n); window.__fnode[k]=n; if(!b.loose){ reg('r:'+b.R.n,n); if(el) reg('w:'+el,n); }
+    const live=x.shown.length||x.done.length;
+    S('rect',{x:XD,y:x.y0,width:8,height:Math.max(10,x.y1-x.y0),rx:3,fill:c,opacity:live?1:.4},n);
+    const m=x.mv;
+    T(cut((x.d.g||'')+' '+(x.d.short||x.d.n),22),{x:XD+14,y:m?x.ym-6:x.ym+4,'font-size':12.5},n);
+    if(m){ const bx=XD+14, bw=120, by=x.ym+1;
+      S('rect',{x:bx,y:by,width:bw,height:6,rx:3,fill:cv('--rule')},n);
+      if(m.was) S('rect',{x:bx,y:by,width:bw*m.was/100,height:6,rx:3,fill:c,opacity:.45},n);
+      if(m.now>m.was) S('rect',{x:bx+bw*m.was/100,y:by,width:bw*(m.now-m.was)/100,height:6,fill:c},n);
+      if(m.to>m.now) S('rect',{x:bx+bw*m.now/100,y:by,width:bw*(m.to-m.now)/100,height:6,fill:'none',stroke:c,'stroke-width':1,'stroke-dasharray':'2 2'},n);
+      T(m.now>m.was?`${m.was}% → ${m.now}%`:m.to>m.now?`${m.now}% → ${m.to}%`:`${m.now}%`,{x:bx+bw+6,y:by+6,'font-family':MONO,'font-size':10.5,fill:m.now>m.was?cv('--ink'):cv('--muted'),'font-weight':m.now>m.was?600:400},n); }
+    n.addEventListener('click',()=>focus(k,{title:(x.d.g||'')+' '+x.d.n+(m?` · ${m.done} of ${m.tot} steps since ${fmt(m.since)}${m.now>m.was?`, +${m.now-m.was}% today`:''}`:''), list:x.done.concat(x.open)})); });
   dn.forEach(o=>{ const n=S('g',{class:'n'},G.n), k='o:'+o.n; reg(k,n);
-    S('rect',{x:XO,y:o.y,width:10,height:20,rx:4,fill:cv('--dest')},n);
-    T(((D.dest[o.n]||'')+' '+cut(o.n,22)).trim(),{x:XO+16,y:o.y+14,'font-size':12.5},n);
+    S('rect',{x:XW,y:o.y,width:10,height:20,rx:4,fill:cv('--dest')},n);
+    T(((D.dest[o.n]||'')+' '+cut(o.n,18)).trim(),{x:XW+16,y:o.y+14,'font-size':12},n);
     n.addEventListener('click',()=>focus(k,{title:(D.dest[o.n]||'')+' '+o.n, list:dests[o.n].flatMap(x=>x.open)})); });
-  // the steps
-  rows.forEach((s,i)=>{ const k='s'+i, b=s.b, tx=s.to==='r'?XR:XD, ty=s.to==='r'?b.ym:s.x.ym, c=col((s.to==='r'?b.R:s.x.d).c);
-    const p=S('path',{d:`M${XS},${s.y} C${XS+(tx-XS)*.45},${s.y} ${tx-(tx-XS)*.45},${ty} ${tx},${ty}`,fill:'none',stroke:c,'stroke-width':s.a.done?5:3,opacity:s.a.done?.9:.45,'stroke-dasharray':s.a.done?'0':'5 4'},G.b);
-    reg(k,p); reg(s.to==='r'?'r:'+b.R.n:'d:'+s.x.d.n,p); if(s.to==='r') reg('wheel',p);
-    const n=S('g',{class:'n'},G.n); reg(k,n); reg(s.to==='r'?'r:'+b.R.n:'d:'+s.x.d.n,n);
-    if(s.a.done){ S('rect',{x:X0,y:s.y-7,width:13,height:13,rx:3,fill:cv('--accent')},n); S('path',{d:`M${X0+3.5},${s.y} l2.5,2.8 l4,-5.5`,fill:'none',stroke:cv('--card'),'stroke-width':2},n); }
+  // the steps, and the flow practices straight to their element
+  rows.forEach((s,i)=>{ const k='s'+i;
+    let tx,ty,c,owner;
+    if(s.to==='w'){ tx=XW; ty=elY[s.f.el]; c=WDOM[s.f.el].d; owner='w:'+s.f.el; }
+    else if(s.to==='r'){ tx=XR; ty=s.b.ym; c=col(s.b.R.c); owner='r:'+s.b.R.n; }
+    else { tx=XD; ty=s.x.ym; c=col(s.x.d.c); owner='d:'+s.x.d.n; }
+    const p=S('path',{d:`M${XS},${s.y} C${XS+(tx-XS)*.45},${s.y} ${tx-(tx-XS)*.45},${ty} ${tx},${ty}`,fill:'none',stroke:c,'stroke-width':s.a.done?(s.to==='w'?3:5):3,opacity:s.to==='w'?.4:s.a.done?.9:.45,'stroke-dasharray':s.a.done?'0':'5 4'},G.b);
+    reg(k,p); reg(owner,p);
+    const n=S('g',{class:'n'},G.n); reg(k,n); reg(owner,n);
+    if(s.to!=='w'&&s.b&&!s.b.loose){ const el=rhythmEl(s.b.R); if(el){ reg('w:'+el,p); reg('w:'+el,n); } }
+    if(s.to==='w'){ const ic=S('g',{transform:`translate(${X0-1} ${s.y-8}) scale(.8)`,fill:WDOM[s.f.el].c,stroke:WDOM[s.f.el].d,'stroke-width':1,'stroke-linejoin':'round'},n); ic.innerHTML=WICON[s.f.el]; }
+    else if(s.a.done){ S('rect',{x:X0,y:s.y-7,width:13,height:13,rx:3,fill:cv('--accent')},n); S('path',{d:`M${X0+3.5},${s.y} l2.5,2.8 l4,-5.5`,fill:'none',stroke:cv('--card'),'stroke-width':2},n); }
     else if(s.a.today) S('rect',{x:X0,y:s.y-7,width:13,height:13,rx:3,fill:cv('--card'),stroke:cv('--accent'),'stroke-width':2},n);
     else S('path',{d:'M6.6 0 0 8h4.2L3.4 14 11 5.6H6.6z',transform:`translate(${X0+1},${s.y-7})`,fill:cv('--bolt')},n);
-    const t=T(cut(s.a.t,40),{x:X0+22,y:s.y+4.5,'font-size':12.5,fill:s.a.done?cv('--muted'):cv('--ink')},n);
-    if(s.a.done) t.setAttribute('text-decoration','line-through');
-    n.addEventListener('click',()=>focus(k,{title:s.a.t, list:[s.a]})); });
-  const nt=rows.filter(r=>r.to==='r'&&!r.a.done).length, ng=rows.filter(r=>r.to==='d'&&!r.a.done).length, nd=rows.filter(r=>r.a.done).length;
-  document.getElementById('sum').innerHTML=`${nd?`<span><b>${nd}</b> done today</span>`:''}<span><b>${nt}</b> to tend</span><span><b>${ng}</b> to grow</span><span><b>${drs.filter(({x})=>x.shown.length).length}</b> drives moving · ${drs.filter(({x})=>!x.shown.length&&!x.done.length).length} resting</span>`;
+    const label=s.to==='w'?`${s.a.t} · ${s.f.el}`:s.a.t;
+    const t=T(cut(label,40),{x:X0+22,y:s.y+4.5,'font-size':12.5,fill:s.a.done&&s.to!=='w'?cv('--muted'):cv('--ink')},n);
+    if(s.a.done&&s.to!=='w') t.setAttribute('text-decoration','line-through');
+    n.addEventListener('click',()=>focus(k,s.to==='w'?{title:`${s.f.glyph} ${s.f.ph} flow → ☸️ ${s.f.el}`, list:s.f.items}:{title:s.a.t, list:[s.a]})); });
+  const nt=rows.filter(r=>r.to==='r'&&!r.a.done).length, ng=rows.filter(r=>r.to==='d'&&!r.a.done).length, nd=rows.filter(r=>r.to!=='w'&&r.a.done).length,
+        nf=fl.reduce((s,f)=>s+f.items.length,0), mvd=drs.filter(({x})=>x.mv&&x.mv.now>x.mv.was).length;
+  document.getElementById('sum').innerHTML=`${nf?`<span><b>${nf}</b> flow steps</span>`:''}${nd?`<span><b>${nd}</b> done today</span>`:''}<span><b>${nt}</b> to tend</span><span><b>${ng}</b> to grow</span><span><b>${mvd}</b> ${mvd===1?'drive':'drives'} moved · ${drs.filter(({x})=>!x.shown.length&&!x.done.length).length} resting</span>`;
 }
 function focus(k,info){
   const svg=document.getElementById('flow'), box=document.getElementById('focus');
@@ -996,22 +1048,23 @@ function wheel(){
   if(slot) slot.innerHTML=g.replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,''); else el.innerHTML=g;
   el.querySelectorAll('.wk').forEach(n=>n.addEventListener('click',()=>pickEl(n.dataset.k)));
 }
-/* how the drives move today (7 Nov 2026, her words: I really love how the 30 Oct version shows the actual progress;
-   looking out ahead I can see how it moves, and looking back behind I can see how it moved). Each drive with a step
-   today: the share of its steps done before today, what today closed, and what today still holds. */
-function moved(){
-  const el=document.getElementById('moved'); if(!el) return;
-  const over=new Date().toLocaleDateString('en-CA')>D.day, pc=(a,t)=>t?Math.round(100*a/t):0;
-  const planned={}; (D.schedule||[]).forEach(x=>{ if(x.k==='step'&&!x.done&&!x.session&&x.drive) planned[x.drive]=(planned[x.drive]||0)+1; });
-  const rows=(D.drives||[]).filter(d=>d.prog&&(d.prog.today||planned[d.n])&&!(D.hidden||[]).includes(d.n)).map(d=>{
-    const p=d.prog, tot=(p.done||0)+(p.open||0), before=Math.max(0,(p.done||0)-(p.today||0)), plan=over?0:(planned[d.n]||0);
-    const now=pc(p.done,tot), was=pc(before,tot), to=pc((p.done||0)+plan,tot);
-    const line=over?(p.today?`${was}% → <b>${now}%</b> · moved +${now-was}% today`:`${now}% · didn't move today`)
-                    :(p.today?`<b>${now}%</b> · +${now-was}% so far today`:`<b>${now}%</b>`)+(plan?` · today's step${plan>1?'s take':' takes'} it to ${to}%`:'');
-    return `<div class="mvr" style="--dc:${col(d.c)}"><div class="mvn">${esc((d.g||'')+' '+(d.short||d.n))}</div>`
-      +`<div class="mvb"><i style="width:${was}%"></i><i class="t" style="width:${now-was}%"></i><i class="p" style="width:${to-now}%"></i></div>`
-      +`<div class="mvl">${line} · ${p.done} of ${tot} steps since ${esc(fmt(p.since))}</div></div>`; });
-  el.innerHTML=rows.length?`<h2 class="ftitle">${over?'how the drives moved':'how today moves the drives'}</h2><div class="card mvc">${rows.join('')}</div>`:'';
+/* the day's artifacts, up top (261111_d7, her notes of 11 Nov 2026): what the day made — each deliverable and page
+   linked from a row she lived, once, in the order it happened. The flow's own pages (the morning gate, the look ahead)
+   are routine and stay on their cards. A tap opens it. */
+function artsOf(){
+  const seen=new Set(), out=[], MADE=/^(deliverable|the page|notes|artifact|page|doc)$/i;
+  const from=(x,o)=>(o.links||[]).forEach(l=>{ if(!l||!l.u||!MADE.test(String(l.l||''))||seen.has(l.u)) return; seen.add(l.u);
+    out.push({t:sixLine(o).replace(/^[^\p{L}\p{N}]+/u,'')||l.l, u:l.u, kind:/deliverable/i.test(l.l)?'deliverable':/notes|doc/i.test(l.l)?'notes':'page', at:x.a||'', x}); });
+  (D.schedule||[]).filter(x=>(x.k==='lived'||x.k==='event')&&!x.phase).sort((a,b)=>String(a.a).localeCompare(String(b.a)))
+    .forEach(x=>{ from(x,x); (x.members||[]).forEach(m=>from(x,m)); });
+  return out;
+}
+const ap12=hm=>{ const [h,m]=String(hm).split(':').map(Number); return isNaN(h)?'':`${h%12||12}:${String(m||0).padStart(2,'0')}${h<12?'a':'p'}`; };
+function arts(){
+  const el=document.getElementById('arts'); if(!el) return;
+  const A=artsOf(); if(!A.length){ el.innerHTML=''; return; }
+  const over=new Date().toLocaleDateString('en-CA')>D.day, G={deliverable:'📎',page:'🗂️',notes:'📝'};
+  el.innerHTML=`<h2>${over?'what the day made':'made so far today'}</h2><ul>${A.map(a=>`<li><a href="${esc(a.u)}" target="_blank" rel="noopener"><span class="g">${G[a.kind]}</span><span class="t">${esc(cut(a.t,64))}</span><span class="w">${a.kind}${a.at?' · '+ap12(a.at):''}</span></a></li>`).join('')}</ul>`;
 }
 /* how the time went, as a pie of the whole 24 hours (7 Nov 2026, her words: an updated graphic like the day behind's that
    matches those categories; then: instead of this list, a pie chart, and 24 hours has to be the total). Every minute of
@@ -1157,7 +1210,7 @@ function sat(){
 function arrange(){
   const $=id=>document.getElementById(id), m=$('h1'); if(!m) return;
   const now=new Date(), day=now.toLocaleDateString('en-CA'), am=day<D.day||(day===D.day&&now.getHours()<12);
-  const after=['spent','wheel','today','sat','int','flowwrap','moved'], base=['rv','leannote'];
+  const base=['rv','leannote'];
   /* the three sit right under base flow in the morning, and right under the day's time from noon (12 Nov 2026). Before
      10 the calendar comes straight after the three and how the time is going waits at the bottom (12 Nov 2026, her words:
      how the time is going is pretty irrelevant at this stage in the day … till after my work day has started … after 10
@@ -1165,16 +1218,18 @@ function arrange(){
   const early=day===D.day&&now.getHours()<10;
   /* once the workday starts, base flow goes to the bottom (12 Nov 2026, her words: once I start my workday, the
      baseflow needs to move to the bottom) */
-  const ids=early?['rv','three','leannote','today','sat','int','flowwrap','moved','spent','wheel']
-    :['today','three','spent','wheel','sat','int','flowwrap','moved'].concat(base);   /* the workday: my stream first, then the three (12 Nov 2026, her words: during the day the thing that is really helpful is seeing my stream and where I am in it … I don't want to have to scroll down) */
+  const ids=early?['rv','arts','three','leannote','today','sat','int','flowwrap','spent','wheel']
+    :['arts','today','three','spent','wheel','sat','int','flowwrap'].concat(base);   /* the workday: my stream first, then the three (12 Nov 2026, her words: during the day the thing that is really helpful is seeing my stream and where I am in it … I don't want to have to scroll down) */
   /* NOW and NEXT lead whenever there is a plan for the rest of today; the three then wait below the calendar (12 Nov 2026) */
   /* before 10, base flow leads and nothing sits above it (12 Nov 2026, her words: before 10am I just want to see the base
      flow at the top); NOW and NEXT stay off the page for now */
+  /* the day's artifacts sit up top, under base flow before 10 (261111_d7, her notes of 11 Nov 2026); the drives' moves
+     are on How things flow now, so there is no separate section for them */
   let L_=ids; const nowEl=$('now'); if(nowEl) nowEl.hidden=true;
   const intEl=$('int'); if(intEl&&(D.three_more||[]).length) intEl.hidden=true;
   let at=m; L_.forEach(id=>{ const n=$(id); if(n){ at.after(n); at=n; } });
 }
-function draw(){ nowNext(); sat(); today(); card(); three(); const b=shape(); lists(b); intention(b); flow(b); spent(); moved(); wheel(); markTimeline(); arrange(); }
+function draw(){ nowNext(); arts(); sat(); today(); card(); three(); const b=shape(); lists(b); intention(b); flow(b); spent(); wheel(); markTimeline(); arrange(); }
 document.addEventListener('bedo-theme',draw);
 draw();
 </script>
