@@ -1168,8 +1168,9 @@ function arrange(){
   const ids=early?['rv','three','leannote','today','sat','int','flowwrap','moved','spent','wheel']
     :['today','three','spent','wheel','sat','int','flowwrap','moved'].concat(base);   /* the workday: my stream first, then the three (12 Nov 2026, her words: during the day the thing that is really helpful is seeing my stream and where I am in it … I don't want to have to scroll down) */
   /* NOW and NEXT lead whenever there is a plan for the rest of today; the three then wait below the calendar (12 Nov 2026) */
-  let L_=ids; const nowEl=$('now'); if(nowEl) nowEl.hidden=!(early&&(D.plan||[]).length);
-  if(early&&(D.plan||[]).length){ L_=L_.filter(i=>i!=='three'); const k=L_.indexOf('today'); L_.splice(k<0?L_.length:k+1,0,'three'); L_=['now'].concat(L_); }
+  /* before 10, base flow leads and nothing sits above it (12 Nov 2026, her words: before 10am I just want to see the base
+     flow at the top); NOW and NEXT stay off the page for now */
+  let L_=ids; const nowEl=$('now'); if(nowEl) nowEl.hidden=true;
   const intEl=$('int'); if(intEl&&(D.three_more||[]).length) intEl.hidden=true;
   let at=m; L_.forEach(id=>{ const n=$(id); if(n){ at.after(n); at=n; } });
 }
