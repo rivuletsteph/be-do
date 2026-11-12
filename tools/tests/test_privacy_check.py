@@ -187,5 +187,72 @@ class Workflow(unittest.TestCase):
             self.assertRegex(f.read(), r'pull_request:\n\s+types: \[[^\]]*\bedited\b')
 
 
+
+class Services(unittest.TestCase):
+    """Which apps, stores, banks and devices someone uses is a map to their logins
+    (12 Nov 2026): a service named in anything new is a hit. Every service below is
+    on the generic list, and nothing here says who uses it."""
+    def go(self, args, added=''):
+        with mock.patch.object(pc, 'live_services', mock.Mock(return_value={'Streamly'})):
+            return run(args, added=added)
+
+    def test_a_service_in_an_added_line_is_a_hit(self):
+        code, _, out = self.go(['--diff', 'origin/main'], added='open it in Netflix')   # privacy: ok
+        self.assertEqual(code, 1)
+        self.assertIn('a service someone uses', out)
+        self.assertNotIn('Netflix', out.replace('open it in Netflix', ''))   # privacy: ok
+
+    def test_a_service_from_her_settings_is_a_hit(self):
+        code, _, out = self.go(['--diff', 'origin/main'], added='the Streamly shelf')
+        self.assertEqual(code, 1)
+
+    def test_a_service_in_the_pull_request_text_is_a_hit(self):
+        with tempfile.NamedTemporaryFile('w', suffix='.md', delete=False, encoding='utf-8') as f:
+            f.write('Shelves for Spotify and Kindle')   # privacy: ok
+        try:
+            code, _, out = self.go(['--title', 'A page', '--text', f.name])
+        finally:
+            os.remove(f.name)
+        self.assertEqual(code, 1)
+
+    def test_a_service_in_a_branch_name_is_a_hit(self):
+        code, _, _ = self.go(['--branch', 'claude/audible-shelf'])   # privacy: ok
+        self.assertEqual(code, 1)
+
+    def test_a_capitalised_brand_word_still_counts(self):
+        code, _, _ = self.go(['--diff', 'origin/main'], added='the Nest thermostat')   # privacy: ok
+        self.assertEqual(code, 1)
+
+    def test_plain_words_are_not_services(self):
+        code, _, out = self.go(['--diff', 'origin/main'], added='a calm, discovering walk with a nest of birds')
+        self.assertEqual(code, 0, out)
+
+    def test_an_integration_folder_may_name_its_own_service(self):
+        hits = []
+        S = [('Oura', re.compile(r'(?<![\w])Oura(?![\w+])', re.I))]   # privacy: ok
+        pc.check_services('read the Oura API', 'diff+1', S, hits, path='plugins/bedo/skills/bedo-oura/run.sh')   # privacy: ok
+        self.assertEqual(hits, [])
+        pc.check_services('read the Oura API', 'diff+1', S, hits, path='plugins/bedo/skills/other/run.sh')   # privacy: ok
+        self.assertEqual(len(hits), 1)
+
+    def test_existing_files_are_not_reread_for_services(self):
+        with mock.patch.object(pc, 'service_terms', mock.Mock(return_value=[])) as st:
+            run([])
+        st.assert_not_called()
+
+    def test_a_fresh_start_checks_its_message(self):
+        def git(*a):
+            if a[0] == 'merge-base':
+                raise pc.subprocess.CalledProcessError(1, 'git')
+            if a[0] == 'rev-list':
+                return 'abc1234\n'
+            if a[0] == 'log' and any('%B' in x for x in a):
+                return 'fresh start, shelves for Hulu'   # privacy: ok
+            return ''
+        hits = []
+        with mock.patch.object(pc, 'git', git), contextlib.redirect_stderr(io.StringIO()):
+            pc.check_diff('origin/main', [], hits, [('Hulu', re.compile('Hulu'))])   # privacy: ok
+        self.assertTrue(any('a service someone uses' in h for h in hits), hits)
+
 if __name__ == '__main__':
     unittest.main()
