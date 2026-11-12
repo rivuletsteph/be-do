@@ -1151,7 +1151,17 @@ def main():
                 die(f'--pick {ref.strip()!r}: no row with that key or record id in the stream read')
             chosen.append(dict(kind='', row=r, why=why.strip()))
         ids = {c['row']['id'] for c in chosen}
-        nxt = [dict(kind=p['kind'], title=clean_title(p['row']['title'])) for p in picks if p['row']['id'] not in ids][:2]
+        # a fourth and fifth --pick are the chat's next in line (12 Nov 2026: getting ready for next week was hers to
+        # see, and the builder's own next in line had stepped in instead)
+        mine = []
+        for spec in a.pick[3:5]:
+            ref, _, why = spec.partition('::')
+            r = by.get(ref.strip())
+            if not r:
+                die(f'--pick {ref.strip()!r}: no row with that key or record id in the stream read')
+            mine.append(dict(kind=why.strip() or 'next', title=clean_title(r['title'])))
+            ids.add(r['id'])
+        nxt = (mine + [dict(kind=p['kind'], title=clean_title(p['row']['title'])) for p in picks if p['row']['id'] not in ids])[:2]
         more = [m for m in more if m['id'] not in ids]
         picks = chosen
     plan = look_ahead_plan(evs, conflicts, rows, open_rows, chains, rhythms, today, a, L)

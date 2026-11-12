@@ -73,7 +73,8 @@ were not). When the chat has named the three, pass each as
 `--pick "<row key or record id>::<why, one or two sentences>"`; the page shows
 them with their status, so a rebuild later in the day draws one closed as done,
 and the builder's own picks step down to next in line. Without `--pick` the
-builder chooses.
+builder chooses. A fourth and fifth `--pick "<key>::<kind>"` are the chat's next in line, shown under
+the three in that order (12 Nov 2026).
 
 **Small things go in a session, never a pile at the day's end** (4 Nov 2026, her words: the problem
 where it stacks up a bunch of tasks at the end of the day doesn't work for me at all … it needs to say
