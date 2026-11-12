@@ -381,9 +381,15 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
             a = dt.datetime.fromisoformat(e['sort'])
         except (KeyError, ValueError):
             continue
-        if a.date() != today or not e.get('when'):
+        if not e.get('when'):
             continue
         b = clock(today, e.get('end')) or a + dt.timedelta(hours=1)
+        if a.date() != today:
+            # a stay that began before today and ends today is part of the day's background (12 Nov 2026, her words:
+            # where's the fact that he's at his grandparents', please?): it starts the day at midnight
+            if not (a.date() < today and b.date() == today):
+                continue
+            a = dt.datetime.combine(today, dt.time(0))
         # put on the calendar the same day it happened: last-minute (6 Nov 2026, her words:
         # it was definitely an event that should have been on the calendar; it was just a last-minute thing)
         made = CREATED.get(re.search(r'[?&]eid=([^&#]+)', e.get('link') or '') and re.search(r'[?&]eid=([^&#]+)', e.get('link')).group(1))
