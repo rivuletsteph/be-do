@@ -1,0 +1,18 @@
+#!/bin/sh
+# Refuses a push that would put anything personal into this public repo.
+# Turn it on once per clone:  git config core.hooksPath .githooks
+# The first python that really runs: on Windows, python3 can be the Store
+# shortcut, which exists but runs nothing, and would block every push.
+for PY in python3 python; do "$PY" -c '' 2>/dev/null && break; PY=; done
+[ -n "$PY" ] || { echo "privacy check: no python found — nothing was pushed"; exit 1; }
+export PYTHONUTF8=1
+# the names of the branches being pushed are public too (12 Nov 2026): git hands
+# them to this hook on stdin, one "local-ref local-sha remote-ref remote-sha" a line
+BRANCHES=""
+while read -r _ _ REMOTE_REF _; do
+  case "$REMOTE_REF" in refs/heads/*) BRANCHES="$BRANCHES ${REMOTE_REF#refs/heads/}";; esac
+done
+set --
+for B in $BRANCHES; do set -- "$@" --branch "$B"; done
+# one run for the files, the new commits and the branch names, so the names are read once
+"$PY" tools/privacy_check.py --files --diff origin/main "$@" || { echo "privacy check failed — nothing was pushed"; exit 1; }

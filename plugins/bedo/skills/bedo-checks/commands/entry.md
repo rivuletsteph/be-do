@@ -1,0 +1,12 @@
+# `entry`
+
+**When:** before any stream write
+
+**Command:** `entry row.json --chat MMDD`
+
+write only rows that print `ok`; fix every `FIX` first. Every row is born whole (9 Oct 2026): an empty device or wellness prints the value it deduces — from her rules, else what that practice usually carries — write that value with the row. When nothing deduces it, the row is still `ok` and a `note:` line says so: write it, and ask in passing only if it matters. Nothing stops for a little detail (her words, 9 Oct). Two things at once are two rows, each in full, each 🌓 partial attention (attention goes on any row) (pass `--catalog` and `--rhythms` reads so wellness can be deduced and a flow step known, and `--day` with today's rows so two things at once are seen). A `note: two things at once` line either reads synergy or competition from her words (write the note line it gives with the row), or, when her words don't say, is asked in that same reply, once, while it's fresh — never left for the QA, a day late (23 and 27 Oct). Every row that happened carries a rhythm or a drive unless it is a flow step, and an open action carries its device: write what `entry` deduces, ask in passing what it can't (8, 20 Oct). A cloudy morning is still due: her bright light meets it, so morning sun is never ⨂ skipped for the weather (28 Oct). A row's datetime and end fall on one day, at most 12 h: closing an old row sets its datetime to the act. A plan (▫️ ⬜) names people in `mentioned`, never `person`. In a my day chat, `--chat` is the date in its title (`1007` for ▶️1007b): a `new day` line means the day has turned — waking on a later date, or a row past noon the next day. Don't write it here. Tell her the day has turned, close this chat's day, and give her one line to open the new chat with
+
+**A row for `entry`** uses the logical names: `datetime`, `end`, `time_spent`,
+`status`, `practice`, `title`, `key`, `details`, `phase`, `wellness`,
+`emotion` (a list), `attention`, `device`, `rhythm`, `person`, `mentioned`.
+One row, or a list.

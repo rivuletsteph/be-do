@@ -1,0 +1,53 @@
+name: privacy check
+# This repo is public and holds only the generic engine. Names, places, ids and
+# links belong in each person's own settings and bases. Names are read live from
+# Airtable with AIRTABLE_READ_TOKEN (read-only, the connections, rhythms and
+# places bases; a base the token can't see is skipped); anything no base holds can
+# go in BEDO_PRIVATE_TERMS (one per line, optional). Both
+# are repository secrets, and hits are printed masked, so nothing private
+# reaches this public log.
+#
+# Every Airtable read counts toward the plan, so the names are read once per
+# run and only where they decide something: on a pull request and on a push to
+# main. A push to any other branch is checked against the static list and the
+# patterns, with no token and no Airtable call; its pull request reads the names.
+#
+# A pull request's title, description and branch name are public too (12 Nov
+# 2026), so its run checks them, and runs again whenever they are edited. They
+# reach the check through the event file, never pasted into the script, so
+# nothing in them can run as a command, and never through env, which the log
+# prints in full: a description once reached the public log that way (12 Nov 2026).
+on:
+  push:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: a branch push (the static list and the patterns, no Airtable read)
+        if: github.event_name == 'push' && github.ref != 'refs/heads/main'
+        env:
+          BEDO_PRIVATE_TERMS: ${{ secrets.BEDO_PRIVATE_TERMS }}
+        run: python3 tools/privacy_check.py
+      - name: a push to main (every file, the names read once)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          BEDO_PRIVATE_TERMS: ${{ secrets.BEDO_PRIVATE_TERMS }}
+          AIRTABLE_READ_TOKEN: ${{ secrets.AIRTABLE_READ_TOKEN }}
+        run: python3 tools/privacy_check.py
+      - name: a pull request (every file, the lines and messages it adds, its title, description and branch, the names read once)
+        if: github.event_name == 'pull_request'
+        env:
+          BEDO_PRIVATE_TERMS: ${{ secrets.BEDO_PRIVATE_TERMS }}
+          AIRTABLE_READ_TOKEN: ${{ secrets.AIRTABLE_READ_TOKEN }}
+          PR_BRANCH: ${{ github.head_ref }}
+          PR_BASE: ${{ github.base_ref }}
+        run: |
+          # the title and description are read from the event file, never set as env:
+          # a step's env is printed in its public log, word for word
+          python3 -c "import json, os; pr = json.load(open(os.environ['GITHUB_EVENT_PATH']))['pull_request']; open(os.path.join(os.environ['RUNNER_TEMP'], 'pr.md'), 'w', encoding='utf-8').write((pr.get('title') or '') + '\n\n' + (pr.get('body') or '') + '\n')"
+          python3 tools/privacy_check.py --files --diff "origin/$PR_BASE" --branch "$PR_BRANCH" --text "$RUNNER_TEMP/pr.md"

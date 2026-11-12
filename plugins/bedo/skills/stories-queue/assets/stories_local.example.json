@@ -1,0 +1,21 @@
+{
+  "_about": "The apps and services this person uses, in shelf order. Lives only in the stories_local row of the settings table, never in the repo: a list of someone's services is a map to their logins. Every name below is invented.",
+  "apps": [
+    {"app": "Streamly", "label": "Streamly", "glyph": "S", "match": "\\bstreamly\\b",
+     "open": "https://streamly.example/search?q={q}"},
+    {"app": "Tubeview", "label": "Tubeview", "glyph": "▶", "match": "tubeview",
+     "link_rx": "tubeview\\.example/watch", "id_rx": "watch\\?v=([\\w-]{6,})",
+     "thumb": "https://img.tubeview.example/{id}/{size}.jpg", "thumb_sizes": ["large", "medium"],
+     "open": "https://tubeview.example/results?q={q}"},
+    {"app": "Podly", "label": "Podly podcasts", "glyph": "♪", "match": "podly", "only_kinds": ["🎙️ podcast", "🎧 podcast"],
+     "kinds": ["🎙️ podcast", "🎧 podcast"], "link_rx": "podly\\.example/episode/",
+     "oembed": "https://podly.example/oembed?url={url}",
+     "remove_rx": "podly\\.example/episode/(\\w+)", "remove_uri": "podly:episode:{id}",
+     "open": "https://podly.example/search/{q}"},
+    {"app": "Readr", "label": "Readr", "glyph": "R", "match": "\\breadr\\b", "only_kinds": ["📗 book"],
+     "link_rx": "readr\\.example", "only_store": true, "open": "https://readr.example/s?q={q}"},
+    {"app": "Paper books", "label": "Paper books", "glyph": "¶", "match": "hardback|paperback|on the shelf",
+     "only_kinds": ["📗 book"], "kinds": ["📗 book"], "open": "https://openlibrary.org/search?q={q}"}
+  ],
+  "elsewhere": {"match": "\\bfreeflix\\b|\\$\\d", "note": "not on your apps: rent, a free app, or not streaming yet"}
+}

@@ -1,0 +1,42 @@
+{
+ "_about": "Copy to facts_local.json (gitignored) and fill in. Every id is the live base's; none ships.",
+ "weekly_name": "w{n} be•do",
+ "stream_table": "tbl…",
+ "utc_offset_hours": -5,
+ "time_zone": "Area/City",
+ "stream_fields": {
+  "datetime": "fld…", "end": "fld…", "time_spent": "fld…", "status": "fld…",
+  "title": "fld…", "details": "fld…", "phase": "fld…", "wellness": "fld…",
+  "emotion": "fld…", "emotion_word": "fld…", "attention": "fld…", "target": "fld…",
+  "key": "fld…", "practice": "fld…", "person": "fld…", "mentioned": "fld…",
+  "rhythm": "fld…", "waiting_on": "fld…", "deliverable": "fld…", "queue": "fld…",
+  "quickie": "fld…", "promote": "fld…", "device": "fld…", "chat": "fld…",
+  "calendar_event": "fld…", "photo": "fld… (the keeper · info select)",
+  "photo_checked": "fld… (the old checkbox, read for older rows)", "photo_links": "fld…"
+ },
+ "practices_fields": {"practice": "fld…", "phase": "fld…", "group": "fld…", "order": "fld…", "active": "fld…", "zero_duration": "fld…", "typical_time": "fld…", "wellness": "fld…"},
+ "rhythms_fields": {"name": "fld…", "element": "fld…", "parent": "fld… (parent name, for work drives)"},
+ "stories_rhythm": "the rhythm stories go under (read or watched)",
+ "calendar": {"calendars": {"her calendar": "…@…", "her son's": "…@group.calendar.google.com", "dropped": "…"},
+              "work_parents": ["the mission her work drives sit under"], "work_words": ["words a work event's title carries"]},
+ "inbox": {"keep_from": {"a name": ["…@…"]},
+           "archive_unless": [{"name": "a sender", "from": ["their domain"], "keep_words": ["what makes one a keep"]}]},
+ "connections_fields": {"name": "fld…", "short": "fld…", "aliases": "fld… (optional)"},
+ "amendments_fields": {"decision": "fld…", "date": "fld…", "status": "fld…"},
+ "amendment_checks": {"rec…": ["entry.whole", "look_behind.gate"], "rec…  (a rule that needs judgment, not code)": ["judgment"]},
+ "fill": {"device_none": ["her own body or self-care practices, beyond facts.json's"], "device_phone": ["her own phone practices"]},
+ "bases": {
+  "amendments": ["app…", "tbl…"],
+  "practices": ["app…", "tbl…"],
+  "connections": ["app…", "tbl…"],
+  "emotions": ["app…", "tbl…"],
+  "rhythms": ["app…", "tbl…"],
+  "supplies": ["app…", "tbl…"],
+  "recipes": ["app…", "tbl…"],
+  "stories": ["app…", "tbl…"],
+  "places": ["app…", "tbl…"]
+ },
+ "people": {"self": "", "kid": "", "partner": ""},
+ "quest_practice": "",
+ "system_rhythm": "be•do"
+}

@@ -1,0 +1,557 @@
+---
+name: "bedo-look-behind"
+description: "Build The Day Behind page — the look behind for one day — from the stable release. Use at the dusk close, or when the user asks for the look behind, the day behind, or the daily review of a day that has finished."
+---
+
+**Retired 8 Nov 2026** (her words: all I want to see moving forward is my day). The Day Behind page and this builder are kept for a later pass on what she liked. Build one only when she asks for it by name; never offer one, and nothing waits on one.
+
+
+# The day behind
+
+One day, looked back on. **Since 25 Oct 2026 the page is the day page**: the
+week builder's `--day` mode (`bedo-week-look-behind/scripts/week_look_behind.py`),
+in this order: chip, lead and story · the day's photos · how the day went, the
+rainbow, with its bars and goals · what mattered, the moments as cards · what
+moved forward · the numbers, folded. Every decision about it, in the user's
+words, is in `docs/day-behind-cards.md`; the rainbow's rules are
+`bedo-week-look-behind/scripts/day_rings.py`. The canon build settled 21 Sep 2026
+(who was in your day · highlights · the pie · balance · effectiveness) is still
+here as `canon`, for comparison and for its QA checks, and is no longer
+published.
+
+**This folder is the skill; what is installed is a loader.** The copy installed
+in claude.ai is two files — a loader `SKILL.md` and the user's own
+`assets/look_behind_local.json` — and the loader fetches this folder fresh from
+the version store on every run, so a stale copy can never build a page. That
+means:
+
+- **A change here needs no upload.** Push it to the version store and the next
+  run picks it up.
+- **Never upload this folder over the installed skill.** That replaces the
+  loader with a copy that goes stale at the next change. It happened to the day
+  ahead on 28 Sep 2026 and was put back the next morning.
+- **Upload only when the settings file or the loader itself changes**, and then
+  upload the two-file loader zip. The loader is personal — it names the user's
+  calendars — so it is kept with their settings, not in the version store.
+- **A new settings key means a new upload.** The builder comes fresh but the
+  installed settings do not: a key added to `look_behind_local.json` reaches a
+  claude.ai chat only when the loader zip is uploaded again.
+
+Nothing here depends on project files, so it runs in any project or none.
+
+**Nothing in this file is anyone's in particular.** Every specific — the user's
+name, the bases and tables, the field ids, the practice-to-slice map, the page
+it publishes to — lives in `assets/look_behind_local.json`. Who belongs to which
+circle is not among them: that is read live from the connections table, because
+a map kept by hand goes stale the day the user meets somebody. **Open that file
+and read the value you need** rather than carrying one in memory or guessing
+from an earlier chat. The key to read is named below wherever one is wanted.
+`assets/look_behind_local.example.json` is the blank shape.
+
+**Build from the stable release. Don't redesign it.** Changes to the layout are
+a separate be•do work chat that ends with a push and a new tag in the version
+store — not with a new zip; the installed loader fetches the change by itself.
+
+## Before she sees it: the pass and the audit (2 Nov 2026)
+
+Her words, Mon 2 Nov: *I'm really annoyed that I have to check all this stuff.* So the day page's build
+(`week_look_behind.py --day`) runs two things itself, and the chat reads them before it shows anything:
+
+- **The categorizing pass** (`core/bedo_categorize.py`) draws the rows as her rules say they should read —
+  with the family by default, riding not driving, wellness by its rhythm, point rows their usual length,
+  filler giving way, the time-change hour, the night naming her. The output's `categorize.patches` are the
+  same calls for the stream: write them through `entry`, so the record matches the page.
+  `--as-written` draws the rows untouched, for comparison only.
+- **The page audit** (`core/bedo_dayaudit.py`), in the output's `audit_text`: the day's intention and
+  highlight show on the balance, in the story and in the moments; the night is drawn; every chat she worked
+  in has its time (`--sessions`); at most six photos, one per moment (the build picks them,
+  `bedo_photos.select`). **Every `FIX` is done and the page rebuilt before she sees it.** An `ask` line is
+  the one question worth her minute; show it as one short list after the page, never before.
+
+## Two things on this page are the user's, and you write them
+
+The builder computes every section but two. **The lead and the story are not
+computed and must never be invented from the section totals** — they are the
+day's own account of itself, and they come from the user's rows.
+
+- **the lead** — one line naming the day. What the day *was*, not what was in
+  it. Present tense or none. No pronouns, no "you", no summary of the numbers
+  below it.
+- **the story** — the day's stretches, one per line, emoji first, no pronouns.
+  Length follows the day: a quiet day is three lines, a full one is six. Each
+  line is a stretch, not a row — the morning's getting-ready is one line, not
+  five. Read the day's titles and the user's own words in the details, and write
+  them the way they write: plain, concrete, no adjectives doing work a noun
+  could do.
+
+Write them into `words.json`:
+
+```json
+{ "lead": "one line naming the day",
+  "story": [["🚗", "a stretch of the day"], ["🌙", "another"]] }
+```
+
+The builder **refuses to build without them**. That is deliberate: a page with
+an empty story reads as a day that didn't happen. `--allow-unwritten` exists for
+a shape check only and never for a page the user will see.
+
+### When nobody is there: the draft
+
+A scheduled run has nobody to show the words to. In the user's words, 28 Sep
+2026 (an amendment): *the look behind may draft its own lead
+and story for a scheduled run, it just needs to be editable.* So:
+
+- **Draft from the digest, by the same rules as above.** The day's rows and the
+  user's own words in them, never the section totals. A draft is not licence to
+  embroider: no feeling the rows don't name, no verdict on the day.
+- **Write it with `scripts/words.py`, marked as a draft:**
+  ```
+  python3 scripts/words.py --day YYYY-MM-DD --file words-YYYY-MM-DD.json --new --draft \
+    --lead "one line naming the day" --line 🚗 "a stretch" --line 🌙 "another"
+  ```
+  The file carries its day, and the builder refuses words written for another
+  one — yesterday's story on today's page is worse than none.
+- **The page says so.** A dashed mark beside the chip, *draft · not yet your
+  words*, a dashed rule down the side of whichever part is drafted, and a line
+  in the footer. Nothing else on the page changes.
+- **A day with too little on it is not drafted.** If the digest holds nothing
+  to name the day by — no rows, or only the flow's own steps — don't draft and
+  don't publish. Log that the page is waiting, and why.
+- **In a chat with the user present, nothing changes.** Write the words, show
+  them, and leave the mark off. The mark is for words nobody saw before they
+  went on the page.
+
+**Editing is one command, and it never re-reads Airtable.** When the user next
+opens a chat and the page still carries a draft, show them the lead and the
+story as they stand and offer to change them. Whatever they say:
+
+```
+bash run_look_behind.sh words YYYY-MM-DD                                    # read them back, numbered
+bash run_look_behind.sh words YYYY-MM-DD --set-lead "their line" --to-page
+bash run_look_behind.sh words YYYY-MM-DD --set-line 2 🌳 "their stretch" --drop-line 4 --to-page
+bash run_look_behind.sh words YYYY-MM-DD --add-line 3 ☕ "a stretch that was missing" --to-page
+bash run_look_behind.sh words YYYY-MM-DD --accept all --to-page             # fine as they are
+```
+
+What they touch, or accept as it stands, stops being a draft; the other part
+keeps its mark until it is touched too. `--to-page` writes the words into the
+page already built. Then publish the page again and replace the Drive copy.
+**Use their words exactly.** An edit is not a prompt to rewrite the rest.
+
+On a machine with no words file, the same command recovers the words from the
+built page first, so a Drive copy of the page is enough to edit from.
+
+## The files, inside this skill
+
+- `run_look_behind.sh` — the runner: `prep` reads Airtable directly and prints
+  the day's digest, `qa` prints the checks to clear, `build` builds the day
+  page, `canon` builds the old page, `words` reads the lead and story back or
+  changes them
+- `bedo-week-look-behind/scripts/week_look_behind.py --day` (with `day_rings.py`,
+  `day_sleep.py` (Oura's five-minute timeline, for where in the night she slept), `day_photos.py` and `assets/week_look_behind_engine.html`) — the day page,
+  copied in fresh at every prep
+- `scripts/look_behind.py` — the canon reader and builder; the source of `qa`
+- `scripts/words.py` — the lead and the story as a file: drafted, read back,
+  changed, carried to a built page, and carried through the stream from the
+  dusk chat to the morning routine (`--row-block`, `--from-stream`)
+- `scripts/look_behind_log.py` — which days still need their final, read off
+  the look behind's own log rows; the morning routine's first question
+- `MORNING.md` — the morning routine, step by step: what it reads, what it
+  builds, what it may write, and what it does when a day is missing
+- `scripts/day_pie.py` — the day's minutes, one slice each
+- `scripts/bedo_fetch.py` — reads Airtable directly: the token from
+  `AIRTABLE_PAT`, a secrets file, or — in a Claude cloud session — from the
+  environment's API credential, attached by the proxy so the session never
+  holds it
+- `scripts/bedo_common.py` — the pieces the builders share. The clock offset
+  comes from `time_zone`, per instant (core/bedo_clock.py), so daylight saving
+  needs no edit
+- `scripts/typical_time.py` — median durations from the user's own past rows,
+  run occasionally against the weekly CSV archives, not on every build
+- `assets/look_behind_engine.html` — the page, nothing personal in it
+- `assets/look_behind_local.json` — the user's settings, and the only place a
+  specific lives. Personal; this copy of the skill is theirs and is not the one
+  that gets shared. It is gitignored.
+- `assets/look_behind_local.example.json` — the same shape, empty. This is the
+  one that travels when the skill is shared.
+- `tests/test_words.py` — drafts, edits and carries the words to a page, and
+  checks that what was touched stops being a draft
+- `tests/test_canon.py` — runs the builder against a fixture written backwards
+  from the canon page and checks every computed section. Run it after any change
+  to the builder.
+
+Copy them to a working folder from the directory this SKILL.md was read from
+(`cp -r <skill dir>/scripts <skill dir>/assets /home/claude/lb/`). Their
+contents never pass through the chat.
+
+## Where this runs, and what each place can reach
+
+Three surfaces run this skill, and they differ in one thing: where the
+Airtable token is.
+
+- **A Claude Code cloud session** — claude.ai/code on the laptop, the Code tab
+  of the phone app, and a routine — on an environment that carries the
+  read-only token as an **API credential** for `api.airtable.com`. The fetch
+  sends no `Authorization` header and the proxy attaches the token after the
+  request has left the VM; nothing in the session ever holds it. The settings
+  file is there too, synced with the installed skill
+  (`/root/.claude/skills/synced/*/bedo-look-behind/assets/`), and the runner
+  finds it by itself. The Artifact tool publishes; the Airtable, Calendar and
+  Drive connectors write the row, sync the calendar and save the page. **This
+  is the surface the dusk draft and the morning routine are built for.** A
+  routine created from inside a session carries no connectors (checked 29 Sep
+  2026); one created from the claude.ai routines page can.
+- **The laptop**, with `bedo_secrets.json` in the working folder or the folder
+  above it: the same runner, the same commands. `LB_DIR`, `LB_LOCAL` and
+  `LB_OUT` are the three things that differ by machine (runner header).
+- **A plain claude.ai chat** has neither. The runner's `prep` stops at the
+  fetch with *no token in hand*. There, the old path still works — the rows
+  read through the Airtable connector and saved as `data/w##.json` (an
+  oversized read lands in `/mnt/user-data/tool_results/…`, wrapped
+  `[{"text": "<json>"}]`, which the builder unwraps itself) — at ~45k tokens
+  a build. Say so in one line, and prefer a cloud session.
+
+## The day ahead first: the gate (6 Nov 2026)
+
+Her words: *I very much want an amendment that makes it clear that finishing
+the day ahead first is a gate to doing the day behind.* And: *Finish the day
+ahead. Make sure you QA it, then do the day behind.* For every day:
+
+1. **The day ahead is final.** The day's one my day page has been rebuilt to
+   the whole day as lived — her keeper photos on it, the stream through
+   bedtime — and republished to its link. `run_day_ahead.sh final YYYY-MM-DD
+   [vN]` checks that and prints the record, which goes in the `[be•do]` block
+   of the day's 👁️ look ahead row (the row whose deliverable is the page):
+   `[be•do] day ahead YYYY-MM-DD · final · v7`. It works the way `[be•do] look
+   behind YYYY-MM-DD · final` works on the look behind's log row: the date it
+   names is the day it stands for, and `· draft` does not count.
+2. **The day is QA'd.** `run_checks.sh dayqa YYYY-MM-DD` has run against the
+   finished day, what she accepted is written, and the dusk close row's
+   `[be•do]` block carries its last line, `dayqa shown YYYY-MM-DD …`. The line
+   on any other row doesn't open the gate: move it to the close row.
+3. **Only then is the day behind built.**
+
+`run_look_behind.sh gate YYYY-MM-DD` (or `run_checks.sh daygate YYYY-MM-DD`)
+prints both, `ok` or `FIX`, and exits 1 while the gate is closed. `build` and
+`canon` run it first and stop; `week_look_behind.py --day` and
+`look_behind.py` refuse on the same check themselves (`core/bedo_daygate.py`,
+check `look_behind.day_ahead_first`). There is no flag around it: not the
+03:00 routine, not preflight's morning offer, not a branch, not a chat. A day
+behind built before the gate opened is premature: never show it to her as the
+day's look behind. `qa` still prints the QA block while the gate is closed,
+naming it under `day_ahead_first`, since it writes no page.
+
+## Steps
+
+Every step is one runner command. Nothing about the rows passes through the
+chat except the digest the words are written from.
+
+1. **Prep** — `LB_DIR=<working folder> bash run_look_behind.sh prep YYYY-MM-DD`
+   Clones the version store fresh, reads Airtable directly — the day's week
+   `w## be•do` resolved by name, the week before it (I14, passed to the builder
+   live first, I15), rhythms, practices and connections, each paged to the end
+   or the run aborts (I11) — and prints the day's digest: one line per logged
+   row, the user's words above the divider. **On the first day of a new week
+   it aborts until the new base is cloned** (the Sunday close does that): say
+   so and stop; never fall back to the old week's base.
+2. **Words** — the lead and the story, from the digest, by the rules above.
+   With the user present:
+   ```
+   bash run_look_behind.sh words YYYY-MM-DD --new --lead "…" --line 🚗 "…" --line 🌙 "…"
+   ```
+   shown to them, and left unmarked. Nobody present, or the day not over yet:
+   add `--draft`. Either way, `bash run_look_behind.sh words YYYY-MM-DD
+   --row-block` prints the `[be•do]` block the log row carries (step 7).
+3. **Secure base** — the day's ⏏️ row is in the digest: `secure`, or the other
+   state as the row names it. **No row:** `secure` is the assumed default
+   since 29 Sep 2026 — the ⏏️ row is no longer written every day, and the other
+   state is written only when the user names a knock-back — so the day page
+   reads it as secure, starred as assumed, and you say the row was absent. (Her word on this is still being asked for;
+   until it comes, this is the rule.)
+4. **QA, then build** — first the gate (above): `bash run_look_behind.sh
+   gate YYYY-MM-DD` must print `open`; while it is closed, finish the day
+   ahead and its dayqa, and build nothing. Then `bash run_look_behind.sh qa
+   YYYY-MM-DD` prints the QA
+   block; clear it (below) in the stream, `prep` again so the build reads the
+   fixes, then `bash run_look_behind.sh build YYYY-MM-DD`. The day page reads
+   the secure base from the ⏏️ row itself (none means secure, starred as
+   assumed). When `BEDO_DRIVE_SA` or `BEDO_DRIVE_SA_FILE` holds the Drive key,
+   the build fetches the day's photos itself (`day_photos.py`); without it the
+   page builds without them and says nothing. Before publishing, check the
+   rainbow against the day, not only the QA block: a span copied onto a closed
+   ⚡ action, a session's time spent running past where the work stopped, or a
+   person tag on a long estimated stretch each paint a band wrong (Sat 24 Oct).
+   **The deliverables as pictures** (4 Nov 2026, her words: a little image of what the deliverable was): for each
+   closed action whose deliverable is one of her own pages, read it with the Artifact tool (`read`, `path`
+   `index.html`) and run `python3 scripts/deliverable_thumbs.py --page URL FILE … --out thumbs-YYYY-MM-DD` before
+   `build`; what moved forward shows each as a tile under its drive. A Drive document passes as an image (its
+   thumbnail) or is left without one. **The photos sit in her story** (4 Nov 2026): each group of the day's photos
+   goes under the story line it belongs to, a dusk highlight stars the earlier moment it names instead of
+   repeating it, and the moments below keep small photos; a story line that names the moment is what places it,
+   so the words she accepts are also where her pictures land.
+   Then check the page at phone width. If a read aborts on a short read, don't
+   build from a partial read: read again. The canon build aborts the same way
+   on a missing field id, a missing clock offset, or an offset that disagrees
+   with `time_zone` on that day — all three are the settings file's to fix,
+   never worked around.
+5. **Publish** to the living page: the Artifact tool, `url` set to
+   `artifact_url` from the settings file, the same file path every day, with
+   `capabilities: {downloads: true}` so its *download this page* button can save
+   it as one .html (261106_download, her word 7 Nov 2026). One
+   living page, republished in place; every republish is kept as a version
+   (the user's choice, 25 Oct 2026, when the day page took it over).
+5b. **His quest page, with every look behind** (her word, 4 Nov 2026: build
+   it every morning, and go over it with him when he's rested — what went
+   great yesterday, where he missed out, so he can correct it; in time it
+   grows into planning). When the settings carry `quest_url`, build the
+   child's quest page for the same day from the stream dumps `prep` saved:
+   ```
+   python3 <repo>/plugins/bedo/assets/quest-day/quest_page.py --from-stream data/w##.json \
+     [--from-stream data/w##-prev.json] --date YYYY-MM-DD --local look_behind_local.json \
+     --name <quest_name from the settings> --out out/quest.html
+   ```
+   Exit 4 is no scored ⚔️ row that day: build nothing, and say so in a
+   clause. Read every line as him before she sees it — second person, his
+   register, a missed quest a next-time line — and reword in his copy any line
+   that still carries the scorer's reasoning (`{"details": "…"}` to a file,
+   the same command again with `--row FILE`); the stream row is never
+   touched. Publish to `quest_url` the same way as step 5, one living page.
+   In the chat it is one line: the link, the score, and *a photo for his
+   trophy?* — photos are hers to pick (`--trophy`, at most one `--photo`;
+   the README). `MORNING.md` step 8 is the same for an unattended run.
+6. **Save the page to Drive**, in the folder of its own week:
+   `be•do/<year>-W## <Mon D>/YYYY-MM-DD-day-behind.html` — the folder named for
+   the week number and its Sunday, no leading zero. Search the folder by name;
+   create a missing one by the same rule and say so; if a file of that name is
+   already there, say what it replaces before replacing it. From the cloud this
+   is the Drive connector — `create_file` with `contentMimeType` `text/html` and
+   conversion off — and the page passes through the chat, about 20k tokens a
+   page (measured 29 Sep 2026: a 57 KB page). `\uXXXX` escapes in the engine's
+   script come out as the characters they name, which renders identically and
+   is not byte-identical; read back the file's size to confirm the save. A
+   surface with no Drive tool skips this and says so in one line.
+7. **Log the step**: one row for the look behind, dusk, the page URL as its
+   deliverable, and in its details, under the divider, **the block from
+   `--row-block`, exactly as printed**:
+   ```
+   [be•do] look behind YYYY-MM-DD · draft
+   draft lead: …
+   draft story: 🚗 …
+   ```
+   The first line is how the morning routine finds the row and knows which
+   build it stands for — `· draft` at dusk, `· final` once the morning has
+   built from the whole day's rows (`--row-block --final`) — never by the
+   row's title or practice, which a chat may write differently. The `draft `
+   prefix on a line says whose words they are: a part the user touches or
+   accepts loses it. When the words change later, rewrite the block in place
+   (`--row-block` again, the rest of the details carried forward verbatim).
+8. **Sync the calendar from the stream.** Moved to the checks (11 Nov 2026, her yes: keep the
+   calendar's done marks): `run_checks.sh calsync YYYY-MM-DD` at the dusk close, as the
+   bedo-checks skill's table says. The planner is `plugins/bedo/core/calendar_sync.py`; its
+   test is `core/tests/test_calendar_sync.py`.
+
+**What the day is still missing** (9 Oct 2026: don't stop the process because
+it's missing some little detail). The page always builds. The QA block's
+`not_yet_whole` names:
+- more than 10% of the day's rows that happened lacking device or wellness;
+- any row spanning more than 12 hours (an old row closed with today's end) —
+  its minutes are left out of the day, so it can't draw 680 minutes again;
+- no `dayqa shown …` line in the day's rows, if dayqa wasn't run at dusk
+  (since 6 Nov 2026 the gate above stops the build until the dusk close row
+  carries it).
+
+Fix what's quick from the clues; don't hold the page for the rest.
+
+**Two things at once both count** on the wheel: walking and journaling each
+weigh their full minutes (9 Oct, replacing 3 Oct's 'the lived thing wins').
+
+**The pie** (9 Oct 2026): walking, cycling, morning movement and any exercise
+are Moving whatever the settings' map says, and Moving wins a minute shared
+with anything else. 📺 show, 🎥 movie, 📼 video and 🎮 game are Play, never a
+drive slice. A row on a drive or rhythm with a real span is Doing — *work and
+drives* — whether or not a screen was used. **Who was in your day** reads only
+rows that happened (a plan's people are not met yet) and finds each person by
+any name they go by.
+
+**Clear the QA before publishing** (the user's word, 2 Oct 2026: a thorough QA every
+day). The build prints a `qa` block; work every item, in the stream, before the
+page goes out:
+- `no_drive` — an action or a meeting with no drive or rhythm. Set it when the
+  row plainly belongs to one (a project's row goes to its drive); ask when it doesn't.
+- `unknown_practice` / `no_practice` — the practice doesn't match the catalog,
+  often an invisible character or a near-miss ("walk" for "walking"). Fix it to
+  the catalog's exact string.
+- `overlapping_work` — two drive rows on the same minutes. Fine when a Code
+  session ran while the user was in a meeting; say so, don't silently keep both.
+- `unexplained` — a stretch of 15+ minutes nothing covers. **Fill it from the
+  clues, don't ask the user for it** (amendment, 2 Oct 2026): read the rows either
+  side and inside it, and write one row for the stretch with the best reading —
+  a real practice when the clues name one (getting ready before a drive,
+  cooking between home and "dinner made"), else 📝 log — its `[be•do]` block
+  saying ESTIMATED FROM CONTEXT, not logged by the user, and naming the clues. Only
+  a stretch with no clue on either side stays open, named in one line.
+- `meals` — a meal with no minutes, or no prep row before it. Place it by her
+  rules, don't ask her for times (the meals amendment, 7 Oct 2026):
+  `bash run_checks.sh meals --json` proposes each meal's prep (ordering out 20,
+  a simple meal 15, a straightforward dinner 30, a cooked dinner 45) and its
+  eating; write them ESTIMATED FROM CONTEXT, then show her the list as what went
+  in the record and ask if it's accurate. Timeline beats the defaults.
+- `places` — **the map check writes where she was** (5 Nov 2026, her words: the
+  location on the stream, integrated, with the coordinates kept in the location
+  table, so the system can help her plan the day ahead). Read the day's Timeline
+  screenshot(s) and write what they show as a stays file: one stay per place she
+  stopped, her clock, the place as Timeline names it (or her name for it), its
+  Google place id when the screenshot or Maps gives it, who was there, her words.
+  Leave out home and the drives: home gets no row, and the drives are already
+  their own `🚗 driving` rows. Then `bash run_checks.sh places --stays stays.json`
+  turns each stay into one `📍 location` row (● log, arrived to left, `place: rec…`
+  in the `[be•do]` block), skips any already written, and prints the new places.
+  Write the rows in one batch. **A new place enters the places base only with her
+  yes**: put each `ask` line to her, and on a yes add its row (`place`, `standing`
+  been, `where` in words, `google place id`, and `coordinates` as "lat, lng" from
+  Maps), then patch the stay's `place: new` to its record id. Coordinates never go
+  on a stream row. A 📍 row is where, never what: the page keeps it out of the
+  time, the areas and the rings, and draws it on the day's map.
+- `no_sleep` — no sleep row for last night, so the morning draws as nothing
+  logged. Write it from the morning Oura row (in bed to out of bed).
+- And the calendar: read the day's events after the user has corrected them, give
+  each one that happened its own row (a 🗓️ calendar event, ✅ done, titled as
+  the calendar line, with the event link), and note any drift from the plan.
+
+**Check what `qa` printed** before building. These lines are worth
+reading:
+- `estimates_trimmed_min` above zero means the logged and estimated minutes
+  overran twenty-four hours and estimates were cut to fit. Say so in the chat.
+- `containers_set_aside` names how many rows held other rows and scored
+  nothing — a trip, a field day. Expected on a travel day, odd on a quiet one.
+- `destinations` empty on a working day usually means rows are missing a
+  drive, not that nothing moved.
+- `circles_read` at zero means the connections read didn't arrive and the
+  people chips are in bare order of appearance.
+
+## Dusk: nothing to build
+
+Dusk does not build the look behind (8 Oct 2026, backlog 260924_2221b): the
+user builds yesterday by hand in the morning, from the whole day's rows. If the
+user says the lead or the story at dusk, write them with `words … --new` and
+log the row with `--row-block` (step 7); the morning build uses them as they
+stand. Otherwise dusk leaves it. The calendar sync runs at the dusk close from
+the checks (`calsync`).
+
+## Morning, by hand: no routine
+
+Nothing builds the look behind on a schedule. The 03:00 routine was paused on
+11 Oct 2026, and on 24 Oct the user's word was to keep it that way: *I don't
+want anything to build at 3am. Let's get a version I'm happy with working and
+I'll build it manually.* The day behind is built when the user asks for it —
+and only once the gate is open: the day ahead final, then its QA (6 Nov 2026).
+`MORNING.md` still describes the unattended run, for the day a routine is
+wanted again; don't create or re-enable one unasked.
+
+## Morning, in the chat: seen means complete
+
+The morning chat shows yesterday's look behind first — preflight prints the
+link and the title yesterday's chat will take — and his quest page beside it
+(the `quest` line), built in the same step (5b), for her to go over with him
+once he's rested. If the words are still a draft,
+show the lead and story and offer the edit commands above. **When the user
+says they have seen it, yesterday's my day chat is complete**: rename it to the
+✔️ title preflight printed (the chat-title skill's rename), or give them the
+line to rename it where no rename reaches. Seeing the look behind is what
+closes a day.
+
+## What the builder decides, so you don't have to
+
+Read these before second-guessing a number on the page.
+
+- **Drives within drives.** A drive can feed another (the rhythms field
+  `feeds`, `fields.rhythms.feeds` in the settings; optional). In what moved, a
+  step counts under its own drive and every drive it feeds, upward, and the
+  child sits nested under its parent; a parent's minutes include its
+  children's. The headline minutes count each step once. A drive reaches the
+  destinations of every drive above it. A loop in `feeds` ends where it closes
+  and is named in the QA block as `feeds_loops` — fix it in the base.
+  (`plugins/bedo/core/bedo_drives.py` holds the rule for every builder.)
+- **A row scores nothing** when it is a plan or a skipped row, when it is
+  somebody else's own row kept in the user's stream, or when it holds other
+  rows — four hours or more with at least three moments inside it is an
+  envelope, not an activity. On top of that, `zero_practices` names practices that happened but
+  are not effort, and `zero_practice_groups` does the same for a whole
+  catalogue group at once.
+- **Sleep is the case that splits in two.** It scores zero on the wheel and its
+  minutes are still logged on the pie, because the hours happened. `zero_note`
+  in the local settings is the sentence the page prints about this.
+- **Estimated minutes are never presented as logged.** A row with no end gets
+  the median of the user's own past rows for that practice, from
+  `typical_time.json`, and only where that median was earned — five observations and a tight spread.
+  No median means no estimate; the minutes stay uncounted rather than guessed.
+  The engine draws estimates striped and states the total.
+- **The grey is two things, drawn apart.** Minutes a row covers that no named
+  slice claims are "everything else", solid; minutes no row covers at all are
+  "nothing logged", dashed. Before 7 Oct 2026 both were one grey slice, and a
+  well-logged day read as half unaccounted for.
+- **A dropped intention check is never a line.** A ✖️ or ⨂ intention row is a
+  duplicate or a withdrawn one; the action check's glyph is read whether it
+  leads or closes each part of its title.
+- **The screen slice comes from the row's device field**, not from the practice,
+  and only for rows the practice map didn't already place. Eating in front of
+  the television is still eating.
+- **be and do, tending and growing.** Being is heart, mind, body and spirit.
+  Doing is water, air, earth and fire, and it is cut in two: a row bucketed to a
+  drive is **growing**, a row bucketed to a standing rhythm is **tending**, and
+  a row carrying **no bucket at all is tending too** — an unnamed doing hour was
+  the floor being held up. Tending is the default, not something a row earns,
+  which is what makes the bar add up: every doing row lands in one of the two,
+  so the page is never left with a remainder it has to draw as something else.
+  `growing_types` lists the types that count as growing; everything else on the
+  doing side is tending.
+- **Effort weighs minutes over six.** A row with a real span weighs its minutes
+  ÷ 6, so an hour weighs ten; a row that holds no time weighs its catalogue
+  effort band. `effort_minute_divisor` can override it, but six is the user's
+  amendment and changing it moves every wheel and every bar.
+
+## Effectiveness, and what it still can't say
+
+Effectiveness is discharge: the time that moved destinations forward, measured
+against the user's own baseline. The baseline needs fourteen clean days and is still
+forming, so the page says so rather than inventing a percentage. Pass
+`--baseline-days` and `--usual-min` only when there is a real count behind them.
+
+## What the user sees in the chat
+
+One or two lines, not the page again. What the day was, and anything the build
+flagged — trimmed estimates, a container set aside, work with no drive on it.
+The page holds the rest.
+
+## Photos
+
+(25 Oct 2026, her words: the photos she shares are informational or moments to
+hold on to — keepers.) The stream's `photo` field says which, set by the chat
+that logged the row (V53 J2); a row from before it carries the old checkbox and
+is sorted by rule (`core/bedo_photos`). At dusk each photo row gets the link to
+its file in the week's `W## photos` folder (`photo_links`).
+
+`run_look_behind.sh build` fetches the day's photos from that folder with
+`day_photos.py` (the week behind's) when a Drive key is here (`BEDO_DRIVE_SA` or
+`BEDO_DRIVE_SA_FILE`, the service account the folders are shared with) and
+passes `--photos` to the day page (`week_look_behind.py --day`): each photo on
+its row, else in the day's pictures with keepers first; a photo whose row is
+info (food on its own, a pill, a screen) is left out. `canon` (`look_behind.py`)
+draws the strip instead: up to five, keepers first, drawn large. No key: the
+page builds without photos. The build prints `photos` with what was read, placed and left out.
+Settings: `fields.stream.photo`, `photo_checked`, `photo_links` in
+`look_behind_local` (optional; an older base without them reads as no photos).
+
+## Not built yet
+
+- **A routine with connectors.** A routine created from inside a session
+  carries no connectors, so it can read Airtable (the credential), build and
+  publish (the Artifact tool), but cannot write the log row, save to Drive or
+  sync the calendar until it is created from the claude.ai routines page with
+  those attached. `MORNING.md` says what to do in each case.
+
+## If it can't run here
+
+If this surface can't save the reads to disk or run Python, say so in one line
+and offer to run it from a Claude Code cloud session (the phone app's Code tab
+reaches the same environment as claude.ai/code) or from the laptop, which can.

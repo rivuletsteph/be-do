@@ -1,0 +1,51 @@
+/* NOW palette for be•do — built around Brick #BE5B50
+   Saved 2026-10-03. Mostly warm neutrals; the main color appears only in small places.
+   Day is the default; night applies with data-theme="night" (or wire it to the clock / dark mode).
+   To change the color later (e.g. by time of day), swap main / deep / tint / button. */
+
+:root {
+  /* the color */
+  --main:      #BE5B50; /* checkmarks, progress bar, time-of-day dot */
+  --deep:      #A04A40; /* selected tag text */
+  --tint:      #F5E2DE; /* selected tag background */
+  --btn-bg:    #F0CFC9; /* main button: light brick */
+  --btn-text:  #8E3F36; /* main button text: dark brick */
+
+  /* neutrals */
+  --bg:        #F8F2EF; /* page background, off-white with a hint of brick */
+  --card:      #FCFAF8; /* cards */
+  --line:      #ECDDD8; /* card borders, empty progress track */
+  --box-line:  #D9C6C0; /* unchecked checkbox outline */
+  --text:      #3F3331; /* body text, warm charcoal */
+  --soft:      #8D7E79; /* secondary text, labels, done items */
+  --contrast:  #1B1A1F; /* near-black charcoal; the night background */
+
+  /* coordinating (warm neighbor) — home */
+  --home-bg:   #F6EAD3;
+  --home-text: #7E5A1F;
+  /* contrasting (cool opposite) — rest, links */
+  --rest-bg:   #DDEAEA;
+  --rest-text: #3E6E6F;
+  --link:      #3E6E6F;
+}
+
+[data-theme="night"] {
+  --main:      #BE5B50;
+  --deep:      #F0A79E; /* selected tag text */
+  --tint:      #3D2624; /* selected tag background */
+  --btn-bg:    #4A2A27;
+  --btn-text:  #F5CFC9;
+
+  --bg:        #1B1A1F;
+  --card:      #262228;
+  --line:      #3A3336;
+  --box-line:  #5A4E4E;
+  --text:      #EDE4E0;
+  --soft:      #A3958F;
+
+  --home-bg:   #3A2F1D;
+  --home-text: #E3BB77;
+  --rest-bg:   #1F3536;
+  --rest-text: #8CC3C3;
+  --link:      #8CC3C3;
+}

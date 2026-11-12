@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Week Behind</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* the week behind — engine. Nothing personal here: every word comes from DATA.
+   be•do's now palette (plugins/bedo/assets/now-palette.css); day by default, night follows the phone. */
+:root{ --ground:#F4EEE4; --ink:#2C2620; --soft:#4A4036; --muted:#7A6E60; --faint:#A39684; --rule:#E3D9CA; --tint:#FBF8F2; --link:#3F7A8C; --grow-ink:#B5603F; --tend:#B98A2E; --terra:#B5603F; --water:#3F7A8C; color-scheme:light;
+  --sans:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace; --display:"Fraunces",Georgia,serif; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --ground:#1B1A1F; --ink:#EDE4E0; --soft:#D3C8C3; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --tint:#262228; --link:#8CC3C3; --grow-ink:#F0A79E; --tend:#E3BB77; --terra:#E08A7F; --water:#8CC3C3; color-scheme:dark; } }
+:root[data-theme="dark"]{ --ground:#1B1A1F; --ink:#EDE4E0; --soft:#D3C8C3; --muted:#A3958F; --faint:#72686A; --rule:#3A3336; --tint:#262228; --link:#8CC3C3; --grow-ink:#F0A79E; --tend:#E3BB77; --terra:#E08A7F; --water:#8CC3C3; color-scheme:dark; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+.wrap{max-width:620px;margin:0 auto;padding:32px 16px 48px}
+.chip{font:400 .72rem var(--mono);color:var(--faint)}
+.eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:14px 0 0}
+h1{font-size:clamp(2rem,8vw,2.6rem);font-weight:800;letter-spacing:-.03em;line-height:1.05;margin:6px 0 0}
+.range{color:var(--soft);font-weight:600;margin:6px 0 0}
+section{padding-block:22px;border-top:1px solid var(--rule);margin-top:22px}
+.label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 0 4px}
+.note{font-size:.8rem;color:var(--muted);margin:0 0 14px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.stat{background:var(--tint);border-radius:14px;padding:12px 14px}
+.stat b{display:block;font-size:1.5rem;font-weight:800;letter-spacing:-.02em}
+.stat span{font-size:.75rem;color:var(--muted)}
+.drive{margin:0 0 14px}
+.drive .sub{margin:10px 0 0 6px;padding-left:12px;border-left:2px solid var(--rule)}
+.dh{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.dh .n{font-weight:800}
+.dh .m{margin-left:auto;font:400 .74rem var(--mono);color:var(--muted);white-space:nowrap}
+.own{font:400 .7rem var(--mono);color:var(--faint);margin:2px 0 0}
+details{margin:6px 0 0}
+summary{cursor:pointer;font-size:.8rem;color:var(--link)}
+ul{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px}
+li{font-size:.9rem;line-height:1.35}
+li .set,li .due{font-size:.74rem;color:var(--muted)}
+a{color:var(--link)}
+.foot{font:400 .7rem var(--mono);color:var(--faint);line-height:1.6}
+.warn{color:var(--grow-ink)}
+.bars{display:grid;gap:6px}
+.bar{display:grid;grid-template-columns:7.5rem 1fr 4.2rem;gap:8px;align-items:center;font-size:.85rem}
+.bar .t{height:10px;border-radius:5px;background:var(--rule);overflow:hidden}
+.bar .t i{display:block;height:100%;border-radius:5px;background:var(--tend)}
+.bar .t i.grow{background:var(--grow-ink)}
+.bar .t i.rest{background:var(--link)}
+.bar .v{font:400 .74rem var(--mono);color:var(--muted);text-align:right}
+.days{width:100%;border-collapse:collapse;font-size:.82rem}
+.days th{font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);text-align:right;padding:4px 4px}
+.days th:first-child,.days td:first-child{text-align:left}
+.days td{padding:5px 4px;border-top:1px solid var(--rule);text-align:right;font-family:var(--mono);font-size:.74rem;color:var(--soft)}
+.days td.s{font-family:var(--sans);font-size:.8rem}
+.split{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--rule);min-width:60px}
+.split i{display:block;height:100%}
+.split .d{background:var(--tend)} .split .g{background:var(--grow-ink)}
+.side{margin:0 0 14px}
+.side h3{font-size:.95rem;font-weight:800;margin:0 0 2px}
+.side .says{font-size:.78rem;color:var(--muted);margin:0 0 6px}
+.lead{font-size:.95rem;line-height:1.45;color:var(--soft);margin:0 0 12px}
+.hd{font:500 italic clamp(1.9rem,7vw,2.4rem)/1.1 var(--display);color:var(--terra);margin:6px 0 0;letter-spacing:0}
+.flowed{display:grid;gap:8px;margin:14px 0 0}
+.riv{background:var(--tint);border:1px solid var(--rule);border-radius:16px;padding:12px 10px 10px;margin:14px 0 0}
+#river{display:block;width:100%;min-width:640px;height:auto;overflow:visible}
+.rscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media (min-width:800px){.riv{margin-left:-64px;margin-right:-64px}}
+#river text{font-family:var(--sans);fill:var(--ink)}
+#river .sl{font:600 9px var(--mono);letter-spacing:.08em;text-transform:uppercase;fill:var(--muted);paint-order:stroke;stroke:var(--tint);stroke-width:3px;stroke-linejoin:round}
+#river .dl{font:500 10px var(--mono);fill:var(--muted)}
+#river .nl{font-size:11px;font-weight:600;paint-order:stroke;stroke:var(--tint);stroke-width:3px;stroke-linejoin:round}
+#river .nc{font:400 9.5px var(--mono);fill:var(--muted);paint-order:stroke;stroke:var(--tint);stroke-width:3px;stroke-linejoin:round}
+#river path{fill:none;stroke-linecap:butt;transition:opacity .2s}
+#river .node{cursor:pointer}
+#river .node:focus-visible rect{stroke:var(--ink);stroke-width:2}
+#river.on path:not(.lit),#river.on .pt:not(.lit){opacity:.12}
+#river .pt{transition:opacity .2s}
+.rkey{display:flex;flex-wrap:wrap;gap:4px 14px;margin:8px 4px 0;font-size:.74rem;color:var(--soft)}
+.rkey i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.hint{font:400 .72rem var(--mono);color:var(--muted);margin:6px 4px 0}
+.stone.dim{display:none}
+.sd.empty{display:none}
+.fw{background:var(--tint);border:1px solid var(--rule);border-radius:14px;padding:10px 14px;display:grid;gap:2px}
+.fw b{font-size:1rem}.fw .v{font:400 .74rem var(--mono);color:var(--muted)}
+.fw .ds{font:400 .74rem var(--mono);color:var(--water);overflow-wrap:anywhere}
+.fw.none b{color:var(--soft)}
+/* a tile opens to the moments that reached it; each one jumps to its card in the stream (22 Oct 2026) */
+details.fw{padding:0}
+details.fw>summary{list-style:none;cursor:pointer;padding:10px 14px;display:grid;gap:3px;border-radius:14px}
+details.fw>summary::-webkit-details-marker{display:none}
+details.fw>summary:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+details.fw .v::after{content:" · show";color:var(--link)}
+details.fw[open] .v::after{content:" · hide"}
+.fm{display:grid;gap:2px;margin:0;padding:0 8px 10px;list-style:none;border-top:1px solid var(--rule)}
+.fm button{all:unset;cursor:pointer;display:grid;grid-template-columns:1.6rem 3.4rem minmax(0,1fr);align-items:baseline;gap:6px;padding:7px 6px;border-radius:10px;font-size:.88rem;line-height:1.35;color:var(--ink)}
+.fm button:hover,.fm button:focus-visible{background:var(--ground)}
+.fm button:focus-visible{outline:2px solid var(--link)}
+.fm .tm{font:400 .72rem var(--mono);color:var(--muted)}
+.stone.hit{outline:2px solid var(--link);outline-offset:2px}
+@media (prefers-reduced-motion:no-preference){.stone{transition:outline-color .6s}}
+.stream{position:relative;margin:8px 0 0;padding-left:26px}
+.stream::before{content:"";position:absolute;left:9px;top:6px;bottom:6px;width:3px;border-radius:3px;background:linear-gradient(var(--water),var(--terra))}
+.sd{position:relative;margin:0 0 22px}
+.sd:last-child{margin-bottom:0}
+.sd::before{content:"";position:absolute;left:-23px;top:5px;width:11px;height:11px;border-radius:50%;background:var(--ground);border:3px solid var(--water)}
+.sd h2{font:600 .78rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0}
+.sd .dl{font:500 italic 1.1rem/1.3 var(--display);color:var(--terra);margin:2px 0 8px}
+.stone{background:var(--tint);border:1px solid var(--rule);border-radius:14px;padding:12px 14px;margin:0 0 8px;display:grid;grid-template-columns:2.2rem minmax(0,1fr);gap:2px 10px}
+.stone .g{font-size:1.6rem;line-height:1}
+.stone .body{display:grid;gap:2px;min-width:0}
+.stone .tt{font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+.stone .bd{font-size:.82rem;margin-left:4px}
+.stone .her{font-style:italic;font-size:.9rem;line-height:1.45;color:var(--soft);overflow-wrap:anywhere}
+.her .more{font:500 .78rem var(--sans);font-style:normal;color:var(--link);background:none;border:0;padding:0;cursor:pointer}
+.her .more:focus-visible{outline:2px solid var(--terra);outline-offset:2px;border-radius:3px}
+.stone .her [hidden]{display:none}
+.stone .meta{font:400 .74rem var(--mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 12px}
+.stone .to{font:400 .72rem var(--mono);color:var(--water);overflow-wrap:anywhere}
+.stone.big{border-color:var(--terra);box-shadow:inset 3px 0 0 var(--terra)}
+/* a lead or story nobody has seen yet: a dashed mark by the chip and a dashed rule down the part (the day behind's draft) */
+.draft{font:500 .66rem var(--mono);color:var(--water);border:1px dashed var(--water);border-radius:999px;padding:1px 8px;margin-left:6px;white-space:nowrap}
+[data-draft]{border-left:2px dashed var(--water);padding-left:12px}
+.dlead{font:500 italic 1.25rem/1.35 var(--display);color:var(--ink);margin:0}
+.dstory{margin:12px 0 4px;display:grid;gap:6px}
+.dstory li{display:grid;grid-template-columns:1.8rem minmax(0,1fr);font-size:.95rem;line-height:1.4;color:var(--soft)}
+.sh{font:500 italic clamp(1.6rem,6.5vw,2.1rem)/1.2 var(--display);color:var(--terra);margin:8px 0 0;text-wrap:balance}
+.moments{display:grid;gap:18px;margin:10px 0 0}
+.mo{display:grid;grid-template-columns:2.2rem minmax(0,1fr);gap:10px}
+.mo .g{font-size:1.5rem;line-height:1.2}
+.mo .tt{font-weight:600;line-height:1.35;margin:0}
+.mo .her{font-style:italic;font-size:.92rem;line-height:1.5;color:var(--soft);margin:3px 0 0}
+.mo .her summary{list-style:none;cursor:pointer;color:var(--soft);font-size:.92rem}
+.mo .her summary::-webkit-details-marker{display:none}
+.mo .her summary b{font-style:normal;font-weight:500;color:var(--link);font-size:.78rem}
+.mo .meta{font:400 .72rem var(--mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 12px;margin:4px 0 0}
+.mo .ph{display:grid;gap:6px;margin:8px 0 0}
+.mo .ph img,.stone .ph img{display:block;width:100%;max-width:100%;border-radius:12px}
+.stone .ph{display:grid;gap:6px;margin:6px 0 2px}
+.pics{display:flex;gap:10px;overflow-x:auto;margin:16px 0 0;padding-bottom:6px;scroll-snap-type:x mandatory}
+.pics figure{margin:0;flex:0 0 min(68%,240px);scroll-snap-align:start;min-width:0}
+.pics img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:12px;background:var(--tint)}
+.pics figcaption{font:400 .72rem var(--mono);color:var(--muted);margin-top:4px;line-height:1.35}
+/* the day's photos inside her story, one collage per line (4 Nov 2026): one wide, two side by side, three as one
+   tall and two stacked, four or more in a square grid; the moments below keep small ones */
+.dstory li .col{grid-column:2;display:grid;gap:3px;margin:8px 0 6px;border-radius:14px;overflow:hidden;background:var(--tint)}
+.col img{display:block;width:100%;height:100%;object-fit:cover;min-height:0}
+.col.n1{aspect-ratio:16/10}
+.col.n2{grid-template-columns:1fr 1fr;aspect-ratio:16/10}
+.col.n3{grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;aspect-ratio:4/3}
+.col.n3 img:first-child{grid-row:1/3}
+.col.n4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;aspect-ratio:1}
+.mo .ph.sm{display:flex;flex-wrap:wrap;gap:6px}
+.mo .ph.sm img{width:64px;height:64px;object-fit:cover;border-radius:10px}
+.mo .star{margin:6px 0 0;font-size:.85rem;color:var(--soft);line-height:1.4}
+.mo .star b{font-weight:600;color:var(--ink)}
+.dv{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin:8px 0 4px 1.6rem}
+.dv a{display:block;border:1px solid var(--rule);border-radius:12px;overflow:hidden;background:var(--tint);color:var(--ink);text-decoration:none}
+.dv img{display:block;width:100%;aspect-ratio:3/2;object-fit:cover;object-position:top}
+.dv span{display:block;font-size:.72rem;line-height:1.3;padding:6px 8px;color:var(--soft)}
+.mv{display:grid;gap:14px;margin:10px 0 0}
+.mv .dh{display:flex;align-items:baseline;gap:8px;margin:0;font-size:.95rem}
+.mv .dh .n{font-weight:600}
+.mv .dh .fin{font:600 .72rem var(--sans);color:var(--rb-move-d);white-space:nowrap}
+.mv .dh .m{font:400 .72rem var(--mono);color:var(--muted);margin-left:auto;white-space:nowrap}
+.mv ul{list-style:none;margin:4px 0 0;padding:0 0 0 1.9rem;display:grid;gap:3px}
+.mv li{font-size:.86rem;line-height:1.4;color:var(--soft)}
+/* how the day went — the rainbow (24 Oct 2026, docs/day-behind-cards.md): neutral flows, cool hues for being,
+   warm hues for doing, the night in blue in the gap; every colour a token, light and dark */
+:root{--rb-flow:#DDD5C9;--rb-flow-d:#8C8174;--rb-flow-t:#F1ECE4;--rb-eat:#86C2A4;--rb-move:#B4C987;--rb-recreation:#9FC4E2;--rb-being-t:#EEF4F3;--rb-being-d:#4F7F78;
+--rb-syn:#F2C14E;--rb-syn-d:#B8860B;--rb-work:#C9805F;--rb-care:#E3A4A8;--rb-family:#E3A4A8;--rb-pet:#EBB9CB;--rb-community:#E8B08F;--rb-social:#AEB9E6;--rb-home:#DDB4A2;--rb-personal:#C3B6E2;--rb-cook:#EEB672;--rb-system:#DCC89C;--rb-drive:#E9A84F;--rb-travel:#A8D3C9;--rb-doing-t:#FAF0EA;--rb-doing-d:#94593D;--rb-screen:#2C2620;--rb-screen-d:#2C2620;--rb-screen-t:#ECE5DA;
+--rb-sleep:#4A568C;--rb-sleep-deep:#1F2A5C;--rb-sleep-d:#141B40;--rb-eat-d:#3F8A68;--rb-move-d:#6E8A35;--rb-recreation-d:#4A7FAE;--rb-work-d:#8E4A2C;--rb-care-d:#B05E66;--rb-family-d:#B05E66;--rb-pet-d:#A85C7A;--rb-community-d:#A8603E;--rb-social-d:#4E5DA3;--rb-home-d:#96604A;--rb-personal-d:#6B5BA0;--rb-cook-d:#B07A2A;--rb-system-d:#9C8455;--rb-drive-d:#A8641C;--rb-travel-d:#3E7F74}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--rb-syn:#F5CF6A;--rb-syn-d:#F5CF6A;--rb-flow:#4A4540;--rb-flow-d:#BDB3A6;--rb-flow-t:#2B2830;--rb-being-t:#24302D;--rb-being-d:#CDE7DF;--rb-doing-t:#352B27;--rb-doing-d:#F4E0D4;--rb-screen:#EDE4E0;--rb-screen-d:#EDE4E0;--rb-screen-t:#2E2A30;--rb-sleep:#34407A;--rb-sleep-deep:#232D63;--rb-sleep-d:#C9D6EE;--rb-eat-d:#C4E6D4;--rb-move-d:#DCE8BC;--rb-recreation-d:#CFE2F2;--rb-work-d:#F0C6B2;--rb-care-d:#F5D0D2;--rb-family-d:#F5D0D2;--rb-pet-d:#F6D3E0;--rb-community-d:#F6D7C8;--rb-social-d:#DADFF5;--rb-home-d:#F0D6CA;--rb-personal-d:#DED6F4;--rb-cook-d:#F7D9AE;--rb-system-d:#EEE2C6;--rb-drive-d:#F2C894;--rb-travel-d:#CDEAE4}}
+:root[data-theme="dark"]{--rb-syn:#F5CF6A;--rb-syn-d:#F5CF6A;--rb-flow:#4A4540;--rb-flow-d:#BDB3A6;--rb-flow-t:#2B2830;--rb-being-t:#24302D;--rb-being-d:#CDE7DF;--rb-doing-t:#352B27;--rb-doing-d:#F4E0D4;--rb-screen:#EDE4E0;--rb-screen-d:#EDE4E0;--rb-screen-t:#2E2A30;--rb-sleep:#34407A;--rb-sleep-deep:#232D63;--rb-sleep-d:#C9D6EE;--rb-eat-d:#C4E6D4;--rb-move-d:#DCE8BC;--rb-recreation-d:#CFE2F2;--rb-work-d:#F0C6B2;--rb-care-d:#F5D0D2;--rb-family-d:#F5D0D2;--rb-pet-d:#F6D3E0;--rb-community-d:#F6D7C8;--rb-social-d:#DADFF5;--rb-home-d:#F0D6CA;--rb-personal-d:#DED6F4;--rb-cook-d:#F7D9AE;--rb-system-d:#EEE2C6;--rb-drive-d:#F2C894;--rb-travel-d:#CDEAE4}
+.rb svg{display:block;width:calc(100% + 24px);max-width:560px;height:auto;margin:4px -12px 0;overflow:visible}
+@media (min-width:600px){.rb svg{margin:4px auto 0;width:100%}}
+.rb svg text{font-family:var(--mono);fill:var(--muted)}
+.rb svg [data-tip]{cursor:pointer}
+.rb svg [data-tip]:focus-visible,.rb svg [data-tip].on{outline:none;stroke:var(--ink);stroke-width:2}
+.rb .tip{min-height:3.2em;margin:4px 0 0;padding:10px 12px;border-radius:12px;background:var(--tint);font-size:.86rem;line-height:1.45;color:var(--soft)}
+.rb .tip b{color:var(--ink);font-weight:600}
+.rb .bars{display:grid;gap:7px;margin:14px 0 0}
+.rb .bh{margin:8px 0 0;font:600 .68rem var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.rb .bh span{font:500 .72rem var(--mono);letter-spacing:0;text-transform:none;margin-left:6px}
+.rb .br{display:grid;grid-template-columns:6.2rem minmax(0,1fr) 4.8rem;align-items:center;gap:10px}
+.rb .bn{font-size:.84rem;color:var(--soft);line-height:1.2}
+.rb .bn small{display:block;font-size:.7rem;color:var(--muted);margin-top:1px}
+.rb .who{margin:22px 0 4px}.rb .wstrip{position:relative;height:16px;border-radius:8px;background:var(--rb-doing-t);overflow:hidden;margin:6px 0 2px}
+.rb .wstrip i{position:absolute;top:0;bottom:0}.rb .wends{display:flex;justify-content:space-between;margin:0 0 8px;font:400 .68rem var(--mono);color:var(--muted)}
+:root{--who-alone:#A9CFCB;--who-alone-d:#4F8A8B;--who-family:#E8C48A;--who-family-d:#B98A2E;--who-social:#E3A097;--who-social-d:#BE5B50;--who-work:#C77267;--who-work-d:#A04A40}
+.rb .w-alone{background:var(--who-alone);border-color:var(--who-alone-d)}.rb .w-family{background:var(--who-family);border-color:var(--who-family-d)}
+.rb .w-social{background:var(--who-social);border-color:var(--who-social-d)}.rb .w-work{background:var(--who-work);border-color:var(--who-work-d)}
+.rb .who .bt i{border-width:1.5px;border-style:solid}
+.rb .wp{margin:6px 0 0;font-size:.84rem;line-height:1.45;color:var(--soft)}.rb .wp small{font:400 .7rem var(--mono);color:var(--muted)}
+.rb .wc{display:block;font:600 .68rem var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.rb .circles{display:grid;gap:10px;margin-top:12px}.rb .circ{background:var(--tint,rgba(255,255,255,.5));border-radius:14px;padding:12px 14px}
+.rb .circl{margin:0 0 8px;font:600 .68rem var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.rb .circp{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.rb .pchip{display:inline-flex;align-items:baseline;gap:7px;border:1.5px solid var(--cc);border-radius:999px;padding:4px 12px;font-weight:600;line-height:1.2;color:var(--ink)}
+.rb .pchip small{font:500 .68rem var(--mono);color:var(--muted)}.rb .pchip.far{border-style:dashed;font-weight:500;font-size:.85rem}
+.rb .wment{margin:10px 0 0;font-size:.8rem;color:var(--muted);line-height:1.45}
+.rb .energy{margin:26px 0 4px}.rb .ewheel{width:100%;max-width:400px;height:auto;display:block;margin:4px auto 10px}
+.rb .elegend{display:grid;gap:6px;padding-left:6px}.rb .epair{border-left:3px solid;padding:2px 0 2px 10px;display:grid;gap:3px}
+.rb .erow{display:grid;grid-template-columns:18px 52px 1fr auto;gap:8px;align-items:baseline;font-size:.8rem}
+.rb .erow svg{width:15px!important;height:15px!important;display:block}.rb .enm{font-weight:700}.rb .edf{color:var(--soft);line-height:1.35}.rb .ev{font:500 .78rem var(--mono);color:var(--ink);white-space:nowrap}
+.rb .enote{margin:10px 0 0;font-size:.76rem;color:var(--muted);line-height:1.45}
+.rb .vline{margin:2px 0 10px;font:700 1.06rem/1.35 var(--sans);color:var(--ink);text-wrap:balance}
+.rb .emore summary{cursor:pointer;font-size:.82rem;font-weight:600;color:var(--link);padding:4px 0}
+.rb .balbar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:8px 0 6px}.rb .balbar span{display:block;height:100%}
+.rb .ballab{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin:0;font:600 .86rem var(--sans)}
+.rb .ballab i{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 3px 0 8px}.rb .ballab b{font-weight:800}
+.rb .with{margin:10px 0 4px}.rb .with p{margin:0 0 4px;font-size:.84rem;line-height:1.35;color:var(--soft)}
+.rb .with .wt{display:block;font:500 .72rem var(--mono);color:var(--muted);text-transform:none}
+.rb .bt{position:relative;height:14px;border-radius:7px;background:var(--tint)}
+.rb .bt i{position:absolute;left:0;top:0;bottom:0;border-radius:7px;border:1.5px solid;min-width:3px}
+.rb .bt b{position:absolute;top:-4px;bottom:-4px;width:2.5px;margin-left:-1px;border-radius:2px;background:var(--ink)}
+.rb .bv{font:500 .8rem var(--mono);font-variant-numeric:tabular-nums;text-align:right;color:var(--ink);line-height:1.15}
+.rb .bv small{display:block;font-size:.68rem;color:var(--muted)}
+.rb .their{margin:18px 0 0}
+.rb .their .tt{position:relative;height:14px;border-radius:7px;background:var(--tint);margin:6px 0 0}
+.rb .their .tt i{position:absolute;top:0;bottom:0;border-radius:7px;background:var(--rb-family);border:1.5px solid var(--rb-family-d)}
+.rb .their .tl{display:flex;flex-wrap:wrap;gap:2px 14px;margin:6px 0 0;font:400 .74rem var(--mono);color:var(--muted)}
+.restline{font:400 .78rem var(--mono);color:var(--muted);border-top:1px solid var(--rule);padding-top:14px;margin:26px 0 0}
+.tex{font-size:.8rem;color:var(--muted);line-height:1.5;margin:2px 0 0}
+details.numbers{margin:0}
+details.numbers>summary{cursor:pointer;font:500 italic 1.15rem var(--display);color:var(--terra)}
+.garden{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}
+.fl{background:var(--tint);border-radius:16px;padding:10px 10px 12px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
+.fl.big{grid-column:span 2;grid-row:span 2}
+.fl svg{display:block;width:100%;max-width:120px;height:auto;overflow:visible}
+.fl.big svg{max-width:240px}
+.fl .d{font:400 .66rem var(--mono);color:var(--faint)}
+.fl .t{font-size:.8rem;line-height:1.3;color:var(--soft)}
+.fl.big .t{font-size:.95rem;color:var(--ink)}
+.fl .k{font:400 .64rem var(--mono);color:var(--muted)}
+.gkey{display:flex;flex-wrap:wrap;gap:4px 12px;margin:12px 0 0;font-size:.72rem;color:var(--muted)}
+.gkey i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+/* her own light/dark switch (28 Oct 2026): the app's viewer opens the page light even with the app dark */
+.theme{position:absolute;top:20px;right:max(16px,calc(50% - 294px));width:36px;height:36px;border-radius:50%;border:1px solid var(--rule);
+  background:var(--tint);color:var(--muted);font:400 1.05rem/1 var(--sans);cursor:pointer;display:grid;place-items:center;padding:0}
+.theme:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+.wrap .chip{padding-right:44px}
+/* where she was (5 Nov 2026): the day's 📍 stays on a map. Size is the time there, a new place is a star,
+   the colours are bright enough to read on the grey base. Leaflet's own stylesheet arrives in DATA.map.css. */
+#daymap{height:440px;border-radius:12px;border:1px solid var(--rule);background:#ECE9E5;margin-top:4px}
+@media (max-width:560px){#daymap{height:380px}}
+.mkey{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin:10px 0 0;font-size:.78rem;color:var(--muted)}
+.mkey span{display:inline-flex;align-items:center;gap:6px}
+.mkey i{display:inline-block;width:11px;height:11px;border-radius:50%;border:1px solid rgba(46,36,34,.6)}
+.mstar{background:none;border:none;filter:drop-shadow(0 1px 2px rgba(46,36,34,.45))}
+.mstar svg,.mkey svg{display:block}
+.leaflet-popup-content{font:.86rem/1.45 var(--sans);margin:10px 14px}
+.leaflet-popup-content .hrs{font:400 .76rem var(--mono,ui-monospace),monospace;color:#7A6E60;white-space:nowrap}
+</style>
+<body><button class="theme" id="theme" type="button" aria-label="Switch to dark"></button><div class="wrap" id="page"></div>
+<script>
+// the choice is kept on her phone; without storage the page still switches, it just forgets
+(() => {
+  const R = document.documentElement, B = document.getElementById("theme"), KEY = "bedo-theme";
+  const now = () => R.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const show = () => { const d = now() === "dark"; B.innerHTML = d ? "&#9728;&#65038;" : "&#9790;"; B.setAttribute("aria-label", d ? "Switch to light" : "Switch to dark"); };
+  try { const s = localStorage.getItem(KEY); if (s === "dark" || s === "light") R.dataset.theme = s; } catch (e) {}
+  B.addEventListener("click", () => { const t = now() === "dark" ? "light" : "dark"; R.dataset.theme = t; show();
+    try { localStorage.setItem(KEY, t); } catch (e) {} });
+  show();
+})();
+</script>
+<script>
+const DATA = /*__DATA__*/null;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const hm = m => { m = Math.round(m || 0); const h = Math.floor(m / 60), r = m % 60; return h ? (r ? `${h} h ${String(r).padStart(2, "0")}` : `${h} h`) : `${r} min`; };
+const T = DATA.totals, P = document.getElementById("page");
+// one engine for the week and for a single day drawn the same way (20 Oct 2026)
+const SP = DATA.span || "week", ND = DATA.ndays || 7, ONE = SP === "day";
+const extra = (n, w) => n ? ` · ${n} ${w}` : "";
+P.innerHTML = `<div class="chip">${esc(DATA.chip)}</div>
+<p class="eyebrow">the look behind · the ${SP} · ${esc(DATA.week)} · ${esc(DATA.range)}</p>
+<h1 class="hd">what gave the ${SP} meaning</h1>
+<p class="lead" id="slead" style="margin-top:8px"></p>
+<div class="card riv"><div class="rscroll"><svg id="river" role="img" aria-label="Each moment that mattered, flowing from its day to the flow, rhythm or drive it belongs to, and on to the destinations they serve"></svg></div>
+<div class="rkey" id="rkey"></div><p class="hint" id="rhint">tap a flow, rhythm, drive or destination to see just its moments below</p></div>
+<div class="stream" id="stream"></div>
+<details class="numbers"><summary>the numbers · time, rest, needs, drives</summary>
+<section><p class="label">where the time went</p>
+<p class="lead" id="cover"></p>
+<p class="note">minutes from rows with a real span; two things at once both count, as on the wheel, and time with somebody counts toward heart whatever else it was; sleep is time in bed, not an area</p>
+<div class="stats"><div class="stat"><b>${hm(DATA.time.be)}</b><span>being</span></div>
+<div class="stat"><b>${hm(DATA.time.tend + DATA.time.grow)}</b><span>doing · ${hm(DATA.time.grow)} growing</span></div>
+<div class="stat"><b>${hm(DATA.time.people)}</b><span>with people</span></div></div>
+<div class="bars" id="areas" style="margin-top:14px"></div></section>
+<section><p class="label">what moved forward</p>
+<p class="note">every action closed in the ${SP}, and what is in motion and was touched in it</p>
+<div id="moved"></div></section>
+<section><p class="label">rest as a reset</p>
+<p class="lead" id="restlead"></p>
+<div id="restdays"></div></section>
+<section><p class="label">needs · on the secure base</p>
+<p class="lead" id="needlead"></p>
+<div id="needs"></div><div id="needdays"></div></section>
+<section><p class="label">the ${SP} on its drives</p>
+<p class="note">each counted once${extra(hm(T.min_no_drive) !== "0 min" ? hm(T.min_no_drive) : "", "logged on no drive")}${extra(T.closed_no_drive, "closed on no drive")}${extra(T.open_no_drive, "open on no drive")}</p>
+<div class="stats"><div class="stat"><b>${hm(T.min)}</b><span>on drives</span></div>
+<div class="stat"><b>${T.closed}</b><span>✅ closed</span></div>
+<div class="stat"><b>${T.open}</b><span>still open</span></div></div></section>
+<section><p class="label">by drive</p>
+<p class="note">the drives that moved this ${SP}; a drive that feeds another sits under it, and its time and counts are in the parent's numbers</p>
+<div id="drives"></div><details id="quiet"><summary></summary><div id="quietdrives" style="margin-top:10px"></div></details></section>
+</details></article>
+</div>
+<section class="foot" id="foot"></section>`;
+// one drive: its numbers including what feeds it, then its own lists, then the drives that feed it
+const node = n => {
+  const nums = [n.min ? hm(n.min) : "", n.closed ? `${n.closed} ✅` : "", n.open ? `${n.open} open` : ""].filter(Boolean).join(" · ");
+  const own = n.children.length && (n.own_min !== n.min || n.closed_own !== n.closed || n.open_own !== n.open)
+    ? `<p class="own">its own: ${[hm(n.own_min), n.closed_own + " ✅", n.open_own + " open"].join(" · ")}</p>` : "";
+  const done = n.done.length ? `<details><summary>${n.done.length} closed</summary><ul>${n.done.map(d =>
+    `<li>✅ ${d.url ? `<a href="${esc(d.url)}">${esc(d.t)}</a>` : esc(d.t)}${d.set ? ` <span class="set">set as: ${esc(d.set)}</span>` : ""}</li>`).join("")}</ul></details>` : "";
+  const still = n.still.length ? `<details><summary>${n.still.length} still open</summary><ul>${n.still.map(s =>
+    `<li>${esc(s.st)} ${esc(s.t)}${s.due ? ` <span class="due">· ${esc(s.due)}</span>` : ""}</li>`).join("")}</ul></details>` : "";
+  return `<div class="drive"><div class="dh"><span>${esc(n.emoji)}</span><span class="n">${esc(n.drive)}</span><span class="m">${nums}</span></div>${own}${done}${still}` +
+    (n.children.length ? `<div class="sub">${n.children.map(node).join("")}</div>` : "") + `</div>`;
+};
+// only the drives that moved are shown; the ones holding open items alone fold away (19 Oct 2026: the drive list is overwhelming)
+const moved = n => n.min > 0 || n.closed > 0;
+const live = DATA.drives.filter(moved), quiet = DATA.drives.filter(n => !moved(n));
+document.getElementById("drives").innerHTML = live.length ? live.map(node).join("") : `<p class="note">no drive moved this ${SP}</p>`;
+if (quiet.length) {
+  document.querySelector("#quiet summary").textContent = `${quiet.length} more drives, open items only · ${quiet.reduce((s, n) => s + n.open, 0)} open`;
+  document.getElementById("quietdrives").innerHTML = quiet.map(node).join("");
+} else document.getElementById("quiet").remove();
+if ((DATA.forecasts || []).length)   // 🔭 forecasts due in the window, hers to say how each turned out (20 Oct 2026)
+  document.getElementById("foot").insertAdjacentHTML("beforebegin", `<section data-dyn aria-label="forecasts due"><p class="note">\u{1F52D} forecasts due this ${SP} \u00B7 how did each turn out? in your words</p><ul>${DATA.forecasts.map(f => `<li>${esc(f.t)}</li>`).join("")}</ul></section>`);
+document.getElementById("foot").innerHTML = `read ${esc(DATA.read)}` +
+  (DATA.loops.length ? `<br><span class="warn">feeds loops — fix in the base: ${DATA.loops.map(esc).join(" · ")}</span>` : "") +
+  `<br>not built yet: the reading, the wheel, who was there`;
+// what gave the week meaning — the stream (19 Oct 2026, her words: what the thing was, a picture,
+// a few words, an emoji for the kind, and how it fits — the map's rhythm → drive → destination)
+const SM = DATA.stream || {days: [], flowed: [], n: 0};
+const cap = x => x ? x[0].toUpperCase() + x.slice(1) : x;
+const inTrip = SM.flowed.filter(f => f.n).reduce((n, f) => n + f.n_moments, 0);
+document.getElementById("slead").textContent = SM.n
+  ? `${SM.n} moments mattered this week. Up top, the two flows you return to every day — how much of each you did, and whether you closed it. Below, each moment is what it was, in your words, on the rhythm or drive it lived in; a purple dot means a flow caught it.`
+  : "no moments marked this week — a highlight, a glimmer, a gratitude or a few lines of your words is what lands here";
+// a long passage shows its opening; "more" reveals only the rest, in place (20 Oct 2026: no repeated text)
+const clock = at => { const [h, m] = at.slice(11, 16).split(":").map(Number); return `${h % 12 || 12}:${String(m).padStart(2, "0")}${h < 12 ? "a" : "p"}`; };
+const words = w => {
+  if (!w) return "";
+  if (w.length <= 260) return `<div class="her">${esc(w)}</div>`;
+  const head = w.slice(0, 240).replace(/\s+\S*$/, ""), rest = w.slice(head.length);
+  return `<div class="her">${esc(head)}<span class="rest" hidden>${esc(rest)}</span><span class="dots">…</span> ` +
+    `<button type="button" class="more" onclick="const h=this.parentNode,r=h.querySelector('.rest'),o=r.hidden;r.hidden=!o;h.querySelector('.dots').hidden=o;this.textContent=o?'less':'more'">more</button></div>`;
+};
+const sid = m => m.at;
+const stone = m => {
+  const meta = [m.people.length ? `with ${esc(m.people.join(", "))}` : "",
+    m.theirs.length ? `🌟 ${esc(m.theirs.map(cap).join(", "))}'s too` : "",
+    m.memory ? `↺ ${esc(m.memory)}` : "", m.synergy ? "∞ more because it was shared" : "", m.photo ? "📷 a photo" : ""].filter(Boolean);
+  const path = [m.envelope, ...m.drives.map(d => `${d.e} ${d.n}`), ...m.dests.map(d => `${d.e} ${d.n}`)].filter(Boolean);
+  const flowline = m.flow ? `<div class="to">caught in ${esc(m.flow.e)} ${esc(m.flow.n)}</div>` : "";
+  const big = m.memory || m.synergy || (m.words || "").length > 500;
+  return `<div class="stone${big ? " big" : ""}" data-at="${esc(sid(m))}"><span class="g">${esc(m.g || "·")}</span><div class="body">` +
+    `<div class="tt">${esc(m.t)}${m.badges.length ? `<span class="bd">${esc(m.badges.join(" "))}</span>` : ""}</div>` +
+    words(m.words) + ((m.photos || []).length ? `<div class="ph">${m.photos.map(src => `<img src="${src}" alt="" loading="lazy">`).join("")}</div>` : "") +
+    (meta.length ? `<div class="meta">${meta.map(x => `<span>${x}</span>`).join("")}</div>` : "") +
+    flowline + (path.length ? `<div class="to">→ ${path.map(esc).join(" → ")}</div>` : "") + `</div></div>`;
+};
+document.getElementById("stream").innerHTML = SM.days.map(d =>
+  `<div class="sd" data-day="${esc(d.date)}"><h2>${esc(d.label)}</h2>${d.lead ? `<div class="dl">${esc(d.lead)}</div>` : `<div style="height:6px"></div>`}` +
+  d.stones.map(stone).join("") +
+  (d.texture.length ? `<p class="tex">also: ${d.texture.map(x => `${esc(x.g)} ${esc(x.t)}`).join(" · ")}</p>` : "") + `</div>`).join("");
+// the river, on time (20 Oct 2026, her words: show the flow of time). The week runs left to right;
+// each place a moment belongs to is a lane (the flows on the being side first, then rhythms and
+// drives); each moment sits on its lane at its time, as its emoji; a lane thickens as moments
+// gather on it and ends in the destination it serves. An envelope (the trip) is a band behind
+// its days. Colour is the KIND of place (validated: dataviz validate_palette, light and dark).
+(function () {
+  const svg = document.getElementById("river"); if (!svg || !SM.n || ONE) { document.querySelector(".riv")?.remove(); return; }
+  const dark = (matchMedia("(prefers-color-scheme: dark)").matches && document.documentElement.dataset.theme !== "light")
+    || document.documentElement.dataset.theme === "dark";
+  const KC = dark ? {flow: "#9b6fd6", rhythm: "#199e70", drive: "#d95926", destination: "#3987e5"}
+                  : {flow: "#8a5bc0", rhythm: "#1baf7a", drive: "#eb6834", destination: "#2a78d6"};
+  const KN = {flow: "a flow · the dot marks a moment it caught", rhythm: "rhythm", drive: "drive", destination: "destination"};
+  const order = {flow: 0, rhythm: 1, drive: 2, destination: 3};
+  const moments = SM.days.flatMap(d => d.stones);
+  const lanes = new Map();
+  const lane = (key, n, e, type) => { if (!lanes.has(key)) lanes.set(key, {key, n, e, type, ms: [], dests: new Map()}); return lanes.get(key); };
+  moments.forEach(m => {
+    // a flow is a practice she returns to every day, not a place she goes: a moment caught in a flow
+    // lives on the rhythm or drive it was about, and the flow row above only holds what has no other home
+    const own = [];
+    const ds = m.drives || [];
+    if (ds.length) own.push(lane("d:" + ds[0].n, ds[0].n, ds[0].e, ds[0].type));
+    else if ((m.dests || []).length) own.push(lane("d:" + m.dests[0].n, m.dests[0].n, m.dests[0].e, "destination"));
+    own.forEach(l => { l.ms.push(m); if (ds.length && l.key === "d:" + ds[0].n) (m.dests || []).forEach(d => l.dests.set(d.n, d)); });
+    m._lanes = own;
+  });
+  const L = [...lanes.values()].sort((a, b) => order[a.type] - order[b.type] || b.ms.length - a.ms.length);
+  const t0 = new Date(SM.days[0].date + "T00:00:00"), t1 = new Date(t0.getTime() + 7 * 864e5);
+  const W = 700, LX = 140, RX = 486, DX = 496, LH = 34, BH = 30;
+  const BE = SM.be || [], FL = SM.flows || [];
+  const top = 30 + (BE.length ? FL.length * BH + 30 : 0), btop = 44;
+  const X = iso => LX + (RX - LX) * Math.max(0, Math.min(1, (new Date(iso) - t0) / (t1 - t0)));
+  // a busy lane gets more rows: each moment takes the first row where it doesn't touch the one before
+  L.forEach(l => {
+    const last = [];
+    l.ms.sort((a, b) => a.at < b.at ? -1 : 1).forEach(m => {
+      const x = X(m.at); let r = last.findIndex(v => x - v >= 18); if (r < 0) { r = last.length; last.push(x); } else last[r] = x; m._row = m._row || {}; m._row[l.key] = r;
+    });
+    l.rows = Math.max(1, last.length);
+  });
+  let yy = top; L.forEach(l => { l.h = Math.max(LH, 18 * l.rows + 12); l.y = yy + 14; yy += l.h; });
+  const H = yy + 12;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  let out = "";
+  // the days, as columns
+  SM.days.forEach((d, i) => {
+    const x = LX + (RX - LX) * i / 7;
+    out += `<line x1="${x}" y1="24" x2="${x}" y2="${H - 6}" stroke="var(--rule)" stroke-width="1"/>` +
+      `<text class="dl" x="${x + (RX - LX) / 14}" y="12" text-anchor="middle">${esc(d.label.split(" ")[0])}</text>` +
+      `<text class="dl" x="${x + (RX - LX) / 14}" y="22" text-anchor="middle">${esc(d.label.split(" ")[1])}</text>`;
+  });
+  // the being side: each flow, each day — how much of it was done, and whether it was closed
+  if (BE.length) {
+    out += `<text class="sl" x="4" y="${btop - 6}">being · the flows, every day</text>` +
+      `<text class="sl" x="4" y="${top - 12}">doing · where the moments lived</text>` +
+      `<line x1="4" y1="${top - 26}" x2="${RX}" y2="${top - 26}" stroke="var(--rule)" stroke-dasharray="2 3"/>`;
+    FL.forEach((f, j) => {
+      const y = btop + 10 + j * BH, caught = moments.filter(m => m.flow && m.flow.n === f.n);
+      const done = BE.filter(d => d[f.k].n || d[f.k].closed).length;
+      out += `<g class="node" tabindex="0" role="button" data-ids="${esc(caught.map(sid).join(" "))}" aria-label="${esc(f.n)}: ${caught.length} moment${caught.length === 1 ? "" : "s"} caught">` +
+        `<text class="nl" x="4" y="${y - 1}">${esc(f.e)} ${esc(f.n)}</text>` +
+        `<text class="nc" x="4" y="${y + 11}">${done} of 7 days · ${caught.length} caught</text>`;
+      BE.forEach((d, i) => {
+        const v = d[f.k], cx = LX + (RX - LX) * (i + .5) / 7, r = v.n ? Math.min(11, 4 + 1.6 * Math.sqrt(v.n)) : 3;
+        const say = `${d.date.slice(5)} · ${f.n}: ${v.n} practice${v.n === 1 ? "" : "s"}${v.closed ? " · closed" : v.n ? " · not closed" : ""}${v.g.length ? " · " + v.g.join(" ") : ""}`;
+        out += v.n || v.closed
+          ? `<circle cx="${cx}" cy="${y}" r="${r}" fill="${KC.flow}" fill-opacity="${v.n ? .22 : 0}" stroke="${KC.flow}" stroke-width="1.5"${v.closed ? "" : ` stroke-dasharray="2 2"`}><title>${esc(say)}</title></circle>` +
+            (v.n ? `<text class="nc" x="${cx}" y="${y + 3}" text-anchor="middle" style="stroke-width:2px">${v.n}</text>` : "")
+          : `<circle cx="${cx}" cy="${y}" r="2" fill="var(--rule)"><title>${esc(say)}</title></circle>`;
+      });
+      // moments the flow caught that have no rhythm or drive of their own sit here, at their time
+      caught.filter(m => !m._lanes.length).forEach(m => {
+        const cx = X(m.at) + 12;
+        out += `<g class="pt" data-ids="${esc(sid(m))}"><circle cx="${cx}" cy="${y - 8}" r="8" fill="var(--tint)" stroke="${KC.flow}" stroke-width="1.5"/>` +
+          `<text x="${cx}" y="${y - 4.5}" text-anchor="middle" font-size="9">${esc(m.g || "·")}</text><title>${esc(m.t)}</title></g>`;
+      });
+      out += `</g>`;
+    });
+  }
+  // the envelopes (the trip), whole days, behind everything
+  (SM.bands || []).forEach(b => {
+    const a = X(b.a.slice(0, 10) + "T00:00:00"), z = X(new Date(new Date(b.b.slice(0, 10) + "T00:00:00").getTime() + 864e5).toISOString());
+    out = `<rect x="${a}" y="${top - (BE.length ? 22 : 30)}" width="${Math.max(2, z - a)}" height="${H - top + (BE.length ? 18 : 26)}" rx="8" fill="var(--terra)" fill-opacity=".07"/>` +
+      `<text class="nc" x="${a + 4}" y="${H - 1}">${esc(b.t)}</text>` + out;
+  });
+  // each lane: its label, a stream that thickens as moments gather, its moments, and where it leads
+  L.forEach(l => {
+    const c = KC[l.type], ms = [...l.ms].sort((a, b) => a.at < b.at ? -1 : 1);
+    out += `<g class="node" tabindex="0" role="button" data-ids="${esc(ms.map(sid).join(" "))}" aria-label="${esc(l.n)}: ${ms.length} moment${ms.length === 1 ? "" : "s"}">` +
+      `<text class="nl" x="4" y="${l.y - 1}">${esc(l.e)} ${esc(l.n.length > 21 ? l.n.slice(0, 20).replace(/\s+\S*$/, "") + "…" : l.n)}</text>` +
+      `<text class="nc" x="4" y="${l.y + 11}">${ms.length} · ${KN[l.type]}</text>`;
+    let x = X(ms[0].at), w = 2;
+    ms.forEach((m, i) => { const nx = X(m.at); out += `<path class="t" data-ids="${esc(sid(m))}" d="M${x},${l.y} L${nx},${l.y}" stroke="${c}" stroke-opacity=".4" stroke-width="${w}"/>`; x = nx; w = Math.min(10, 2 + 0.6 * (i + 1)); });
+    const end = l.dests.size ? DX : RX;
+    out += `<path class="t" data-ids="${esc(ms.map(sid).join(" "))}" d="M${x},${l.y} L${end},${l.y}" stroke="${c}" stroke-opacity=".45" stroke-width="${w}"/>`;
+    ms.forEach((m, i) => {
+      const cx = X(m.at), cy = l.y + 18 * (m._row[l.key] || 0);
+      out += `<g class="pt" data-ids="${esc(sid(m))}"><circle cx="${cx}" cy="${cy}" r="8" fill="var(--tint)" stroke="${c}" stroke-width="1.5"/>` +
+        `<text x="${cx}" y="${cy + 3.5}" text-anchor="middle" font-size="9">${esc(m.g || "·")}</text>` +
+        (m.flow ? `<circle cx="${cx + 6.5}" cy="${cy - 6.5}" r="2.6" fill="${KC.flow}" stroke="var(--tint)" stroke-width="1"/>` : "") +
+        `<title>${esc(m.t)}${m.flow ? " · caught in " + esc(m.flow.n) : ""}</title></g>`;
+    });
+    out += `</g>`;
+  });
+  // destinations at the right edge, with the lanes that lead there
+  const D = new Map(); L.forEach(l => l.dests.forEach(d => { if (!D.has(d.n)) D.set(d.n, {d, from: []}); D.get(d.n).from.push(l); }));
+  [...D.values()].forEach(({d, from}) => {
+    const y = from.reduce((s, l) => s + l.y, 0) / from.length, ids = from.flatMap(l => l.ms.map(sid));
+    from.forEach(l => { out += `<path class="t" data-ids="${esc(l.ms.map(sid).join(" "))}" d="M${DX},${l.y} C${DX + 14},${l.y} ${DX + 6},${y} ${DX + 20},${y}" stroke="${KC.destination}" stroke-opacity=".5" stroke-width="3"/>`; });
+    out += `<g class="node" tabindex="0" role="button" data-ids="${esc(ids.join(" "))}" aria-label="${esc(d.n)}: ${new Set(ids).size} moments">` +
+      `<rect x="${DX + 20}" y="${y - 10}" width="6" height="20" rx="3" fill="${KC.destination}"/>` +
+      `<text class="nl" x="${DX + 30}" y="${y - 1}">${esc(d.e)} ${esc(d.n)}</text><text class="nc" x="${DX + 30}" y="${y + 10}">${new Set(ids).size} · destination</text>` +
+      `<title>${esc(d.n)} · where it leads</title></g>`;
+  });
+  svg.innerHTML = out;
+  const dests = [...D.values()].map(({d}) => `${esc(d.e)} ${esc(d.n)}`).join(" · ");
+  document.getElementById("rkey").innerHTML = Object.entries(KN).filter(([k]) => L.some(l => l.type === k) || (k === "destination" && D.size) || (k === "flow" && BE.length))
+    .map(([k, v]) => `<span><i style="background:${KC[k]}"></i>${v}</span>`).join("") + (dests ? `<span>→ ${dests}</span>` : "");
+  let on = null;
+  const show = g => {
+    const ids = g && g !== on ? new Set(g.dataset.ids.split(" ")) : null; on = ids ? g : null;
+    svg.classList.toggle("on", !!ids);
+    svg.querySelectorAll("path.t, .pt").forEach(p => p.classList.toggle("lit", !!ids && p.dataset.ids.split(" ").some(i => ids.has(i))));
+    svg.querySelectorAll(".node").forEach(n => n.classList.toggle("lit", n === g && !!ids));
+    document.querySelectorAll(".stone").forEach(s => s.classList.toggle("dim", !!ids && !ids.has(s.dataset.at)));
+    document.querySelectorAll(".sd").forEach(d => d.classList.toggle("empty", !!ids && !d.querySelector(".stone:not(.dim)")));
+    document.getElementById("rhint").textContent = ids ? `showing the ${ids.size} moment${ids.size === 1 ? "" : "s"} of ${g.getAttribute("aria-label").split(":")[0]} · tap it again for all` : "the week runs left to right · a full ring is a flow you closed, a dashed one a flow left open · tap a flow, lane or destination to see just its moments below · scroll sideways on a phone";
+  };
+  svg.addEventListener("click", e => { const g = e.target.closest(".node"); if (g) show(g); });
+  svg.addEventListener("keydown", e => { const g = e.target.closest(".node"); if (g && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); show(g); } });
+  document.getElementById("rhint").textContent = "the week runs left to right · a full ring is a flow you closed, a dashed one a flow left open · tap a flow, lane or destination to see just its moments below · scroll sideways on a phone";
+})();
+// where the time went — the eight areas, being first
+const amax = Math.max(1, ...DATA.time.areas.map(a => a.min));
+const BE = new Set(DATA.time.areas.slice(0, 4).map(a => a.a));
+document.getElementById("areas").innerHTML = DATA.time.areas.map(a =>
+  `<div class="bar"><span>${esc(a.a)}</span><span class="t"><i class="${BE.has(a.a) ? "rest" : ""}" style="width:${100 * a.min / amax}%"></i></span><span class="v">${a.min ? hm(a.min) : "—"}</span></div>`).join("");
+// what moved forward
+const M = DATA.moved;
+document.getElementById("moved").innerHTML =
+  `<div class="stats"><div class="stat"><b>${M.closed.length}</b><span>✅ closed</span></div><div class="stat"><b>${M.motion.length}</b><span>▶️ in motion, touched</span></div><div class="stat"><b>${hm(T.min)}</b><span>on drives</span></div></div>` +
+  (M.closed.length ? `<ul style="margin-top:12px">${M.closed.map(c => `<li>✅ ${c.url ? `<a href="${esc(c.url)}">${esc(c.t)}</a>` : esc(c.t)}${c.drive ? ` <span class="set">· ${esc(c.drive)}</span>` : ""}</li>`).join("")}</ul>` : "") +
+  (M.motion.length ? `<details><summary>${M.motion.length} in motion</summary><ul>${M.motion.map(c => `<li>▶️ ${esc(c.t)}${c.drive ? ` <span class="set">· ${esc(c.drive)}</span>` : ""}</li>`).join("")}</ul></details>` : "");
+// rest as a reset — nights, play, the morning readiness
+const R = DATA.rest, Dd = DATA.days;
+const rd = R.readiness, ra = R.activity || [];
+document.getElementById("restlead").textContent =
+  `${hm(R.bed)} in bed across ${R.nights} logged night${R.nights === 1 ? "" : "s"}, ${hm(R.play)} of play` +
+  (rd.length ? `; morning readiness ${rd.join(" · ")}` : "") + (ra.length ? `; activity ${ra.join(" · ")}` : "") +
+  `. Rest is counted here as part of the ${SP}'s work, not time away from it.`;
+document.getElementById("restdays").innerHTML = `<table class="days"><tr><th>day</th><th>in bed</th><th>readiness</th><th>sleep</th><th>activity</th><th>play</th></tr>` +
+  Dd.map(d => `<tr><td class="s">${esc(d.day)}</td><td>${d.bed ? hm(d.bed) : "—"}</td><td>${d.readiness ?? "—"}</td><td>${d.sleep_score ?? "—"}</td><td>${d.activity ?? "—"}</td><td>${d.play ? hm(d.play) : "—"}</td></tr>`).join("") + `</table>`;
+// coverage — how much of the waking week any row covers: the size of every number on this page
+const TM = DATA.time, cp = TM.awake ? Math.round(100 * TM.logged / TM.awake) : 0;
+document.getElementById("cover").innerHTML = `the record covers <b>${hm(TM.logged)}</b> of about ${hm(TM.awake)} awake — ${cp}%. ` +
+  Dd.map(d => `${esc(d.day)} ${d.awake ? Math.round(100 * d.logged / d.awake) : 0}%`).join(" · ") +
+  (cp < 60 ? `. Read the numbers below as what was logged, not all that happened.` : ".");
+// needs — deficiency against growth, on the secure base
+const NE = DATA.needs, dsum = NE.deficiency.reduce((s, g) => s + g.min, 0), gsum = NE.growth.reduce((s, g) => s + g.min, 0);
+const pct = (a, b) => (a + b) ? Math.round(100 * a / (a + b)) : 0;
+document.getElementById("needlead").textContent =
+  `${ONE ? (DATA.secure_days ? "On a secure base" : "Not on a secure base") : `${DATA.secure_days} of ${ND} days on a secure base`}${DATA.secure_assumed ? ` (${DATA.secure_assumed} assumed — no ⏏️ row)` : ""}. ` +
+  `${hm(dsum)} went to deficiency needs and ${hm(gsum)} to growth needs — ${pct(gsum, dsum)}% growth. ` +
+  `From a secure base the deficiency needs get met, and that is what lets the growth side open.`;
+const side = (k, cls) => NE[k].map(g => {
+  const mx = Math.max(1, ...NE[k].map(x => x.min));
+  return `<div class="side"><h3>${esc(g.label)} · ${hm(g.min)}</h3><p class="says">${esc(g.says)} — ${g.areas.map(a => `${esc(a.a)} ${a.min ? hm(a.min) : "—"}`).join(", ")}</p>` +
+    `<div class="bar"><span>${k}</span><span class="t"><i class="${cls}" style="width:${100 * g.min / Math.max(1, dsum, gsum)}%"></i></span><span class="v">${pct(g.min, (dsum + gsum) - g.min)}%</span></div></div>`;
+}).join("");
+document.getElementById("needs").innerHTML = side("deficiency", "") + side("growth", "grow");
+document.getElementById("needdays").innerHTML = `<table class="days"><tr><th>day</th><th>base</th><th>deficiency</th><th>growth</th><th style="width:30%"></th></tr>` +
+  Dd.map(d => `<tr><td class="s">${esc(d.day)}</td><td class="s">${d.secure === "secure" ? (d.assumed ? "secure*" : "secure") : esc(d.secure)}</td><td>${d.deficiency ? hm(d.deficiency) : "—"}</td><td>${d.growth ? hm(d.growth) : "—"}</td>` +
+    `<td><span class="split"><i class="d" style="width:${pct(d.deficiency, d.growth)}%"></i><i class="g" style="width:${(d.deficiency + d.growth) ? 100 - pct(d.deficiency, d.growth) : 0}%"></i></span></td></tr>`).join("") +
+  `</table><p class="note" style="margin-top:6px">* no ⏏️ row that day; secure is the default. Deficiency: ${NE.deficiency.map(g => esc(g.label)).join(", ")} · growth: ${NE.growth.map(g => esc(g.label)).join(", ")}</p>`;
+// how the day went (24 Oct 2026): the waking day as a rainbow — up on the left, the evening down on the right,
+// the ends bent back like an open book's covers; the night in the gap at the bottom; bands overlap freely
+// where she was (5 Nov 2026): no routes, no lines; a tap gives the place, its time, what she did there, who with
+const STAR = "M" + Array.from({length: 10}, (_, i) => { const r = i % 2 ? 4.6 : 10.5, a = i * Math.PI / 5;
+  return `${(r * Math.sin(a)).toFixed(2)} ${(-r * Math.cos(a)).toFixed(2)}`; }).join(" L") + " Z";
+const mapStar = (c, n) => `<svg viewBox="-12 -12 24 24" width="${n}" height="${n}" aria-hidden="true"><path d="${STAR}" fill="${c}" stroke="#2E2422" stroke-width=".8"/></svg>`;
+const dayMap = M => {
+  const el = document.getElementById("daymap");
+  if (!el) return;
+  if (M.css) { const st = document.createElement("style"); st.dataset.dyn = "1"; st.textContent = M.css; document.head.appendChild(st); }
+  const go = () => {
+    const Lf = window.L, T = M.tiles || {};
+    const map = Lf.map(el, {minZoom: M.zoom[0], maxZoom: M.zoom[1], attributionControl: !!M.attribution});
+    if (Object.keys(T).length) {   // the base travels in the page: an artifact can't load outside images
+      const Base = Lf.GridLayer.extend({createTile(c) { const im = document.createElement("img"), u = T[`${c.z}/${c.x}/${c.y}`];
+        im.alt = ""; if (u) im.src = u; return im; }});
+      new Base({attribution: M.attribution}).addTo(map);
+    }
+    map.createPane("under").style.zIndex = 390;   // home, under every place, with no time (it has no rows)
+    if (M.home) Lf.circleMarker([M.home.lat, M.home.lng], {pane: "under", radius: 15, color: "#2E2422", weight: 1, opacity: .5,
+      fillColor: "#8A4FBF", fillOpacity: .3, interactive: false}).addTo(map);
+    const hrs = h => h >= 1 ? h.toFixed(1) + " h" : Math.max(1, Math.round(h * 60)) + " min";
+    for (const s of M.places) {
+      const r = 5 + 4 * Math.log2(1 + s.hours);   // the September map's sizes
+      const tip = `<b>${esc(s.name)}</b> <span class="hrs">${hrs(s.hours)}</span>${s.at ? `<br><span class="hrs">${esc(s.at)}</span>` : ""}` +
+        `${s.did ? `<br>${esc(s.did)}` : ""}${s.who ? `<br>with ${esc(s.who)}` : ""}`;
+      let t;
+      if (s.new) {
+        const n = Math.round(2 * Math.max(17, r + 5));
+        t = Lf.marker([s.lat, s.lng], {icon: Lf.divIcon({className: "mstar", iconSize: [n, n], html: mapStar(s.colour, n)}), zIndexOffset: 1000}).addTo(map);
+      } else {
+        Lf.circleMarker([s.lat, s.lng], {radius: r, color: "#2E2422", weight: 1, opacity: .6, fillColor: s.colour, fillOpacity: .95, interactive: false}).addTo(map);
+        t = Lf.circleMarker([s.lat, s.lng], {radius: Math.max(r, 18), stroke: false, fillOpacity: 0}).addTo(map);   // a wider, unseen target
+      }
+      t.bindPopup(tip, {maxWidth: 260});
+      t.on("click", () => {   // a tap on a crowd zooms in until its places come apart
+        const here = map.latLngToLayerPoint([s.lat, s.lng]);
+        const crowd = M.places.filter(o => map.latLngToLayerPoint([o.lat, o.lng]).distanceTo(here) < 26);
+        if (crowd.length > 1 && map.getZoom() < M.zoom[1]) { t.closePopup();
+          map.flyToBounds(Lf.latLngBounds(crowd.map(o => [o.lat, o.lng])).pad(.6), {duration: .5, maxZoom: M.zoom[1]}); }
+      });
+    }
+    const pts = M.places.map(s => [s.lat, s.lng]).concat(M.home ? [[M.home.lat, M.home.lng]] : []);
+    const fit = () => map.fitBounds(Lf.latLngBounds(pts).pad(.2), {animate: false, maxZoom: Math.max(M.zoom[0], M.zoom[1] - 2)});
+    fit();
+    new ResizeObserver(() => { map.invalidateSize({animate: false}); fit(); }).observe(el);
+  };
+  if (window.L) return go();
+  const sc = document.createElement("script"); sc.dataset.dyn = "1";
+  sc.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+  sc.onload = go;
+  document.head.appendChild(sc);
+};
+const rainbow = RB => {
+  if (!RB || !RB.bands) return "";
+  const WAKE = RB.wake, BED = RB.bed, CX = 200, CY = 205;
+  // the whole day, midnight to midnight, on a clock (26 Oct 2026, her words: "a day always begins and ends at
+  // midnight", "midnight should be at 6:00"): midnight straight down, noon straight up, a quarter degree a minute,
+  // the morning up the left and the evening down the right; the night is in bed across every ring
+  const th = m => (90 + Math.min(Math.max(m, 0), 1440) / 4) * Math.PI / 180;
+  const pt = (r, m) => [CX + r * Math.cos(th(m)), CY + r * Math.sin(th(m))];
+  const band = (r0, r1, a, b) => { if (b - a >= 1440) return band(r0, r1, 0, 720) + band(r0, r1, 720, 1440);
+    const L = (b - a) / 4 > 180 ? 1 : 0, [x0, y0] = pt(r1, a), [x1, y1] = pt(r1, b), [x2, y2] = pt(r0, b), [x3, y3] = pt(r0, a);
+    return `M${x0} ${y0}A${r1} ${r1} 0 ${L} 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${L} 0 ${x3} ${y3}Z`; };
+  const clip = ([k, a, b, t, i, n]) => [k, Math.max(a, 0), Math.min(b, 1440), t || [], i || 0, n || 1];
+  const B = Object.fromEntries(RB.bands.map(b => [b.k, b]));
+  const NAME = {flow: "a flow", eat: "eating and drinking", move: "moving", recreation: "recreation", work: "professional work",
+    care: "care", family: "family care", community: "community care", social: "social recreation", pet: "pet care", home: "home care", personal: "personal care",
+    cook: "making", drive: "driving", travel: "travel", system: "be•do", screen: "on a screen"};
+  const R0 = 30, FW = 10, W = 62, GAP = 4;
+  const RAD = {flow: [R0, R0 + FW]}; RAD.being = [RAD.flow[1] + 2, RAD.flow[1] + 2 + W]; RAD.doing = [RAD.being[1] + GAP, RAD.being[1] + GAP + W];
+  const OUT = RAD.doing[1], SR = OUT + 6, SW = 9;
+  let g = "", tips = [], hits = [];
+  // small pieces get a larger invisible tap area, about a fingertip wide wherever they sit, the smallest
+  // drawn last so it wins where tap areas overlap (24 Oct 2026: easier to tap the small ones)
+  const TAP = 26, perRad = 4 * 180 / Math.PI;
+  const piece = (d, fill, stroke, tip, hit) => { tips.push(tip); const i = tips.length - 1;
+    if (hit) hits.push([hit[1], `<path d="${hit[0]}" fill="transparent" tabindex="-1" data-tip="${i}"/>`]);
+    return `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round" tabindex="0" data-tip="${i}"/>`; };
+  const widen = (r0, r1, a, b) => { const need = TAP / ((r0 + r1) / 2) * perRad; if (b - a >= need) return null;
+    const c = (a + b) / 2; return [band(Math.max(r0 - 4, 1), r1 + 4, c - need / 2, c + need / 2), b - a]; };
+  const say = (k, a, b, t) => `<b>${NAME[k][0].toUpperCase() + NAME[k].slice(1)}</b> · ${clock2(a)}–${clock2(b)} · ${hm(b - a)}${t.length ? "<br>" + t.map(esc).join(" · ") : ""}`;
+  ["flow", "being", "doing"].forEach(k => { const [r0, r1] = RAD[k];
+    g += `<path d="${band(r0, r1, 0, 1440)}" fill="var(--rb-${k === "flow" ? "flow-t" : k + "-t"})" pointer-events="none"/>`; });
+  g += `<path d="${band(SR, SR + SW, 0, 1440)}" fill="var(--rb-screen-t)" pointer-events="none"/>`;
+  // the night under everything else: in bed the misty blue, asleep the deeper blue (Oura's five-minute timeline where
+  // there is one), across every ring; anything she did in bed draws on top of it
+  const ZZ = {bed: ["😴 In bed", "var(--rb-sleep)"], asleep: ["💤 Asleep", "var(--rb-sleep-deep)"]};
+  (RB.night || []).forEach(([st, a, b]) => { if (b - a < 1) return;
+    g += piece(band(R0, SR + SW, a, b), ZZ[st][1], "var(--rb-sleep-d)",
+      `<b>${ZZ[st][0]}</b>${st === "bed" ? ", awake" : ""} · ${clock2(a)}–${clock2(b)} · ${hm(b - a)}<br>${a < 720 ? "after midnight" : "before midnight"}`,
+      widen(R0, SR + SW, a, b)); });
+  ["flow", "being", "doing"].forEach(k => { const [r0, r1] = RAD[k];
+    if (k === "flow") Object.entries(RB.win).forEach(([w, x]) => { const [, a, b] = clip([w, ...x]); if (b > a)
+      g += piece(band(r0, r1, a, b), "var(--rb-flow)", "var(--rb-flow-d)", `<b>${w === "dawn" ? "🌅 The dawn flow" : "🌄 The dusk flow"}</b> · ${clock2(a)}–${clock2(b)}`); });
+    (B[k] || {runs: []}).runs.map(clip).filter(([, a, b]) => b - a >= 2).forEach(([kk, a, b, t, i, n]) => {
+      if (k === "flow") { for (let m = a; m < b; m += 5) { const [x0, y0] = pt(r0 + 1, m + 1), [x1, y1] = pt(r1 - 1, m + 1);
+        g += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--rb-flow-d)" stroke-width="2.2" stroke-linecap="round" pointer-events="none"/>`; } return; }
+      // two things at once share the band as lanes, side by side (28 Oct 2026: show multiple things happening at once)
+      const l0 = r0 + (r1 - r0) * i / n, l1 = r0 + (r1 - r0) * (i + 1) / n;
+      g += piece(band(l0, l1, a, b), `var(--rb-${kk})`, `var(--rb-${kk}-d)`, say(kk, a, b, t), widen(l0, l1, a, b)); }); });   // each part outlined in its own deeper shade
+  // synergy, as her words say it: a golden glow across the rings where two things at once helped each other,
+  // a broken edge where they got in each other's way, both where they did both (28 Oct 2026)
+  // ▲ lifts the stretch, ▼ drags it down, ◆ some of each (28 Oct 2026, her pick after × read as a bad thing:
+  // "the goal is improving ease, improving flow… up and down are appropriate, and a diamond when it's neutral")
+  const SYN = {synergizing: ["▲", "Synergy"], competing: ["▼", "Competing"], both: ["◆", "Some of each"]};
+  (RB.synergy || []).forEach(s => { const [mk, nm] = SYN[s.ans] || SYN.both, glow = s.ans !== "competing", edge = s.ans !== "synergizing";
+    g += `<path d="${band(R0, OUT, s.a, s.b)}" fill="${glow ? "var(--rb-syn)" : "none"}" fill-opacity="${glow ? .45 : 0}"` +
+      (edge ? ` stroke="var(--terra)" stroke-width="2.6" stroke-dasharray="6 4"` : "") + ` pointer-events="none"/>`;
+    const [x, y] = pt(SR + SW + 60, (s.a + s.b) / 2);
+    tips.push(`<b>${mk} ${nm}</b> · ${clock2(s.a)}–${clock2(s.b)} · ${esc(s.t)}${s.said ? `<br>“${esc(s.said)}”` : ""}`);
+    g += `<circle cx="${x}" cy="${y}" r="15" fill="${glow ? "var(--rb-syn)" : "none"}" fill-opacity=".35" stroke="${glow ? "var(--rb-syn-d)" : "var(--terra)"}" stroke-width="1.6"${glow ? "" : ` stroke-dasharray="4 3"`} pointer-events="none"/>` +
+      `<text x="${x}" y="${y + 9}" text-anchor="middle" style="font:700 26px var(--sans);fill:${glow ? "var(--rb-syn-d)" : "var(--terra)"}" tabindex="0" data-tip="${tips.length - 1}">${mk}</text>`;
+    hits.push([0, `<circle cx="${x}" cy="${y}" r="16" fill="transparent" tabindex="-1" data-tip="${tips.length - 1}"/>`]); });
+  (B.screen || {runs: []}).runs.map(clip).filter(([, a, b]) => b > a).forEach(([kk, a, b, t]) => { g += piece(band(SR, SR + SW, a, b), "var(--rb-screen)", "none", say("screen", a, b, t), widen(SR - 8, SR + SW + 8, a, b) || [band(SR - 8, SR + SW + 8, a, b), b - a]); });
+  // midnight, where the day begins and ends, drawn plainly across every ring (her word: "it needs to show clearly")
+  { const [x0, y0] = pt(R0 - 8, 0), [x1, y1] = pt(SR + SW + 10, 0);
+    g += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--ink)" stroke-width="3" stroke-linecap="round" pointer-events="none"/>` +
+      `<text x="${CX}" y="${y1 + 20}" text-anchor="middle" style="font:600 14px var(--mono);fill:var(--ink)">midnight</text>`; }
+  let last = -999, lift = 0;
+  RB.moments.forEach(m => { lift = m.m - last < 30 ? (lift + 1) % 2 : 0; last = m.m; const [x, y] = pt(SR + SW + 16 + lift * 22, m.m);
+    tips.push(`<b>${esc(m.g)} ${esc(m.p[0].toUpperCase() + m.p.slice(1))}</b> · ${clock2(m.m)}${m.d ? " · " + hm(m.d) : ""}<br>${esc(m.t)}`);
+    g += `<text x="${x}" y="${y + 7}" text-anchor="middle" style="font:21px var(--sans)" tabindex="0" data-tip="${tips.length - 1}">${esc(m.g)}</text>`;
+    hits.push([0, `<circle cx="${x}" cy="${y}" r="17" fill="transparent" tabindex="-1" data-tip="${tips.length - 1}"/>`]); });
+  // the clock's quarters, large enough to read on a phone: midnight is named below, noon at the top, 6a and 6p at the sides
+  [[360, "6a"], [720, "noon"], [1080, "6p"]].forEach(([m, t]) => { const [x, y] = pt(SR + SW + 58, m);
+    g += `<text x="${x}" y="${y + 5}" text-anchor="middle" style="font:500 15px var(--mono);fill:var(--muted)">${t}</text>`; });
+  // the totals as bars on one scale, each in its part's colour, a goal marked where she has set one
+  // (24 Oct 2026: bars at the bottom with the totals, and the goal for each day)
+  // care, grouped (1 Nov 2026): one bar, the kinds that happened named under it; every kind has a name on its bar
+  const GO = RB.goals || {}, SHORT = {eat: "Eating", move: "Moving", personal: "Personal care", recreation: "Recreation", social: "Social",
+    work: "Work", care: "Care", family: "Family care", community: "Community care", pet: "Pet care", home: "Home care", cook: "Making",
+    drive: "Driving", travel: "Travel", system: "be•do"};
+  const rowsData = [["In bed", "sleep", (RB.inbed_day != null ? RB.inbed_day : RB.inbed) || 0, "inbed"], ["Flow steps", "flow", B.flow.total, "flow"],
+    ...B.being.kinds.map(x => [SHORT[x.k], x.k, x.min, x.k]),
+    ...B.doing.kinds.map(x => [SHORT[x.k], x.k, x.min, x.k, (x.of || []).map(o => o[0]).join(" · ")]),
+    ["On a screen", "screen", B.screen.total, "screen"]];
+  const MAXB = Math.max(60, ...rowsData.map(r => r[2]), ...rowsData.map(r => GO[r[3]] || 0));
+  const head = (t, n) => `<p class="bh">${t}${n != null ? ` <span>${hm(n)}</span>` : ""}</p>`;
+  const bar = ([n, k, v, gk, sub]) => { const goal = GO[gk], col = k === "sleep" ? "sleep" : k === "asleep" ? "sleep-deep" : k;
+    return `<div class="br"><span class="bn">${esc(n)}${sub ? `<small>${esc(sub)}</small>` : ""}</span><span class="bt">` +
+      `<i style="width:${100 * v / MAXB}%;background:var(--rb-${col});border-color:var(--rb-${k === "asleep" ? "sleep" : col}-d)"></i>` +
+      (goal ? `<b style="left:${100 * goal / MAXB}%" title="goal ${hm(goal)}"></b>` : "") + `</span>` +
+      `<span class="bv">${v ? hm(v) : "—"}${goal ? `<small>of ${hm(goal)}</small>` : ""}</span></div>`; };
+  const NB = 2 + B.being.kinds.length, ND = NB + B.doing.kinds.length;   // the rows: in bed, flows, being, doing, screen
+  // driving and travel only on a day that had them (30 Oct: "I don't need to see traveling if there's no traveling")
+  const WHEN = new Set(["drive", "travel"]), had = r => r[2] || !WHEN.has(r[1]);
+  const bars = head("sleep · midnight to midnight") + bar(rowsData[0]) + ((RB.asleep_day != null ? RB.asleep_day : RB.asleep) ? bar(["Asleep", "asleep", RB.asleep_day != null ? RB.asleep_day : RB.asleep, "asleep"]) : "") + head("being", B.being.total) + rowsData.slice(1, NB).filter(had).map(bar).join("") +
+    head("doing", B.doing.total) + rowsData.slice(NB, ND).filter(had).map(bar).join("") + bar(rowsData[ND]);
+  // tap areas go underneath: a real piece always wins a tap on itself, and a tap on empty space
+  // goes to the nearest small piece (the tracks let taps through)
+  g = hits.sort((x, y) => y[0] - x[0]).map(h => h[1]).join("") + g;
+  rainbow.tips = tips;
+  return `<p class="bh">how I spent my time</p><p class="vline">${esc(timeLine(B))}</p><svg id="rbdial" viewBox="-80 -48 560 516" role="img" aria-label="The day, midnight to midnight, as concentric rings">${g}</svg>` +
+    `<div class="tip" id="rbtip" aria-live="polite">Up at ${clock2(WAKE)}${RB.bed != null ? `, in bed at ${clock2(BED)}` : ""}. Tap a piece of the rainbow or a moment around it.</div>` +
+    (RB.who ? "" : withOthers(RB.with_others || [])) + `<div class="bars">${bars}</div>` + theirDay(RB.theirs || []) +
+    (RB.who ? whoCard(RB.who, WAKE, BED) : "") + (RB.energy ? energyCard(RB.energy) : "");
+};
+// who was there is a mark on the stretch, not a kind of time (1 Nov 2026): each stretch with people outside the family
+const withOthers = W => W.length ? `<div class="with">${W.map(w => `<p><span class="wt">with others · ${clock2(w.a)}–${clock2(w.b)}</span>` +
+  `<span class="ww">${esc(w.who.join(", "))}</span></p>`).join("")}</div>` : "";
+// where my energy went (1 Nov 2026, her pick): the original wheel (13 Sep build), each mirrored pair one line through
+// the centre, being to the left and doing to the right; being kinds are what filled her, doing kinds what drained her
+// the eight in one family with the rest of the card (1 Nov 2026, her pick): each pair shares a muted hue, being the
+// deeper shade and doing the lighter: sage for body and earth, teal for heart and water, dusty plum for mind and air,
+// ochre gold for spirit and fire
+const EDOM = {
+  heart: {c: "#3E7C7D", d: "#2A5A5B", a: 247.5, f: "connection · love · care", w: "connection"},
+  water: {c: "#93C3C1", d: "#4F8A8B", a: 67.5, f: "connecting · advocacy · community", w: "connecting"},
+  mind: {c: "#7A6191", d: "#564369", a: 292.5, f: "thinking · planning · learning", w: "thinking"},
+  air: {c: "#C3AFD3", d: "#8C74A3", a: 112.5, f: "systems · technical · digital", w: "systems"},
+  body: {c: "#5D8A66", d: "#41644A", a: 202.5, f: "health · movement · rest", w: "health and movement"},
+  earth: {c: "#AFCAA6", d: "#6F9A6A", a: 22.5, f: "tending · maintaining · admin", w: "tending"},
+  spirit: {c: "#B7832F", d: "#87601F", a: 337.5, f: "meaning · values · joy", w: "meaning"},
+  fire: {c: "#E6BE78", d: "#C29440", a: 157.5, f: "creating · transforming · play", w: "creating"}};
+// one plain sentence on top of each view, written from the numbers (1 Nov 2026, her pick from the mockup)
+const hmn = m => hm(m).replace(/ /g, "\u00a0");
+const DONAME = {care: "care", system: "be•do", work: "work", cook: "making", drive: "driving", family: "family care",
+  community: "community care", pet: "pet care", home: "home care"};
+const timeLine = B => {
+  const dk = B.doing.kinds.filter(k => k.min).sort((a, b) => b.min - a.min);
+  if (!dk.length) return "";
+  const mv = (B.being.kinds.find(k => k.k === "move") || {}).min || 0, rest = [];
+  if (dk[1]) rest.push(`${hmn(dk[1].min)} of ${DONAME[dk[1].k] || dk[1].k}`);
+  if (mv) rest.push(`${hmn(mv)} moving`);
+  return `Mostly ${DONAME[dk[0].k] || dk[0].k}: ${hmn(dk[0].min)} of it${rest.length ? ", with " + rest.join(" and ") : ""}.`;
+};
+const whoLine = W => {
+  const fr = W.people.filter(p => p.circle !== "Family" && p.circle !== "Work").map(p => p.n.split(" ")[0]), parts = [];
+  const names = fr.length > 2 ? `${fr.slice(0, 2).join(", ")} and ${fr.length - 2} others` : fr.join(" and ") || "friends";
+  if (W.social) parts.push(`${hmn(W.social)} with ${names}`);
+  if (W.work) parts.push(`${hmn(W.work)} with work people`);
+  if (W.family) parts.push(`${hmn(W.family)} with family`);
+  if (W.alone) parts.push(`${hmn(W.alone)} alone`);
+  return parts.length ? parts.join(", ").replace(/^./, c => c.toUpperCase()) + "." : "";
+};
+const balLine = (M, be, doing) => {
+  const ks = Object.keys(EDOM).sort((x, y) => (M[y] || 0) - (M[x] || 0)), tot = Object.values(M).reduce((a, b) => a + b, 0) || 1;
+  const two = ((M[ks[1]] || 0) - (M[ks[2]] || 0)) / tot >= 0.03;     // name the second only when it stands clear of the third
+  const led = two ? `${ks[0][0].toUpperCase() + ks[0].slice(1)} and ${ks[1]} led: ${EDOM[ks[0]].w} and ${EDOM[ks[1]].w}.`
+    : `${ks[0][0].toUpperCase() + ks[0].slice(1)} led: ${EDOM[ks[0]].w}.`;
+  const tilt = doing > be ? ` More doing than being, ${doing} to ${be}.` : be > doing ? ` More being than doing, ${be} to ${doing}.` : " Being and doing even.";
+  return led + tilt;
+};
+const EICON = {
+  heart: `<path d="M10 17.2 3.4 10.8A3.9 3.9 0 0 1 10 5.6a3.9 3.9 0 0 1 6.6 5.2Z"/>`,
+  water: `<path d="M2 8.5c2-2.2 4-2.2 6 0s4 2.2 6 0 3-1.4 4-1M2 13.5c2-2.2 4-2.2 6 0s4 2.2 6 0 3-1.4 4-1" fill="none" stroke-width="2.2" stroke-linecap="round"/>`,
+  mind: `<path d="M10 3.2c-1.6-1-3.8-.3-4.3 1.5-2 .1-3 2.2-2.1 3.8-1.2 1.3-.8 3.6 1 4.2.1 2 2.2 3.1 3.9 2.2.6.9 1.5 1.3 1.5 1.3s.9-.4 1.5-1.3c1.7.9 3.8-.2 3.9-2.2 1.8-.6 2.2-2.9 1-4.2.9-1.6-.1-3.7-2.1-3.8C13.8 2.9 11.6 2.2 10 3.2Z"/><path d="M10 3.4v12.8" fill="none" stroke-width="1.2"/>`,
+  air: `<path d="M2 7.5h9.5a2.5 2.5 0 1 0-2.4-3.2M2 11h13.5a2.5 2.5 0 1 1-2.4 3.2M2 14.5h6" fill="none" stroke-width="2.2" stroke-linecap="round"/>`,
+  body: `<circle cx="10" cy="3.8" r="2.2"/><path d="M4 7.8 10 9l6-1.2M10 9v3.6M10 12.6 6.2 17.4M10 12.6l3.8 4.8" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`,
+  earth: `<circle cx="10" cy="10" r="7.4"/><path d="M2.8 10h14.4M10 2.6c-2.6 2.2-2.6 12.6 0 14.8M10 2.6c2.6 2.2 2.6 12.6 0 14.8" fill="none" stroke-width="1.1"/>`,
+  spirit: `<path d="M10 1.8 11.9 8.1 18.2 10 11.9 11.9 10 18.2 8.1 11.9 1.8 10 8.1 8.1Z"/>`,
+  fire: `<path d="M10 18.2c-3.6 0-6-2.4-6-5.6 0-2.6 1.7-4.2 3-5.8.2 1.4.9 2.4 1.8 2.8C8.4 6.4 9.9 3.8 12.2 1.8c-.2 2.6.8 4.2 2 5.8 1 1.4 1.8 2.9 1.8 5 0 3.2-2.4 5.6-6 5.6Z"/>`};
+const energyCard = E => {
+  // balance, the original card (13 Sep and 25 Sep 2026), in plain minutes (1 Nov 2026, her pick): BE and DO, doing
+  // split into tending and growing, then the wheel and its legend as they were
+  const M = E.min || {}, tot = Object.values(M).reduce((a, b) => a + b, 0);
+  if (!tot) return "";
+  const all = (E.be || 0) + (E.tending || 0) + (E.growing || 0) || 1;
+  const parts = [E.be || 0, E.tending || 0, E.growing || 0].map(v => v / all * 100), fl = parts.map(Math.floor);
+  let left = 100 - fl.reduce((a, b) => a + b, 0);
+  parts.map((v, i) => [v - fl[i], i]).sort((a, b) => b[0] - a[0]).slice(0, left).forEach(([, i]) => fl[i]++);
+  const [pb, pt, pg] = fl;
+  const bar = `<div class="balbar"><span style="width:${pb}%;background:#4F8A8B"></span><span style="width:${pt}%;background:#D4A055"></span>` +
+    `<span style="width:${pg}%;background:#BE5B50"></span></div><p class="ballab"><span style="color:#3E6E6F">BE <b>${pb}</b></span>` +
+    `<span style="color:#A04A40">DO <b>${pt + pg}</b> <i style="background:#D4A055"></i>tending <b>${pt}</b> <i style="background:#BE5B50"></i>growing <b>${pg}</b></span></p>`;
+  const cx = 150, cy = 130, w = 13, shMax = Math.max(...Object.values(M)) / tot, TOP = Math.max(0.3, Math.ceil(shMax * 10) / 10);
+  const R0 = 12, RO = 98, rOf = sh => R0 + (RO - R0) * Math.min(sh, TOP * 1.12) / TOP;
+  const wpt = (deg, r) => { const t = deg * Math.PI / 180; return [(cx + r * Math.sin(t)).toFixed(1), (cy - r * Math.cos(t)).toFixed(1)]; };
+  const pct = k => Math.round((M[k] || 0) / tot * 100);
+  const tip = k => `${k} · ${pct(k)}% · ${hm(M[k] || 0)}${(E.rows[k] || []).length ? " · " + E.rows[k].join("; ") : ""}`;
+  let svg = `<svg class="ewheel" viewBox="0 0 300 260" role="img" aria-label="the eight domains, being on the left, doing on the right">` +
+    `<circle cx="${cx}" cy="${cy}" r="98" fill="none" stroke="var(--rule)" stroke-width="1" stroke-dasharray="1 5" stroke-linecap="round"/>` +
+    Array.from({length: Math.round(TOP * 10) - 1}, (_, i) => (i + 1) / 10).map(f => `<circle cx="${cx}" cy="${cy}" r="${rOf(f).toFixed(1)}" fill="none" stroke="var(--faint)" stroke-opacity=".45" stroke-width=".8" stroke-dasharray="1 4" stroke-linecap="round"/>`).join("") +
+    `<line x1="${cx}" y1="32" x2="${cx}" y2="228" stroke="var(--rule)" stroke-width="1"/>` +
+    `<text x="4" y="134" style="font:800 11px var(--sans);letter-spacing:.14em;fill:#3E6E6F">BE</text>` +
+    `<text x="296" y="134" text-anchor="end" style="font:800 11px var(--sans);letter-spacing:.14em;fill:#A04A40">DO</text>`;
+  Object.keys(EDOM).sort((x, y) => (M[y] || 0) - (M[x] || 0)).forEach(k => {
+    const cap = (w + 5) / 2, L = Math.max(rOf((M[k] || 0) / tot) - cap, 0.01), [x, y] = wpt(EDOM[k].a, L);
+    svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${EDOM[k].d}" stroke-width="${w + 5}" stroke-linecap="round"/>` +
+      `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${EDOM[k].c}" stroke-width="${w}" stroke-linecap="round"><title>${esc(tip(k))}</title></line>`; });
+  svg += `<defs><radialGradient id="dwarf"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F5ECE8"/></radialGradient>` +
+    `<radialGradient id="halo"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".95"/><stop offset=".35" stop-color="#F8F2EF" stop-opacity=".55"/><stop offset="1" stop-color="#ECDDD8" stop-opacity="0"/></radialGradient></defs>` +
+    `<circle cx="${cx}" cy="${cy}" r="24" fill="url(#halo)"/><circle cx="${cx}" cy="${cy}" r="8" fill="url(#dwarf)" stroke="var(--rule)" stroke-width=".8"/>`;
+  for (const k in EDOM) { const [x, y] = wpt(EDOM[k].a, 114);
+    svg += `<g transform="translate(${(x - 8.5).toFixed(1)} ${(y - 8.5).toFixed(1)}) scale(.85)" fill="${EDOM[k].c}" stroke="${EDOM[k].d}" stroke-width="1" stroke-linejoin="round"><title>${esc(tip(k))}</title>${EICON[k]}</g>`; }
+  svg += `</svg>`;
+  const icon = k => `<svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true" style="overflow:visible"><g fill="${EDOM[k].c}" stroke="${EDOM[k].d}" stroke-width="1" stroke-linejoin="round">${EICON[k]}</g></svg>`;
+  const PAIRS = [["body", "earth"], ["heart", "water"], ["mind", "air"], ["spirit", "fire"]];
+  // the legend: the top four, the rest a tap away (1 Nov 2026, her pick from the mockup)
+  const lrow = k => `<div class="erow" title="${esc(tip(k))}"><span>${icon(k)}</span><span class="enm" style="color:${EDOM[k].d}">${k}</span>` +
+    `<span class="edf">${EDOM[k].f}</span><span class="ev">${pct(k)}%</span></div>`;
+  const ranked = Object.keys(EDOM).sort((x, y) => (M[y] || 0) - (M[x] || 0));
+  const leg = ranked.slice(0, 4).map(lrow).join("") + `<details class="emore"><summary>show all eight</summary>${ranked.slice(4).map(lrow).join("")}</details>`;
+  return `<div class="energy"><p class="bh">balance</p><p class="vline">${esc(balLine(M, pb, pt + pg))}</p>${bar}<p class="enote">Sleep, plans and someone else's own rows count zero. Plain minutes: every row ` +
+    `with a real span counts its minutes; a moment counts five.</p>${svg}<p class="enote" style="text-align:center">rings every 10% of the day · ` +
+    `the outer ring is ${Math.round(TOP * 100)}%</p><div class="elegend">${leg}</div></div>`;
+};
+// who I was with (1 Nov 2026, her pick): alone (the dogs count), family, social, across the waking day, and the people
+// by circle with their minutes; texts and calls named beneath
+const whoCard = (W, w0, w1) => {
+  // colours from the original Balance card (1 Nov 2026, her pick): being teal for alone; doing's two shades, ochre for
+  // family and brick for social, the friends and community in brick and work in a deeper brick
+  const span = Math.max(1, (w1 != null ? w1 : 1440) - w0),
+    K = [["social", "Social"], ["work", "Work"], ["family", "Family"], ["alone", "Alone"]].filter(([k]) => k !== "work" || W.work);
+  const most = Math.max(60, W.alone, W.family, W.social, W.work || 0);
+  const strip = `<div class="wstrip">${W.strip.map(([k, a, b]) => `<i class="w-${k}" style="left:${100 * (a - w0) / span}%;width:${100 * (b - a) / span}%"` +
+    ` title="${k} · ${clock2(a)}–${clock2(b)}"></i>`).join("")}</div><p class="wends"><span>${clock2(w0)}</span><span>${clock2(w1 != null ? w1 : 1440)}</span></p>`;
+  const rows = K.map(([k, n]) => `<div class="br"><span class="bn">${n}</span><span class="bt"><i class="w-${k}" style="width:${100 * W[k] / most}%;background:var(--who-${k});border-color:var(--who-${k}-d)"></i></span>` +
+    `<span class="bv">${W[k] ? hm(W[k]) : "—"}</span></div>`).join("");
+  // the circles, as on the original page (25 Sep 2026): a box per first circle, a chip per person sized by the time shared,
+  // a 💬 chip for a text or a call; coloured by the circle's place in her circle order (1 Nov 2026: merged with who I was with)
+  const COLOF = c => c === "Family" ? "var(--who-family-d)" : c === "Work" ? "var(--who-work-d)" : "var(--who-social-d)";
+  const order = W.circle_order || [], groups = {}, keys = [];
+  const add = (c, chip) => { c = c || ""; if (!groups[c]) { groups[c] = []; keys.push(c); } groups[c].push(chip); };
+  const top = Math.max(1, ...W.people.map(p => p.min));
+  W.people.forEach(p => add(p.circle, `<span class="pchip" style="--cc:COL;font-size:${(0.85 + 0.45 * p.min / top).toFixed(2)}rem">${esc(p.n)}<small>${hm(p.min)}</small></span>`));
+  (W.contacts || []).forEach(c => add(c.circle, `<span class="pchip far" style="--cc:COL" title="${esc(c.t)}">💬 ${esc((c.who || []).join(", ") || c.t)}<small>${clock2(c.m)}</small></span>`));
+  const rank = k => { const i = order.indexOf(k); return i < 0 ? 99 : i; };
+  keys.sort((a, b) => rank(a) - rank(b));
+  const boxes = keys.map(k => { const col = COLOF(k);
+    return `<div class="circ"><p class="circl" style="color:${col}">${esc(k || "no circle yet")} · ${groups[k].length}</p>` +
+      `<div class="circp">${groups[k].map(x => x.replace("COL", col)).join("")}</div></div>`; }).join("");
+  const ment = (W.mentioned || []).length ? `<p class="wment">mentioned · ${W.mentioned.map(esc).join(", ")}</p>` : "";
+  return `<div class="who"><p class="bh">who I was with</p><p class="vline">${esc(whoLine(W))}</p>${strip}<div class="bars">${rows}</div><div class="circles">${boxes}</div>${ment}</div>`;
+};
+// their day is theirs (28 Oct 2026): their own calendar's events and their own play, on a line of their own
+const theirDay = T => {
+  const who = [...new Set(T.map(x => x.who))];
+  return who.map(w => { const xs = T.filter(x => x.who === w);
+    return `<div class="their"><p class="bh">${esc(w)}'s day</p><div class="tt">` +
+      xs.map(x => `<i style="left:${100 * x.a / 1440}%;width:${Math.max(0.6, 100 * (x.b - x.a) / 1440)}%" title="${esc(x.t)}"></i>`).join("") +
+      `</div><p class="tl">${xs.map(x => `<span>${clock2(x.a)}–${clock2(x.b)} ${esc(x.t)}</span>`).join("")}</p></div>`; }).join("");
+};
+const clock2 = m => { m = ((Math.round(m) % 1440) + 1440) % 1440; const h = Math.floor(m / 60), mm = m % 60; return `${h % 12 || 12}:${String(mm).padStart(2, "0")}${h < 12 ? "a" : "p"}`; };
+// a single day, simply (22 Oct 2026, her word: too complex, go back to basics): the day in her
+// words, the moments that mattered, and one quiet line of how she rested. Everything else stays
+// on the week page.
+if (ONE) {
+  const d0 = Dd[0] || {}, day = SM.days[0] || {stones: []};
+  const at = m => clock(m.at);
+  const moment = m => {
+    const who = m.people.length ? `with ${esc(m.people.join(", "))}` : "";
+    const to = m.drives.length ? `→ ${esc(m.drives[0].e)} ${esc(m.drives[0].n)}` : "";
+    // a highlight told at dusk about this moment is a star on it, not a second card (4 Nov 2026)
+    const stars = (m.stars || []).map(x => `<p class="star">${esc(x.g)} <b>${x.theirs && x.theirs.length ? esc(x.theirs[0].replace(/^./, c => c.toUpperCase())) + "'s highlight" : "the highlight of the day"}</b>${x.words ? ` · ${esc(x.words)}` : ""}</p>`).join("");
+    return `<li class="mo"><span class="g">${esc((m.stars || []).length ? m.stars[0].g : m.g || "·")}</span><div class="mt">` +
+      `<p class="tt">${esc(m.t)}</p>${words(m.words)}${stars}` +
+      ((m.photos || []).length ? `<div class="ph sm">${m.photos.map(src => `<img src="${src}" alt="${esc(m.t)}" loading="lazy">`).join("")}</div>` : "") +
+      `<p class="meta">${[at(m), who, m.memory ? `↺ ${esc(m.memory)}` : "", to].filter(Boolean).map(x => `<span>${x}</span>`).join("")}</p></div></li>`;
+  };
+  // what moved forward (24 Oct 2026, her pick): the day's closed actions under their drive,
+  // the drives with the most time first; one with no drive comes last
+  const dmap = {}, walk = n => { dmap[n.drive] = n; n.children.forEach(walk); };
+  DATA.drives.forEach(walk);
+  const groups = {};
+  DATA.moved.closed.forEach(c => (groups[c.drive] = groups[c.drive] || []).push(c));
+  const order = Object.keys(groups).sort((a, b) => (!a - !b) || ((dmap[b] || {}).own_min || 0) - ((dmap[a] || {}).own_min || 0) || groups[b].length - groups[a].length);
+  const movedHtml = order.map(k => {
+    const n = dmap[k] || {}, mins = n.own_min ? hm(n.own_min) : "";
+    // a drive finished (1 Nov 2026, her word: it's not showing the drive being completed)
+    return `<div><p class="dh"><span>${esc(k ? n.emoji || "·" : "·")}</span><span class="n">${esc(k || "on no drive")}</span>` +
+      `${n.complete ? `<span class="fin">🏁 complete</span>` : ""}${mins ? `<span class="m">${mins}</span>` : ""}</p>` +
+      `<ul>${groups[k].map(c => `<li>✅ ${c.url ? `<a href="${esc(c.url)}">${esc(c.t)}</a>` : esc(c.t)}</li>`).join("")}</ul>` +
+      // what she made, as a picture (4 Nov 2026, her words: a little image of what the deliverable was)
+      (groups[k].some(c => c.thumb) ? `<div class="dv">${groups[k].filter(c => c.thumb).map(c => `<a href="${esc(c.url)}"><img src="${c.thumb}" alt="" loading="lazy"><span>${esc(c.t)}</span></a>`).join("")}</div>` : "") + `</div>`;
+  }).join("");
+  const rest = [d0.bed ? `${hm(d0.bed)} in bed` : "", d0.readiness != null ? `readiness ${d0.readiness}` : "",
+    d0.people ? `${hm(d0.people)} with people` : ""].filter(Boolean).join(" · ");
+  const lead = DATA.title || day.lead, DR = DATA.draft || {};
+  const drafted = DR.lead && DR.story ? "draft" : DR.lead ? "draft lead" : DR.story ? "draft story" : "";
+  P.innerHTML = `<div class="chip">${esc(DATA.chip)}${drafted ? ` <span class="draft">${drafted} · not yet your words</span>` : ""}</div>
+<p class="eyebrow">the day behind · ${esc(DATA.range)}</p>
+${lead ? `<h1 class="sh"${DR.lead ? " data-draft" : ""}>${esc(lead)}</h1>` : ""}
+${(DATA.story || []).length ? `<ul class="dstory"${DR.story ? " data-draft" : ""}>${DATA.story.map(([g, t], i) => { const ps = (day.story_pics || [])[i] || [];
+  return `<li><span>${esc(g)}</span><span>${esc(t)}</span>${ps.length ? `<div class="col n${Math.min(ps.length, 4)}">${ps.slice(0, 4).map(p => `<img src="${p.src}" alt="${esc(p.t)}" loading="lazy">`).join("")}</div>` : ""}</li>`; }).join("")}</ul>` : ""}
+${(day.pictures || []).length ? `<div class="pics">${day.pictures.map(p => `<figure><img src="${p.src}" alt="${esc(p.t)}" loading="lazy"><figcaption>${clock(p.at)}${p.t ? ` · ${esc(p.g)} ${esc(p.t)}` : ""}</figcaption></figure>`).join("")}</div>` : ""}
+${DATA.rings ? `<section class="rb"><p class="label">how the day went</p>${rainbow(DATA.rings)}</section>` : ""}
+${DATA.map ? `<section class="mp"><p class="label">where you were</p><div id="daymap" role="img" aria-label="The places you were today, each sized by the time there"></div>
+<div class="mkey">${DATA.map.legend.map(k => `<span><i style="background:${k.colour}"></i>${esc(k.kind)}</span>`).join("")}${DATA.map.places.some(p => p.new) ? `<span>${mapStar("#E8691B", 16)}new place</span>` : ""}<span>size shows the time there</span></div>
+${Object.keys(DATA.map.tiles || {}).length ? "" : `<p class="note">the map's base wasn't carried in this page (no map key or no network where it was built); each place is still in its spot</p>`}</section>` : ""}
+<section><p class="label">what mattered</p>
+${day.stones.length ? `<ul class="moments">${day.stones.map(moment).join("")}</ul>` : `<p class="note">nothing marked today</p>`}</section>
+${movedHtml ? `<section><p class="label">what moved forward</p><div class="mv">${movedHtml}</div></section>` : ""}
+${rest ? `<p class="restline">${rest}</p>` : ""}`;
+  const rbd = document.getElementById("rbdial");
+  if (rbd) { const show = e => { const t = e.target.closest("[data-tip]"); if (!t) return; rbd.querySelectorAll(".on").forEach(x => x.classList.remove("on"));
+    const real = rbd.querySelector(`[data-tip="${t.dataset.tip}"]:not([fill="transparent"])`) || t;
+    real.classList.add("on"); document.getElementById("rbtip").innerHTML = rainbow.tips[+t.dataset.tip]; };
+    rbd.addEventListener("click", show); rbd.addEventListener("focusin", show); }
+  if (DATA.map) dayMap(DATA.map);
+}
+</script>
+<script>
+/* download HTML (261106_download, her words 6 Nov 2026: on the day behind, I'd like to be able to download that as an
+   HTML … I like saving the tokens): the page saves itself as one .html, photos and all, at her click — no storage, no
+   connector, no tokens. In claude.ai the viewer's own save prompt (the `downloads` capability, declared at publish);
+   anywhere else, a plain Blob download. What the page drew for this viewer is left out, so the copy draws itself
+   fresh when it is opened. */
+(function(){
+  function src(){ var h=document.documentElement.cloneNode(true);
+    h.querySelectorAll('[data-dyn],#sheet,#bedo-dl').forEach(function(n){ n.remove(); });
+    return '<!doctype html>\n'+h.outerHTML; }
+  function name(){ var t=(document.title||'').replace(/[^A-Za-z0-9 ._-]+/g,' ').replace(/\s+/g,' ').trim(); return (t||'be-do page')+'.html'; }
+  function blob(){ var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([src()],{type:'text/html'})); a.download=name();
+    document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500); }
+  var b=document.createElement('button'); b.id='bedo-dl'; b.type='button'; b.textContent='\u2913 download this page'; b.title='save this page as one .html file';
+  b.style.cssText='display:block;margin:28px auto 8px;font:500 12px ui-monospace,Menlo,monospace;color:inherit;opacity:.75;background:none;border:1px solid currentColor;border-radius:999px;padding:5px 14px;cursor:pointer';
+  b.onclick=function(){
+    var c=window.claude; if(!c||!c.use){ blob(); return; }
+    c.use('downloads').then(function(d){
+      if(!d){ blob(); return; }
+      return d.save({filename:name(), data:new Blob([src()],{type:'text/html'})}).catch(function(e){
+        if(e&&/^(unavailable|not_granted|capability_disabled|capability_removed)$/.test(e.code)) blob(); });
+    }, blob); };
+  (document.querySelector('main')||document.body).appendChild(b);
+})();
+</script>
+</body></html>

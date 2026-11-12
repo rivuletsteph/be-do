@@ -1,0 +1,1357 @@
+#!/usr/bin/env python3
+"""day_ahead.py — builds the day ahead page: one file, one DATA object.
+
+Axes (V51 "the pages"): window = day, direction = ahead.
+Engine rule: nothing personal lives in this file. Everything about the person
+comes from the live reads (stream dumps, rhythms dump, calendar dump) and from
+a local settings file (field ids, self name, calendar labels, phrase lists,
+clock offset), which is gitignored. See day_ahead_local.example.json for the
+shape and the README for the four keys that need a word of explanation.
+
+Usage:
+  python3 day_ahead.py --today 2026-09-22 --local day_ahead_local.json \
+      --stream w39.json --stream w38.json --rhythms rhythms.json \
+      --calendar cal.json --template day_ahead_engine.html --out page.html \
+      [--secure "secure" --secure-words "..."] [--draft] [--intention "..."]
+
+One build a morning, the final, after the user's intention check, with their
+intentions passed in their own words through --intention (29 Sep 2026; before
+that a draft pass ran first). --draft still marks a hand-run page as "before
+your intentions". The three stay be•do's either way.
+
+Streams are listed LIVE BASE FIRST (I15). Every dump must be complete (I11):
+records returned == totalRecordCount, or the build aborts.
+"""
+import argparse, glob, html, json, re, datetime as dt, sys
+
+# The one reader (I11, I15, I5) lives in plugins/bedo/core. The runner copies it
+# beside this file; in the repo it is three folders up. Beside wins.
+import os as _os
+_HERE = _os.path.dirname(_os.path.abspath(__file__))
+for _p in (_os.path.join(_HERE, '..', '..', '..', 'core'), _HERE):
+    sys.path.insert(0, _os.path.normpath(_p))
+import bedo_reader  # noqa: E402
+import bedo_clock  # noqa: E402  the one clock: the offset from time_zone, per instant
+import bedo_drives  # noqa: E402
+import myday  # noqa: E402  the my day page's two cards (261028_myday)
+
+# The field maps are the base's, not the builder's. main() fills them from the
+# local settings file before any read; the KEYS below are the builder's own
+# vocabulary and never change, only the ids behind them do.
+STREAM_KEYS = ('title', 'key', 'details', 'when', 'end', 'target',
+               'status', 'practice', 'person', 'rhythm', 'waiting', 'queue')
+# The calendar-event link. A settings file from before it existed still builds
+# the page, but with no link to match on, today's rows are ASKED, never written:
+# writing blind is how a duplicate row gets made.
+LINK_KEY = 'event'
+HAS_LINK = False
+# The quickie checkbox. Quickies are offered when the user says they have a few
+# minutes, never on this page (5 Oct 2026). Optional: without it, nothing is hidden.
+QUICKIE_KEY = 'quickie'
+# The deliverable url (the doc, the site, the thread). Optional: without it, the links on
+# a card come from the calendar-event link and the urls in the row's words.
+DELIV_KEY = 'deliverable'
+# The chat a row came from (a session entry's own chat). Optional: without it, a step's
+# way in is its deliverable and the urls in its words (28 Oct 2026, her words: I want the
+# link to the chat).
+CHAT_KEY = 'chat'
+# The mentioned field: people on a plan (a plan names people here, never in person).
+MENTIONED_KEY = 'mentioned'
+HIDE = dict(drives=(), keep=())  # filled from the local settings file
+RHYTHM_KEYS = ('name', 'code', 'type', 'status', 'target', 'parent',
+               'emoji', 'dest', 'goal')
+OPTIONAL_RHYTHM_KEYS = ('feeds',)   # drives within drives (9 Oct 2026)
+DRIVES = {}   # every rhythm by name, active or not, for walking `feeds` upward
+F = {}
+RF = {}
+OPEN = ('▫️potential', '⬜ intention', '▶️ in motion')
+MEDIA = ('🎥', '📗', '📺', '🎙', '🎧', '📰', '📼')   # 🎙️ podcast since 10 Nov 2026
+DIVIDERS = ('———', '---', '——')
+DAY3 = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+DAYEMO = ['🌕', '🔥', '💧', '🌳', '🏆', '⏳', '☀️']
+MARK = chr(0x1684E)  # be•do's mark, by codepoint, never typed
+CLOCK = {}  # the local settings, for bedo_clock: the offset comes from time_zone (I12)
+
+
+def die(msg):
+    sys.exit('ABORT: ' + msg)
+
+
+RHYTHMS_NOTE = {}
+
+
+def read_dump(path):
+    # A saved tool result in a claude.ai chat is wrapped: [{"text": "<the JSON as a string>"}].
+    # Accept that as-is, so the chat can pass the saved file straight in.
+    d = json.load(open(path, encoding='utf-8'))
+    if isinstance(d, list) and d and isinstance(d[0], dict) and 'text' in d[0]:
+        d = json.loads(d[0]['text'])
+    return d
+
+
+def complete(path):
+    d = read_dump(path)
+    RHYTHMS_NOTE[path] = d.get('metadata', {})
+    recs = bedo_reader.complete(d, path)  # I11, the one reader
+    return recs, len(recs)
+
+
+def sv(v):
+    return v.get('name') if isinstance(v, dict) else v
+
+
+def local(ts):
+    if not ts:
+        return None
+    return bedo_clock.to_local(CLOCK, ts)
+
+
+def her_words(details):
+    """The user's words sit above the divider; the [be•do] block below is not."""
+    if not details:
+        return ''
+    for d in DIVIDERS:
+        i = details.find('\n' + d)
+        if i >= 0 or details.startswith(d):
+            return details[:max(i, 0)].strip()
+    return details.split('[be•do]')[0].strip()
+
+
+def load_stream(paths):
+    seen, reads = {}, []
+    for p in paths:  # live base first (I15)
+        recs, n = complete(p)
+        reads.append((p, n))
+        for r in recs:
+            if r['id'] in seen:
+                continue
+            c = r['cellValuesByFieldId']
+            row = {k: sv(c.get(v)) for k, v in F.items()}
+            row.update(id=r['id'], created=r['createdTime'])
+            seen[r['id']] = row
+    rows = list(seen.values())
+    chains = {}
+    for r in rows:
+        chains.setdefault(bedo_reader.chain_key(r['key'], r['status'], r['id']), []).append(r)
+    for k in chains:
+        chains[k].sort(key=lambda r: r['created'])
+    latest = {k: ch[-1] for k, ch in chains.items()}  # I5: action rows only
+    return rows, chains, latest, reads
+
+
+def plainly_media(r):
+    p, t = r['practice'] or '', r['title'] or ''
+    return p.startswith(MEDIA) or (p.startswith('⚡') and t.lstrip('⚡ ').startswith(MEDIA))
+
+
+def hidden_drive(r):
+    """A row on a drive the user keeps off this page (hide_drives) — unless its title
+    names one of their own reviews (hide_keep), which stay. 5 Oct 2026: build work
+    on the system itself is not the next right thing to do; their own weekly and
+    monthly reviews and look aheads are."""
+    # a drive that feeds a hidden drive is hidden with it (drives within drives, 9 Oct 2026)
+    up = bedo_drives.chain(r['rhythm'] or '', DRIVES) or [r['rhythm'] or '']
+    if not any(d in HIDE['drives'] for d in up):
+        return False
+    t = (r['title'] or '').lower()
+    return not any(k.lower() in t for k in HIDE['keep'])
+
+
+def filtered_open(latest):
+    """Filtered at the READ, before anything is shown."""
+    out, dropped = [], dict(queue=0, waiting=0, media=0, quickie=0, hidden=0)
+    for r in latest.values():
+        if r['status'] not in OPEN:
+            continue
+        if r['queue']:
+            dropped['queue'] += 1; continue
+        if r['waiting']:
+            dropped['waiting'] += 1; continue
+        if plainly_media(r):
+            dropped['media'] += 1; continue
+        if r.get(QUICKIE_KEY):
+            dropped['quickie'] += 1; continue
+        if hidden_drive(r):
+            dropped['hidden'] += 1; continue
+        out.append(r)
+    return out, dropped
+
+
+def load_rhythms(path):
+    recs, n = complete(path)
+    by_name, by_id = {}, {}
+    for r in recs:
+        c = r['cellValuesByFieldId']
+        row = {k: sv(c.get(v)) if k not in ('dest', 'feeds') else c.get(v) for k, v in RF.items()}
+        row['dest'] = [sv(x) for x in (row['dest'] or [])]
+        row['feeds'] = bedo_drives.feeds_of(row)
+        row['id'] = r['id']
+        by_id[r['id']] = row
+        if row['name']:
+            DRIVES[row['name']] = row
+        if row['status'] == 'active':
+            by_name[row['name']] = row
+    return by_name, n
+
+
+def clean_title(t):
+    t = re.sub(r'^[✅✔✖️⬜▶️▫️\s]+', '', t or '')
+    return re.sub(r'^⚡\s*', '', t).strip()
+
+
+def fmt_day(d):
+    return f'{DAY3[d.weekday()]} {d.day} {d.strftime("%b")}'
+
+
+# Clocks are formatted by hand. glibc's '%-I' and '%-d' drop the leading zero,
+# but they are a GNU extension: on Windows strftime raises on them outright, so
+# a builder that used them ran on the laptop and nowhere else.
+def hour12(t):
+    return (t.hour % 12) or 12
+
+
+def ampm(t):
+    return 'am' if t.hour < 12 else 'pm'
+
+
+def sentence_with(text, pats):
+    for s in re.split(r'(?<=[.!?])\s+', text):
+        if any(re.search(p, s, re.I) for p in pats):
+            return s.strip()
+    return None
+
+
+# ---------------------------------------------------------------- the next move
+# The 7 Oct 2026 amendment (the next step), the user's words: "In the look ahead I need to
+# see what is the next right step — like what is the website? What is the thing exactly
+# that I need to do?" and, 9 Oct: "so I just don't think of the whole big thing".
+# Every open card carries the one step, the person, the links and what it waits on —
+# read off the row, never invented. A row with no step named says so, so it gets one.
+NEXT_RE = re.compile(r'^[ \t]*(?:[-•*·][ \t]*)?(?:next(?:[ \t]+(?:right[ \t]+)?step)?|step)[ \t]*[:—–][ \t]*(.+)$',
+                     re.I | re.M)
+# a link to a chat in the Claude app on her laptop (claude://…) counts too (4 Nov 2026, her words: I could click
+# on the link to the actual chat. So that's a goal)
+URL_RE = re.compile(r'(?:https?|claude)://[^\s<>()"\'\]]+')
+
+
+def link_label(u):
+    if u.startswith('claude://') or re.match(r'https?://claude\.ai/(chat|code|cowork)/', u):
+        return 'chat'   # a claude.ai chat, a cloud session, or a Claude app session
+    host = re.sub(r'^https?://(www\.)?', '', u).split('/')[0].lower()
+    if 'mail.google' in host:
+        return 'email thread'
+    if 'calendar' in host or 'calendar/event' in u:
+        return 'calendar event'
+    if host.startswith('docs.google') or host.startswith('drive.google'):
+        return 'doc'
+    if host.startswith('claude.ai'):
+        return 'chat' if '/chat/' in u else 'page'
+    return host
+
+
+def next_move(r, chain, step=None, self_name=''):
+    """The one move on a row: the step, the person, the links, what it waits on."""
+    chain = chain or [r]
+    text = (step or '').strip() or None
+    if not text:
+        for link in reversed(chain):
+            m = NEXT_RE.search(link.get('details') or '')
+            if m:
+                text = m.group(1).strip().rstrip('.'); break
+    urls = []
+    if text:  # a link named with the step is the step's own: it goes first, out of the words
+        urls += [u.rstrip('.,;:') for u in URL_RE.findall(text)]
+        text = re.sub(r'\s*[(\[]?' + URL_RE.pattern + r'[)\]]?', '', text).strip(' —-·') or None
+    urls += [r.get(CHAT_KEY), r.get(DELIV_KEY), r.get(LINK_KEY)]
+    for link in reversed(chain):
+        urls += [u.rstrip('.,;:') for u in URL_RE.findall(link.get('details') or '')]
+    links, seen = [], set()
+    for u in urls:
+        if u and u not in seen:
+            seen.add(u); links.append(dict(url=u, label=link_label(u)))
+    who = [p.strip() for p in (r.get('person') or '').split(',') if p.strip() and p.strip() != self_name]
+    return dict(step=text, who=who, links=links[:3], waiting=(r.get('waiting') or '').strip() or None)
+
+
+# ---------------------------------------------------------------- on the horizon
+# 28 Oct 2026, her words: make sure the big events are showing up on the horizon, the things
+# I really need to prepare for … and say, here's what you need to do to prepare for those.
+# That's the executive functioning. Two sources, both read off the rows, never invented:
+# a drive whose own date falls within `horizon_drive_days` (14), and each `horizon` entry in
+# the settings — {label, match}: the open rows whose title matches, gathered as one thing.
+# Each carries its date (or says it has none yet) and its open steps, in motion first.
+HORIZON_DAYS = 70
+
+
+def horizon(open_rows, today, L, move, near=3):
+    # further out holds only what is past the next `near` days, which have their own
+    # lines above (28 Oct 2026, her words: otherwise, it's just confounding)
+    out, used = [], set()
+    end = today + dt.timedelta(days=HORIZON_DAYS)
+    soon = today + dt.timedelta(days=near)
+    drive_days = L.get('horizon_drive_days', 14)
+
+    def when(r):
+        return local(r['target']).date() if r['target'] else None
+
+    def steps(rows):
+        rows = [r for r in rows if not (when(r) and when(r) <= soon)]
+        rows = sorted(rows, key=lambda r: (r['status'] != '▶️ in motion', when(r) or end, r['title'] or ''))
+        return [dict(title=clean_title(r['title']), st=r['status'][:2], date=when(r).isoformat() if when(r) else None,
+                     move=move(r)) for r in rows[:4]], len(rows)
+    for name, d in sorted(DRIVES.items(), key=lambda x: x[1].get('target') or ''):
+        t = d.get('target')
+        if d.get('status') != 'active' or 'drive' not in (d.get('type') or '') or not t:
+            continue
+        day = dt.date.fromisoformat(t[:10])
+        if not (soon < day <= today + dt.timedelta(days=drive_days)):
+            continue
+        rows = [r for r in open_rows if r['rhythm'] == name]
+        used |= {r['id'] for r in rows}
+        st, n = steps(rows)
+        if rows and not st:
+            continue  # every step is in the next few days, shown there
+        out.append(dict(label=name, emoji=d.get('emoji') or '', date=day.isoformat(), drive=name, steps=st, n=n))
+    for h in L.get('horizon') or []:
+        rx = re.compile(h['match'], re.I)
+        rows = [r for r in open_rows if r['id'] not in used and rx.search(r['title'] or '')
+                and (when(r) is None or soon < when(r) <= end)]
+        if not rows:
+            continue
+        used |= {r['id'] for r in rows}
+        dates = sorted(when(r) for r in rows if when(r))
+        st, n = steps(rows)
+        drive = next((r['rhythm'] for r in rows if r['rhythm']), '')
+        out.append(dict(label=h['label'], emoji=h.get('emoji') or '', date=dates[0].isoformat() if dates else None,
+                        drive=drive, steps=st, n=n))
+    out.sort(key=lambda x: (x['date'] is None, x['date'] or ''))
+    return out
+
+
+# ---------------------------------------------------------------- pareto three
+# J9: be•do's three, from uncalendared work, deduped by subject, in the order of pull
+# someone waiting · target passed · in motion · named as weighing on the user.
+KINDS = ('someone waiting', 'target passed', 'in motion', 'weighing on you')
+
+
+def pareto(open_rows, chains, rhythms, today, L, calendared=frozenset()):
+    self_name = L['self_person']
+    # a calendar event never needs recommending: a row that is an event's own is left out
+    pool = [r for r in open_rows if r['id'] not in calendared]
+
+    def drive_of(r):
+        return rhythms.get(r['rhythm'] or '')
+
+    def lane(r):
+        # a drive that feeds another shares its lane: two picks from D26's tree
+        # are two from D26, wherever they sit in it (9 Oct 2026)
+        top = (bedo_drives.chain(r['rhythm'] or '', DRIVES) or [r['rhythm'] or ''])[-1]
+        d = DRIVES.get(top) or drive_of(r)
+        return (d or {}).get('parent') or top or '—'
+
+    def tgt(r):
+        return local(r['target']).date() if r['target'] else None
+
+    # someone waiting — another person on the row, due within three days
+    def others(r):
+        ps = [p.strip() for p in (r['person'] or '').split(',') if p.strip()]
+        return [p for p in ps if p != self_name]
+    waiting = [r for r in pool if others(r) and tgt(r) and -1 <= (tgt(r) - today).days <= 3]
+    waiting.sort(key=lambda r: tgt(r))
+    # target passed — open past its date, the most recently passed first (still live)
+    passed = [r for r in pool if tgt(r) and tgt(r) < today]
+    passed.sort(key=lambda r: tgt(r), reverse=True)
+    # in motion — the ▶️ row whose target sits closest to today
+    motion = [r for r in pool if r['status'] == '▶️ in motion' and tgt(r) and drive_of(r)]
+    motion.sort(key=lambda r: abs((tgt(r) - today).days))
+    # named as weighing — the user's own words anywhere in the chain
+    weigh = []
+    for r in pool:
+        for link in reversed(chains[r['key'] or r['id']]):
+            s = sentence_with(her_words(link['details']), L['weighing_phrases'])
+            if s:
+                weigh.append((r, s, link['created'])); break
+    weigh.sort(key=lambda x: x[2], reverse=True)  # most recently said first
+
+    def due_phrase(r):
+        t = tgt(r)
+        if not t:
+            return 'no date on it'
+        n = (t - today).days
+        return ('due today' if n == 0 else 'due tomorrow' if n == 1 else
+                f'due {fmt_day(t)}' if n > 0 else f'target passed {fmt_day(t)}')
+    whys = {
+        'someone waiting': lambda r: f'{", ".join(others(r))} is waiting · {due_phrase(r)}',
+        'target passed': lambda r: f'{due_phrase(r)} · still open',
+        'in motion': lambda r: f'already moving · {due_phrase(r)} · retargeted {len(chains[r["key"] or r["id"]]) - 1}×',
+        'weighing on you': lambda c: f'your words: “{c[1]}” · {due_phrase(c[0])}',
+    }
+    cands = dict(zip(KINDS, (waiting, passed, motion, weigh)))
+    picks, used, lanes, words_seen, waited = [], set(), {}, set(), set()
+
+    def subject(r):  # deduped by subject, not only by row
+        return frozenset(w for w in words(clean_title(r['title'] or '')) if len(w) > 3)
+
+    def take(kind):
+        for c in cands[kind]:
+            r = c[0] if isinstance(c, tuple) else c
+            sub = subject(r)
+            if r['id'] in used or lanes.get(lane(r), 0) >= 2 or any(len(sub & s) >= 2 for s in words_seen):
+                continue
+            # one pick per person waiting: two asks from the same person read as one thing
+            if kind == 'someone waiting' and waited & set(others(r)):
+                continue
+            used.add(r['id']); lanes[lane(r)] = lanes.get(lane(r), 0) + 1; words_seen.add(sub)
+            if kind == 'someone waiting':
+                waited.update(others(r))
+            picks.append(dict(kind=kind, row=r, why=whys[kind](c)))
+            return True
+        return False
+    # one of each kind in the order of pull, then the slots still empty from the same order
+    for kind in KINDS:
+        if len(picks) < 3:
+            take(kind)
+    for kind in KINDS * 3:
+        if len(picks) < 3:
+            take(kind)
+    # the next candidate in line for each kind, named quietly, not rendered as a list
+    nxt = []
+    for kind in KINDS:
+        for c in cands[kind]:
+            r = c[0] if isinstance(c, tuple) else c
+            if r['id'] not in used:
+                nxt.append(dict(kind=kind, title=clean_title(r['title']))); break
+    # the rest, in the same order of pull — taken in turn from each kind, no repeats —
+    # for the short list under the picks (the user's word, 2 Oct 2026: at most ten tasks).
+    # A row past its date has its own section, so it is not repeated here.
+    more, seen = [], set(used)
+    pools = [[(k, c[0] if isinstance(c, tuple) else c) for c in cands[k]] for k in KINDS if k != 'target passed']
+    while any(pools):
+        for pool_ in pools:
+            while pool_:
+                k, r = pool_.pop(0)
+                # only what is due within the week: a far-off row is not today's
+                if r['id'] in seen or (tgt(r) and not (0 <= (tgt(r) - today).days <= L.get('task_horizon_days', 7))):
+                    continue
+                seen.add(r['id'])
+                more.append(dict(kind=k, id=r['id'], title=clean_title(r['title']), drive=r['rhythm'] or '', due=due_phrase(r),
+                                 st=r['status'][:2], date=tgt(r).isoformat() if tgt(r) else None))
+                break
+    return picks, nxt, more
+
+
+# ---------------------------------------------------------------- calendar
+STOP = set('the and with for from meeting weekly monthly session study check-in check in stay a of to at on call video zoom meet'.split())
+
+
+def words(s):
+    s = re.sub(r'[^\w&\s-]', ' ', s.lower())
+    return {w for w in re.split(r'[\s\-|]+', s) if len(w) >= 3 and w not in STOP}
+
+
+def ev_span(e):
+    s, en = e['start'], e['end']
+    if 'date' in s:
+        # the calendar tool returns all-day dates as '2026-09-20T00:00:00Z'; keep the date only
+        a = dt.datetime.fromisoformat(s['date'][:10]); b = dt.datetime.fromisoformat(en['date'][:10])
+        return a, b, True
+    a = dt.datetime.fromisoformat(s['dateTime']).replace(tzinfo=None)
+    b = dt.datetime.fromisoformat(en['dateTime']).replace(tzinfo=None)
+    return a, b, False
+
+
+def strip_prefix(summary):
+    return re.sub(r'^[\W_]+', '', summary, flags=re.UNICODE).strip() or summary
+
+
+def calendar(cal, rows, open_rows, today, days, L):
+    start = dt.datetime.combine(today, dt.time())
+    stop = start + dt.timedelta(days=days)
+    evs = []
+    for c in cal['calendars']:
+        for e in c['events']:
+            a, b, allday = ev_span(e)
+            if b <= start or a >= stop:
+                continue
+            evs.append(dict(who=c['who'], title=strip_prefix(e['summary']), a=a, b=b, allday=allday,
+                            recurring=e.get('recurring', False), meet=e.get('meet', e.get('recurring', False)),
+                            multi=(b - a) >= dt.timedelta(days=2),
+                            summary=e['summary'], link=e.get('htmlLink'), eid=eid_of(e.get('htmlLink')), color=e.get('colorId'),
+                            topic=topic_of(e['summary']), location=e.get('location') or '',
+                            occasion=allday and bool(e.get('transparent')),
+                            stay=(b - a) >= dt.timedelta(hours=L.get('stay_hours', 12)),
+                            series=e.get('recurringEventId') or (strip_prefix(topic_strip(e['summary'])) if e.get('recurring') else None)))
+    # match each event to a stream row — be•do's own look-ahead rows do not count
+    pool = [r for r in rows if not (r['practice'] or '').startswith(tuple(L['own_practices']))]
+    linked = {}
+    for r in pool:
+        k = eid_of(r.get(LINK_KEY))
+        if k:
+            linked.setdefault(k, r)
+    aliases = {k.lower(): [w.lower() for w in v] for k, v in (L.get('event_aliases') or {}).items()}
+    for e in evs:
+        ew = words(e['title']); hit = linked.get(e['eid'])
+        for k, alts in aliases.items():
+            if hit or k not in e['title'].lower():
+                continue
+            for r in pool:
+                txt = ((r['title'] or '') + ' ' + (r['details'] or '')).lower()
+                dates = [local(x) for x in (r['when'], r['target']) if x]
+                if any(a in txt for a in alts) and any(e['a'] - dt.timedelta(hours=12) <= d < e['b'] for d in dates):
+                    hit = r; break
+        for r in pool if not hit else []:
+            txt = (r['title'] or '') + ' ' + her_words(r['details'])
+            rw = words(txt); common = ew & rw
+            if not common:
+                continue
+            dates = [local(x) for x in (r['when'], r['target']) if x]
+            dated = any(e['a'] - dt.timedelta(days=1) <= d < e['b'] + dt.timedelta(days=1) for d in dates)
+            if (dated and common) or (e['multi'] and len(common) >= 2):
+                hit = r; break
+        if not hit and not e['allday']:  # a row targeted at the event's own time is its row
+            for r in pool:
+                t = local(r['target'])
+                if t and abs((t - e['a']).total_seconds()) <= 45 * 60:
+                    hit = r; break
+        # TODAY is held to a stricter test: a row about the same subject is not the
+        # event's own row unless it is linked, named by alias, or timed to it.
+        # A same-day word match on other work is how the 23 Sep meeting went unrowed.
+        if hit and e['a'].date() == today and not e['allday'] and linked.get(e['eid']) is not hit:
+            near = [local(x) for x in (hit['when'], hit['target']) if x]
+            aliased = any(k in e['title'].lower() for k in aliases)
+            if not aliased and not any(abs((d - e['a']).total_seconds()) <= 60 * 60 for d in near):
+                # about the same subject, not timed to it: asked, not written
+                e['maybe'] = [r for r in pool if r['status'] in OPEN and ew & words(r['title'] or '')
+                              and any(x and local(x).date() == today for x in (r['when'], r['target']))] or [hit]
+                hit = None
+        e['match'] = (hit or {}).get('title')
+        e['match_row'] = hit
+        e['row'] = bool(hit) or e['occasion']  # an occasion carries no row by design
+    # clashes
+    mine = [e for e in evs if e['who'] == L['self_calendar']]
+    # a stretch away, not a window to do something in: a ⬜ week to vote in is a window,
+    # and nothing that week clashes with it (25 Oct 2026: eleven events read as clashing)
+    away = [e for e in mine if e['allday'] and e['multi'] and not e['summary'].startswith(('⬜', '▫'))]
+    for e in evs:
+        e['clash'] = []
+    for e in evs:
+        for w in away:
+            if e is w or not (e['a'] < w['b'] and w['a'] < e['b']):
+                continue
+            if words(e['title']) & words(w['title']):
+                continue
+            if e['who'] == L['self_calendar'] and e['allday']:
+                continue
+            e['clash'].append(w['title'])
+    conflicts = find_conflicts(evs, today, days, L)
+    for c in conflicts:
+        for x, y in c.get('pair', []):
+            x['clash'].append(label_of(y, L)); y['clash'].append(label_of(x, L))
+    # due actions by day
+    due = {}
+    for r in open_rows:
+        if r['target']:
+            d = local(r['target']).date()
+            if today <= d < today + dt.timedelta(days=days):
+                due.setdefault(d, []).append(dict(id=r['id'], title=clean_title(r['title']), drive=r['rhythm'] or '', st=r['status'][:2]))
+    out = []
+    for i in range(days):
+        d = today + dt.timedelta(days=i)
+        ds = dt.datetime.combine(d, dt.time()); de = ds + dt.timedelta(days=1)
+        items = []
+        for e in evs:
+            if not (e['a'] < de and ds < e['b']):
+                continue
+            first, last = e['a'].date() == d, (e['b'] - dt.timedelta(seconds=1)).date() == d
+            if e['multi'] and not first and not last:
+                continue  # a long stay is drawn as a band, named on its first and last day
+            when = ('' if e['allday'] else f"{hour12(e['a'])}:{e['a'].minute:02d}".replace(':00', '') + ampm(e['a'])[0]) if first else ('ends ' + (f"{hour12(e['b'])}{ampm(e['b'])}" if not e['allday'] else 'today'))
+            if e['multi'] and first:
+                when = f'through {fmt_day((e["b"] - dt.timedelta(seconds=1)).date())}'
+            # the event as the calendar shows it — its own glyphs, its own end, its link
+            end = '' if e['allday'] or not last else f"{hour12(e['b'])}:{e['b'].minute:02d}".replace(':00', '') + ampm(e['b'])[0]
+            items.append(dict(who=e['who'], title=e['title'], summary=e['summary'], link=e['link'], where=e['location'],
+                              color=e.get('color'), meet=e.get('meet'), when=when, end=end, gap=not e['row'], match=e.get('match'),
+                              clash=e['clash'] if first else [], sort=e['a'].isoformat()))
+        items.sort(key=lambda x: x['sort'])
+        bands = [e['title'] for e in evs if e['multi'] and e['a'].date() < d < (e['b'] - dt.timedelta(seconds=1)).date()]
+        out.append(dict(date=d.isoformat(), label=fmt_day(d), today=i == 0, weekend=d.weekday() >= 5,
+                        events=items, due=due.get(d, []), bands=bands))
+    gaps = sum(1 for e in evs if not e['row'])
+    clashes = sum(1 for e in evs if e['clash'])
+    away_bands = [dict(title=w['title'], a=w['a'].date().isoformat(), b=(w['b'] - dt.timedelta(seconds=1)).date().isoformat()) for w in away]
+    return out, gaps, clashes, away_bands, evs, conflicts
+
+
+# ---------------------------------------------------------------- the look-ahead plan
+# The calendar is the record of what is SCHEDULED; the stream is the record of
+# what HAPPENED. Two horizons: today's events get a row written (recording, not
+# supplying), and the next two weeks get prep drafted and shown for an okay (a
+# target nobody stated is supplied, so it is asked). Conflicts are named, never
+# resolved: be•do does not schedule.
+STATUS_GLYPHS = ('❔', '▫️', '▫', '⬜', '◻️', '◻', '✔️', '✔', '✅', '✖️', '✖', '▶️', '▶')
+
+
+def eid_of(url):
+    """The event's own id inside its link. A recurring instance has its own."""
+    if not url:
+        return None
+    m = re.search(r'[?&]eid=([^&#]+)', url)
+    return m.group(1) if m else None
+
+
+def topic_strip(summary):
+    """The summary with its status prefix and drive glyph taken off."""
+    t = topic_of(summary)
+    s = summary or ''
+    i = s.find(t) if t else -1
+    return s[i + len(t):].strip() if i >= 0 else s
+
+
+def topic_of(summary):
+    """The drive glyph after the status prefix: '⬜🏭Video call' -> '🏭'."""
+    s = summary or ''
+    changed = True
+    while changed:
+        changed = False
+        for g in STATUS_GLYPHS:
+            if s.startswith(g):
+                s = s[len(g):].lstrip(); changed = True
+    m = re.match(r'^([^\w\s(\[]+)', s)
+    return m.group(1).strip() if m else ''
+
+
+def label_of(e, L):
+    return e['title'] if e['who'] == L['self_calendar'] else f"{e['who']}: {e['title']}"
+
+
+def is_place(loc):
+    return bool(loc) and not re.match(r'^(https?://|meet\.|zoom)', loc.strip(), re.I)
+
+
+def find_conflicts(evs, today, days, L):
+    """Overlaps, a day too full, travel between stops, and who has the child —
+    across every calendar read. Each carries the pair it came from, if any."""
+    me, kid_label = L['self_calendar'], (L.get('child_calendar') or '')
+    ro = set(L.get('readonly_calendars') or [])
+    # a child's event that names another grown-up ('— Pat drives') says who has the child
+    others = [c for c in (L.get('other_calendars') or []) if c and c != kid_label]
+
+    def covered(k):
+        return any(re.search(rf'\b{re.escape(o)}\b', k['title']) for o in others)
+    stop = today + dt.timedelta(days=days)
+    timed = [e for e in evs if not e['allday'] and not e['occasion'] and today <= e['a'].date() < stop]
+    out = []
+    def add(kind, day, text, pair=None):
+        out.append(dict(kind=kind, date=day.isoformat(), label=fmt_day(day), text=text,
+                        pair=[pair] if pair else []))
+    for i, x in enumerate(timed):
+        for y in timed[i + 1:]:
+            if not (x['a'] < y['b'] and y['a'] < x['b']):
+                continue
+            whos = {x['who'], y['who']}
+            if whos == {me}:
+                add('overlap', x['a'].date(), f"{x['title']} and {y['title']} overlap", (x, y))
+            elif me in whos and kid_label in whos:
+                k, m = (x, y) if x['who'] == kid_label else (y, x)
+                if k['stay'] or covered(k):
+                    continue  # he is with someone else for the stretch — her event is covered
+                add('child', k['a'].date(), f"{m['title']} overlaps {kid_label}'s {k['title']} — who has {kid_label}?", (x, y))
+            elif kid_label in whos and whos & ro:
+                k, j = (x, y) if x['who'] == kid_label else (y, x)
+                add('child', k['a'].date(), f"{j['who']} is at {j['title']} during {kid_label}'s {k['title']}", (x, y))
+            elif whos == {kid_label}:
+                s_, o = (x, y) if x['stay'] else (y, x)
+                if s_['stay'] and not o['stay']:
+                    add('child', o['a'].date(), f"{o['title']} falls during {s_['title']}", (x, y))
+    full_h = L.get('full_day_hours', 4)
+    buf = dt.timedelta(minutes=L.get('travel_buffer_min', 45))
+    for i in range(days):
+        d = today + dt.timedelta(days=i)
+        mine = sorted([e for e in timed if e['who'] == me and e['a'].date() == d and not e['stay']], key=lambda e: e['a'])
+        hrs = sum((e['b'] - e['a']).total_seconds() for e in mine) / 3600
+        if hrs >= full_h or len(mine) >= L.get('full_day_events', 4):
+            add('full', d, f"{len(mine)} on the calendar, {hrs:.1f} h booked")
+        for x, y in zip(mine, mine[1:]):
+            if is_place(x['location']) and is_place(y['location']) and x['location'] != y['location'] and y['a'] - x['b'] < buf:
+                mins = int((y['a'] - x['b']).total_seconds() // 60)
+                add('travel', d, f"{mins} min from {x['title']} ({x['location']}) to {y['title']} ({y['location']})")
+    return out
+
+
+def bucket_for(e, rhythms, L):
+    """The drive the event serves, read off its topic glyph against ACTIVE rows.
+    Two active rows sharing a glyph, or none, is a question — not a guess."""
+    if not e['topic']:
+        return None, 'no drive glyph on the event'
+    hits = [r for r in rhythms.values() if (r.get('emoji') or '') == e['topic'] and r['type'] in ('♐ drive', '♒ rhythm')]
+    drives = [r for r in hits if r['type'] == '♐ drive']
+    pick = drives if len(drives) == 1 else hits
+    if len(pick) == 1:
+        return pick[0]['name'], None
+    if not hits:
+        return None, f"no active drive or rhythm carries {e['topic']}"
+    return None, f"{e['topic']} is on {', '.join(r['name'] for r in hits)}"
+
+
+def hm(t):
+    return f"{hour12(t)}:{t.minute:02d}{ampm(t)}"
+
+
+def to_utc(t):
+    return bedo_clock.to_utc(CLOCK, t).strftime('%Y-%m-%dT%H:%M:00.000Z')
+
+
+def look_ahead_plan(evs, conflicts, rows, open_rows, chains, rhythms, today, a, L):
+    F_ = F
+    now_local = (dt.datetime.combine(today, dt.time.fromisoformat(a.now)) if a.now
+                 else bedo_clock.now_local(CLOCK))
+    keys = {r['key'] for r in rows if r['key']}
+    def new_key():
+        base = now_local.strftime('%y%m%d_%H%M')
+        for suf in [''] + list('bcdefghijklmnopqrstuvwxyz'):
+            if base + suf not in keys:
+                keys.add(base + suf); return base + suf
+        die('ran out of key suffixes')
+    people = L.get('calendar_people') or {}
+    today_rows, asks = [], []
+    for e in evs:
+        if e['a'].date() != today or e['row'] or e['occasion']:
+            continue
+        drive, why = bucket_for(e, rhythms, L)
+        span = 'all day' if e['allday'] else f"{hm(e['a'])}–{hm(e['b'])}"
+        who = [L['self_person']] + ([people[e['who']]] if people.get(e['who']) else [])
+        cal = (L.get('calendar_summaries') or {}).get(e['who'], e['who'])
+        details = (f"———\n[be•do] From the calendar at the look ahead: {e['title']}, {span} · calendar: {cal}. "
+                   f"Written so the day's record holds it; it closes ✅ when it happens.")
+        row = {'event': e['title'], 'when_label': span, 'calendar': e['who'], 'drive': drive,
+               'fields': {F_['title']: f"⚡ {e['title']}", F_['key']: None,
+                          F_['status']: '⬜ intention', F_['practice']: '⚡ action',
+                          F_['person']: ', '.join(who), F_['when']: to_utc(now_local),
+                          F_['target']: to_utc(e['a']), F_['details']: details}}
+        if HAS_LINK:
+            row['fields'][F_[LINK_KEY]] = e['link']
+        if e.get('maybe'):
+            ms = e['maybe']
+            row['why'] = 'may already be ' + ' or '.join(f"{m['key'] or m['id']} “{clean_title(m['title'])}”" for m in ms) + ' — link one instead?'
+            row['maybe'] = [dict(id=m['id'], key=m['key'], title=clean_title(m['title'])) for m in ms]
+            if drive:
+                row['fields'][F_['rhythm']] = drive
+            asks.append(row)
+        elif drive and HAS_LINK:
+            row['fields'][F_['rhythm']] = drive
+            row['fields'][F_['key']] = new_key()
+            today_rows.append(row)
+        else:
+            row['why'] = why or 'the settings file has no event-link field, so nothing is written blind'
+            asks.append(row)
+    # prep — the next occurrence of each series, every one-off, for the window after today
+    prep, seen = [], set()
+    lead = L.get('prep_lead_days', 1)
+    for e in sorted(evs, key=lambda e: e['a']):
+        if e['occasion'] or e['a'].date() <= today:
+            continue
+        if e['series']:
+            sk = (e['who'], e['series'])
+            if sk in seen:
+                continue
+            seen.add(sk)
+        ew = words(e['title'])
+        have = [r for r in open_rows if 'prep' in (r['title'] or '').lower() and ew & words(r['title'] or '')
+                and (not r['target'] or local(r['target']) <= e['a'])]
+        if have:
+            continue
+        drive, why = bucket_for(e, rhythms, L)
+        workish = drive and (rhythms.get(drive) or {}).get('parent') in (L.get('work_parents') or [])
+        t = e['a'].date() - dt.timedelta(days=lead)
+        while workish and t.weekday() >= 5:
+            t -= dt.timedelta(days=1)
+        t = max(t, today)
+        more = sum(1 for x in evs if e['series'] and x['series'] == e['series'] and x['who'] == e['who'] and x['a'] > e['a'])
+        prep.append(dict(event=e['title'], calendar=e['who'], date=e['a'].date().isoformat(),
+                         label=f"{fmt_day(e['a'].date())}" + ('' if e['allday'] else f" {hm(e['a'])}"),
+                         where=e['location'], drive=drive, drive_question=why,
+                         matched_row=(e.get('match_row') or {}).get('title'), more_in_window=more,
+                         link=e['link'],
+                         proposed=dict(title=f"⚡ Prep — {e['title']} ({fmt_day(e['a'].date())})",
+                                       target=t.isoformat(), target_label=fmt_day(t),
+                                       what=None)))  # what it needs is drafted by be•do in the chat
+    # every event in the window gets its row two weeks ahead (9 Oct 2026, the user's words:
+    # "I want all of these events in the system 2 weeks ahead of time … to give it future
+    # vision"), so the three and the next steps are judged against what is coming.
+    # One row per occurrence, each with its own event link. Not an occasion (an all-day
+    # free marker), not an event the calendar marks ✖️. A plan names people in
+    # `mentioned`, never `person`. A row with no drive is still written and named.
+    future_rows = []
+    for e in sorted(evs, key=lambda e: e['a']):
+        if e['a'].date() <= today or e['row'] or e['occasion'] or e['summary'].lstrip().startswith(('✖️', '✖')):
+            continue
+        if not HAS_LINK:
+            break  # without the link field a written row could never be matched again
+        drive, why = bucket_for(e, rhythms, L)
+        span = 'all day' if e['allday'] else f"{hm(e['a'])}–{hm(e['b'])}"
+        cal = (L.get('calendar_summaries') or {}).get(e['who'], e['who'])
+        title = html.unescape(e['title'])  # the calendar hands back &amp; for &
+        where = f", {html.unescape(e['location'])}" if e['location'] else ''
+        details = (f"———\n[be•do] From the calendar at the look ahead, two weeks out: {title}, "
+                   f"{fmt_day(e['a'].date())} {span}{where} · calendar: {cal}. Its own row so the look "
+                   f"ahead sees it coming; it closes ✅ when it happens.")
+        fields = {F_['title']: title, F_['key']: new_key(), F_['status']: '⬜ intention',
+                  F_['practice']: '⚡ action', F_['when']: to_utc(now_local), F_['target']: to_utc(e['a']),
+                  F_['details']: details, F_[LINK_KEY]: e['link']}
+        if drive:
+            fields[F_['rhythm']] = drive
+        if people.get(e['who']) and F_.get(MENTIONED_KEY):
+            fields[F_[MENTIONED_KEY]] = people[e['who']]
+        future_rows.append({'event': title, 'date': e['a'].date().isoformat(), 'when_label': span,
+                            'calendar': e['who'], 'drive': drive, 'drive_question': None if drive else why,
+                            'fields': fields})
+    conf = [dict(kind=c['kind'], date=c['date'], label=c['label'], text=c['text']) for c in conflicts]
+    return dict(today=today.isoformat(), written_at=now_local.strftime('%H:%M'), link_matching=HAS_LINK,
+                today_rows=today_rows, today_asks=asks, future_rows=future_rows, prep=prep, conflicts=conf)
+
+
+# ---------------------------------------------------------------- cadence
+DAYNAMES = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+
+
+def load_practices(path, L):
+    """Active practices that carry a cadence, from the practices catalog. Optional:
+    with no file, or no cadence field in the settings, nothing is drawn."""
+    PF = (L.get('fields') or {}).get('practices') or {}
+    if not path or not PF.get('cadence'):
+        return []
+    recs, _ = complete(path)
+    out = []
+    for r in recs:
+        c = r['cellValuesByFieldId']
+        cad = (c.get(PF['cadence']) or '').strip()
+        if cad and (not PF.get('active') or c.get(PF['active'])):
+            out.append(dict(name=c.get(PF['name']) or '', cadence=cad))
+    return out
+
+
+def cadence_days(cad):
+    """'weekly · Monday' -> [0]. The weekdays named in the cadence, full or three letters."""
+    words = re.findall(r'[a-z]+', cad.lower())
+    return sorted({i for i, n in enumerate(DAYNAMES) for w in words if w in (n, n[:3])})
+
+
+def cadence_monthly(cad):
+    """'monthly · by the 5th' -> 5. A monthly cadence names the day it is due by;
+    None when the cadence isn't monthly or names no day."""
+    m = re.search(r'monthly\b.*?\bby the (\d{1,2})', cad.lower())
+    return int(m.group(1)) if m else None
+
+
+def standing_steps(practices, rows, today, days):
+    """A practice with a cadence (A132, 13 Sep 2026: cadence lives on the practice) is
+    drawn on its day whether or not a dated row exists — 5 Oct 2026: the Monday
+    weather check, done every week, never showed. It is done on a day when a row
+    logged that day, not open, carries the practice. Its drive is the drive of the
+    latest row that carried it."""
+    out = {}
+    for p in practices:
+        wds = cadence_days(p['cadence'])
+        mine = sorted((r for r in rows if (r['practice'] or '') == p['name']), key=lambda r: r['created'])
+        drive = next((r['rhythm'] for r in reversed(mine) if r['rhythm']), '')
+        by = cadence_monthly(p['cadence'])
+        if by:
+            # 7 Nov 2026: the monthly ahead-review, "monthly · by the 5th", never showed.
+            # Drawn from the 1st of each month until a row that month carries it, done.
+            done_on = sorted({local(r['when']).date() for r in mine
+                              if r['when'] and r['status'] not in OPEN})
+            for i in range(days):
+                d = today + dt.timedelta(days=i)
+                first = next((x for x in done_on if (x.year, x.month) == (d.year, d.month)), None)
+                if first and first < d:
+                    continue
+                out.setdefault(d, []).append(dict(title=clean_title(p['name']), drive=drive,
+                                                  st='✅' if first == d else '⬜', every=f'month, by the {by}th'))
+            continue
+        for i in range(days):
+            d = today + dt.timedelta(days=i)
+            if d.weekday() not in wds:
+                continue
+            done = any(r['when'] and local(r['when']).date() == d and r['status'] not in OPEN for r in mine)
+            out.setdefault(d, []).append(dict(title=clean_title(p['name']), drive=drive,
+                                              st='✅' if done else '⬜', every=DAY3[d.weekday()]))
+    return out
+
+
+# ---------------------------------------------------------------- the weekend shapes
+# Saturday and Sunday are not weekdays with fewer meetings (25 Oct 2026, her words: a Sunday
+# look ahead is fundamentally different from Monday through Friday; Saturday is also different;
+# the goals are generally different). The Sunday shape is the one she had on 6 Sep and V53 lost
+# with its SUNDAY section: big picture only, no leverage list, no task queue — the week by day.
+# Sunday morning is reserved for reflection (her words, 25 Oct). Saturday is fun first, the
+# calendar after (24 Oct), with tending when there's room.
+SHAPES = ('weekday', 'saturday', 'sunday')
+DAYNAME = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+
+def shape_of(today, asked=None):
+    if asked:
+        return asked
+    return {5: 'saturday', 6: 'sunday'}.get(today.weekday(), 'weekday')
+
+
+def week_shape(days, evs, conflicts, L, cap=6):
+    """The week after a Sunday, by day: the peak, the open days, the clashes, the trips.
+    `days` is the calendar's day list from tomorrow on; at most six are read (Mon–Sat).
+    `cap` is how many of them: six for the Sunday page, seven for the my week page, which
+    starts on the Sunday itself."""
+    me = L['self_calendar']
+    # a stretch away is a multi-day event of hers that isn't a window to do something in
+    # (a ⬜ week to vote in is a window; a ❔ trip is a stretch away)
+    stays = [e for e in evs if e['who'] == me and e['multi'] and not e['summary'].startswith(('⬜', '▫'))]
+    out = []
+    for d in days[:cap]:
+        day = dt.date.fromisoformat(d['date'])
+        mine = [e for e in evs if e['who'] == me and not e['allday'] and not e['occasion']
+                and not e['stay'] and e['a'].date() == day]
+        hours = sum((e['b'] - e['a']).total_seconds() for e in mine) / 3600
+        notes = [c['text'] for c in conflicts if c['date'] == d['date'] and c['kind'] != 'full']
+        starts = [e['title'] for e in stays if e['a'].date() == day]
+        tags = []
+        if notes:
+            tags.append('clash')
+        if any(e['a'].date() <= day < e['b'].date() for e in stays):
+            tags.append('away')
+        if not mine and day.weekday() < 5 and 'away' not in tags:  # a day away is not an open day
+            tags.append('open')
+        out.append(dict(date=d['date'], label=d['label'], day=DAYNAME[day.weekday()], hours=round(hours, 1),
+                        n=len(mine), tags=tags, notes=notes, starts=starts,
+                        events=d['events'], due=d['due'], bands=d['bands']))
+    busiest = max(out, key=lambda w: (w['hours'], -out.index(w)), default=None)
+    if busiest and busiest['hours'] > 0:
+        busiest['tags'].insert(0, 'peak')
+    return out
+
+
+CHORES = ['unload the dishwasher', 'put away a load of laundry', 'feed the dogs', 'set the table for dinner',
+          'water the plants', 'help carry in the groceries', 'wipe the kitchen table']
+
+
+def chore_for(today, events, L):
+    """One small chore for her son, planted at the morning look ahead (11 Oct
+    2026, her words: give him a way to contribute … if we plant the seed early
+    in the day it's more likely to happen). It fits the day: an outing with a
+    place to go is help packing for it; otherwise the next of her list
+    (day_ahead_local kid_chores, else CHORES), turning by the date. She decides
+    whether he does it; it is named once and never pushed again that day. It
+    feeds Hero's Service on his quest."""
+    kid = L.get('child_calendar') or 'him'
+    out = [e for e in events if e['a'].date() == today and not e['allday'] and e.get('location')
+           and e['who'] in (L.get('self_calendar'), L.get('child_calendar'))]
+    if out:
+        e = min(out, key=lambda e: e['a'])
+        text = f"help pack for {e['title']}"
+    else:
+        chores = L.get('kid_chores') or CHORES
+        text = chores[today.toordinal() % len(chores)]
+    return dict(kid=kid, text=text)
+
+
+def week_lead(week):
+    """One line, the way the 6 Sep look ahead put it: Tuesday is the peak, Thursday has a
+    clash, Monday is open."""
+    said = {}
+    for tag, words_ in (('peak', 'is the peak'), ('clash', 'has a clash'), ('open', 'is open')):
+        w = next((w for w in week if tag in w['tags']), None)
+        if w:
+            said.setdefault(w['day'], []).append(words_)
+    parts = []
+    for w in week:
+        if w['day'] in said:
+            parts.append(f"{w['day']} {' and '.join(said[w['day']])}")
+        parts += [f"{s} starts {w['day']}" for s in w['starts']]
+    if not parts:
+        return 'A quiet week ahead.'
+    return ', '.join(parts) + '.'
+
+
+def ready_rows(open_rows, today, calendared, horizon=2, cap=5):
+    """What needs to be ready as the week opens: open work due in the next `horizon` days
+    that isn't a calendar event's own row (the calendar already shows those). `calendared`
+    holds record ids and keys: two records can share a key across the weekly bases."""
+    out = []
+    for r in open_rows:
+        if not r['target'] or r['id'] in calendared or (r['key'] and r['key'] in calendared):
+            continue
+        n = (local(r['target']).date() - today).days
+        if 1 <= n <= horizon:
+            out.append(r)
+    out.sort(key=lambda r: r['target'])
+    return out[:cap]
+
+
+def tending_rows(open_rows, today, L, cap=3):
+    """Saturday's tending: open rows under the rhythms the settings name as tending
+    (`tending`), never under work. Past its date first, then due this week, then in motion."""
+    tend = set(L.get('tending') or [])
+    work = set(L.get('work_parents') or [])
+    if not tend:
+        return []
+    ranked = []
+    for r in open_rows:
+        # the drive, every drive it feeds, and each one's parent rhythm (a move › Home)
+        up = set(bedo_drives.chain(r['rhythm'] or '', DRIVES)) | {r['rhythm'] or ''}
+        up |= {(DRIVES.get(k) or {}).get('parent') or '' for k in list(up)}
+        if not (up & tend) or (up & work):
+            continue
+        t = local(r['target']).date() if r['target'] else None
+        if t and t < today:
+            rank = 0
+        elif t and (t - today).days <= 7:
+            rank = 1
+        elif r['status'] == '▶️ in motion':
+            rank = 2
+        else:
+            continue
+        ranked.append((rank, r['target'] or '9', r['id'], r))
+    return [x[3] for x in sorted(ranked)[:cap]]
+
+
+def sunday_morning(evs, standing, today, L):
+    """Sunday morning is reserved for reflection: what belongs to it, and anything on the
+    calendar that would cut into it, named so she can decide."""
+    until = dt.time.fromisoformat(L.get('sunday_morning_until', '12:00'))
+    early = [dict(title=e['title'], when=hm(e['a']), who=e['who']) for e in evs
+             if not e['allday'] and e['a'].date() == today and e['a'].time() < until]
+    return dict(what=L.get('sunday_morning', 'reflection'), until=hm(dt.datetime.combine(today, until)),
+                steps=standing.get(today, []), early=early)
+
+
+# ---------------------------------------------------------------- main
+def install_local(L):
+    """Put the person's own values where the module can see them. Missing a
+    field id is a build error, not a blank column: a silent '' would read every
+    row as empty and the page would look calm and be wrong."""
+    global F, RF
+    fields = L.get('fields') or {}
+    for name, keys, target in (('stream', STREAM_KEYS, F), ('rhythms', RHYTHM_KEYS, RF)):
+        got = fields.get(name) or {}
+        missing = [k for k in keys if not got.get(k)]
+        if missing:
+            die(f"local settings: fields.{name} is missing {', '.join(missing)}")
+        target.update({k: got[k] for k in keys})
+        if name == 'rhythms':
+            target.update({k: got[k] for k in OPTIONAL_RHYTHM_KEYS if got.get(k)})
+    global HAS_LINK
+    HAS_LINK = bool((fields.get('stream') or {}).get(LINK_KEY))
+    if HAS_LINK:
+        F[LINK_KEY] = fields['stream'][LINK_KEY]
+    else:
+        print('WARNING: local settings has no fields.stream.event — today rows are asked, not written',
+              file=sys.stderr)
+    if (fields.get('stream') or {}).get(QUICKIE_KEY):
+        F[QUICKIE_KEY] = fields['stream'][QUICKIE_KEY]
+    if (fields.get('stream') or {}).get(DELIV_KEY):
+        F[DELIV_KEY] = fields['stream'][DELIV_KEY]
+    if (fields.get('stream') or {}).get(MENTIONED_KEY):
+        F[MENTIONED_KEY] = fields['stream'][MENTIONED_KEY]
+    if (fields.get('stream') or {}).get(CHAT_KEY):
+        F[CHAT_KEY] = fields['stream'][CHAT_KEY]
+    HIDE.update(drives=tuple(L.get('hide_drives') or ()), keep=tuple(L.get('hide_keep') or ()))
+    if 'hide_drives' not in L:  # 7 and 9 Oct: an unmerged settings file put build work on the page
+        print('WARNING: local settings has no hide_drives — build work will show on the page. '
+              'Run the loader\'s merge step, or point LB_LOCAL at the merged file.', file=sys.stderr)
+    CLOCK.clear()
+    CLOCK.update(L)
+    if bedo_clock.zone(L) is None:
+        print(f"WARNING: local settings time_zone {L.get('time_zone')!r} can't be read here — "
+              f"times use the fixed utc_offset_hours ({L.get('utc_offset_hours', 0)})", file=sys.stderr)
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--today', required=True)
+    ap.add_argument('--local', required=True)
+    ap.add_argument('--stream', action='append', required=True)
+    ap.add_argument('--rhythms', required=True)
+    ap.add_argument('--calendar', required=True)
+    ap.add_argument('--practices', help='the practices catalog; a practice with a cadence is drawn on its day')
+    ap.add_argument('--template', required=True)
+    ap.add_argument('--out', required=True)
+    ap.add_argument('--secure')
+    ap.add_argument('--secure-words')
+    ap.add_argument('--days', type=int, default=14)
+    ap.add_argument('--draft', action='store_true')
+    ap.add_argument('--intention', action='append', default=[])
+    ap.add_argument('--step', action='append', default=[],
+                    help='"<row key or record id>::<the one next step>" — for a row whose words name none')
+    ap.add_argument('--pick', action='append', default=[],
+                    help='"<row key or record id>::<why>" — the three as weighed in the chat; '
+                         'the builder\'s own picks are the fallback')
+    ap.add_argument('--now', help='the local clock at the write, HH:MM — keys the today rows (I12)')
+    ap.add_argument('--shape', choices=SHAPES,
+                    help="the page's shape; by default Saturday and Sunday have their own, every other day is a weekday")
+    ap.add_argument('--history', action='append', default=[],
+                    help='the ledger of older weeks (ledger.py); by default every history/*.json beside the '
+                         'settings — only for how far each drive has come')
+    ap.add_argument('--plan-out', help='where the look-ahead plan goes; default beside --out')
+    a = ap.parse_args()
+    L = json.load(open(a.local, encoding='utf-8'))
+    install_local(L)
+    today = dt.date.fromisoformat(a.today)
+
+    rows, chains, latest, reads = load_stream(a.stream)
+    hist = a.history or sorted(glob.glob(_os.path.join(_os.path.dirname(_os.path.abspath(a.local)), 'history', '*.json')))
+    history = load_stream(hist)[0] if hist else []
+    rhythms, nrh = load_rhythms(a.rhythms)
+    open_rows, dropped = filtered_open(latest)
+    cal = json.load(open(a.calendar, encoding='utf-8'))
+
+    # chip — derived from the date, never copied forward
+    wk = L['week_zero_number'] + (today - dt.date.fromisoformat(L['week_zero_sunday'])).days // 7
+    chip = f'▶️🔆{today:%m%d} {DAYEMO[today.weekday()]} {DAY3[today.weekday()]} {MARK} W{wk} my day'
+
+    # the week's word — the user's row, the user's words
+    word = None
+    for r in sorted(rows, key=lambda r: r['created'], reverse=True):
+        # the settings' pattern, else the shape the intention check writes now (11 Nov 2026: 'Weekly intention: Flowing ·
+        # focus practice: …' missed '^Weekly intention — (.+)$', and the page fell back to last week's Steady)
+        m = (re.match(L['week_word_title'], r['title'] or '') if L.get('week_word_title') else None) \
+            or re.match(r'^Weekly intention\s*[—–:-]\s*([^·]+?)\s*(?:·.*)?$', r['title'] or '')
+        if m:
+            word = dict(word=m.group(1).strip(), words=sentence_with(her_words(r['details']), [m.group(1)]) or ''); break
+
+    days, gaps, clashes, away, evs, conflicts = calendar(cal, rows, open_rows, today, a.days, L)
+    by_ref = {}
+    for r in latest.values():
+        by_ref.setdefault(r['id'], r)
+        if r['key']:
+            by_ref.setdefault(r['key'], r)
+    steps = {}
+    for spec in a.step:
+        ref, _, txt = spec.partition('::')
+        r = by_ref.get(ref.strip())
+        if not r:
+            die(f'--step {ref.strip()!r}: no row with that key or record id in the stream read')
+        steps[r['id']] = txt.strip()
+
+    def move(r):
+        ch = chains.get(bedo_reader.chain_key(r['key'], r['status'], r['id']))
+        return next_move(r, ch, steps.get(r['id']), L['self_person'])
+    # rows that are an event's own (or may be, today) are on the calendar already
+    calendared = {e['match_row']['id'] for e in evs if e.get('match_row')}
+    calendared |= {r['id'] for e in evs for r in (e.get('maybe') or [])}
+    picks, nxt, more = pareto(open_rows, chains, rhythms, today, L, calendared)
+    if a.pick:
+        # the three as weighed in the chat (9 Oct 2026: the day chat's three were the right
+        # ones). Each names a live row; any status, so a pick closed during the day draws as
+        # done when the page is rebuilt. The builder's own picks step down to next in line.
+        by = by_ref
+        chosen = []
+        for spec in a.pick[:3]:
+            ref, _, why = spec.partition('::')
+            r = by.get(ref.strip())
+            if not r:
+                die(f'--pick {ref.strip()!r}: no row with that key or record id in the stream read')
+            chosen.append(dict(kind='', row=r, why=why.strip()))
+        ids = {c['row']['id'] for c in chosen}
+        # a fourth and fifth --pick are the chat's next in line (12 Nov 2026: getting ready for next week was hers to
+        # see, and the builder's own next in line had stepped in instead)
+        mine = []
+        for spec in a.pick[3:5]:
+            ref, _, why = spec.partition('::')
+            r = by.get(ref.strip())
+            if not r:
+                die(f'--pick {ref.strip()!r}: no row with that key or record id in the stream read')
+            mine.append(dict(kind=why.strip() or 'next', title=clean_title(r['title'])))
+            ids.add(r['id'])
+        nxt = (mine + [dict(kind=p['kind'], title=clean_title(p['row']['title'])) for p in picks if p['row']['id'] not in ids])[:2]
+        more = [m for m in more if m['id'] not in ids]
+        picks = chosen
+    plan = look_ahead_plan(evs, conflicts, rows, open_rows, chains, rhythms, today, a, L)
+    standing = standing_steps(load_practices(a.practices, L), rows, today, a.days)
+    for d in days:  # a standing step sits first among the day's due lines
+        d['due'] = standing.get(dt.date.fromisoformat(d['date']), []) + d['due']
+    # a due line carries its drive's emoji, for context at a glance, and its next step and
+    # way in (28 Oct 2026, her words: it's not clear what [it] is … what is the next step?)
+    for d in days:
+        for t in d['due']:
+            t['emoji'] = (rhythms.get(t['drive']) or {}).get('emoji') or ''
+            if t.get('id') in by_ref:
+                t['move'] = move(by_ref[t['id']])
+    # today's events carry the drive their glyph names, the way the day behind's cards do
+    by_link = {e['link']: e for e in evs if e['link']}
+    for it in (days[0]['events'] if days else []):
+        e = by_link.get(it['link'])
+        it['drive'] = bucket_for(e, rhythms, L)[0] if e else None
+
+    def dests_through(name):
+        return list(dict.fromkeys(dn for k in bedo_drives.chain(name, DRIVES)
+                                  for dn in (DRIVES[k].get('dest') or [])))
+
+    # open work by drive — what is coming up, each row under its own drive and every
+    # drive it feeds, the child nested under its parent; the total counts each row once
+    def tgt_of(r):
+        return local(r['target']).date() if r['target'] else None
+    rolled = bedo_drives.roll_up(open_rows, DRIVES, drive=lambda r: r['rhythm'])
+
+    def open_node(n):
+        rec = DRIVES.get(n['name']) or {}
+        mine = [r for r in open_rows if n['name'] in bedo_drives.chain(r['rhythm'] or '', DRIVES)]
+        dated = sorted(t for t in (tgt_of(r) for r in mine) if t)
+        nxt_ = next((t for t in dated if t >= today), None)
+        return dict(drive=n['name'], emoji=rec.get('emoji') or '', n_own=n['n_own'], n=n['n'],
+                    late=sum(1 for t in dated if t < today),
+                    soon=sum(1 for t in dated if 0 <= (t - today).days <= 7),
+                    next=nxt_.isoformat() if nxt_ else None,
+                    children=[open_node(c) for c in n['children']])
+    by_drive = [open_node(n) for n in bedo_drives.tree(rolled, DRIVES, key=lambda k: (-rolled[k]['n'], k))]
+    plan['drives'] = dict(open=sum(1 for r in open_rows if r['rhythm']), no_drive=sum(1 for r in open_rows if not r['rhythm']),
+                          tree=by_drive, loops=[' → '.join(c + c[:1]) for c in bedo_drives.loops(DRIVES)])
+
+    # map forward — each pick's drive running to what it serves
+    lanes, dests = [], {}
+    for p in picks:
+        r = p['row']; d = rhythms.get(r['rhythm'] or '') or {}
+        t = local(r['target']).date().isoformat() if r['target'] else None
+        # the lane runs through every drive this one feeds, to what each of them serves
+        up = bedo_drives.chain(r['rhythm'] or '', DRIVES)
+        lane_dests = dests_through(r['rhythm'] or '')
+        lanes.append(dict(kind=p['kind'], drive=r['rhythm'], emoji=d.get('emoji') or '·',
+                          via=list(reversed(up[1:])),
+                          step=t, drive_target=d.get('target'), dest=lane_dests))
+        for dn in lane_dests:
+            if dn not in dests:
+                dr = next((x for x in rhythms.values() if x['name'].endswith(dn) or x['name'] == dn), {})
+                feeders = [x['name'] for x in rhythms.values() if x['type'] == '♐ drive' and dn in dests_through(x['name'])]
+                dests[dn] = dict(name=dn, emoji=dr.get('emoji') or '♎', target=dr.get('target'), feeders=len(feeders))
+
+    # today and soon — dated work in the next three days.
+    # Past its date — every open row whose target has passed. These are never folded away or
+    # left to carry: each one needs the user's word (done, a new date, or dropped), so the page lists
+    # them all, oldest first, and the plan hands them to the chat for the one list of asks.
+    soon, overdue = [], []
+    for r in open_rows:
+        if not r['target']:
+            continue
+        t = local(r['target']).date(); n = (t - today).days
+        item = dict(id=r['id'], title=clean_title(r['title']), drive=r['rhythm'] or '', date=t.isoformat(), label=fmt_day(t), st=r['status'][:2])
+        if 0 <= n <= L.get('soon_days', 3):      # her word, 28 Oct 2026: today's list holds today
+            soon.append(item)
+        elif n < 0:
+            overdue.append(dict(item, late=-n, key=r['key'], move=move(r)))
+    soon.sort(key=lambda x: x['date']); overdue.sort(key=lambda x: x['date'])
+    picked = {p['row']['id'] for p in picks}
+
+    # the list after the calendar — the picks, then the rest of the pull, then dated work in
+    # the next three days, never more than max_tasks in all (the user's word, 2 Oct 2026: max ten,
+    # so it is not overwhelming). Past-date rows are not in it: they have their own section.
+    cap = L.get('max_tasks', 10)
+    today_events = [re.sub(r'^[^\w]+', '', e['title']).split(' — ')[0].strip() for e in days[0]['events']] if days else []
+    taken = {clean_title(p['row']['title']) for p in picks}
+    # today's standing steps lead the list: they are due today by definition
+    tasks = [dict(kind=f"every {s['every']}", title=s['title'], drive=s['drive'], due='today', st=s['st'],
+                  date=today.isoformat(), emoji=(rhythms.get(s['drive']) or {}).get('emoji') or '')
+             for s in standing.get(today, [])]
+    taken |= {t['title'] for t in tasks}
+    for t in more + [dict(kind='dated', id=x['id'], title=x['title'], drive=x['drive'], due='due ' + x['label'], st=x['st'], date=x['date']) for x in soon]:
+        if len(picks) + len(tasks) >= cap:
+            break
+        # a row that is a calendar event's own is already on the calendar
+        if t['title'] in taken or t.get('id') in calendared or any(ev and ev.lower() in t['title'].lower() for ev in today_events):
+            continue
+        taken.add(t['title']); tasks.append(dict(kind=t['kind'], title=t['title'], drive=t['drive'], due=t['due'], st=t['st'], date=t['date'],
+                                                 emoji=(rhythms.get(t['drive']) or {}).get('emoji') or '',
+                                                 move=move(by_ref[t['id']]) if t.get('id') in by_ref else None))
+    plan['overdue'] = [dict(id=o['id'], key=o['key'], title=o['title'], drive=o['drive'], target=o['date'], days_late=o['late'])
+                       for o in overdue]
+
+    # the lead — one line, spoken to the user
+    first = days[0]
+    ends = [e['title'] for e in first['events'] if e['when'].startswith('ends')]
+    tmr = next((p for p in picks if p['row']['target'] and (local(p['row']['target']).date() - today).days == 1), None)
+    parts = []
+    if ends:
+        parts.append(re.sub(r'^Stay at ', '', ends[0].split(' | ')[0]) + ' wraps up this morning.')
+    if tmr:
+        t = clean_title(tmr['row']['title']).split(' — ')[0]
+        parts.append('Tomorrow: ' + t[0].lower() + t[1:] + '.')
+    lead = ' '.join(parts) if parts else 'A clear day ahead.'
+    chore = chore_for(today, evs, L)
+
+    # the weekend shapes: Sunday reads the week by day, Saturday is fun first
+    shape = shape_of(today, a.shape)
+
+    def card(r):
+        return dict(id=r['id'], title=clean_title(r['title']), drive=r['rhythm'] or '', st=r['status'][:2],
+                    date=local(r['target']).date().isoformat() if r['target'] else None,
+                    emoji=(rhythms.get(r['rhythm'] or '') or {}).get('emoji') or '', move=move(r))
+    week = ready = tending = morning = None
+    if shape == 'sunday':
+        week = week_shape(days[1:], evs, conflicts, L)
+        lead = week_lead(week)
+        # what has to be ready as the week opens; the chat's own picks, when given, lead it
+        ready = [card(p['row']) for p in picks] if a.pick else []
+        cal_refs = calendared | {e['match_row']['key'] for e in evs if e.get('match_row') and e['match_row']['key']}
+        ready += [card(r) for r in ready_rows(open_rows, today, cal_refs) if r['id'] not in {x['id'] for x in ready}]
+        ready = ready[:5]
+        morning = sunday_morning(evs, standing, today, L)
+    elif shape == 'saturday':
+        lead = L.get('saturday_lead') or 'Fun first; the calendar comes after.'
+        tending = [card(r) for r in tending_rows(open_rows, today, L)]
+    # open work targeted inside an away stretch, even past the window
+    inside = []
+    for w in away:
+        a0, b0 = dt.date.fromisoformat(w['a']), dt.date.fromisoformat(w['b'])
+        if b0 < today:
+            continue
+        for r in open_rows:
+            if r['target'] and a0 <= local(r['target']).date() <= b0 and local(r['target']).date() >= today + dt.timedelta(days=a.days):
+                inside.append(dict(title=clean_title(r['title']), label=fmt_day(local(r['target']).date()), away=w['title']))
+
+    # the my day page (261028_myday): card 1 and the whole map, from this same read; the
+    # page is named like the day's my day chat, and today's look ahead row says its link
+    ahead_ = horizon(open_rows, today, L, move)
+    card1, whole = myday.build(rows, latest, {r['id'] for r in open_rows}, hidden_drive, today, DRIVES, L, local,
+                               lambda r: bedo_reader.chain_key(r['key'], r['status'], r['id']), history)
+    plan['page'] = dict(title=chip, **myday.today_link(rows, today, local, L.get('artifact_url') or ''))
+
+    DATA = dict(
+        chip=chip, weekN=wk, card=card1, whole=whole, date=today.isoformat(), dateLabel=f'{today:%A} {today.day} {today:%B}', lead=lead, chore=chore,
+        word=word,
+        secure=dict(state=a.secure, words=a.secure_words) if a.secure else None,
+        pareto=[dict(kind=p['kind'], title=clean_title(p['row']['title']), drive=p['row']['rhythm'] or '',
+                     emoji=(rhythms.get(p['row']['rhythm'] or '') or {}).get('emoji') or '·', why=p['why'], st=p['row']['status'][:2],
+                     date=local(p['row']['target']).date().isoformat() if p['row']['target'] else None,
+                     move=move(p['row'])) for p in picks],
+        next=nxt, tasks=tasks, max_tasks=cap, horizon=ahead_,
+        intentions=(a.intention or [None])[:3], draft=a.draft,
+        drives=plan['drives'],
+        map=dict(start=today.isoformat(), end=L['map_end'], lanes=lanes, dests=list(dests.values()), away=away),
+        # a pick shows once, in the three; a weekend page draws no three, so there only a row
+        # already in a section of its own (Sunday's ready-for-Monday) is left out
+        soon=soon, overdue=[o for o in overdue if o['id'] not in (picked if shape == 'weekday' else {x['id'] for x in ready or []})],
+        days=days, gaps=gaps, clashes=clashes,
+        sunday=today.weekday() == 6, inside=inside,
+        shape=shape, week=week, ready=ready, tending=tending, morning=morning,
+        prov=dict(reads=[f'{p.split("/")[-1].replace(".json", "")} {n}/{n}' for p, n in reads],
+                  rhythms=(f"{RHYTHMS_NOTE[a.rhythms]['read_total']}/{RHYTHMS_NOTE[a.rhythms]['read_total']} ({nrh} active rows used)"
+                           if RHYTHMS_NOTE.get(a.rhythms, {}).get('read_total') else f'{nrh}/{nrh}'), calendar=cal.get('read', {}),
+                  unique=len(rows), keys=len(latest), open=len(open_rows), dropped=dropped),
+    )
+    tpl = open(a.template, encoding='utf-8').read()
+    # a row's words may hold '</script>'; the page's script must not end there
+    html = tpl.replace('/*__DATA__*/null', json.dumps(DATA, ensure_ascii=False).replace('</', '<\\/'))
+    html = html.replace('<title>The Day Ahead</title>', f'<title>{chip}</title>', 1)  # the day's my day name
+    open(a.out, 'w', encoding='utf-8').write(html)
+    plan_path = a.plan_out or re.sub(r'\.html?$', '', a.out) + '.plan.json'
+    open(plan_path, 'w', encoding='utf-8').write(json.dumps(plan, ensure_ascii=False, indent=1))
+    print(json.dumps(dict(shape=shape, lead=lead, chore=f"one chore for {chore['kid']}: {chore['text']}",
+                          ready=[x['title'] for x in ready or []], tending=[x['title'] for x in tending or []],
+                          picks=[(p['kind'], clean_title(p['row']['title'])) for p in picks], next=nxt,
+                          soon=len(soon), overdue=len(overdue), gaps=gaps, clashes=clashes,
+                          hidden=dropped['hidden'], quickies=dropped['quickie'],
+                          today_rows=len(plan['today_rows']), today_asks=len(plan['today_asks']),
+                          future_rows=len(plan['future_rows']), prep=len(plan['prep']), conflicts=len(plan['conflicts']), past_date=len(plan['overdue']),
+                          page=plan['page'], card_steps=len(card1['steps']), plan=plan_path),
+                     ensure_ascii=False, indent=1))
+
+
+if __name__ == '__main__':
+    main()

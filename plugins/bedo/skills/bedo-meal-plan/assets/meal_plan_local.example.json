@@ -1,0 +1,14 @@
+{
+ "_about": "Copy to meal_plan_local.json (gitignored) and fill in. The stream's field ids and the time zone come from the core's facts_local.json; these are the shelf's and the recipes' own. The week's shape is the household's typical, not a rule: leave a day blank for no theme.",
+ "supplies_fields": {
+  "item": "fld…", "kind": "fld…", "status": "fld…", "where": "fld…", "quantity": "fld…",
+  "buy_where": "fld…", "watch_for": "fld…", "shelf_life": "fld…", "added": "fld…", "notes": "fld…"
+ },
+ "recipes_fields": {
+  "title": "fld…", "source": "fld…", "course": "fld…", "theme": "fld… (dinner theme)",
+  "ingredients": "fld…", "key_ingredients": "fld…", "time": "fld…", "servings": "fld…",
+  "standing": "fld…", "notes": "fld…", "added": "fld…"
+ },
+ "week_shape": {"mon": "", "tue": "", "wed": "", "thu": "", "fri": "", "sat": "", "sun": ""},
+ "days_back": 10
+}
