@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>/*THEMEJS*/</script>
+<title>My week</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/*ROOT*/
+/*NIGHT*/
+/*SHELLCSS*/
+/*BLOCKSCSS*/
+/*BFCSS*/
+/*BFCARDCSS*/
+/* the my week page's own layout. Everything above this line is shared with the my day page:
+   the same ground, the same card, the same rhythm block, the same base-flow river. What is here
+   is only what a week needs and a day does not — seven columns instead of one set of hours. */
+section{margin:0 0 18px}
+h2.sec{font:italic 400 18px var(--serif);color:var(--accent);margin:0 0 2px}
+p.say{font-size:12.5px;color:var(--muted);margin:0 0 10px;max-width:72ch}
+/* the week's word, first and in its own slot (the Monday rules) */
+.wordbox{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:16px 16px 14px;text-align:center}
+.wordbox .slot{font:600 clamp(30px,8vw,46px)/1.1 var(--serif);color:var(--accent);font-style:italic;margin:2px 0 0}
+.wordbox .empty{display:inline-block;min-width:9ch;border-bottom:2px dashed var(--rule);color:var(--faint)}
+.wordbox .k{text-align:center}
+.wordbox .her{font-size:13.5px;color:var(--muted);margin:6px 0 0}
+.cands{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0 0}
+.cands li{list-style:none;background:var(--card2);border:1px solid var(--rule);border-radius:999px;padding:4px 12px;font-size:13px}
+.cands li b{font-weight:600}
+.cands li small{display:block;font:500 10.5px var(--mono);color:var(--muted)}
+/* her one focus practice, and how it is going — never a score */
+.focus2{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:10px 14px}
+.focus2 b{font-size:15px}
+.focus2 .dots{display:flex;gap:5px}
+.focus2 .dots span{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font:500 9.5px var(--mono);border:1px solid var(--rule);color:var(--faint)}
+.focus2 .dots span.on{background:var(--dest-soft,var(--card2));border-color:var(--dest);color:var(--dest);font-weight:600}
+.focus2 .of{font:500 11.5px var(--mono);color:var(--muted)}
+/* WHAT I COULD PUSH THIS WEEK — the picture first, the words under it.
+   Her words on the first W46 page, 9 Nov 2026: what I'm seeing is just a lot of detail and
+   intricate, like a lot of text, that I don't want to take the time to read … what I need is for
+   you to help me pick the top whatever drives that actually I can push forward this week, and then
+   the actions in those drives. So the section opens as a board — the few drives down the side, the
+   week across the top, each action sitting on the day it is due — and the words come after it, for
+   when she wants them. Every lane is named as well as coloured, because she reads this at night. */
+.board{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:10px;overflow-x:auto}
+.bg{display:grid;grid-template-columns:8.5rem repeat(7,minmax(4.4rem,1fr)) 5.6rem;gap:4px;min-width:660px}
+.bg .hd{font:500 10px var(--mono);color:var(--faint);text-align:center;padding:0 0 3px}
+.bg .hd.now{color:var(--accent);font-weight:700}
+.bg .hd.gone{opacity:.5}
+.bg .lb{align-self:center;min-width:0;padding-right:4px;border-left:4px solid var(--ln);padding-left:7px}
+.bg .lb b{display:block;font:600 11.5px/1.25 var(--sans)}
+.bg .lb em{font:500 9.5px var(--mono);font-style:normal;color:var(--faint)}
+.bg .cell{border-radius:8px;min-height:34px;padding:2px;display:grid;gap:2px;align-content:start;background:color-mix(in srgb,var(--ln) 8%,transparent)}
+.bg .cell.weekend{background:color-mix(in srgb,var(--ln) 15%,transparent)}
+.bg .cell.gone{opacity:.55}
+.bg .cell.today{outline:1.5px solid var(--accent);outline-offset:-1px}
+.bg .cell.open{background:none}
+.bg .pz{font:500 9.5px/1.3 var(--mono);border-radius:6px;padding:2px 4px;background:var(--ln);color:var(--lc);text-align:left;cursor:pointer;word-break:break-word}
+.bg .pz.soft{background:none;border:1px dashed var(--ln);color:var(--ink)}
+.pnote{font:500 10.5px var(--mono);color:var(--faint);margin:8px 2px 0}
+.lanes{display:grid;gap:10px;margin:12px 0 0}
+.lane{background:var(--card);border:1px solid var(--rule);border-left:4px solid var(--ln);border-radius:14px;padding:10px 13px 11px}
+.lane h3{margin:0;font:600 15px var(--sans);display:flex;gap:7px;align-items:baseline;flex-wrap:wrap}
+.lane h3 em{font:500 10.5px var(--mono);font-style:normal;color:var(--faint)}
+.lane .w{font-size:12.5px;color:var(--muted);margin:3px 0 0}
+.lane .pin{font:500 11.5px var(--mono);color:var(--accent);margin:3px 0 0}
+.lane ol{margin:8px 0 0;padding:0;list-style:none;display:grid;gap:7px}
+.lane li{border-top:1px solid var(--rule);padding:7px 0 0}
+.lane li:first-child{border-top:0;padding-top:2px}
+.lane li b{font-weight:600;font-size:13.5px}
+.lane li .when{font:500 10.5px var(--mono);color:var(--dest);margin-left:5px}
+.lane li .st{font-size:12.5px;margin:2px 0 0}
+.lane li .why2{font:500 10.5px var(--mono);color:var(--muted);margin:2px 0 0}
+.lane li a{font:500 10.5px var(--mono);color:var(--dest);margin-right:8px}
+.lane .more2{font:500 11px var(--mono);color:var(--faint);margin:7px 0 0}
+/* the week on the calendar: seven days side by side, one under the other on a phone */
+.wk{display:grid;gap:10px;grid-template-columns:1fr}
+@media (min-width:860px){.wk{grid-template-columns:repeat(7,minmax(0,1fr))}}
+.dcol{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:8px 8px 10px;min-width:0}
+.dcol.is-today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.dcol.gone{opacity:.92}
+.dcol h3{margin:0 0 2px;font:600 13.5px var(--sans);display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
+.dcol h3 em{font:500 10.5px var(--mono);font-style:normal;color:var(--faint)}
+.dcol .tags{display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 6px}
+.dcol .tags b{font:500 9.5px var(--mono);letter-spacing:.04em;text-transform:lowercase;border-radius:999px;padding:1px 7px;background:var(--card2);color:var(--muted);font-weight:500}
+.dcol .tags b.peak{background:var(--dest-soft,var(--card2));color:var(--dest)}
+.dcol .tags b.clash{background:#F6D7CF;color:#8E4A2C}
+.dcol .note{font-size:11.5px;color:var(--muted);margin:0 0 6px}
+.dcol .band{font:500 10.5px var(--mono);color:var(--muted);background:var(--card2);border-radius:8px;padding:2px 7px;margin:0 0 6px;display:block}
+.dcol .none{font:400 11.5px var(--mono);color:var(--faint);margin:6px 0 0}
+.dcol .daystrip{display:flex;height:9px;border-radius:4px;overflow:hidden;background:var(--rule);margin:0 0 3px}
+.dcol .daystrip i{display:block;height:100%}
+.dcol details.more{margin:2px 0 0}
+.dcol details.more summary{font:500 10.5px var(--mono);color:var(--muted);cursor:pointer;padding:3px 0}
+.dcol details.more[open] summary{margin-bottom:4px}
+.ev{border-radius:9px;padding:4px 7px;margin:0 0 5px;font-size:12px;line-height:1.35;border-left:4px solid var(--e);background:color-mix(in srgb,var(--e) 20%,var(--card));cursor:pointer}
+html[data-bedo="night"] .ev{background:color-mix(in srgb,var(--e) 26%,var(--card))}
+.ev.meeting{background:var(--e);color:var(--ec)}
+.ev.sleep{background:#403F7B;color:#fff;border-left-color:#2A2960}
+.ev.step{background:none;border:1px dashed var(--e);border-left:4px solid var(--e)}
+.ev.est{border-top:1px dashed var(--e);border-bottom:1px dashed var(--e)}
+.ev b{font-weight:600;display:block}
+.ev .at{font:500 10px var(--mono);opacity:.8}
+.ev .gl{float:right;margin-left:4px}
+.ev.done b{text-decoration:line-through;text-decoration-thickness:1px}
+.ev.fade{opacity:.17}
+.ev .who{font:500 9.5px var(--mono);opacity:.75}
+.ev a{color:inherit;text-decoration:none}
+.gold{box-shadow:0 0 0 2px #E0A526}
+/* how the time is going, over the week */
+.hb{display:grid;gap:14px;grid-template-columns:1fr}
+@media (min-width:700px){.hb{grid-template-columns:minmax(0,260px) minmax(0,1fr)}}
+.hb .ring{display:block;width:100%;max-width:260px;margin:0 auto;height:auto}
+.bars{display:grid;gap:5px}
+.bars .r{display:grid;grid-template-columns:minmax(7rem,12rem) minmax(0,1fr) 4.2rem;gap:9px;align-items:center;font-size:13px;cursor:pointer}
+.bars .r.off{opacity:.4}
+.bars .r b{font-weight:600;padding-left:15px;position:relative;font-size:12.5px}
+.bars .r b::before{content:"";position:absolute;left:0;top:.42em;width:9px;height:9px;border-radius:50%;background:var(--c)}
+.bars .r small{display:block;font:400 11px var(--mono);color:var(--muted)}
+.bars .bar{height:9px;border-radius:5px;background:var(--rule);overflow:hidden}
+.bars .bar i{display:block;height:100%;background:var(--c);border-radius:5px}
+.bars .v{font:500 12px var(--mono);text-align:right;color:var(--muted)}
+.byday{display:grid;gap:4px;margin:12px 0 0}
+.byday .r{display:grid;grid-template-columns:2.6rem minmax(0,1fr) 3.4rem;gap:8px;align-items:center;font:500 11px var(--mono);color:var(--muted)}
+.byday .st{display:flex;height:12px;border-radius:4px;overflow:hidden;background:var(--rule)}
+.byday .st i{display:block;height:100%}
+.clear{font:500 11px var(--mono);color:var(--dest);background:none;border:0;cursor:pointer;padding:0;margin:8px 0 0}
+/* this week's wheel, so far */
+.wh{display:grid;gap:12px;grid-template-columns:1fr;align-items:center}
+@media (min-width:700px){.wh{grid-template-columns:minmax(0,280px) minmax(0,1fr)}}
+.wh svg{display:block;width:100%;max-width:280px;margin:0 auto;height:auto}
+.wh .legend{display:grid;gap:4px;font-size:12.5px}
+.wh .legend .r{display:grid;grid-template-columns:1.6rem minmax(0,1fr) 3.4rem;gap:8px;align-items:center;cursor:pointer}
+.wh .legend .r.off{opacity:.4}
+.wh .legend .r span{font:400 11.5px var(--mono);color:var(--muted)}
+.wh .legend .r i{font:500 12px var(--mono);text-align:right;font-style:normal;color:var(--muted)}
+/* the two weeks after */
+.ah{display:grid;gap:10px}
+.ah .w{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:10px 12px}
+.ah .w h3{margin:0 0 6px;font:600 14px var(--sans);display:flex;gap:8px;align-items:baseline}
+.ah .w h3 em{font:500 10.5px var(--mono);font-style:normal;color:var(--faint)}
+.ah .d{display:grid;grid-template-columns:4.6rem minmax(0,1fr);gap:8px;padding:3px 0;border-top:1px solid var(--rule);font-size:12.5px}
+.ah .d:first-of-type{border-top:0}
+.ah .d b{font:500 11px var(--mono);color:var(--muted);font-weight:500}
+.ah .d ul{margin:0;padding:0;list-style:none}
+.ah .d li{padding:1px 0}
+.ah .d li em{font:500 10.5px var(--mono);font-style:normal;color:var(--faint);margin-right:5px}
+.ah .d li .no{color:var(--dest);font:500 10px var(--mono)}
+/* past its date, and the horizon */
+.late{display:grid;gap:8px}
+.late .r{background:var(--card);border:1px solid var(--rule);border-left:4px solid var(--dest);border-radius:12px;padding:8px 12px}
+.late .r .d{font:500 10.5px var(--mono);color:var(--dest)}
+.hz{display:grid;gap:8px;margin:10px 0 0}
+.hz .r{background:var(--card2);border:1px solid var(--rule);border-radius:12px;padding:8px 12px;font-size:13px}
+.hz .r b{display:block;font-weight:600}
+.hz .r .w{font:500 10.5px var(--mono);color:var(--muted)}
+/* the Pareto question, last */
+.par{background:var(--card);border:1px solid var(--accent);border-radius:16px;padding:16px}
+.par h2{font:italic 400 clamp(19px,4.6vw,24px)/1.25 var(--serif);color:var(--accent);margin:0}
+.par p{font-size:13.5px;color:var(--muted);margin:8px 0 0}
+.par ol{margin:10px 0 0;padding-left:1.3em;font-size:14px}
+.par li{margin:3px 0}
+.foot{font:400 11.5px var(--mono);color:var(--faint);margin:18px 2px 0}
+</style>
+</head>
+<body>
+<main>
+<p class="chip" id="chip"></p>
+<h1 id="h1"></h1>
+<p class="sub" id="sub"></p>
+
+<section id="word"></section>
+<section id="focus"></section>
+<section id="push"></section>
+<section id="paths"></section>
+<section id="week"></section>
+<section id="spent"></section>
+<section id="wheel"></section>
+<section id="ahead"></section>
+<section id="rhythms"></section>
+<section id="overdue"></section>
+<section class="rv" id="rv"></section>
+<section id="pareto"></section>
+<p class="foot" id="foot"></p>
+</main>
+<script>/*BFJS*/</script>
+<script>
+const D = /*DATA*/;
+/*BASICSJS*/
+/*CLOCKJS*/
+/*KINDSJS*/
+/*WELLNESSJS*/
+/*BFCARDJS*/
+
+/* ------------------------------------------------------------------ the week's own drawing */
+const $ = id => document.getElementById(id);
+const mins = (a, b) => { const [h1,m1]=a.split(':').map(Number), [h2,m2]=b.split(':').map(Number);
+  return Math.max(0, (h2*60+m2) - (h1*60+m1)); };
+const hrs = m => m >= 60 ? `${Math.floor(m/60)}h${m%60?' '+(m%60)+'m':''}` : `${m}m`;
+
+/* which kind of time a card was — CHUNKOF and the energetic-play rule, from kinds.js, so a kind
+   means on this page exactly what it means on the my day page */
+function kindOf(x){
+  if(!x.cat || x.cat === 'event') return null;
+  let k = CHUNKOF[x.cat === 'stretch' && x.sk ? x.sk : x.cat] || 'admin';
+  if(k === 'play' && (x.hr != null ? x.hot : (x.hot || x.el === 'fire'))) k = 'playhot';
+  return k;
+}
+/* nothing in the future has been lived. A recurring event whose row closed on an earlier occurrence
+   comes back marked done, and on a day still ahead that is the row talking, not the day: a day that
+   has not arrived wears its Google colours and counts no hours. */
+const lived = (x, day) => (day && !day.past && !day.today) ? false
+  : (x.k === 'lived' || (x.k === 'event' && x.done)) && !x.theirs;
+/* a day holds 24 hours and no more. Two things at once are two rows, each its own minutes, so a day
+   of rows adds up to more than it lasted; the my day page's pie meets this by making the day exactly
+   24 h. Here the same: a day whose rows run over is scaled back to the hours it had, so the shares
+   stay true and no day ever reads 28 hours. A day still being lived is capped at the clock. */
+const DAYCAP = 24*60;
+function dayKinds(day){
+  const out = {};
+  (day.cards||[]).forEach(x => { if(!lived(x, day)) return; const k = kindOf(x); if(!k) return;
+    const m = mins(x.a, x.b); if(m) out[k] = (out[k]||0) + m; });
+  const t = Object.values(out).reduce((a,b) => a+b, 0);
+  const cap = day.today && D.now ? mins('00:00', D.now) : DAYCAP;
+  if(t > cap){ const f = cap/t; for(const n in out) out[n] = Math.round(out[n]*f); }
+  return out;
+}
+const WEEKKINDS = (() => { const t = {};
+  (D.days||[]).forEach(day => { const k = dayKinds(day); for(const n in k) t[n] = (t[n]||0) + k[n]; });
+  return t; })();
+/* how much of the week has been lived at all, so the pie's middle says hours, not a sum of overlaps */
+const WEEKHELD = (D.days||[]).reduce((a, day) => a + (Object.values(dayKinds(day)).reduce((x,y)=>x+y,0) ? 1 : 0), 0);
+let KF = '', WF2 = '';
+
+/* ------------------------------------------------------------------ the week's word, first */
+function word(){
+  const w = D.wordslot || {};
+  const slot = w.word ? `<p class="slot">${esc(w.word)}</p>`
+                      : `<p class="slot"><span class="empty">&nbsp;</span></p>`;
+  const her = w.words ? `<p class="her">${esc(w.words)}</p>` : '';
+  const cands = (w.candidates||[]).length
+    ? `<ul class="cands">${w.candidates.map(c => `<li><b>${esc(c.word) || '—'}</b><small>${esc(c.why)}</small></li>`).join('')}</ul>`
+    : '';
+  $('word').innerHTML = `<div class="wordbox"><p class="k">this week’s word</p>${slot}${her}${cands}</div>`;
+}
+
+/* her one focus practice, and how it is going through the week — never a score */
+function focus(){
+  const f = D.focus;
+  if(!f){ $('focus').innerHTML = ''; return; }
+  const dots = f.days.map(d => `<span class="${d.done?'on':''}" title="${esc(d.d)}">${esc(d.label[0])}</span>`).join('');
+  $('focus').innerHTML = `<div class="focus2"><div><p class="k" style="margin:0">this week’s focus practice</p>`
+    + `<b>${esc(f.name)}</b></div><div class="dots">${dots}</div>`
+    + `<div class="of">${f.n} of ${f.of} days so far</div></div>`;
+}
+
+/* ------------------------------------------------- the colours, on night sight */
+/* Her words on the first W46 page, 9 Nov 2026: I can't see the colors very well because I've got it
+   kind of on night sight. Her palette (6 Nov 2026) holds the eight kinds of time at one lightness,
+   which reads on either ground — except sleep, a night indigo on purpose, and a thin bar of night
+   indigo on a dark ground is nothing at all. So on night, and only in how this page draws them, a
+   colour that does not clear the ground is lifted towards white until it does. One rule, measured,
+   no hand-picked exceptions: her palette itself is untouched, and light mode is unchanged. */
+const lum = c => { const n = parseInt(String(c).replace('#', ''), 16);
+  const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+  return 0.2126 * f(n >> 16 & 255) + 0.7152 * f(n >> 8 & 255) + 0.0722 * f(n & 255); };
+const lift = (c, p) => { const n = parseInt(String(c).replace('#', ''), 16);
+  const m = v => Math.round(v + (255 - v) * p);
+  return '#' + [m(n >> 16 & 255), m(n >> 8 & 255), m(n & 255)]
+    .map(v => v.toString(16).padStart(2, '0')).join(''); };
+const NIGHTFLOOR = 0.22;
+const kc = k => { const c = (PICK_DEFAULT[k] || PICK_DEFAULT.admin)[0];
+  if(document.documentElement.dataset.bedo !== 'night') return c;
+  let out = c, p = 0;
+  while(lum(out) < NIGHTFLOOR && p < 0.7){ p += 0.1; out = lift(c, p); }
+  return out; };
+
+/* ------------------------------------------------- what I could push this week */
+/* One hue a lane, from her own eight (6 Nov 2026) so the board belongs to the rest of the page.
+   The lane is named as well as coloured — on night sight a colour alone is not enough. */
+const LANEC = [PICKS.work[0], PICKS.play[0], PICKS.care[0], PICKS.food[0]];
+const laneStyle = i => `--ln:${LANEC[i % LANEC.length]};--lc:${gink(LANEC[i % LANEC.length])}`;
+
+function board(P){
+  const ds = (D.days || []).slice(0, 7);
+  let h = `<div class="board"><div class="bg">`
+    + `<div class="hd"></div>`
+    + ds.map(d => `<div class="hd${d.today ? ' now' : ''}${d.past ? ' gone' : ''}">`
+        + `${esc(d.day3.toLowerCase())}<br>${esc(d.d.slice(8).replace(/^0/, ''))}</div>`).join('')
+    + `<div class="hd">when you<br>choose</div>`;
+  P.lanes.forEach((ln, i) => {
+    h += `<div class="lb" style="${laneStyle(i)}"><b>${esc(ln.n)}</b>`
+       + `<em>${esc(ln.code)}${ln.pin ? ' · your pick' : ''}</em></div>`;
+    const put = d => ln.acts.filter(a => a.date === d);
+    ds.forEach(d => {
+      const mine = put(d.d);
+      h += `<div class="cell${d.weekend ? ' weekend' : ''}${d.past ? ' gone' : ''}`
+         + `${d.today ? ' today' : ''}" style="${laneStyle(i)}">`
+         + mine.map(a => `<span class="pz" title="${esc(a.t)}">${esc(cut(a.t, 30))}</span>`).join('')
+         + `</div>`;
+    });
+    const loose = ln.acts.filter(a => !a.date || !ds.some(d => d.d === a.date));
+    h += `<div class="cell open" style="${laneStyle(i)}">`
+       + loose.map(a => `<span class="pz soft" title="${esc(a.t)}">${esc(cut(a.t, 26))}</span>`).join('')
+       + `</div>`;
+  });
+  return h + `</div></div>`;
+}
+
+function push(){
+  const P = D.push || {};
+  if(!(P.lanes || []).length){ $('push').innerHTML = ''; return; }
+  const L = P.left || {};
+  const left = [L.event && `${L.event} that are a meeting, not an action`,
+                L.maybe && `${L.maybe} still a maybe`,
+                L.rhythm && `${L.rhythm} on a rhythm rather than a drive`,
+                L.nopull && `${L.nopull} with nothing pulling them this week`].filter(Boolean);
+  const lanes = P.lanes.map((ln, i) => `<div class="lane" style="${laneStyle(i)}">`
+    + `<h3>${ln.emoji ? esc(ln.emoji) + ' ' : ''}${esc(ln.n)} <em>${esc(ln.code)}</em></h3>`
+    + (ln.pin ? `<p class="pin">★ your pick — ${esc(ln.pin)}</p>` : '')
+    + `<p class="w">${esc(ln.why)}${ln.goal ? ' · ' + esc(ln.goal) : ''}</p>`
+    + `<ol>${ln.acts.map(a => `<li><b>${esc(a.st)} ${esc(a.t)}</b>`
+        + (a.date ? `<span class="when">${esc(fmt(a.date))}</span>` : '')
+        + (a.step ? `<p class="st">→ ${esc(a.step)}</p>` : '')
+        + `<p class="why2">${esc(a.why)}${a.who && a.who.length ? '' : ''}</p>`
+        + ((a.links || []).map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">`
+            + `${esc(l.label)} ↗</a>`).join(''))
+        + `</li>`).join('')}</ol>`
+    + (ln.more ? `<p class="more2">+ ${ln.more} more open on this drive</p>` : '')
+    + `</div>`).join('');
+  $('push').innerHTML = `<h2 class="sec">what I could push this week</h2>`
+    + `<p class="say">The few drives a week can actually move, and in each one the few actions that `
+    + `carry it. A drive earns a place by having a date bearing down on it and people it affects — `
+    + `an undated ask is a nag, not a deadline. Paths, not a queue: you pick.</p>`
+    + board(P)
+    + (left.length ? `<p class="pnote">left out of the ${P.drives} drives with something open: `
+        + `${left.join(' · ')}.</p>` : '')
+    + `<div class="lanes">${lanes}</div>`
+    + ((P.rest || []).length ? `<details style="margin:10px 0 0"><summary style="font:500 12px `
+        + `var(--mono);color:var(--muted);cursor:pointer">and ${P.rest.length} more drive`
+        + `${P.rest.length === 1 ? '' : 's'} with pull this week</summary><ul style="margin:8px 0 0;`
+        + `padding-left:1.1em;font-size:13px">${P.rest.map(r => `<li><b>${esc(r.n)}</b> `
+        + `<em style="font:500 10.5px var(--mono);font-style:normal;color:var(--faint)">${esc(r.code)}`
+        + `</em> — ${esc(r.why)}</li>`).join('')}</ul></details>` : '');
+}
+
+/* ------------------------------------------------------------------ possible paths, never a queue */
+/* next_move() hands back the people on a row as a list; say them as words, never as A,B */
+const people = w => Array.isArray(w) ? w.join(' and ') : (w || '');
+function pathCard(p){
+  const links = (p.links||[]).map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join('');
+  const why = [p.kind && `<span>${esc(p.kind)}</span>`, p.why && `<span>${esc(p.why)}</span>`,
+               p.drive && `<span>${esc(p.drive)}</span>`].filter(Boolean).join('');
+  const step = p.step ? `<p class="st">→ <b>${esc(p.step)}</b>${p.who&&people(p.who)?` · ${esc(people(p.who))}`:''}</p>`
+                      : `<p class="st more">no next step named yet</p>`;
+  const wait = p.waiting ? `<p class="rest">⏸ waiting on ${esc(people(p.waiting))}</p>` : '';
+  return `<div class="rb" style="--dc:var(--accent);--dc2:var(--rule)">`
+    + `<h2>${esc(p.st)} ${esc(p.t)}${p.date?` <span class="to">${esc(p.date)}</span>`:''}</h2>`
+    + step + `<div class="why">${why}${links}</div>` + wait + `</div>`;
+}
+function paths(){
+  const ps = D.paths || [];
+  if(!ps.length){ $('paths').innerHTML = ''; return; }
+  const lead = ps.filter(p => p.lead), rest = ps.filter(p => !p.lead);
+  $('paths').innerHTML = `<h2 class="sec">the rest of what has a date this week</h2>`
+    + `<p class="say">Everything else open with a date inside the week, outside the drives above. `
+    + `Not a queue either.</p>`
+    + `<div class="blocks">${lead.map(pathCard).join('')}</div>`
+    + (rest.length ? `<details><summary style="font:500 12px var(--mono);color:var(--muted);cursor:pointer">`
+        + `${rest.length} row${rest.length === 1 ? '' : 's'}</summary><div class="blocks" style="margin-top:10px">`
+        + `${rest.map(pathCard).join('')}</div></details>` : '');
+}
+
+/* ------------------------------------------------------------------ the week on the calendar */
+function evCard(x, day){
+  const k = lived(x, day) ? kindOf(x) : null;
+  const ahead = !lived(x, day) && x.k === 'event';
+  const colour = ahead ? gcol(x) : (k ? kc(k) : pcol(x));
+  const cls = ['ev'];
+  if(k === 'sleep') cls.push('sleep');
+  else if(ahead && x.meet) cls.push('meeting');
+  if(x.k === 'step') cls.push('step');
+  if(x.done) cls.push('done');
+  if(x.est) cls.push('est');
+  if(k && KF && k !== KF) cls.push('fade');
+  if(WF2 && x.el !== WF2 && x.el2 !== WF2) cls.push('fade');
+  if(x.gold) cls.push('gold');
+  const gl = [x.el, x.el2].filter(e => e && WDOM[e]).map(e => wicon(e, 13)).join('');
+  const who = x.who && x.who !== D.me ? `<span class="who">${esc(x.who)}</span> ` : '';
+  const body = `<span class="gl">${gl}</span><span class="at">${esc(wt(x.a))}–${esc(wt(x.b))}</span>`
+    + `<b>${who}${esc(x.t)}</b>`;
+  const inner = x.link ? `<a href="${esc(x.link)}" target="_blank" rel="noopener">${body}</a>` : body;
+  return `<div class="${cls.join(' ')}" data-k="${esc(k||'')}" style="--e:${colour};--ec:${gink(colour)}">${inner}</div>`;
+}
+/* a day already lived folds to what mattered — her rule on the my day page (2 Nov 2026: condensed
+   after that hour passed), which a week needs far more than a day: seven days of every logged row
+   is a wall. What stays out: anything on the calendar, anything that ran three quarters of an hour
+   or more, the highlight, and anything still open. The rest sits under one line, a tap away. */
+const KEEP_MIN = 45;
+function worthIt(x){
+  return x.k === 'event' || x.k === 'step' || x.gold || x.hl || mins(x.a, x.b) >= KEEP_MIN;
+}
+/* how a day's time went, in one strip — the same kinds and colours as the pie below */
+function strip(day){
+  const k = dayKinds(day), t = Object.values(k).reduce((a,b) => a+b, 0);
+  if(!t) return '';
+  const seg = Object.keys(k).sort((a,b) => k[b]-k[a]).map(n =>
+    `<i style="width:${(100*k[n]/t).toFixed(1)}%;background:${kc(n)};`
+    + `opacity:${KF && KF!==n ? .2 : 1}" title="${esc((PICK_DEFAULT[n]||PICK_DEFAULT.admin)[2])}"></i>`).join('');
+  return `<div class="st daystrip">${seg}</div><p class="note">${hrs(t)} logged</p>`;
+}
+function week(){
+  const html = (D.days||[]).map(day => {
+    const cards = (day.cards||[]).slice().sort((p,q) => String(p.a).localeCompare(String(q.a)));
+    const fold = (day.past || day.today) && cards.length > 8;
+    const shown = fold ? cards.filter(worthIt) : cards;
+    const rest = fold ? cards.filter(x => !worthIt(x)) : [];
+    const tags = (day.tags||[]).map(t => `<b class="${esc(t)}">${esc(t)}</b>`).join('');
+    const notes = (day.notes||[]).map(n => `<p class="note">${esc(n)}</p>`).join('');
+    const bands = (day.bands||[]).map(b => `<span class="band">${esc(b)}</span>`).join('');
+    return `<div class="dcol${day.today?' is-today':''}${day.past?' gone':''}">`
+      + `<h3>${esc(day.day3)} <em>${esc(day.label.replace(/^\w{3}\s/,''))}</em></h3>`
+      + `<div class="tags">${tags}</div>${notes}${bands}`
+      + ((day.past || day.today) ? strip(day) : '')
+      + (shown.length ? shown.map(x => evCard(x, day)).join('') : (cards.length ? '' : `<p class="none">nothing on it</p>`))
+      + (rest.length ? `<details class="more"><summary>+${rest.length} more that day</summary>`
+          + rest.map(x => evCard(x, day)).join('') + `</details>` : '')
+      + `</div>`;
+  }).join('');
+  $('week').innerHTML = `<h2 class="sec">the week on the calendar</h2>`
+    + `<p class="say">your calendar, your son’s and your husband’s, and what you have lived so far. `
+    + `A day gone wears the be•do colour of the kind of time it was; a day ahead keeps its Google colour. `
+    + `A day already lived shows what mattered — the rest is one tap under it.</p>`
+    + `<div class="wk">${html}</div>`;
+}
+
+/* ------------------------------------------------------------------ how the time is going */
+function spent(){
+  const total = Object.values(WEEKKINDS).reduce((a,b) => a+b, 0);
+  if(!total){ $('spent').innerHTML = ''; return; }
+  const ks = Object.keys(WEEKKINDS).sort((a,b) => WEEKKINDS[b]-WEEKKINDS[a]);
+  const R = 100, C = 120, SW = 26;
+  let acc = -90, ring = '';
+  ks.forEach(k => { const frac = WEEKKINDS[k]/total, deg = frac*360, c = kc(k);
+    const a0 = acc*Math.PI/180, a1 = (acc+deg)*Math.PI/180;
+    const x0 = C+R*Math.cos(a0), y0 = C+R*Math.sin(a0), x1 = C+R*Math.cos(a1), y1 = C+R*Math.sin(a1);
+    ring += `<path d="M${x0.toFixed(1)},${y0.toFixed(1)} A${R},${R} 0 ${deg>180?1:0} 1 ${x1.toFixed(1)},${y1.toFixed(1)}" `
+      + `fill="none" stroke="${c}" stroke-width="${SW}" opacity="${KF && KF!==k ? .2 : .95}"/>`;
+    acc += deg; });
+  const svg = `<svg class="ring" viewBox="0 0 240 240" role="img" aria-label="how the week’s time has gone">`
+    + ring + `<text x="120" y="114" text-anchor="middle" font-family="Spectral, serif" font-size="26" font-weight="600" fill="var(--ink)">${Math.round(total/60)}h</text>`
+    + `<text x="120" y="136" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)">lived so far</text></svg>`;
+  const goals = D.spent && D.spent.goals ? (D.spent.goals.weekday || {}) : {};
+  const bars = ks.map(k => { const c = kc(k), m = WEEKKINDS[k];
+    const goal = goals[k] ? goals[k]*Math.max(WEEKHELD, 1)*60 : null;   // the days lived so far, not the whole week
+    const w = goal ? Math.min(100, 100*m/goal) : 100*m/Math.max(...ks.map(j=>WEEKKINDS[j]));
+    return `<div class="r${KF && KF!==k ? ' off':''}" data-k="${k}" style="--c:${c}">`
+      + `<b>${esc((PICK_DEFAULT[k]||PICK_DEFAULT.admin)[2])}<small>${goal?`of ${Math.round(goal/60)}h so far`:''}</small></b>`
+      + `<span class="bar"><i style="width:${w.toFixed(1)}%"></i></span><span class="v">${hrs(m)}</span></div>`; }).join('');
+  const byday = (D.days||[]).map(day => { const k = dayKinds(day), t = Object.values(k).reduce((a,b)=>a+b,0);
+    const seg = Object.keys(k).sort((a,b)=>k[b]-k[a]).map(n =>
+      `<i style="width:${(100*k[n]/Math.max(t,1)).toFixed(1)}%;background:${kc(n)};opacity:${KF && KF!==n ? .2 : 1}"></i>`).join('');
+    return `<div class="r"><span>${esc(day.day3)}</span><span class="st">${seg}</span><span>${t?hrs(t):'—'}</span></div>`; }).join('');
+  $('spent').innerHTML = `<h2 class="sec">how the time is going</h2>`
+    + `<p class="say">the week so far, by kind of time. Tap a kind to light it up on the calendar above and on the wheel.</p>`
+    + `<div class="hb">${svg}<div><div class="bars">${bars}</div><div class="byday">${byday}</div>`
+    + (KF ? `<button class="clear" type="button" id="clearkind">show all</button>` : '') + `</div></div>`;
+  $('spent').querySelectorAll('.bars .r').forEach(n => n.onclick = () => pickKind(n.dataset.k));
+  if($('clearkind')) $('clearkind').onclick = () => pickKind(KF);
+}
+
+/* ------------------------------------------------------------------ this week's wheel, so far */
+function wheel(){
+  const w = D.wheel;
+  if(!w || !w.domains || !w.domains.length){ $('wheel').innerHTML = ''; return; }
+  const by = {}; w.domains.forEach(d => by[d.k] = d);
+  const C = 120, R0 = 34, R1 = 104;
+  const top = Math.max(...w.domains.map(d => d.v)) || 1;
+  let g = '';
+  WPAIRS.forEach(pair => pair.forEach(k => { const d = by[k]; if(!d) return;
+    const a = WDOM[k].a, span = 45, a0 = (a-span/2)*Math.PI/180, a1 = (a+span/2)*Math.PI/180;
+    const r = R0 + (R1-R0)*Math.sqrt(d.v/top);
+    const pts = [[C+R0*Math.cos(a0), C+R0*Math.sin(a0)], [C+r*Math.cos(a0), C+r*Math.sin(a0)],
+                 [C+r*Math.cos(a1), C+r*Math.sin(a1)], [C+R0*Math.cos(a1), C+R0*Math.sin(a1)]];
+    g += `<path d="M${pts[0]} L${pts[1]} A${r},${r} 0 0 1 ${pts[2]} L${pts[3]} A${R0},${R0} 0 0 0 ${pts[0]} Z" `
+      + `fill="${WDOM[k].c}" stroke="${WDOM[k].d}" stroke-width="1" opacity="${WF2 && WF2!==k ? .18 : .9}"/>`;
+    const gx = C + (R1+14)*Math.cos(a*Math.PI/180), gy = C + (R1+14)*Math.sin(a*Math.PI/180);
+    g += `<g transform="translate(${(gx-8).toFixed(1)},${(gy-8).toFixed(1)}) scale(.8)" fill="${WDOM[k].c}" `
+      + `stroke="${WDOM[k].d}" stroke-width="1" stroke-linejoin="round" opacity="${WF2 && WF2!==k ? .3 : 1}">${WICON[k]}</g>`;
+  }));
+  const svg = `<svg viewBox="-16 -16 272 272" role="img" aria-label="this week’s wellness wheel so far">`
+    + `<circle cx="${C}" cy="${C}" r="${R1}" fill="none" stroke="var(--rule)" stroke-width="1"/>`
+    + `<line x1="${C}" y1="4" x2="${C}" y2="236" stroke="var(--rule)" stroke-width="1"/>` + g + `</svg>`;
+  const legend = w.domains.map(d => `<div class="r${WF2 && WF2!==d.k ? ' off':''}" data-el="${d.k}">`
+    + `${wicon(d.k, 17)}<span>${esc(WDOM[d.k].f)}</span><i>${d.share}%</i></div>`).join('');
+  $('wheel').innerHTML = `<h2 class="sec">☸️ this week’s wheel, so far</h2>`
+    + `<p class="say">every row you have lived this week, under its element — be on the left, do on the right. `
+    + `It grows as the week does. Tap an element to light up the days it came from.</p>`
+    + `<div class="wh">${svg}<div class="legend">${legend}</div></div>`;
+  $('wheel').querySelectorAll('.legend .r').forEach(n => n.onclick = () => pickEl(n.dataset.el));
+}
+
+/* ------------------------------------------------------------------ the two weeks after */
+function ahead(){
+  const ws = D.ahead || [];
+  if(!ws.length){ $('ahead').innerHTML = ''; return; }
+  const body = ws.map(w => `<div class="w"><h3>${esc(w.label)} <em>${esc(w.span)}</em></h3>`
+    + w.days.filter(d => (d.events||[]).length || (d.bands||[]).length).map(d =>
+        `<div class="d"><b>${esc(d.day3)} ${esc(d.label.replace(/^\w{3}\s/,''))}</b><ul>`
+        + (d.bands||[]).map(b => `<li><em>all day</em>${esc(b)}</li>`).join('')
+        + (d.events||[]).map(e => `<li><em>${esc(e.when || 'all day')}</em>`
+            + (e.link ? `<a href="${esc(e.link)}" target="_blank" rel="noopener">${esc(e.title)}</a>` : esc(e.title))
+            + (e.gap ? ` <span class="no">no row yet</span>` : '')
+            + ((e.clash||[]).length ? ` <span class="no">clash</span>` : '') + `</li>`).join('')
+        + `</ul></div>`).join('')
+    + `</div>`).join('');
+  const hz = (D.horizon || []).map(h => `<div class="r"><b>${esc(h.emoji||'')} ${esc(h.label||h.title||'')}</b>`
+    + `<span class="w">${esc(h.when || h.date || 'no date yet · not on the calendar')}</span>`
+    + ((h.steps||[]).length ? `<ul style="margin:6px 0 0;padding-left:1.1em">`
+        + h.steps.map(s => `<li>${esc(s.st||'')} ${esc(s.title)}${s.date?` <span class="w">${esc(s.date)}</span>`:''}</li>`).join('')
+        + `</ul>` : `<p class="w" style="margin:4px 0 0">no steps yet · break it down in a chat</p>`)
+    + `</div>`).join('');
+  $('ahead').innerHTML = `<h2 class="sec">the two weeks after</h2>`
+    + `<p class="say">what is already on the calendar past this week, and the big things worth preparing for.</p>`
+    + `<div class="ah">${body}</div>` + (hz ? `<div class="hz">${hz}</div>` : '');
+}
+
+/* ------------------------------------------------------------------ the rhythms, with their drives */
+function rhythms(){
+  const rs = D.rhythms || [];
+  if(!rs.length){ $('rhythms').innerHTML = ''; return; }
+  const step = s => `<p class="st">${esc(s.st||'')} ${esc(s.t)}${s.date?` <span class="to">${esc(s.date)}</span>`:''}</p>`;
+  const body = rs.map(r => `<div class="rb" style="--dc:${r.tend?'var(--c-moss,var(--rule))':'var(--accent)'};--dc2:var(--rule)">`
+    + `<h2>${esc(r.emoji||'')} ${esc(r.n)} <span class="to">${r.tend?'tend':'grow'}</span></h2>`
+    + (r.goal ? `<p class="st more">${esc(r.goal)}</p>` : '')
+    + (r.own||[]).map(step).join('')
+    + (r.drives||[]).map(d => `<div class="dr"><p class="dn">${esc(d.n)}</p>`
+        + (d.goal ? `<p class="gl">${esc(d.goal)}</p>` : '')
+        + (d.steps||[]).map(step).join('')
+        + (d.more ? `<p class="rest">+${d.more} more on this drive</p>` : '') + `</div>`).join('')
+    + `</div>`).join('');
+  $('rhythms').innerHTML = `<h2 class="sec">the rhythms, with their drives</h2>`
+    + `<p class="say">what is open this week, under what it serves — tending first, then growing.</p>`
+    + `<div class="blocks">${body}</div>`;
+}
+
+/* ------------------------------------------------------------------ past its date */
+function overdue(){
+  const os = D.overdue || [];
+  if(!os.length){ $('overdue').innerHTML = `<h2 class="sec">past its date</h2>`
+    + `<p class="say">nothing is past its date. </p>`; return; }
+  const body = os.map(o => `<div class="r"><p class="d">${o.days} day${o.days===1?'':'s'} late · ${esc(o.date)}</p>`
+    + `<p class="st">${esc(o.st||'')} ${esc(o.t)}</p>`
+    + (o.step ? `<p class="st more">→ ${esc(o.step)}</p>` : '')
+    + `<div class="why">${o.drive?`<span>${esc(o.drive)}</span>`:''}`
+    + (o.links||[]).map(l => `<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l)} ↗</a>`).join('')
+    + `</div>${o.waiting?`<p class="rest">⏸ waiting on ${esc(people(o.waiting))}</p>`:''}</div>`).join('');
+  $('overdue').innerHTML = `<h2 class="sec">past its date</h2>`
+    + `<p class="say">open and past its target, oldest first. Nothing here is folded away.</p>`
+    + `<div class="late">${body}</div>`;
+}
+
+/* ------------------------------------------------------------------ the Pareto question, last */
+function pareto(){
+  const p = D.pareto || {};
+  const three = ((D.push || {}).lanes || []).map(ln => (ln.acts || [])[0]).filter(Boolean);
+  $('pareto').innerHTML = `<div class="par"><h2>${esc(p.q)}</h2>`
+    + (three.length ? `<ol>${three.map(x => `<li>${esc(x.t)}</li>`).join('')}</ol>` : '')
+    + `<p>be•do would reach for ${p.pick ? `<b>${esc(p.pick)}</b>` : 'none of them in particular'} — `
+    + `but the answer is yours.</p></div>`;
+}
+
+/* one kind of time, or one element, followed through the page */
+function pickKind(n){ KF = KF === n ? '' : n; WF2 = ''; spent(); week(); wheel(); }
+function pickEl(k){ WF2 = WF2 === k ? '' : k; KF = ''; spent(); week(); wheel(); }
+
+function draw(){
+  $('sub').innerHTML = `${esc(D.span)}${D.lead ? ' · ' + esc(D.lead) : ''}`;
+  word(); focus(); push(); paths(); week(); spent(); wheel(); ahead(); rhythms(); overdue(); card(); pareto();
+  const r = D.read || {};
+  $('foot').textContent = `built ${D.today}${D.now ? ' at ' + wt(D.now) : ''} · `
+    + `${r.rows||0} rows read, ${r.open||0} open · ${r.events||0} calendar events over three weeks`
+    + (r.gaps ? ` · ${r.gaps} with no row yet` : '') + (r.clashes ? ` · ${r.clashes} clash` : '');
+  if((D.baseflow||{}).missing && D.baseflow.missing.length)
+    $('rv').insertAdjacentHTML('beforeend',
+      `<p class="bfmiss">not read this week: ${D.baseflow.missing.join(', ')}</p>`);
+}
+draw();
+document.addEventListener('bedo-theme', () => { spent(); wheel(); card(); });
+</script>
+</body>
+</html>

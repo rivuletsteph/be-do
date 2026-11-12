@@ -1,0 +1,158 @@
+# -*- coding: utf-8 -*-
+"""The day pie — twenty-four hours, every minute in exactly one slice.
+
+Carried over from the standalone pie with two changes the canon asks for:
+
+  · five slices, not seven. The categories come from the local settings file,
+    so the practice-to-slice map is the user's and never appears here.
+  · faded means ESTIMATED, not doubled. A row with a real span paints its
+    minutes and those minutes are logged. A row with no end gets its typical
+    time instead, which is counted, stated, and drawn striped by the engine —
+    never presented as logged.
+  · hatched means ON A DEVICE (the user's word, 3 Oct 2026). A row flagged 'dev'
+    marks its minutes, and whichever slice wins a minute carries that minute as
+    device time, so capture during dinner is a hatched minute of food.
+
+Twenty-four hours is the cap. When two rows are open at once the earlier slice
+in the category order wins the minute, so nothing is split in half and nothing
+is counted twice. The rest slice holds two kinds of minute, and the page tells
+them apart (the user's word, 7 Oct 2026: a whole lot of the day looked
+unaccounted for when most of it was logged): minutes a row covers that no named
+slice claims are its `logged` minutes, drawn solid, and minutes no row covers at
+all are what the engine fills out to the remainder of the day, drawn dashed as
+nothing logged.
+"""
+
+DAY_MINUTES = 1440
+
+
+def containers(rows, span_min=240, inside_min=3):
+    """A container HOLDS other rows — four hours or more with at least three
+    moments inside it. A trip, a field day, a dawn-to-dusk session: an envelope,
+    not an activity. It scores nothing, on the pie or on the wheel.
+
+    rows: dicts carrying 's' and 'e' in minutes from midnight ('e' may be None).
+    Returns (kept, held)."""
+    starts = sorted(r["s"] for r in rows if r.get("s") is not None)
+    kept, held = [], []
+    for r in rows:
+        s, e = r.get("s"), r.get("e")
+        if s is None or e is None:
+            kept.append(r)
+            continue
+        inside = sum(1 for t in starts if s < t < e)
+        (held if (e - s >= span_min and inside >= inside_min) else kept).append(r)
+    return kept, held
+
+
+def paint(rows, order):
+    """One minute, one slice. Lowest precedence first, so the higher one
+    overwrites it — `order` is the category keys, most specific first.
+
+    rows: dicts with 'cat', 's', 'e' (minutes from midnight; 'e' None = no span).
+    Returns a list of 1440 category keys or None."""
+    slice_of = [None] * DAY_MINUTES
+    for cat in reversed(order):
+        for r in rows:
+            if r.get("cat") != cat or r.get("s") is None or not r.get("e"):
+                continue
+            for m in range(max(0, r["s"]), min(DAY_MINUTES, r["e"])):
+                slice_of[m] = cat
+    return slice_of
+
+
+def build(rows, cats, max_titles=4, first=()):
+    """The DATA.pie list, in the shape the engine reads.
+
+    cats: ordered list of {'k','e','n','c'} with the rest slice last, carrying
+    'rest': True. Precedence runs down the list.
+    rows: dicts with 'cat', 's', 'e', 'est' (estimated minutes for a row with
+    no span) and 'title'.
+
+    `first` names slices that win a shared minute whatever their place in the
+    list: Moving (9 Oct 2026, her words: movement counts no matter what I'm
+    doing). The list order still decides how the pie is drawn.
+
+    Returns (pie, trimmed) — trimmed is the estimated minutes dropped to keep
+    the day inside twenty-four hours, and is reported rather than hidden."""
+    order = [c["k"] for c in cats if not c.get("rest")]
+    slice_of = paint(rows, [k for k in first if k in order] + [k for k in order if k not in first])
+
+    logged = {k: 0 for k in order}
+    for k in slice_of:
+        if k:
+            logged[k] += 1
+
+    # on a device: the minutes of a 'dev' row, counted in whichever slice won them
+    on_dev = [False] * DAY_MINUTES
+    for r in rows:
+        if r.get("dev") and r.get("s") is not None and r.get("e"):
+            for m in range(max(0, r["s"]), min(DAY_MINUTES, r["e"])):
+                on_dev[m] = True
+    dev = {k: 0 for k in order}
+    for m, k in enumerate(slice_of):
+        if k and on_dev[m]:
+            dev[k] += 1
+
+    # the rest slice's own logged minutes: covered by some row's span, but by no
+    # named slice. Whatever is left after them is the day with nothing logged.
+    rest_k = next((c["k"] for c in cats if c.get("rest")), None)
+    covered = [False] * DAY_MINUTES
+    for r in rows:
+        if r.get("s") is not None and r.get("e"):
+            for m in range(max(0, r["s"]), min(DAY_MINUTES, r["e"])):
+                covered[m] = True
+    rest_logged = sum(1 for m in range(DAY_MINUTES) if covered[m] and not slice_of[m])
+    rest_dev = sum(1 for m in range(DAY_MINUTES)
+                   if covered[m] and not slice_of[m] and on_dev[m])
+
+    est = {k: 0 for k in order}
+    for r in rows:
+        if r.get("cat") in est and not r.get("e") and r.get("est"):
+            est[r["cat"]] += r["est"]
+
+    # Twenty-four hours is the cap, and an estimate is the part that gives.
+    # A logged minute is measured; an estimated one is inferred, so when the
+    # two together overrun the day the estimates are trimmed, proportionally,
+    # and the builder says how many minutes went.
+    room = DAY_MINUTES - sum(logged.values())
+    want = sum(est.values())
+    trimmed = 0
+    if want > room:
+        keep = max(0, room)
+        scale = (keep / want) if want else 0
+        scaled = {k: int(v * scale) for k, v in est.items()}
+        trimmed = want - sum(scaled.values())
+        est = scaled
+
+    # An estimate lands inside a covered minute as often as not (a snack during a
+    # long stretch), so the rest slice gives way to the estimates rather than
+    # trimming them: the day stays twenty-four hours and nothing logged stays >= 0.
+    rest_logged = max(0, min(rest_logged, DAY_MINUTES - sum(logged.values()) - sum(est.values())))
+    rest_dev = min(rest_dev, rest_logged)
+
+    titles = {k: [] for k in order + [c["k"] for c in cats if c.get("rest")]}
+    for r in rows:
+        k, t = r.get("cat"), (r.get("title") or "").strip()
+        if not k and r.get("s") is not None and r.get("e"):
+            k = rest_k                # a span no slice names: say what the rest slice holds
+        if k in titles and t and t not in titles[k]:
+            titles[k].append(t)
+
+    pie = []
+    for c in cats:
+        k = c["k"]
+        d = {"k": k, "e": c.get("e", ""), "n": c.get("n", k), "c": c.get("c", "#B9B5C4"),
+             "logged": rest_logged if c.get("rest") else logged.get(k, 0),
+             "est": 0 if c.get("rest") else est.get(k, 0),
+             "dev": rest_dev if c.get("rest") else dev.get(k, 0),
+             "w": c.get("w") or ", ".join(titles.get(k, [])[:max_titles])}
+        if c.get("rest"):
+            d["rest"] = True          # the engine fills the nothing-logged minutes out to the day
+        pie.append(d)
+    devrows = []
+    for r in rows:
+        t = (r.get("title") or "").strip()
+        if r.get("dev") and r.get("e") and t and t not in devrows:
+            devrows.append(t)
+    return pie, trimmed, devrows

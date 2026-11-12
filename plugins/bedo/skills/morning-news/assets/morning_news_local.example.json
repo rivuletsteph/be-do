@@ -1,0 +1,19 @@
+{
+  "masthead": "The Morning Reader",
+  "topics": [
+    {"name": "AI", "look_for": "company news, model releases, AI policy and safeguards"},
+    {"name": "Water", "look_for": "floods, snowpack, state water policy"}
+  ],
+  "places": [
+    {"name": "Hometown, ST", "outlets": ["the local paper", "the public radio station"], "fetch": []},
+    {"name": "A university", "outlets": [], "fetch": ["https://example.edu/news/"]}
+  ],
+  "preferred_outlets": [
+    {"region": "the home state", "outlet": "the state paper they subscribe to"}
+  ],
+  "newsletter_senders": [
+    "the national morning briefing's sender address",
+    "the state politics brief's sender address"
+  ],
+  "notes": []
+}

@@ -1,0 +1,395 @@
+{
+ "_about": "be•do V53 facts: choice strings, glyphs, orders and thresholds that hold nothing personal. Read at run time by the core and the builders; a chat reads it instead of recalling a string. Personal values (base ids, field ids, names) live in facts_local.json, gitignored; facts_local.example.json is its blank shape. Select strings were copied from the live schema, 4 Oct 2026. Change a string here only after the base changed, never before.",
+
+ "status": {
+  "logs": ["● log", "◉ done", "⨂ skipped"],
+  "actions": ["▫️potential", "⬜ intention", "▶️ in motion", "✅ done", "✖️ dropped"],
+  "open": ["▫️potential", "⬜ intention", "▶️ in motion"],
+  "plans": ["▫️potential", "⬜ intention"],
+  "closed": ["✅ done", "✖️ dropped"],
+  "flow_step": "◉ done",
+  "ad_hoc": "● log"
+ },
+ "phase": ["🌅 dawn", "🔆 day", "🌄 dusk"],
+ "wellness": {
+  "be": ["🩷 heart", "🧠 mind", "🤸‍♀️ body", "💖 spirit"],
+  "do": ["🌊 water", "💨 air", "🌎 earth", "🔥 fire"],
+  "pairs": [["🩷 heart", "🌊 water"], ["🧠 mind", "💨 air"], ["🤸‍♀️ body", "🌎 earth"], ["💖 spirit", "🔥 fire"]]
+ },
+ "emotion": ["🟡 high energy · pleasant", "🟢 low energy · pleasant", "🔴 high energy · unpleasant", "🔵 low energy · unpleasant", "⚪ neutral"],
+ "attention": ["🌕 full", "🌓 partial"],
+ "device": ["📱 phone", "💻 laptop", "⌨️ chromebook", "🖥️ work desktop", "📺 tv", "🚫 none"],
+ "rhythm_types": {
+  "write": ["♉ value", "♈ passion", "♎ destination", "♒ rhythm", "♐ drive"],
+  "never_write": ["🫧 free-floating"]
+ },
+ "rhythm_status": ["active", "someday", "done", "dropped"],
+ "amendment_status": ["active", "folded"],
+
+ "practice": {
+  "action": "⚡ action",
+  "capture": "📲 capture",
+  "sleep": "😴 sleep",
+  "location": "📍 location",
+  "driving": "🚗 driving",
+  "gratitude": "🙏 gratitude",
+  "milestone": "🪨 milestone",
+  "media": ["🎥 movie", "📗 book", "📺 show", "🎙️ podcast", "🎧 audiobook", "📰 news", "📼 video", "🎧 podcast"],
+  "_media_about": "10 Nov 2026, her word: the podcast practice is 🎙️ podcast, so podcasts (short) and 🎧 audiobooks (long) never look alike. 🎧 podcast stays last in media only so rows written before the rename still count.",
+  "never_queued": ["🎵 song", "🎮 game"],
+  "reflective_dating": ["📒 journal", "💭 dream record", "⭐ highlight"],
+  "moment_dating": ["✨ glimmer", "🙏 gratitude", "🔎 area of inquiry", "🪨 milestone"],
+  "contact": ["🗣️ face-to-face", "👩‍💻 video call", "☎️ phone", "🗨️ text"],
+  "always_chips": ["📍 location", "🚗 driving", "💭 dream record", "😴 sleep"]
+ },
+
+ "key": {
+  "pattern": "^\\d{6}_\\d{4}[a-z]{0,2}$",
+  "about": "YYMMDD_HHMM of the first entry, a letter on collision. Only ⚡ action rows with an action status carry one."
+ },
+ "divider": "———",
+ "legacy_dividers": ["---"],
+ "be_do_block": "[be•do]",
+
+ "day_emoji": {"Sun": "☀️", "Mon": "🌕", "Tue": "🔥", "Wed": "💧", "Thu": "🌳", "Fri": "🏆", "Sat": "⏳"},
+ "week": {"opens": "Sunday", "anchor_sunday": "2026-05-03", "anchor_number": 19},
+ "fold": {"keep_active_words": ["ten mini-quests"], "recheck_per_week": 5, "about": "The weekly fold (close.py fold): a row whose decision holds a keep word stays active, because the scorer reads it (9 Nov 2026)."},
+ "clock": {"store": "UTC", "about": "Every stream datetime is stored UTC with a Z; the local offset comes from facts_local, checked against the time zone on the day (I12)."},
+
+ "glyph_codepoints": {
+  "mark": "U+1684E",
+  "drive_chat": "U+1F6A3 U+1F3FB U+200D U+2640 U+FE0F",
+  "readiness_crown": "U+1F732"
+ },
+ "chat_status": {"moving": "▶️", "next_push": "⏯️", "break": "⏸️", "done": "☑️", "dropped": "✖️", "window_closed": "✔️"},
+
+ "effort": {
+  "bands": {"momentary": 1, "short": 2, "session": 5, "deep": 10},
+  "minute_divisor": 6,
+  "zero": ["plans", "✖️ dropped", "containers", "the quest row", "📲 capture"]
+ },
+ "readiness_mark_at_or_above": 85,
+
+ "minutes": {
+  "stretch_gap": 15,
+  "unexplained_stretch": 15,
+  "container_min_hours": 4,
+  "container_min_children": 3
+ },
+ "flows": {
+  "order_source": "the practices catalog's order field, filtered to active; never recited",
+  "dusk_opens_after": "19:00",
+  "backup_close": {"dawn": "12:00", "dusk": "23:59"},
+  "phase": {"dawn": "🌅 dawn", "dusk": "🌄 dusk"},
+  "close": {"dawn": "🌅 dawn flow close", "dusk": "🌄 dusk flow close"},
+  "groups": ["flow", "optional"],
+  "never_held_open": ["optional"],
+  "wake": "😶 wake",
+  "after_sunrise": ["🔅 morning sun"],
+  "sun_by_minutes": 60,
+  "either_or": [["🌬️ evening breaths", "🌙 evening meditation"]],
+  "about_either_or": "8 Oct 2026, her words: evening breaths are an either-or on the meditation. One logged closes both; the other is never asked for.",
+  "sequences": {
+   "dawn": [["☕ coffee", "🥤 morning water"], ["🔅 morning sun", "🧎‍♀️ hip exercises"], ["🔅 morning sun", "💪 strength training"], ["🔅 morning sun", "🌬️ morning breaths"]],
+   "dusk": []
+  },
+  "leads": {"dawn": ["🗞️ morning gate"], "dusk": []},
+  "about_leads": "Steps that come next once the flow has begun, whatever the observed times say. 10 Nov 2026, her words: this is when I expect to see my morning gate, please make sure that gets slotted correctly. The Morning Gate follows her first entry (its amendment, 7 Nov 2026), so it leads the remaining list until it is logged; a step she names as next still goes ahead of it.",
+  "about_sequences": "Her stated orders, which beat any observed median. 4 Oct 2026: morning movement is early, with the coffee (easy waking-up movements); morning sun comes before the exercise block (hips, strength, breaths); water after the first coffee. Within the block the observed times decide. Dusk is ordered by clock time.",
+  "widget": {"bar": {"dawn": "#EFA038", "dusk": "#7B6FD6"}},
+  "core": {
+   "dawn": ["🗞️ morning gate", "🥤 morning water", "🤸🏻‍♀️ morning movement", "☕ coffee", "🪐 morning oura", "🌦️ weather check", "👁️ look ahead", "⚡ intention check", "🙏 gratitude", "📿 morning mantra", "📗 morning book", "🪞 mirror check", "🌅 dawn flow close"],
+   "dusk": null
+  },
+  "about_core": "A228, 2 Oct 2026, as the one line (20 Oct): the core is named; every other remaining step is its glyph after also:. Nothing leaves the catalog and everything counts toward done. The dusk core is not set yet (null prints every step as core). 7 Nov 2026, her words: I just did my mirror check which was overdue. I really need to do that every day … yeah please make sure mirror check gets every morning — so 🪞 mirror check joins the dawn core. Same morning, 8:20 AM: 🗞️ morning gate is a practice (I think it needs to be a practice), opened on her word after her first entry, so it is named too."
+ },
+ "about_widget": "The remaining list is never a widget (7, 8, 11 and 20 Oct 2026): it is one horizontal code line. The two bar colours stay, for the day behind. A237, 2 Oct 2026, had the pill strip: dawn's bar is #EFA038, the marigold she named for spirit; dusk's is #7B6FD6, the blue-violet of the ☑️ box — her words 4 Oct 2026: dusk should be more of a purple, something like ☑️.",
+ "catalog_fields": {"practice": "practice", "phase": "phase", "group": "group", "order": "order", "active": "active", "zero_duration": "zero duration", "typical_time": "typical time"},
+ "preflight": {"newest_row_within_hours": 36},
+ "window_chats": ["my day", "my week", "my month", "my season", "my year"],
+ "my_day_check": {
+  "_about": "11 Nov 2026, her yes: a my day chat gets its check the next morning, once she has seen its page (J8), never at the dusk close. A dusk that runs past midnight is still the same night until this hour.",
+  "night_ends_hour": 4
+ },
+ "dusk_audit": {
+  "daily_flag_cap": 5,
+  "attention_rule": "a row sharing minutes with another row is 🌓 partial: both are recorded in full, nothing is beaten out (9 Oct 2026). Otherwise a discrete session (an end datetime) is 🌕 full; a session written as time spent because it spanned gaps is 🌓 partial (A262)",
+  "for_my_day": "for my day:"
+ },
+
+ "self_check": {
+  "flag_if_under_of_7": {"⚡ action check": 5, "📧 clear gmail inbox": 5, "🗺️ map check": 5},
+  "flag_if_under_pct": {"attention": 95, "people": 80},
+  "shrink_at_flags": 3,
+  "attention_pool": "✅ done and ▶️ in motion ⚡ action chains with a real span in the window",
+  "people_pool": "contact rows (face-to-face, video call, phone, text) with a person tagged",
+  "excluded_everywhere": ["▫️potential", "⬜ intention", "✖️ dropped", "zero-duration practices", "containers", "the quest row"]
+ },
+ "catalog_standings": {
+  "stories": {"all": ["want", "in motion", "finished", "dropped"], "ahead": "want"},
+  "places": {"all": ["want to go", "been"], "ahead": "want to go"},
+  "recipes": {"all": ["want to try", "in rotation", "tried"], "ahead": "want to try"},
+  "supplies": {"all": ["want", "have", "out"], "ahead": "want"},
+  "about": "be•do never sets a standing unasked; a reading item clear-inbox files is the one exception (stories, want)"
+ },
+ "ahead_review": {"older_than_days": 14, "statuses": ["⬜ intention", "▶️ in motion"], "by_day_of_month": 5},
+ "airtable": {"record_ceiling_per_base": 1000, "bulk_batch": 50},
+
+ "meals": {
+  "_about": "Her rules, 7 Oct 2026 (the meals amendment): an educated guess, not a hard rule, and the onus is on be•do, not on her logging every minute. be•do places each meal's prep and eating from context, writes them ESTIMATED FROM CONTEXT, and tells her what went in the record so she can say if it is accurate.",
+  "meal_words": ["breakfast", "lunch", "dinner", "snack", "meal"],
+  "prep_words": ["breakfast prep", "lunch prep", "dinner prep", "meal prep"],
+  "prep_practice": {"breakfast": "🍳 meal prep", "lunch": "🍳 lunch prep", "dinner": "🍳 dinner prep", "meal": "🍳 meal prep"},
+  "eat_minutes": {"breakfast": 15, "lunch": 20, "dinner": 30, "snack": 10, "meal": 30},
+  "prep_minutes": {"out": 20, "simple": 15, "straightforward": 30, "cooked": 45},
+  "prep_why": {"out": "ordering and picking it up", "simple": "a simple meal she made, like a sandwich", "straightforward": "a really straightforward dinner she cooked", "cooked": "a dinner she cooked; most take 45 minutes to an hour"},
+  "out_words": ["restaurant", "takeout", "take-out", "to go", "ordered", "picked up", "pick up", "drive-thru", "drive thru", "delivery", "doordash", "deli", "café", "cafe", "grill", "diner"],
+  "simple_words": ["sandwich", "toast", "salad", "wrap", "quesadilla", "cereal", "oatmeal", "yogurt", "leftover", "smoothie", "bagel", "pb&j", "eggs"],
+  "straightforward_words": ["quick", "easy", "simple", "frozen", "boxed", "sheet pan", "pasta", "spaghetti", "grilled cheese", "breakfast for dinner"],
+  "prep_window_minutes": 180,
+  "family_words": ["mom", "mum", "dad", "mama", "papa", "grandma", "grandpa", "nana", "granny", "aunt", "uncle"],
+  "about_family_words": "A meal in a family possessive (Mom's cornbread) was made by them, not ordered and not hers to prep: the eating is placed, no prep row is proposed (8 Oct)."
+ },
+
+ "fill": {
+  "_about": "Rule 1 of the 9 Oct amendment, in code (the fill_gaps rules): every row is written with device and wellness, deduced at write time. Wellness: an ⚡ action on a drive takes the drive's element, else the practice's catalog wellness. Device: body and self-care practices 🚫 none, phone practices 📱 phone, 💻 laptop when the title says so, 🚫 none inside a walking, driving, cycling or location span. What can't be deduced is asked, in the same reply, never left empty. Personal practices extend these lists in facts_local under fill.",
+  "device_none": ["wake", "sleep", "bm", "coffee", "morning movement", "morning sun", "evening sun", "morning mantra", "morning water", "mirror check", "breakfast", "lunch", "dinner", "snack", "evening tea", "evening breaths", "morning breaths", "supplements", "bp meds", "walking", "driving", "cycling", "location", "highlight", "face-to-face", "phone charging", "strength training", "hip exercises", "gratitude", "noticing", "shower", "smoothie", "evening meditation", "neck release"],
+  "device_phone": ["morning oura", "evening oura", "weather check", "text", "email", "clear gmail inbox", "capture", "dream record", "morning book", "evening blessing", "look ahead", "look behind", "intention check", "action check", "qa check", "map check", "dawn flow close", "dusk flow close"],
+  "laptop_words": ["laptop", "💻"],
+  "chromebook_words": ["chromebook", "⌨️"],
+  "span_practices": ["location", "walking", "driving", "cycling"],
+  "generic_practices": ["action", "log"]
+ },
+ "forecast": {
+  "_about": "20 Oct 2026: a forecast is one stream row in her words, what she thinks will happen, its target the day it comes due. No score, no percentages. Every look behind lists the forecasts due in its window; she says in her own words how each turned out.",
+  "practices": ["forecast"],
+  "title_prefix": "forecast"
+ },
+ "skills_schedule": {
+  "_about": "20 Oct 2026, her words: I have a lot of skills and I just need to standardize when they get run, so I don't have to remember them. Every skill has a set time, kept here, the one place a skill's timing lives; preflight reads it at each chat's first reply and names what is due.",
+  "dawn": ["👁️ look ahead (bedo-day-ahead)", "remaining, every reply"],
+  "dusk": ["📧 clear gmail inbox (clear-inbox, then inbox)", "photos (dusk --photos)", "dayqa", "dusk audit", "the quest page, linked on my day (bedo-day-ahead, The day done)", "remaining, every reply"],
+  "sunday": ["the weekly close (bedo-weekly-close)", "the events calendar for the next two weeks, at the close (facts_local events_calendar)"],
+  "monthly": ["the ahead review, by the 5th (bedo-ahead-review)"],
+  "when_it_comes_up": ["provisions (meals)", "shopping-watch (something to buy)", "session-entry (a chat's close)"],
+  "monthly_by_day": 5
+ },
+ "calendar": {
+  "_about": "6 Oct 2026: every calendar write names its calendar and is read back before it's called done. 9 Oct 2026: every work event is purple, Google Calendar colorId 3 (Grape), her employer's colour. Her calendar ids, work parents and work words live in facts_local under calendar.",
+  "work_color": "3",
+  "done_mark": "✔️",
+  "_done_mark": "4 Nov 2026, her words: mark it with a check — just a simple check, not the green one, the simple one on my calendar, and a green check on the HTML timeline. A bunch of green checks on Google Calendar is too distracting. A done event's title starts with ✔️, never ✅; the day page draws ✔️ as ✅ done. Refines the 2 Nov rule (when she says an event is done, it gets its check)."
+ },
+ "inbox": {
+  "_about": "Her inbox rules, in code (bedo_inbox): an automatic keep (26 Oct: anything from her husband is important, like a star) always gets a line on the one list and is never archived; a sender archived by default (25 Oct: a club's mail, a keep only when it's about what she cares about there); and before anything is archived she gets one line to glance through the inbox herself, and archiving waits for her go (22 Oct). The senders live in facts_local under inbox.",
+  "nudge": "give your inbox a quick look before I archive the rest — {n} thread(s) · {link}",
+  "link": "https://mail.google.com/mail/u/0/#inbox"
+ },
+ "open_actions": {
+  "_about": "8 Oct 2026, her words: hey, I'm on my phone and I have a few minutes, what are some quickie tasks. Every new ⬜ ▶️ ▫️ action row is written with the device it will be done on, deduced like wellness; she corrects, she never fills it in. The quickie box is judgment (J12).",
+  "phone_words": ["call", "text", "email", "reply", "order", "pay", "buy", "sign up", "rsvp", "venmo", "look up"]
+ },
+ "buckets": {
+  "_about": "20 Oct 2026, her words: everything should fit either under a rhythm or a drive. A flow practice belongs to its flow and carries no rhythm; every other row that happened carries a rhythm or a drive, deduced like wellness, corrected in passing. Stories, read or watched, are her stories rhythm (facts_local stories_rhythm); a window chat's rows and captures are the system drive (facts_local system_rhythm, 26 Oct guideline).",
+  "stories_practices": ["movie", "book", "show", "podcast", "audiobook", "video"],
+  "system_practices": ["capture"],
+  "flow_groups_not": ["log type"]
+ },
+ "being_doing": {
+  "_about": "24 Oct 2026, her words: passively laying on the couch and watching a show is not doing much. An ⚡ action on a drive or rhythm takes that bucket's element (doing), never a being area by default; passive rest takes a being area, 🩷 heart with people, else what she says.",
+  "passive_rest": ["show", "movie"]
+ },
+ "appointments": {
+  "_about": "6 Oct 2026, her words: when I share an appointment like that, I need you to add it to the calendar. A row for an appointment still ahead carries its calendar event link; a to-do to book one is not the appointment.",
+  "practices": ["calendar event"],
+  "words": ["appointment", "appt", "massage", "dentist", "doctor", "haircut", "vet ", "therapy", "checkup", "check-up", "physical", "orthodont", "dermatolog"],
+  "booking_words": ["book", "make", "set up", "schedule", "remind", "call", "ask", "find"]
+ },
+ "cloudy": {
+  "_about": "28 Oct 2026, her words: the weather excuse isn't great … I think I need to use other blue light in the AM if it's cloudy. I already have a good blue light: my mirror, very bright, very natural colored. Replaces the 26 Oct weather status. A cloudy morning keeps 🔅 morning sun due by the same sun-by time, and the bright light is how it's met: logged ◉ done with the light in her words, never ⨂ skipped for the weather. The light's name is hers, facts_local cloudy_light.",
+  "practices": ["morning sun"],
+  "light": "bright light",
+  "words": ["cloud", "overcast", "rain", "storm", "fog", "drizzle", "no sun"]
+ },
+ "entry_rules": {
+  "_about": "The 9 Oct amendment, rules 2 and 6, and the 8 Oct one that every row carries a practice. A row's datetime and end fall on one local day and span at most max_span_hours; closing an old chain row sets its datetime to the act, never a multi-day span from its first date. A night's sleep is the one row that crosses midnight. person is for people she was with or in direct contact with; a plan (▫️ ⬜) names them in mentioned until it happens.",
+  "max_span_hours": 12,
+  "overnight_practices": ["sleep"],
+  "not_activities": ["location"]
+ },
+ "dayqa": {
+  "_about": "run_checks.sh dayqa DATE: meals, gaps, movement, people and device in one list. Every fill is ESTIMATED FROM CONTEXT and names its source; the dusk close shows it, writes only what she accepts, and carries the marker line in its [be•do] block. The look behind will not build a day whose rows don't carry the marker.",
+  "sources": {"photo": "photo time", "oura": "Oura", "timeline": "Timeline", "message": "message time", "rule": "your stated rule", "usual": "your usual, from your past weeks", "words": "your words about it", "calendar": "your calendar", "stream": "the stream"},
+  "reconcile_not_evidence": ["action check", "intention check", "gratitude", "highlight", "glimmer", "quest", "evening breaths", "evening blessing", "dream record", "journal", "insight", "look behind", "look ahead", "dawn flow close", "dusk flow close", "weather check", "map check", "morning oura", "evening oura", "clear gmail inbox", "news"],
+  "reconcile_common": 4,
+  "reconcile_stop": ["with", "from", "that", "this", "today", "tonight", "tomorrow", "about", "into", "your", "their", "them", "just", "some", "something", "thing", "send", "sent", "make", "made", "back", "over", "more", "next", "week", "after", "before", "what", "when", "then", "also", "have", "still", "done", "finish", "finished"],
+  "calendar_done_marks": ["✔️", "✔", "✅"],
+  "journal_read_mark": "Pulled out",
+  "marker": "dayqa shown",
+  "movement_words": ["walk", "walked", "walking", "bike", "biked", "biking", "bicycle", "cycled", "cycling", "rode my bike", "yoga", "hike", "hiked", "swim", "swam", "barre"],
+  "about_movement_words": "Only words that mean movement whatever the sentence: 'run' and 'running' read as running the checks on 6 Oct.",
+  "note_practices": ["log", "journal", "highlight", "glimmer", "capture", "dream record", "text", "email"],
+  "about_note_practices": "A clue inside an unlogged stretch is a note of hers, a photo, a message or Oura. A routine tick logged as a moment (a coffee, phone charging) says nothing about the stretch around it: on 8 Oct a 3 a.m. phone-charging row would have filled four hours.",
+  "movement_practices": ["walking", "cycling", "morning movement", "other movement", "strength training", "stretching", "yoga", "swimming", "hike", "hip exercises", "rowing", "neck release", "neck stretch", "barre", "running"],
+  "oura_practices": ["morning oura", "evening oura"],
+  "message_practices": ["text", "email"],
+  "gap_minutes": 15,
+  "unfilled_share_max": 0.10
+ },
+
+ "synergy": {
+  "_about": "Her rule, 24 Aug 2026, and her words 9 Oct: when two things run at once, are they synergizing or competing? Four answers — synergizing (one plus one makes four), competing (one plus one makes one), both, neutral — and declining is always fine. The answer is a note, not a field: one line at the end of her words, 'overlap — synergizing with <key or title>'. be•do helps her notice: synergy, do more of that; competing, try them apart. Read from what she says about it first (27 Oct 2026, her words: I want the system to deduce synergy or competition from what I say about the event or action; it doesn't work to ask me about it after the fact), her own word, then the cues below. When her words don't say, it is asked in the moment, once, as she logs it — never a day late (her words: not that I never want to be asked, but when it's a day late I will have forgotten).",
+  "answers": ["synergizing", "competing", "both", "neutral"],
+  "note": "overlap — {answer} with {partner}",
+  "her_words": {"synergizing": ["synergy", "synergiz", "synergis", "multiply", "complement"], "competing": ["competing", "compete", "competitive", "conflict", "fractured", "detract"]},
+  "cues": {"synergizing": ["helped me", "made it better", "made it more", "even better", "even more", "better with", "went well with", "perfect for", "loved doing", "enjoyed doing", "so relaxing", "kept me going", "got through it", "made the time fly", "worked well"],
+           "competing": ["distracted", "couldn't focus", "hard to focus", "couldn't concentrate", "half-listening", "half listening", "interrupted", "frustrat", "annoy", "rushed", "overwhelm", "pulled in", "too much at once", "got in the way", "neither well", "split my attention"]},
+  "about_cues": "Phrases that say how two things went together without her naming synergy or competition. Her own word wins; both kinds of cue in one row read as both.",
+  "say": {"synergizing": "synergy — do more of that", "competing": "competing — next time, try them apart", "both": "some of each — notice which part helped", "neutral": "they just sat side by side"}
+ },
+ "needs": {
+  "_about": "Her build note, Sun 18 Oct 2026: the week look behind shows Maslow's deficiency vs. growth needs, tied to the secure base. The eight wellness areas pair (heart and water, mind and air, body and earth, spirit and fire); two pairs are the deficiency needs Maslow names first, two are the growth needs, and from a secure base the deficiency side is met so the growth side can open. A settings key 'needs' with the same shape overrides this.",
+  "deficiency": [
+   {"label": "body and home", "says": "physiological and safety", "areas": ["🤸\u200d♀️ body", "🌎 earth"]},
+   {"label": "belonging and esteem", "says": "love, belonging, the work that earns respect", "areas": ["🩷 heart", "🌊 water"]}
+  ],
+  "growth": [
+   {"label": "knowing", "says": "understanding, learning, making sense", "areas": ["🧠 mind", "💨 air"]},
+   {"label": "meaning and making", "says": "self-actualisation, creating, what reaches past the self", "areas": ["💖 spirit", "🔥 fire"]}
+  ],
+  "secure_practice": "secure base",
+  "oura_practice": "morning oura"
+ },
+ "garden": {
+  "_about": "Her words, 19 Oct 2026: show and reflect meaning, the layers of a day like Garner. The week look behind draws each moment she marked as mattering as one flower: its petals are the areas the moment touched, a ring is a memory it echoes, a glow is a moment made more by sharing it (synergy). Areas come from the row's own wellness, the people on it (heart), and her words, read with the word lists below. Nothing is inferred beyond her words.",
+  "moment_practices": ["highlight", "glimmer", "gratitude", "insight", "milestone"],
+  "photo_skip_practices": ["supplements", "bp meds", "meds", "other meds", "morning oura", "evening oura", "weather check", "map check", "mirror check", "usage check"],
+  "_photo_skip_practices": "22 Oct 2026: a photo taken for a routine row (a pill, a screen of scores) is the record of a check, not a picture of the day; the day page leaves it out. Someone else's meds are matched by photo_skip_pattern, not by name.",
+  "photo_skip_pattern": "'s meds$",
+  "shared_pattern": "'s highlight$",
+  "words": {
+   "heart": ["with them", "together", "my guys", "family", "having so much fun with", "snuggl", "hug"],
+   "body": ["swim", "hike", "hiking", "walk", "climb", "rope swing", "kayak", "pool", "beach walk"],
+   "fire": ["adventure", "rope swing", "kayak", "zipline", "first time", "new campsite", "explor", "arcade", "play", "fun"],
+   "spirit": ["meaningful", "grateful", "eternal", "beautiful", "sky", "sunrise", "sunset", "cypress", "view", "present", "awe", "perfect"],
+   "mind": ["noticing plants", "learned", "learning", "wonder"],
+   "earth": ["campsite", "home", "garden"]
+  },
+  "memory": ["years ago", "last time", "i remember", "back when", "five years", "when he was"],
+  "synergy": ["synerg", "even more wonderful", "more with them", "better with"],
+  "long_words": 300,
+  "_kind_words": "When a moment's own practice says only that it was logged or marked (a log, a highlight, a glimmer), the first of these whose words appear in its title names what the thing was; the mark stays as a badge.",
+  "generic_practices": ["log", "highlight", "glimmer"],
+  "kind_words": [
+   ["🏊", ["swim", "rope swing", "the frio", "on the water", "pool"]],
+   ["🥾", ["hike", "hiked", "trail"]],
+   ["🏖️", ["beach", "sunrise on the beach", "the dunes"]],
+   ["🍽️", ["dinner", "lunch", "breakfast"]],
+   ["🎥", ["movie", "jaws"]],
+   ["📗", ["book", "read "]],
+   ["🐶", ["rosa", "dog"]],
+   ["🎨", ["sandcastle", "art"]],
+   ["🐟", ["catfish", "fishing"]],
+   ["🌅", ["sky", "sunset"]]
+  ]
+ },
+ "photos": {
+  "_about": "25 Oct 2026, her words: two kinds of photo. Informational ones carry what a row needs (a meal, a pill, a screen) and are not important in themselves. Keepers are the moments she wants to capture and hold on to; they show on the look behind, day and week. The chat that logs a photo sets the row's photo field to one or the other; a row from before the field (the old checkbox) is sorted by rule.",
+  "kinds": {"keeper": "keeper", "info": "info"},
+  "food_practices": ["breakfast", "lunch", "dinner", "snack", "meal", "smoothie", "coffee", "alcohol", "meal prep", "breakfast prep", "lunch prep", "dinner prep"],
+  "_food_practices": "Her rule, 25 Oct 2026: a picture of just food is info, hidden from the pages. It is a keeper when something about it is special: a restaurant or someone's table, people in it, or she said it was a spectacularly good meal. By rule (no kind set), a food row is a keeper when it names someone with her, or where it was (at …), or family.",
+  "food_keeper_pattern": "\\bat\\b|famil",
+  "info_practices": ["supplements", "bp meds", "meds", "other meds", "allergy meds", "morning oura", "evening oura", "weather check", "map check", "mirror check", "usage check", "shopping", "news", "capture", "morning book", "book", "calendar event", "text", "email", "action"],
+  "_info_practices": "A photo for one of these is the record of a check or a screen, not a picture of the day (garden.photo_skip_practices, 22 Oct, and the screens and flyers read since).",
+  "info_pattern": "'s meds$",
+  "near_seconds": 180,
+  "match_before_minutes": 90,
+  "match_after_minutes": 5,
+  "_match": "At dusk a photo row with no link takes the folder file taken nearest before the row's time, at most 90 minutes before or 5 after: a photo is shared after it is taken, rarely before.",
+  "day_strip_max": 5,
+  "day_page_max": 6,
+  "burst_seconds": 90,
+  "highlight_practices": ["highlight"],
+  "_day_page": "2 Nov 2026: at most six photos on the day page, one per burst, the highlight and moments with people first; a place-only keeper gives way. The record keeps every link.",
+  "drive_host": "drive.google.com",
+  "drive_path": "/file/d/{id}/view",
+  "screen_name": "^Screenshot_(\\d{8})-(\\d{6}).*\\.(jpe?g|png)$",
+  "phone_name": "^PXL_(\\d{8})_(\\d{6})\\d*.*\\.(jpe?g|png)$"
+ },
+ "categorize": {
+  "_about": "2 Nov 2026, the rules she caught by hand on Sunday 1 Nov's day page, as calls bedo_categorize makes before any day page is shown. Her words: I'm really annoyed that I have to check all this stuff. The household, its driver, the pets, rhythm_side, money_rhythms and quiet_topics are her settings, never here.",
+  "sleep_practices": ["sleep", "nap"],
+  "wake_practices": ["wake"],
+  "clock_slack_seconds": 120,
+  "usual_min_rows": 2,
+  "usual_recent_rows": 8,
+  "said_minutes_pattern": "(?:\\b(?P<n>\\d{1,3})\\s*(?P<u>min(?:ute)?s?|hours?|hrs?|h)\\b|\\b(?P<hour>an hour)\\b)",
+  "_lengths": "2 Nov 2026, her words: those need to be able to be adapted based on what I tell you every day or week, because they can change. A point row's length: her words on it, the length she gave last for that practice, her recent rows (never be•do's estimates), the catalog's typical duration, a first guess.",
+  "usual_length_practices": ["morning movement", "hip exercises", "morning breaths", "evening breaths", "breaths", "evening blessing", "strength training", "neck release", "mirror check", "evening meditation"],
+  "_usual_length": "Point rows with a usual length get it, so they cover their minutes (2 Nov 2026, her list: movement, hips, breaths, the blessing): the catalog's typical duration first, else her median from other weeks for these.",
+  "usual_minutes": {"morning movement": 10, "hip exercises": 15, "morning breaths": 10, "evening breaths": 5, "breaths": 5, "evening blessing": 4, "mirror check": 3, "strength training": 20, "neck release": 5, "evening meditation": 10},
+  "_usual_minutes": "The last fallback, when neither the catalog nor her past weeks give a length: a first guess she corrects in the catalog's typical duration.",
+  "never_lengthen": ["action", "log", "capture"],
+  "filler_practices": ["log"],
+  "filler_min_minutes": 10,
+  "_filler": "An estimated 📝 filler row (be•do's own estimate, no words of hers) keeps only the longest stretch no row from evidence covers; under filler_min_minutes left, it is be•do's own dedupe and goes.",
+  "alone_pattern": "\\b(?:on my own|by myself|i was alone|i'm alone|i am alone|alone time|just me|me time|solo)\\b",
+  "not_alone_pattern": "\\b(?:not|never|wasn't|weren't|wasn’t)\\s+(?:on my own|alone|by myself)\\b",
+  "company_skip_practices": ["text", "phone", "video call", "email", "location"],
+  "company_cover_hours": 4,
+  "away_pattern": "\\b(?:work|office)\\b",
+  "home_pattern": "\\bhome\\b",
+  "_away": "Her day away (4 Nov 2026, her words: major issues with how I spent my time; this is a systemic issue that needs to be fixed properly): a drive whose title names work or the office starts her time away from home, and the next drive whose title names home ends it. Away, the household default does not hold: a row no other row places is hers alone, and a waking minute no row covers is alone, not with the family. Drives in between (lunch out, back to the office) keep her away.",
+  "_company": "With family by default (2 Nov 2026): at home and in the family bed she is with the household unless a row says alone; a row inside one that names its company takes that company; a day away from them comes from the calendar, never assumed.",
+  "driving_practice": "🚗 driving",
+  "travel_practice": "🚗 travel",
+  "at_wheel_pattern": "\\b(?:i drove|i was driving|i'm driving|i am driving|me driving|at the wheel|i'll drive|i drive)\\b",
+  "doing_practices": ["capture", "action", "care task", "clean", "tidy", "laundry", "laundry move", "laundry wash", "laundry put away", "dinner prep", "lunch prep", "breakfast prep", "meal prep", "cooking", "baking", "email", "clear gmail inbox", "qa check", "usage check"],
+  "rhythm_keeps": ["social"],
+  "_rhythm_keeps": "A feed scrolled under a named rhythm keeps its own wellness: the feed, not the story (Sunday 1 Nov kept Facebook mind).",
+  "her_wellness_pattern": "wellness[^\\n.]{0,40}her word",
+  "money_pattern": "\\$\\d|\\b(?:pay|pays|paid|bill|bills|refund|reimburs\\w*|invoice|budget|subscriptions?|payments?|fsa|hsa|withholding|stocks?)\\b",
+  "money_statuses": ["⬜ intention", "▶️ in motion"],
+  "_money": "Wednesday is money day (1 Nov 2026): an open money step (⬜, or ▶️ not waiting on someone) with no target gets the coming Wednesday; ▫️ potentials and anything with a date of its own keep theirs."
+ },
+ "dayaudit": {
+  "_about": "2 Nov 2026: the day page is checked against the day before she sees it (run by the day page's build and the look behind). Her words: why did I not get credit for an adventure; I'm really annoyed that I have to check all this stuff.",
+  "intention_practice": "intention check",
+  "highlight_practice": "highlight",
+  "capture_practice": "capture",
+  "chat_practices": ["capture", "action"],
+  "not_realizing": ["intention check", "action check", "dawn flow close", "dusk flow close", "look ahead", "look behind", "capture", "qa check"],
+  "stop_words": ["with", "from", "that", "this", "today", "about", "into", "their", "them", "just", "some", "then", "also", "have", "still", "done", "after", "before", "what", "when", "were", "there", "here"],
+  "chat_slack_minutes": 5,
+  "photos_max": 6,
+  "burst_seconds": 90,
+  "company_ask_minutes": 45,
+  "company_join_minutes": 35,
+  "alone_row_practice": "📝 log",
+  "alone_row_title": "📝 on my own"
+ },
+ "week_turn": {
+  "_about": "1 Nov 2026: on a Sunday, once the dawn flow is closed and no my week chat has a row yet, remaining ends with this line; on her yes the my day chat opens the my week chat (create_session, told what the day chat holds) and the two talk by send_message. Sunday morning is held for reflection, named at the open.",
+  "window": "my week",
+  "line": "next: ready for the transition to the next week? say yes and I'll open the my week chat"
+ },
+ "chats": {
+  "_about": "2 and 5 Nov 2026: the chat sweep, at every dusk close and the weekly close. Her words: I really want that organizational work to fall to the system; for each chat there should be a clear objective, and if it wasn't accomplished it should be picked up in a new chat; hold me accountable that I'm finishing the chats and able to archive them. A chat she touched in the last busy_minutes is left alone (she may be closing it herself); one in motion and quiet for more than quiet_days goes on her one list.",
+  "busy_minutes": 20,
+  "quiet_days": 7,
+  "kept_marker": "chat sweep: kept",
+  "_kept": "Her answer sticks (5 Nov 2026, her words: everything on yours to decide is in motion): when she says keep, the row's [be•do] block takes a line `chat sweep: kept YYYY-MM-DD`, and the quiet days count from the newest of that and the chat's last activity.",
+  "finished_statuses": ["✅ done", "✖️ dropped"],
+  "routine_tags": ["trigger", "scheduled", "routine"],
+  "pin_tag": "ui:pinned",
+  "never_unpin": ["my day"],
+  "_pins": "12 Nov 2026, her amendment, her words: I really just want to have either pinned or recents showing up and then rely on my system to do the rest of the organizing. But pinned needs to be what I'm actively working on that day. A pinned chat not touched today, in her time zone, is unpinned by the sweep on its own; a my day chat never is. The cloud list carries a pin as the tag pin_tag."
+ },
+ "day_ahead_first": {
+  "_about": "6 Nov 2026, her words: I very much want an amendment that makes it clear that finishing the day ahead first is a gate to doing the day behind; finish the day ahead, make sure you QA it, then do the day behind. The gate, for every day: (1) the day's my day page is finished to the whole day as lived, with her keeper photos and the stream through bedtime, and its 👁️ look ahead row's [be•do] block carries the line `[be•do] day ahead YYYY-MM-DD · final` (run_day_ahead.sh final prints it); (2) the dusk close row's [be•do] block carries the day's `dayqa shown YYYY-MM-DD …` line. Only then is the day behind built — by the builders, the 03:00 routine, preflight's morning offer, a branch or a chat alike (check look_behind.day_ahead_first, core/bedo_daygate.py).",
+  "head": "[be•do] day ahead",
+  "states": ["draft", "final"],
+  "bedtime_from": "18:00",
+  "bedtime_until": "12:00"
+ }
+}

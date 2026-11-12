@@ -1,0 +1,28 @@
+name: tests
+# Every test in the repo, on Linux (the cloud sessions) and on Windows (the
+# laptop). Until 11 Nov 2026 only the privacy check ran here, and three test
+# files that failed on Windows reached main unseen. No secrets are passed: the
+# tests read their own fixtures and never Airtable.
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: the zone database (Windows ships none)
+        if: runner.os == 'Windows'
+        run: python -m pip install tzdata
+      - name: all tests
+        env:
+          PYTHONUTF8: '1'
+        run: python tools/run_tests.py

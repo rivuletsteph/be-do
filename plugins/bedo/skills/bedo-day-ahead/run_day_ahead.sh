@@ -1,0 +1,180 @@
+#!/usr/bin/env bash
+# The Day Ahead in four commands. The Airtable rows never pass through the chat;
+# the calendars do, as three small Calendar-connector calls the chat saves to disk.
+#
+#   bash run_day_ahead.sh prep  YYYY-MM-DD            # clone, fetch Airtable direct, print the calendar plan
+#   bash run_day_ahead.sh cal   YYYY-MM-DD            # after the chat saved cal/*.json: check them, write cal.json
+#   bash run_day_ahead.sh fetch YYYY-MM-DD            # Airtable only — re-read the live stream after the intention check
+#   bash run_day_ahead.sh build YYYY-MM-DD <secure> [builder args…]
+#        e.g. build 2026-09-28 secure --secure-words "…" --now 07:10 --intention "…"
+#        (twice at dawn: --draft with no intention before the intention check, so the three are
+#         in view; then the final, with her one intention)
+#   bash run_day_ahead.sh final YYYY-MM-DD [version]  # the day done: is the my day page whole (the stream
+#        through bedtime, her keeper photos, built from the last fetch, the calendars read no earlier than it)? Prints the line its 👁️ look ahead
+#        row carries — `[be•do] day ahead YYYY-MM-DD · final · vN` — the day's done line (6 Nov 2026)
+#
+# Needs, in the working folder: day_ahead_local.json (or LB_LOCAL pointing at it) and
+# the Airtable token: bedo_secrets.json (there, in the folder above it, or at
+# BEDO_SECRETS), AIRTABLE_PAT, or — in a Claude cloud session (CLAUDE_CODE_REMOTE=true)
+# — none at all, because the environment's API credential is attached by the proxy
+# after the request leaves the VM. Without any of those, prep still clones and prints
+# the calendar plan, says the rows must come through the chat, and exits 3 — a plain
+# claude.ai chat never has the token. The builder, the engine, the fetcher and the
+# calendar reader come fresh from the version store on every prep.
+#
+# Runs anywhere. Three things differ by machine, and each is an override:
+#   LB_DIR    the working folder          (default /home/claude/da)
+#   LB_LOCAL  where day_ahead_local.json is copied from, if not already in place
+#   LB_OUT    where the finished page is also copied (skipped if it can't be made)
+# Settings live in day_ahead_local.json; nothing is merged at run time.
+set -euo pipefail
+MODE=${1:-}; DAY=${2:-}
+W=${LB_DIR:-/home/claude/da}; mkdir -p "$W"; cd "$W"
+export PYTHONUTF8=1 PYTHONIOENCODING=utf-8   # Windows python prints cp1252 by default and dies on an emoji
+
+# Windows ships a python3.exe stub that exists but refuses to run, so prove the
+# interpreter works rather than trusting that it is on the path.
+PY=""
+for c in python3 python py; do
+  command -v "$c" >/dev/null 2>&1 || continue
+  "$c" -c 'import sys' >/dev/null 2>&1 || continue
+  PY=$c; break
+done
+[ -n "$PY" ] || { echo "no working python found (tried python3, python, py)"; exit 1; }
+
+need_local() {
+  # the settings file carries every key the builder needs; nothing is merged at run time
+  [ -f day_ahead_local.json ] && return 0
+  if [ -n "${LB_LOCAL:-}" ] && [ -f "$LB_LOCAL" ]; then cp "$LB_LOCAL" day_ahead_local.json; return 0; fi
+  for c in /root/.claude/skills/synced/*/bedo-day-ahead/assets/day_ahead_local.json; do
+    [ -f "$c" ] && { cp "$c" day_ahead_local.json; return 0; }
+  done
+  echo "day_ahead_local.json not found in $W — put it there or set LB_LOCAL"; exit 1
+}
+
+secrets_file() {
+  for c in "${BEDO_SECRETS:-}" bedo_secrets.json ../bedo_secrets.json; do
+    [ -n "$c" ] && [ -f "$c" ] && { echo "$c"; return 0; }
+  done
+  return 1
+}
+
+fetch_airtable() {
+  need_local
+  [ -f scripts/bedo_fetch.py ] || { echo "scripts/bedo_fetch.py missing — run prep first"; exit 1; }
+  # no token is not a crash: a plain claude.ai chat never has one. Say so and let the caller carry on.
+  # In a Claude cloud session there is no file either, and none is needed: the fetch sends no
+  # Authorization header and the environment's API credential is attached by the proxy.
+  SECARGS=()
+  if SEC=$(secrets_file); then SECARGS=(--secrets "$SEC")
+  elif [ -z "${AIRTABLE_PAT:-}" ] && [ "${CLAUDE_CODE_REMOTE:-}" != true ] && [ -z "${BEDO_PROXY_AUTH:-}" ]; then
+    echo "NO TOKEN: bedo_secrets.json not found in $W or above it (set BEDO_SECRETS to point at one)" >&2; return 3
+  fi
+  rm -rf data
+  "$PY" scripts/bedo_fetch.py --day "$DAY" --local day_ahead_local.json "${SECARGS[@]}" --out data
+}
+
+[ -n "$DAY" ] || { echo "usage: run_day_ahead.sh prep|cal|fetch|build|final YYYY-MM-DD [secure] [builder args…]"; exit 2; }
+
+if [ "$MODE" = prep ]; then
+  rm -rf be-do-main
+  git clone -q --depth 1 https://github.com/rivuletsteph/be-do be-do-main
+  S=be-do-main/plugins/bedo/skills
+  rm -rf scripts && cp -r $S/bedo-day-ahead/scripts . && cp $S/bedo-day-ahead/assets/day_ahead_engine.html .
+  # the flow page (the day's my day page): its engine, the base-flow card it draws, and the parts it
+  # shares with the my week page (the shell, the card, the glyphs, the colours, the a-or-p clock)
+  rm -rf assets && mkdir -p assets && cp $S/bedo-day-ahead/assets/flow_engine.html assets/ \
+    && cp -r be-do-main/plugins/bedo/assets/base-flow assets/ \
+    && cp -r be-do-main/plugins/bedo/assets/flow-parts assets/
+  cp $S/bedo-look-behind/scripts/bedo_fetch.py scripts/     # the Airtable reader lives with the look behind
+  cp be-do-main/plugins/bedo/core/*.py be-do-main/plugins/bedo/core/facts.json scripts/   # the one reader (I11 I15 I5)
+  cp $S/bedo-week-look-behind/scripts/day_photos.py scripts/ 2>/dev/null || true   # the day's photos, as the day behind reads them
+  # the time categories the page sorts by: without this file flow.py fell back to a short, older
+  # list of its own, so the page and the day QA disagreed (found 11 Nov 2026). No `|| true`: a
+  # prep that can't copy it should stop here, not build a page that sorts her time wrong.
+  cp $S/bedo-week-look-behind/scripts/day_rings.py scripts/
+  # an escape hatch: anything in overlay/ wins over the version store for this run
+  if [ -d overlay ]; then cp overlay/*.py scripts/ 2>/dev/null || true
+    cp overlay/day_ahead_engine.html . 2>/dev/null || true; fi
+  # the live settings are a row in Airtable (be•do system › settings); without it, the copy below
+  # her settings row in Airtable always wins; LB_LOCAL and the skill's own file are only the fallback when it can't be read
+  # (11 Nov 2026: a run with LB_LOCAL set skipped the row, and a whole day was built without its wellness, device,
+  # photo and calendar settings, all of which the row had)
+  "$PY" scripts/bedo_settings.py day_ahead_local --out day_ahead_local.json || true
+  need_local
+  RC=0; fetch_airtable || RC=$?
+  [ "$RC" -eq 0 ] || [ "$RC" -eq 3 ] || exit "$RC"      # a short or failed read stops here (I11)
+  rm -rf cal && mkdir cal
+  "$PY" scripts/bedo_cal.py --plan --today "$DAY" --local day_ahead_local.json --dir cal
+  if [ "$RC" -eq 3 ]; then
+    # the builder, the engine and the calendar plan are all in place; only the rows are missing
+    mkdir -p data
+    echo "NO TOKEN HERE, so Airtable was not read. Read it through the chat instead (SKILL.md step 1,"
+    echo "'Without the runner'): save the live week and the week before as data/w##.json and rhythms as"
+    echo "data/rhythms.json in $W, then run cal and build as usual. This is the expensive path."
+    exit 3
+  fi
+elif [ "$MODE" = cal ]; then
+  need_local
+  "$PY" scripts/bedo_cal.py --build --today "$DAY" --local day_ahead_local.json --dir cal --out cal.json
+elif [ "$MODE" = fetch ]; then
+  fetch_airtable
+elif [ "$MODE" = build ]; then
+  need_local
+  SECURE=${3:-}; shift 3 2>/dev/null || shift $#
+  [ -f cal.json ] || { echo "cal.json missing — run cal first"; exit 1; }
+  ls data/w*.json >/dev/null 2>&1 || { echo "no data/w*.json — run prep (or fetch) first"; exit 1; }
+  STREAMS=$(ls -r data/w*.json | sed 's/^/--stream /' | tr '\n' ' ')
+  # a stale calendar is never built silently (11 Nov 2026: Tuesday's day-as-lived page used the morning's cal.json):
+  # the read must be today's and no more than CAL_SLACK_MIN (90) minutes older than the last fetch — the dawn
+  # build re-fetches minutes after its read; the day done reads the calendars again first (SKILL.md, The day done).
+  # CAL_STALE_OK=1 builds anyway, and says so.
+  if ! "$PY" scripts/bedo_daygate.py calendar --date "$DAY" --local day_ahead_local.json $STREAMS --cal cal.json \
+       --slack "${CAL_SLACK_MIN:-90}"; then
+    [ "${CAL_STALE_OK:-}" = 1 ] || { echo "not built: the calendars are stale (CAL_STALE_OK=1 builds anyway)"; exit 1; }
+    echo "CAL_STALE_OK=1: building on a stale calendar — say so to her"
+  fi
+  SEC_ARGS=(); [ -n "$SECURE" ] && SEC_ARGS=(--secure "$SECURE")
+  # the practices catalog, when the settings name it: a practice with a cadence is drawn on its day
+  [ -f data/practices.json ] && SEC_ARGS+=(--practices data/practices.json)
+  # a session (--session, --session-top) is the flow page's alone; the day ahead never sees it (4 Nov 2026)
+  DA=(); SESS=(); prev=""; for a in "$@"; do
+    if [ "$prev" = --session ] || [ "$prev" = --session-top ]; then SESS+=("$prev" "$a"); prev=""; continue; fi
+    if [ "$a" = --session ] || [ "$a" = --session-top ]; then prev=$a; continue; fi
+    DA+=("$a"); prev=$a; done
+  "$PY" scripts/day_ahead.py --today "$DAY" --local day_ahead_local.json $STREAMS \
+    --rhythms data/rhythms.json --calendar cal.json --template day_ahead_engine.html \
+    --out "$DAY-day-ahead.html" "${SEC_ARGS[@]}" "${DA[@]}"
+  # the day's my day page is the flow page (since 2 Nov 2026): built from the day ahead just written,
+  # with the three passed on as its starred picks. This is the page that gets published.
+  PICKS=(); prev=""; for a in "$@"; do [ "$prev" = --pick ] && PICKS+=(--pick "$a"); prev=$a; done
+  BEH=(); [ -d behind ] && BEH=(--behind behind)
+  # her keeper photos on their cards (5 Nov 2026), from the week's Drive folder when a Drive key is here
+  PHO=()
+  if [ -n "${BEDO_DRIVE_SA:-}${BEDO_DRIVE_SA_FILE:-}" ] && [ -f scripts/day_photos.py ]; then
+    "$PY" scripts/day_photos.py --day "$DAY" --local day_ahead_local.json --out "photos-$DAY" >/dev/null 2>&1 \
+      && [ -n "$(ls -A "photos-$DAY" 2>/dev/null)" ] && PHO=(--photos "photos-$DAY") || echo "photos: none read — the page builds without them"
+  fi
+  # her heart rate decides relaxing versus energizing play (8 Nov 2026, the heart-rate amendment of 8 Nov)
+  HRT=(); "$PY" scripts/day_heart.py --day "$DAY" --local day_ahead_local.json --out "heart-$DAY.json" >/dev/null 2>&1 \
+    && HRT=(--heart "heart-$DAY.json") || echo "heart rate: not read — play keeps its feeling's kind"
+  # a folder of photos placed by hand (photos-$DAY with no Drive key here) still goes on the page
+  [ ${#PHO[@]} -eq 0 ] && [ -n "$(ls -A "photos-$DAY" 2>/dev/null)" ] && PHO=(--photos "photos-$DAY")
+  "$PY" scripts/flow.py --day-ahead "$DAY-day-ahead.html" --local day_ahead_local.json \
+    --out "$DAY-myday.html" "${BEH[@]}" "${PICKS[@]}" "${SESS[@]}" "${PHO[@]}" "${HRT[@]}"
+  echo "publish: $DAY-myday.html (the flow page) to page.url above"
+  OUT=${LB_OUT:-/mnt/user-data/outputs}
+  if mkdir -p "$OUT" 2>/dev/null; then cp "$DAY-day-ahead.html" "$DAY-myday.html" "$OUT/"
+    echo "also copied to $OUT/"; fi
+elif [ "$MODE" = final ]; then
+  # her amendment, 6 Nov 2026: finish the day ahead, make sure you QA it, then do the day behind.
+  # Run after the last fetch and build of the day, once the page is republished to its link.
+  need_local
+  ls data/w*.json >/dev/null 2>&1 || { echo "no data/w*.json — run fetch, then build, first"; exit 1; }
+  STREAMS=$(ls -r data/w*.json | sed 's/^/--stream /' | tr '\n' ' ')
+  VER=(); [ -n "${3:-}" ] && VER=(--version "${3#v}")
+  "$PY" scripts/bedo_daygate.py final --date "$DAY" --local day_ahead_local.json $STREAMS \
+    --page "$DAY-myday.html" --cal cal.json "${VER[@]}"
+else
+  echo "usage: run_day_ahead.sh prep|cal|fetch|build|final YYYY-MM-DD [secure] [builder args…]"; exit 2
+fi

@@ -1,0 +1,233 @@
+<title>{{masthead}} · {{short date}}</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap">
+<style>
+/* Layout: a one-reader newspaper. Masthead, a wide lead story with an Election Day box beside it, then a three-column section grid, then the inbox and the clip file. Columns stack to one at phone width. */
+:root {
+  --paper: #eef1f2;
+  --sheet: #f8f9f8;
+  --ink: #1c2530;
+  --ink-soft: #4c5866;
+  --rule: #c3cad1;
+  --river: #1f5a7a;
+  --flag: #a8432e;
+  --tint: #e2eaee;
+  --display: "UnifrakturMaguntia", "Old English Text MT", Georgia, serif;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --label: "IBM Plex Sans Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12171c; --sheet: #182027; --ink: #e4e8ea; --ink-soft: #a3adb7;
+    --rule: #34404b; --river: #7fb6d4; --flag: #e08a70; --tint: #1f2b34;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #12171c; --sheet: #182027; --ink: #e4e8ea; --ink-soft: #a3adb7;
+  --rule: #34404b; --river: #7fb6d4; --flag: #e08a70; --tint: #1f2b34;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--serif); font-size: 17px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+}
+.sheet {
+  max-width: 1120px; margin: 0 auto; background: var(--sheet);
+  padding: clamp(18px, 4vw, 44px); border: 1px solid var(--rule);
+}
+a { color: inherit; text-decoration-color: var(--river); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: var(--river); }
+a:focus-visible { outline: 2px solid var(--river); outline-offset: 2px; }
+
+/* Masthead */
+.ears { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  font-family: var(--label); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.masthead { text-align: center; padding-block: 8px 4px; }
+.masthead h1 { font-family: var(--display); font-weight: 400; margin: 0;
+  font-size: clamp(42px, 9vw, 92px); line-height: 1; letter-spacing: .01em; }
+.motto { font-style: italic; color: var(--ink-soft); margin: 6px 0 0; font-size: 15px; }
+.dateline { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px;
+  border-top: 3px double var(--ink); border-bottom: 1px solid var(--ink);
+  margin-top: 14px; padding-block: 6px;
+  font-family: var(--label); font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
+.dateline .flag { color: var(--flag); font-weight: 600; }
+
+.kicker { font-family: var(--label); font-size: 12px; font-weight: 600; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--river); margin: 0 0 6px; }
+h2, h3 { text-wrap: balance; margin: 0; }
+p { margin: 0; }
+
+/* Front page */
+.front { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 32px;
+  padding-block: 26px; border-bottom: 1px solid var(--ink); }
+.lead h2 { font-size: clamp(28px, 4.2vw, 44px); line-height: 1.1; font-weight: 700; }
+.lead .deck { font-size: 19px; color: var(--ink-soft); margin-top: 10px; font-style: italic; }
+.lead .body { margin-top: 16px; display: grid; gap: 12px; columns: 2 240px; column-gap: 28px; display: block; }
+.lead .body p { margin-bottom: 12px; break-inside: avoid; }
+.lead .body p:first-child::first-letter { font-family: var(--display); float: left; font-size: 62px; line-height: .85; padding: 4px 8px 0 0; color: var(--river); }
+.watch { display: inline-flex; gap: 8px; align-items: baseline; font-family: var(--label); font-size: 14px; letter-spacing: .03em; margin-top: 4px; }
+.watch b { color: var(--flag); }
+
+.box { background: var(--tint); padding: 18px 20px; border-top: 4px solid var(--flag); align-self: start; }
+.box h3 { font-size: 22px; line-height: 1.2; }
+.box ul { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 12px; }
+.box li { padding-bottom: 12px; border-bottom: 1px solid var(--rule); font-size: 15.5px; }
+.box li:last-child { border-bottom: 0; padding-bottom: 0; }
+.box .num { font-family: var(--label); font-weight: 600; font-variant-numeric: tabular-nums; color: var(--flag); }
+
+/* Sections */
+.sections { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; padding-block: 8px; }
+.section { padding: 20px 22px; border-right: 1px solid var(--rule); min-width: 0; }
+.section:nth-child(3n) { border-right: 0; }
+.section:nth-child(3n+1) { padding-left: 0; }
+.section:nth-child(3n) { padding-right: 0; }
+.section-head { font-family: var(--label); font-size: 13px; font-weight: 600; letter-spacing: .12em;
+  text-transform: uppercase; border-bottom: 2px solid var(--ink); padding-bottom: 4px; margin-bottom: 14px; }
+.story { padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px dotted var(--rule); }
+.story:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
+.story h3 { font-size: 19px; line-height: 1.25; font-weight: 600; }
+.story p { font-size: 15.5px; color: var(--ink-soft); margin-top: 6px; }
+.source { font-family: var(--label); font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-soft); margin-top: 6px; }
+.quiet { font-style: italic; color: var(--ink-soft); font-size: 15.5px; }
+
+/* Lower band */
+.lower { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 32px;
+  border-top: 3px double var(--ink); padding-top: 22px; margin-top: 8px; }
+.inbox dl { margin: 0; display: grid; gap: 12px; }
+.inbox dt { font-family: var(--label); font-weight: 600; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--river); }
+.inbox dd { margin: 2px 0 0; font-size: 15.5px; }
+.clips { background: var(--tint); padding: 18px 20px; }
+.clips ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.clips li { font-size: 15.5px; padding-left: 22px; position: relative; }
+.clips li::before { content: ""; position: absolute; left: 0; top: .55em; width: 10px; height: 10px; border: 1.5px solid var(--river); }
+.clips .state { font-family: var(--label); font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-soft); }
+
+/* Photos */
+figure { margin: 0; }
+figure img { display: block; width: 100%; height: auto; max-width: 100%; aspect-ratio: 3 / 2; object-fit: cover; background: var(--tint); filter: saturate(.92); }
+figcaption { font-size: 13px; line-height: 1.4; color: var(--ink-soft); margin-top: 6px; }
+figcaption .credit { font-family: var(--label); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+.lead-photo { margin-bottom: 18px; }
+.lead-photo img { aspect-ratio: 16 / 9; }
+.inset { float: right; width: 44%; margin: 4px 0 10px 18px; }
+.inset img { aspect-ratio: 4 / 3; }
+.box figure { margin: -18px -20px 14px; }
+.box figure figcaption { padding: 0 20px; }
+.story figure { margin-bottom: 10px; }
+@media (max-width: 560px) { .inset { float: none; width: 100%; margin: 0 0 12px; } }
+
+.colophon { margin-top: 26px; padding-top: 10px; border-top: 1px solid var(--rule);
+  font-family: var(--label); font-size: 12px; letter-spacing: .04em; color: var(--ink-soft); }
+
+@media (max-width: 860px) {
+  .front, .lower { grid-template-columns: minmax(0, 1fr); }
+  .sections { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .section, .section:nth-child(3n), .section:nth-child(3n+1) { padding: 20px 18px; border-right: 1px solid var(--rule); }
+  .section:nth-child(2n) { border-right: 0; padding-right: 0; }
+  .section:nth-child(2n+1) { padding-left: 0; }
+}
+@media (max-width: 560px) {
+  .sections { grid-template-columns: minmax(0, 1fr); }
+  .section, .section:nth-child(n) { padding: 18px 0; border-right: 0; border-bottom: 1px solid var(--rule); }
+  .ears span:last-child { display: none; }
+}
+</style>
+
+<!--
+  The Morning paper template. Keep the style block, the structure and the class
+  names; replace every {{slot}} and every example block. Repeat a .story, .section,
+  dl > div or li as often as the day needs, and drop a <figure> when a story has
+  no real photo. Images ship beside the page as img/<name>.jpg.
+-->
+<div class="sheet">
+  <div class="ears"><span>{{week}} · Day {{n}}</span><span>{{home places}}</span><span>One reader edition</span></div>
+  <header class="masthead">
+    <h1>{{masthead}}</h1>
+    <p class="motto">{{one line on what this paper follows}}</p>
+  </header>
+  <div class="dateline">
+    <span>{{Weekday, Month D, YYYY}}</span>
+    <span class="flag">{{the day's flag, or leave this span out}}</span>
+    <span>Read time ≈ {{n}} min</span>
+  </div>
+
+  <section class="front">
+    <article class="lead">
+      <figure class="lead-photo">
+        <img src="img/lead.jpg" alt="{{what the photo shows}}" width="1200" height="675">
+        <figcaption>{{what it shows, where and when}} <span class="credit">{{outlet or photographer}}</span></figcaption>
+      </figure>
+      <p class="kicker">{{place or topic}}</p>
+      <h2><a href="{{url}}">{{lead headline}}</a></h2>
+      <p class="deck">{{one-sentence deck}}</p>
+      <div class="body">
+        <figure class="inset">
+          <img src="img/lead-2.jpg" alt="{{what the photo shows}}" width="1200" height="800">
+          <figcaption>{{caption}} <span class="credit">{{credit}}</span></figcaption>
+        </figure>
+        <p>{{first paragraph, with <a href="{{url}}">linked details</a>}}</p>
+        <p>{{second paragraph}}</p>
+        <p class="watch"><b>▶ Watch</b> <a href="{{video url}}">{{video title}}</a></p>
+      </div>
+      <p class="source">{{outlets, linked}}</p>
+    </article>
+
+    <aside class="box" aria-label="{{side box subject}}">
+      <figure>
+        <img src="img/box.jpg" alt="{{what the photo shows}}" width="800" height="533">
+        <figcaption>{{caption}} <span class="credit">{{credit}}</span></figcaption>
+      </figure>
+      <p class="kicker">{{the day's second thread}}</p>
+      <h3>{{box headline}}</h3>
+      <ul>
+        <li><strong>{{label}}:</strong> {{one line}}</li>
+        <li><span class="num">{{figure}}</span> {{what it counts}}</li>
+        <li><a href="{{url}}">{{link text}} →</a></li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="sections">
+    <div class="section">
+      <div class="section-head">{{topic or place}}</div>
+      <article class="story">
+        <figure>
+          <img src="img/{{name}}.jpg" alt="{{what the photo shows}}" width="800" height="533">
+          <figcaption>{{caption}} <span class="credit">{{credit}}</span></figcaption>
+        </figure>
+        <h3><a href="{{url}}">{{headline}}</a></h3>
+        <p>{{one plain line on what happened}}</p>
+        <p class="source">{{outlet}}</p>
+      </article>
+    </div>
+
+    <div class="section">
+      <div class="section-head">{{a place with nothing new}}</div>
+      <p class="quiet">I didn't find anything new today for {{place}}.</p>
+    </div>
+  </section>
+
+  <section class="lower">
+    <div class="inbox">
+      <p class="kicker">In your inbox</p>
+      <dl>
+        <div><dt>{{newsletter}}</dt><dd>{{its one to three headlines}}</dd></div>
+      </dl>
+    </div>
+    <aside class="clips">
+      <p class="kicker">From your queue</p>
+      <ul>
+        <li>{{queued row title}} <span class="state">· {{state}}</span></li>
+      </ul>
+    </aside>
+  </section>
+
+  <p class="colophon">{{where this edition was gathered from}}. Your be•do queue is listed as it was, with nothing changed.</p>
+</div>

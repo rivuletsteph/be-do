@@ -1,0 +1,1157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>/*THEMEJS*/</script>
+<title>How Things Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/*ROOT*/
+/*NIGHT*/
+/*SHELLCSS*/
+.leannote{font-size:12.5px;color:var(--muted);margin:0 0 14px}
+.leannote b{color:var(--ink);font-weight:600}
+#flow{display:block;min-width:860px;width:100%;height:auto}
+/*BLOCKSCSS*/
+.focus{margin-top:12px;background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:12px 14px}
+.focus[hidden]{display:none}
+.focus h3{margin:0 0 6px;font-size:15px}
+.focus ul{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.focus li{font-size:13.5px}
+.focus a{font:500 11px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:2px 9px;text-decoration:none;margin-left:6px}
+.focus .when{font:500 11px var(--mono);color:var(--accent);margin-left:6px}
+.int{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:12px 14px;margin:0 0 14px}
+.three{background:var(--card);border:1px solid var(--rule);border-left:5px solid #B8860B;border-radius:14px;padding:12px 14px;margin:0 0 14px}
+.three h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0}
+.three .how{font-size:12px;color:var(--muted);margin:2px 0 8px}
+.three ol{margin:0;padding:0;list-style:none;counter-reset:t}
+.three li{counter-increment:t;padding:9px 0 9px 30px;border-top:1px solid var(--rule);position:relative;cursor:pointer}
+.three li:first-child{border-top:0}
+.three li:before{content:counter(t);position:absolute;left:0;top:9px;width:20px;height:20px;border-radius:50%;background:#B8860B;color:#fff;font:600 12px/20px var(--mono);text-align:center}
+.three li.done{opacity:.6}.three li.done:before{content:"✓";background:var(--k-flow,#5a8)}
+.three .t{font-weight:600;display:block}
+.three .why{display:block;font-size:13.5px;margin:2px 0 0}
+.three .nx{display:block;font-size:13.5px;font-weight:600;margin:3px 0 0}
+.three small{display:block;font:500 11.5px var(--mono);color:var(--muted);margin:3px 0 0}
+.three .lks{display:flex;flex-wrap:wrap;gap:6px;margin:5px 0 0}.three .lk{font:500 12px var(--mono);padding:3px 8px;border:1px solid var(--rule);border-radius:999px;text-decoration:none;color:var(--accent)}
+.three .then{font-size:12px;color:var(--muted);margin:8px 0 0}
+.int h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0}
+.int .holds{font-size:15px;margin:4px 0 0}
+.int .holds b{font-weight:600}
+.int .how{font-size:12px;color:var(--muted);margin:2px 0 10px}
+.int .fill{display:flex;align-items:center;gap:10px;margin:0 0 10px}
+.int .fill .bar{display:block;flex:1;height:10px;border-radius:5px;background:var(--rule);overflow:hidden;margin:0}
+.int .fill .bar i{display:block;height:100%;background:var(--accent);border-radius:5px;transition:width .2s}
+.int .fill .bar i.over{background:var(--dest)}
+.int .fill span{font:500 12px var(--mono);color:var(--muted);white-space:nowrap}
+.int ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.int li{display:flex;gap:8px;align-items:flex-start}
+.int .pk{flex:1;text-align:left;font:14px/1.4 var(--sans);color:var(--ink);background:none;border:1px solid var(--rule);border-left:4px solid var(--dc);border-radius:10px;padding:6px 10px;cursor:pointer}
+.int .pk[aria-pressed="true"]{background:var(--card2);border-color:var(--accent);border-left-color:var(--dc)}
+.int .pk .rk{display:inline-block;min-width:1.6em;font:600 12px var(--mono);color:var(--muted)}
+.int .pk[aria-pressed="true"] .rk{color:var(--accent)}
+.int .pk small{display:block;font:500 10.5px var(--mono);color:var(--muted)}
+.int .sz{font:500 11px var(--mono);color:var(--muted);background:var(--card2);border:1px dashed var(--rule);border-radius:999px;padding:4px 9px;cursor:pointer;white-space:nowrap;margin-top:4px}
+.int .sz.set{border-style:solid;color:var(--ink)}
+.int .k2{font:400 11.5px var(--mono);color:var(--faint);margin:8px 0 0}
+/*BFCSS*/
+/*BFCARDCSS*/
+.td{margin:14px 0 18px}
+.td .say{font:italic 500 clamp(22px,5.4vw,28px)/1.2 var(--serif);color:var(--accent);margin:2px 0 12px}
+.td .say small{display:block;font:500 11px var(--mono);font-style:normal;color:var(--faint);letter-spacing:.04em;margin-bottom:4px}
+.cal{position:relative;margin:0 0 0 46px;border-left:1px solid var(--rule)}
+.cal .hr{position:absolute;left:-46px;right:0;border-top:1px solid var(--rule)}
+.cal .hr span{position:absolute;left:0;top:-8px;width:40px;text-align:right;font:500 11px var(--mono);color:var(--faint)}
+.cal .ev{position:absolute;border-radius:8px;padding:3px 8px;overflow:hidden;font-size:13px;line-height:1.25;border-left:4px solid var(--dc);background:color-mix(in srgb,var(--dc) 16%,var(--card));color:var(--ink)}
+.cal .ev.event{background:color-mix(in srgb,var(--dc) 38%,var(--card));font-weight:600}
+.cal .ev.done{opacity:.55}.cal .ev.done b{text-decoration:line-through}
+.cal .ev b{font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.cal .ev.event b{-webkit-line-clamp:3}.cal .ev i{display:block;font:500 10.5px var(--mono);font-style:normal;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal .ev a{color:inherit;text-decoration:none}
+.cal .band{position:absolute;left:3px;right:3px;border-radius:10px;border-left:4px solid var(--dc);background:color-mix(in srgb,var(--dc) 12%,transparent);z-index:0}
+.bandtop{display:flex;flex-wrap:wrap;gap:4px 12px;margin:0 0 8px;font-size:12px;color:var(--ink)}
+.bandtop b{font:600 10.5px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.05em}
+.bandtop span{display:inline-flex;align-items:center;gap:5px}
+.bandtop i{width:14px;height:11px;border-radius:3px;border:2px solid var(--dc);background:color-mix(in srgb,var(--dc) 16%,transparent)}
+.bandtop a{color:inherit}
+.cal .band span{position:absolute;right:8px;top:4px;font:600 11px var(--sans);color:var(--muted);text-align:right;max-width:55%}
+.cal .ev{z-index:1}
+.cal .ev.runner{z-index:0;opacity:.9}
+.cal .ev.flash{box-shadow:0 0 0 3px var(--accent)!important;z-index:7}
+.six{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:12px 14px;margin:0 0 16px}
+.six h2{font:italic 400 20px var(--serif);color:var(--accent);margin:0 0 6px}
+.six ul{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.six button{all:unset;box-sizing:border-box;display:grid;grid-template-columns:1.7em minmax(0,1fr) auto;gap:8px;align-items:baseline;width:100%;padding:5px 4px;border-radius:8px;cursor:pointer;font:15px/1.35 var(--sans);color:var(--ink)}
+.six button:hover,.six button:focus-visible{background:var(--card2)}
+.six .g{font-size:17px}.six .t{overflow-wrap:anywhere}.six .w{font:500 11.5px var(--mono);color:var(--muted)}
+.sheet .chip.go{border:0;cursor:pointer;color:var(--dest);background:var(--dest-soft)}
+.cal .band a{color:inherit;text-decoration:none}
+.cal .ev .was{color:var(--accent)}
+.cal .ev{background:color-mix(in srgb,var(--fill) 55%,var(--card));border-left-color:var(--edge)}
+.cal .ev.lived{opacity:.92;padding:1px 6px;font-size:11.5px}
+.cal .ev.lived b{-webkit-line-clamp:1;font-weight:500}
+.cal .ev.lived i{display:none}
+.cal .ev.lived.tall i{display:block}
+.cal .ev.done b{text-decoration:none}
+.cal .ev{cursor:pointer}
+/* the card a tap opens (2 Nov 2026, her words: like the 28 Oct day ahead — I love the colors and the formatting,
+   it's easy to read, easy to see what the important information is) */
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:78vh;overflow:auto;background:var(--card);color:var(--ink);border-radius:20px 20px 0 0;box-shadow:0 -10px 34px rgba(0,0,0,.32);padding:14px 20px 30px;z-index:60;transform:translateY(105%);transition:transform .22s ease}
+.sheet.on{transform:none}
+.sheet .grab{width:44px;height:5px;border-radius:3px;background:var(--rule);margin:0 auto 12px}
+.sheet .sc{display:grid;grid-template-columns:4.2rem minmax(0,1fr);gap:4px 12px;border-left:5px solid var(--dc,var(--accent));padding:6px 0 6px 14px;border-radius:4px}
+.sheet .at{font:500 13px var(--mono);color:var(--muted);padding-top:5px}
+.sheet .ttl{font:600 1.32rem/1.25 var(--sans);color:var(--ink);overflow-wrap:anywhere}
+.sheet .ttl .bx{display:inline-block;width:15px;height:15px;border:2px solid var(--accent);border-radius:4px;margin-right:6px;vertical-align:1px}
+.sheet .ttl .bx.ok{background:var(--dest);border-color:var(--dest)}
+.sheet .ttl .bolt{color:#E0A526;margin-right:6px}
+.sheet .dv{grid-column:2;font:600 15px var(--sans);color:var(--dest)}
+.sheet .nx{grid-column:2;font:600 15.5px/1.4 var(--sans);color:var(--ink);margin-top:6px;display:flex;gap:8px}
+.sheet .nx::before{content:"→";color:var(--accent)}
+.sheet .nx.none{color:var(--past);font-weight:500;font-size:14px}.sheet .nx.none::before{content:"?";color:var(--past)}
+.sheet .lks{grid-column:2;display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.sheet .lks a{font:500 13px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:4px 12px;text-decoration:none}
+.sheet .wt{grid-column:2;color:var(--kid);font-size:14px;margin-top:4px}
+.sheet .why{grid-column:2;font:400 15px/1.5 var(--sans);color:var(--muted);margin-top:8px}
+.sheet .det{grid-column:2;font:400 14px/1.5 var(--sans);color:var(--muted);margin-top:8px;border-top:1px solid var(--rule);padding-top:8px}
+.sheet .sq{display:inline-block;width:16px;height:16px;border-radius:4px;margin-right:8px;vertical-align:1px}
+.sheet .when,.sheet .where{grid-column:2;font:400 15px/1.45 var(--sans);color:var(--ink);margin-top:4px}
+.sheet .where a{color:var(--dest);text-decoration:none}
+.cal .ev.gcal{background:var(--gc)!important;border:0!important;border-left:0!important;color:var(--gi,#fff)!important;opacity:1}
+.cal .ev.gcal b,.cal .ev.gcal i{color:var(--gi,#fff)!important}
+/* bright ahead, pastel behind (6 Nov 2026, her words: the bold things that are blocked out and scheduled in show up bold
+   and bright ahead, and fade to a nice pastel when they're in the past) */
+.cal .ev.gcal.past{opacity:1;background:color-mix(in srgb,var(--gc) 52%,#FBF8F4)!important;border-left:4px solid var(--gc)!important}
+.cal .ev.gcal.past b,.cal .ev.gcal.past i,.cal .ev.gcal.past .ln,.cal .ev.gcal.past span{color:var(--ink)!important}
+.cal .ev .dots{position:absolute;right:5px;bottom:3px;display:flex;gap:3px}.cal .ev .dots .wg{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;background:color-mix(in srgb,var(--card) 85%,transparent)}
+/* the wellness glyphs sit furthest right, the photo just left of them (6 Nov 2026, her words) */
+.cal .ev .rt{position:absolute;right:3px;top:3px;bottom:3px;display:flex;align-items:flex-end;gap:4px;pointer-events:none}
+.cal .ev .rt .th{position:static;align-self:flex-start;height:calc(100% - 0px);max-height:48px}
+/* a tall card with a photo: the photo at the top right, the glyphs at the bottom right, both against the edge */
+.cal .ev.tall .rt,.cal .ev.event .rt{flex-direction:column;justify-content:flex-end}
+.cal .ev.tall.hasph .rt,.cal .ev.event.hasph .rt{justify-content:space-between}
+.cal .ev.hasph .rt .th{max-height:calc(100% - 24px)}
+.cal .ev.tall .rt .th,.cal .ev.event .rt .th{align-self:flex-end;height:auto;width:44px;max-height:44px}
+.cal .ev.tall.hasph,.cal .ev.event.hasph{padding-right:52px!important}
+.cal .ev .rt .dots{position:static}
+.cal .ev.hasph{padding-right:80px!important}
+
+/* a card with a photo: the photo and the glyphs side by side, glyphs furthest right, both always inside the card (7 Nov 2026, her words: the wellness emoji always on it and always visible) */
+.cal .ev.hasph .rt,.cal .ev.tall.hasph .rt,.cal .ev.event.hasph .rt{flex-direction:row;align-items:center;justify-content:flex-end;gap:4px}
+.cal .ev.hasph .rt .th,.cal .ev.tall.hasph .rt .th,.cal .ev.event.hasph .rt .th{align-self:center;width:46px;height:46px;max-height:calc(100% - 2px);object-fit:cover;border-radius:6px}
+.cal .ev.hasph .rt .dots{flex-direction:column;flex-wrap:wrap-reverse;max-height:100%;gap:2px;align-content:flex-end}
+.cal .ev.hasph,.cal .ev.tall.hasph,.cal .ev.event.hasph{padding-right:76px!important}
+/* night keeps the cards light and soft, with dark text (her words: in day they look beautiful) */
+html[data-bedo="night"] .cal .ev:not(.gcal){background:color-mix(in srgb,var(--fill) 80%,#FBF8F4)!important}
+html[data-bedo="night"] .cal .ev .dots .wg{background:#FBF8F4}
+html[data-bedo="night"] .cal .ev:not(.gcal), html[data-bedo="night"] .cal .ev:not(.gcal) b, html[data-bedo="night"] .cal .ev:not(.gcal) i, html[data-bedo="night"] .cal .ev:not(.gcal) span, html[data-bedo="night"] .cal .ev.gcal.past b, html[data-bedo="night"] .cal .ev.gcal.past i{color:#2B2420!important}
+/* sleep stays a dark night blue, never a pastel (6 Nov 2026, her words: what happened to my dark blue sleep) */
+.cal .ev.slp,html[data-bedo="night"] .cal .ev.slp{background:#403F7B!important;border-left-color:#2A2960!important}
+.cal .ev.slp,.cal .ev.slp b,.cal .ev.slp i,.cal .ev.slp span,html[data-bedo="night"] .cal .ev.slp b{color:#EEF0FA!important}
+.cal .ev.lived.mom{outline:3px solid var(--k-moment,#F2C14E);outline-offset:0}
+.cal .ev.gcal.past.star{opacity:1;outline:3px solid var(--k-moment,#F2C14E);outline-offset:0}
+.cal .ev.combo .ln{display:block;font-size:12px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal .ev.combo .ths{display:flex;gap:3px;margin-top:4px}
+.cal .ev.combo .ths img{width:40px;height:40px;object-fit:cover;border-radius:4px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.cal .ev.combo{padding-right:8px}
+.sheet .inside{margin:8px 0 0;padding-left:18px}
+/* the list of what a combined card holds spans the panel's text column, never the narrow time column (7 Nov 2026) */
+.sheet .sc .inside,.sheet .sc>.ph,.sheet .sc>a{grid-column:2}
+.sheet .inside li{margin:0 0 6px}
+.sheet .inside small{color:var(--muted)}
+.cal .ev .th{position:absolute;right:3px;top:3px;bottom:3px;width:44px;max-height:48px;object-fit:cover;border-radius:4px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.cal .ev.hasph{padding-right:52px}
+.sheet .ph{display:block;width:100%;max-height:60vh;object-fit:contain;border-radius:8px;margin:8px 0 0}
+.cal .ev .cov{display:block;font-size:11.5px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal .ev.session{border:2px solid var(--edge);border-left-width:5px;overflow:hidden}
+.cal .ev.session .sl{display:block;font-size:12px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+.cal .ev.session .sl.more{color:var(--muted)}
+.sheet ol.sess,.sheet ul.sess{margin:8px 0 0;padding-left:20px}
+.sheet .sess li{margin:0 0 10px}
+.sheet .sc .sess,.sheet .sc .det.sd{grid-column:1/-1}
+.sheet .sess li small{display:block;color:var(--muted)}
+.sheet details.sess summary{cursor:pointer;margin-top:6px;color:var(--muted)}
+.sth{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:6px 0 8px}
+.sth h2{font:italic 400 22px var(--serif);color:var(--accent);margin:0}
+.sth .fold{font:500 12px var(--mono);color:var(--dest);background:var(--dest-soft);border:0;border-radius:999px;padding:3px 11px;cursor:pointer}
+.ftitle{font:italic 400 24px var(--serif);color:var(--accent);margin:28px 0 2px}
+.fsub{font-size:13.5px;color:var(--muted);margin:0 0 10px;max-width:72ch}
+.allsteps{margin:18px 0 0}.allsteps summary{cursor:pointer;font:500 13px var(--mono);color:var(--muted)}
+.int .nf{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.int .nf li{display:block!important;border-left:4px solid var(--dc,var(--rule));background:var(--card);border-radius:8px;padding:6px 10px;font-size:14px;line-height:1.35;cursor:pointer}
+.int .nf li small{display:block;font:500 11px var(--mono);color:var(--muted);margin-top:2px}
+.int .nf li .st{color:var(--ink);font-weight:500}
+.sheet .x{position:absolute;right:16px;top:10px;background:none;border:0;font-size:22px;color:var(--muted);cursor:pointer}
+.cal .ev .more{display:none}.cal .ev.open .more{display:block;font-size:12.5px;line-height:1.4;margin-top:6px;color:var(--ink)}
+.cal .ev .more .nx{display:block;font-weight:600;-webkit-line-clamp:unset}
+.cal .ev .more .lks{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.cal .ev .more .lk{font:500 11.5px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:2px 10px;text-decoration:none}
+.cal .ev .more .det{display:block;color:var(--muted);font-size:12.5px}
+.cal .ev.open a.lk{pointer-events:auto}
+.cal .ev.open{height:auto!important;min-height:46px;z-index:6;box-shadow:0 6px 18px rgba(0,0,0,.28);opacity:1}
+.cal .ev.open b{display:block;-webkit-line-clamp:unset}.cal .ev.open i{display:block;white-space:normal}
+.cal .ev.step{border:1.5px dashed var(--edge);border-left:4px solid var(--edge);background:color-mix(in srgb,var(--fill) 28%,var(--card))}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin:0 0 10px;font-size:11.5px;color:var(--muted)}
+.legend b{font:600 10.5px var(--mono);color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-right:-4px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:11px;height:11px;border-radius:3px;background:var(--fill);border:1.5px solid var(--edge)}
+.spc{padding:12px;display:grid;gap:12px}
+/* the pie and the wheel side by side (7 Nov 2026, her words: the time pie chart and the wellness wheel right next to each other) */
+/* the day's ring around the wheel (7 Nov 2026) */
+.ring{margin:0}.ring svg{max-width:300px;margin:0 auto}.ring figcaption{text-align:center;font:500 11px var(--mono);color:var(--muted);margin-bottom:6px}.ring .wk{cursor:pointer}.ring .wk.dim{opacity:.2}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center}.duo figure{margin:0;min-width:0}.duo svg{max-width:190px;margin:0 auto}
+.duo figcaption{text-align:center;font:500 11px var(--mono);color:var(--muted);margin-bottom:4px}
+.duo .wk{cursor:pointer}.duo .wk.dim{opacity:.2}
+.spc svg{width:100%;height:auto;display:block}
+.spl{display:grid;gap:5px}
+.spr{display:grid;grid-template-columns:5.6rem minmax(40px,1fr) 3.6rem;gap:6px;align-items:center}
+.spn{font-size:12.5px;line-height:1.15}
+.spb{position:relative;display:block;height:9px;border-radius:5px;background:var(--card2)}
+.spb i{display:block;height:100%;border-radius:5px;border:1.2px solid;box-sizing:border-box}
+.spb em{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--ink);border-radius:2px}
+.spb em.lim{background:var(--past)}
+.spv{font:500 11.5px var(--mono);color:var(--ink);text-align:right;line-height:1.1}
+.spv small{display:block;font-size:9.5px;color:var(--muted)}
+.spa{font:500 11px var(--mono);color:var(--muted);margin:0}
+
+.mvc{padding:12px 14px;display:grid;gap:14px}
+.mvr .mvn{font-weight:600;font-size:14.5px}
+.mvb{display:flex;height:10px;border-radius:5px;background:var(--rule);overflow:hidden;margin:6px 0 4px}
+.mvb i{display:block;height:100%;background:color-mix(in srgb,var(--dc) 55%,var(--card))}
+.mvb i.t{background:var(--dc)}
+.mvb i.p{background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--dc) 35%,transparent) 0 4px,transparent 4px 8px)}
+.mvl{font:500 12px var(--mono);color:var(--muted)}.mvl b{color:var(--ink)}
+.legend-key{margin:0 0 10px}.legend-key summary{cursor:pointer;font:500 11.5px var(--mono);color:var(--muted)}.legend-key .legend{margin:8px 0 4px}
+.sheet .chips{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px}
+.sheet .chip{display:inline-flex;align-items:center;gap:6px;font:500 13px var(--sans);color:var(--ink);background:var(--card2);border-radius:999px;padding:4px 11px}
+.sheet .chip i{width:12px;height:12px;border-radius:3px}
+.cal .ev .cx{display:flex;gap:6px;align-items:center;margin-top:2px;white-space:nowrap;overflow:hidden}
+.cal .ev .cx .dlk{font:600 10.5px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:0 7px;text-decoration:none;pointer-events:auto}
+.cal .ev .cx .mvt{font:600 10.5px var(--mono);color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:0 6px}
+.sheet .dlv{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.sheet .dlv a{font:600 15px var(--sans);color:#fff;background:var(--dest);border-radius:12px;padding:9px 14px;text-decoration:none}
+.sheet .phs{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;margin-top:8px}
+.sheet .phs .ph{margin:0;max-height:46vh;object-fit:cover;width:100%}
+.sheet .ball{grid-column:1/-1;font:500 15px var(--sans);color:var(--ink);margin-top:10px}.sheet .ball b{color:var(--accent)}
+.sheet .inside .dlk{font:600 11px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:1px 8px;text-decoration:none}
+.sheet .chip.none{color:var(--past);background:var(--past-soft)}
+.sheet .chip.mv{font:500 12.5px var(--mono);color:var(--accent);background:none;border:1.5px solid var(--accent)}
+.sheet .who{grid-column:1/-1;font:400 14.5px var(--sans);color:var(--ink);margin-top:8px}
+.sheet .her a{font:500 12.5px var(--mono);font-style:normal;color:var(--dest);text-decoration:none}
+.sheet .her{grid-column:1/-1;font:italic 400 15.5px/1.45 var(--serif);color:var(--muted);margin:8px 0 0}
+.sheet .her.full{white-space:pre-line;color:var(--ink);font-size:14.5px}
+.sheet details.more{grid-column:1/-1;margin-top:4px}.sheet details.more summary{cursor:pointer;font:500 12px var(--mono);color:var(--muted)}
+.td{--k-logged:#E6DCCF;--k-logged-d:#9A8B79;--k-stretch:#A9D3D6;--k-stretch-d:#3E7F86;--k-event:#5B6FB5;--k-lastmin:#E07A5F;--k-flow:#DDD5C9;--k-flow-d:#8C8174;--k-eat:#86C2A4;--k-eat-d:#3F8A68;--k-move:#B4C987;--k-move-d:#6E8A35;--k-personal:#C3B6E2;--k-personal-d:#6B5BA0;--k-recreation:#9FC4E2;--k-recreation-d:#4A7FAE;--k-travel:#A8D3C9;--k-travel-d:#3E7F74;--k-work:#C9805F;--k-work-d:#8E4A2C;--k-family:#E3A4A8;--k-family-d:#B05E66;--k-pet:#EBB9CB;--k-pet-d:#A85C7A;--k-home:#DDB4A2;--k-home-d:#96604A;--k-cook:#EEB672;--k-cook-d:#B07A2A;--k-drive:#A9B7C2;--k-drive-d:#56697A;--k-system:#DCC89C;--k-system-d:#9C8455;--k-moment:#F2C14E;--k-moment-d:#B8860B}
+html[data-bedo="night"] .td{--k-logged:#4A4540;--k-logged-d:#D9CCBC;--k-stretch:#2F5458;--k-stretch-d:#BDE3E6;--k-event:#7F8FD0;--k-lastmin:#F09A80;--k-flow-d:#BDB3A6;--k-eat-d:#C4E6D4;--k-move-d:#DCE8BC;--k-personal-d:#DED6F4;--k-recreation-d:#CFE2F2;--k-travel-d:#CDEAE4;--k-work-d:#F0C6B2;--k-family-d:#F5D0D2;--k-pet-d:#F6D3E0;--k-home-d:#F0D6CA;--k-cook-d:#F7D9AE;--k-drive-d:#D3DEE7;--k-system-d:#EEE2C6;--k-moment-d:#F2C14E}
+.cal .band{border:2px solid var(--dc);border-left-width:5px;background:color-mix(in srgb,var(--dc) 16%,transparent)}
+.cal .band.flowband{border:2px dashed var(--muted);background:color-mix(in srgb,var(--muted) 6%,transparent);left:0;right:0}
+.cal .band.flowband span{position:absolute;right:8px;bottom:4px;top:auto;font:600 11px var(--sans);color:var(--muted)}
+.bandtop span.fl i{border:2px dashed var(--muted);background:transparent}
+.cal .band span{color:var(--ink);font-weight:700;font-size:12px}
+.cal .band span em{display:block;font:600 9.5px var(--mono);font-style:normal;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.cal .ev.event{border:2px solid var(--edge);border-left-width:5px}
+.cal .ev.step.pick{border:2px solid #B8860B;border-left:5px solid var(--edge);background:color-mix(in srgb,var(--fill) 45%,var(--card));box-shadow:0 0 0 3px color-mix(in srgb,#F2C14E 35%,transparent)}
+.cal .ev.step.pick b:before{content:"★ ";color:#B8860B}
+.cal .ev.step:not(.pick){opacity:.72}
+.cal .ev .why{display:block;white-space:normal;color:var(--muted);font:italic 400 11px/1.3 var(--sans)}
+.key2{display:flex;flex-wrap:wrap;gap:4px 14px;margin:-4px 0 10px;font-size:11.5px;color:var(--muted)}
+.key2 span{display:inline-flex;align-items:center;gap:5px}
+.key2 i{display:inline-block;width:16px;height:11px;border-radius:3px}
+/* a Saturday's things to do, no clock on any (7 Nov 2026) */
+.sat{margin:14px 0 22px}
+.sat .say{font:italic 500 clamp(22px,5.4vw,28px)/1.2 var(--serif);color:var(--accent);margin:2px 0 12px}
+.sat .say small{display:block;font:500 11px var(--mono);font-style:normal;color:var(--faint);letter-spacing:.04em;margin-bottom:4px}
+.sat h2{font:italic 400 22px var(--serif);color:var(--accent);margin:0 0 2px}
+.sat .sub{color:var(--muted);font-size:13px;margin:0 0 10px}
+.sat h3{font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin:16px 0 6px}
+.sat h4{font:500 12.5px var(--sans);color:var(--muted);margin:10px 0 4px}
+.sat ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.sat li{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:8px 11px;min-width:0}
+.sat li b{font-weight:600;font-size:14.5px;overflow-wrap:anywhere}
+.sat li .w{display:inline-block;font:600 11px var(--mono);color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:0 7px;margin-left:6px;vertical-align:1px}
+.sat li .on{font:600 10.5px var(--mono);color:var(--dest);margin-left:6px}
+.sat li p{margin:3px 0 0;color:var(--muted);font-size:12.5px;line-height:1.35;overflow-wrap:anywhere}
+.sat li .lks{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}
+.sat li .lks a{font:500 11.5px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:2px 10px;text-decoration:none}
+.sat details>summary{cursor:pointer;font:500 12px var(--mono);color:var(--dest);margin:6px 0;list-style:none}
+.sat details>summary::-webkit-details-marker{display:none}
+.sat details[open]>summary{margin-bottom:6px}
+.sat .feel{margin-top:22px;padding-top:4px;border-top:1px dashed var(--rule)}.sat .feel li{background:transparent}.sat .feel li b{font-weight:500}
+.td .tasks{margin:12px 0 0}.td .tasks summary{cursor:pointer;font:500 12px var(--mono);color:var(--dest)}
+.td .tasks ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:4px;font-size:13.5px}
+.td .tasks li span{color:var(--faint);font:500 11px var(--mono);margin-left:6px}
+.cal .open{position:absolute;left:3px;right:3px;border-radius:10px;border:1.5px dashed var(--rule);background:color-mix(in srgb,var(--muted) 5%,transparent);display:flex;align-items:center;padding:0 12px;z-index:0}
+.cal .open span{font:500 12px var(--mono);color:var(--muted)}
+.cal .now{position:absolute;left:-5px;right:0;border-top:2px solid var(--c-clay,#c0392b);z-index:3}
+.cal .now:before{content:"";position:absolute;left:-1px;top:-6px;width:10px;height:10px;border-radius:50%;background:var(--c-clay,#c0392b)}
+.wh{margin-top:34px}
+.wh .wrap{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:18px;align-items:start}
+.wh svg{width:100%;height:auto;display:block}
+.wh .wk{cursor:pointer}.wh .dim{opacity:.18}
+.wh .lg{display:grid;gap:2px;font-size:13px}
+.wh .lr{display:grid;grid-template-columns:14px 4.2rem minmax(0,1fr) 2.6rem;gap:8px;align-items:center;padding:3px 0;cursor:pointer}
+.wh .lr i{width:12px;height:12px;border-radius:3px}
+.wh .lr .f{color:var(--muted);font-size:12px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.wh .lr .v{font:500 12px var(--mono);text-align:right}
+.wh .lr.z{opacity:.45}
+.wh .ents{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:3px;font-size:13px}
+.wh .ents b{font:500 11px var(--mono);color:var(--faint);display:inline-block;min-width:3.2rem}
+.wh .wrows{margin-top:10px}.wh .wrows summary{cursor:pointer;font-size:13px;color:var(--muted)}
+.wh .none{color:var(--muted);font-size:13px}
+/* a kind of time, tapped, lights its rows on the timeline and the wheel (7 Nov 2026) */
+.spr{cursor:pointer;border-radius:6px}.spb .dv{position:absolute;bottom:0;height:45%;border-radius:0 0 4px 4px}.spd{display:block;font:400 10.5px var(--mono);color:var(--muted);margin-top:1px}
+.spr.scr{cursor:default;border-top:1px dashed var(--rule);padding-top:6px;margin-top:4px}.spr.scr .dv{height:100%;border-radius:4px}.spb em.meas{border-left:2px dashed var(--ink);height:140%;top:-20%}.spr.on{background:color-mix(in srgb,var(--accent) 12%,transparent)}.spr.off{opacity:.45}
+.spc path.kseg{cursor:pointer}.spc path.off{opacity:.25}
+.spk{font:500 12px var(--mono);color:var(--muted);margin:8px 0 0}.spk a{color:var(--accent)}
+/* a time be•do estimated from context reads as one: a dashed edge (8 Nov 2026) */
+#today .ev.est{outline:1.5px dashed var(--edge,var(--muted));outline-offset:-1.5px;border-left-style:dashed}
+#today .ev.kdim{opacity:.18;filter:saturate(.3)}#today .ev.klit{box-shadow:0 0 0 2px var(--edge,var(--accent));z-index:3}
+/* a Saturday's menu: three to start, then each mood folded (7 Nov 2026) */
+.sat .menu{margin-top:14px}.sat .gate{margin:14px 0 0}.sat .gate a{display:inline-block;font:600 14px var(--sans);color:var(--accent);text-decoration:none;border:1px solid var(--rule);border-radius:999px;padding:6px 12px}.sat .menu details{border-top:1px solid var(--rule);padding:6px 0}
+.sat .menu summary{cursor:pointer;font-weight:600;list-style:none;padding:6px 0}
+.sat .menu summary::-webkit-details-marker{display:none}
+.sat .menu summary small{display:block;font:400 12px var(--mono);color:var(--muted);margin:1px 0 0 1.6em}
+.sat .menu summary .n{font:500 12px var(--mono);color:var(--accent)}
+@media (max-width:620px){.wh .wrap{grid-template-columns:1fr}.wh svg{max-width:300px;margin:0 auto}}
+</style>
+</head>
+<body>
+<main>
+<p class="chip" id="chip"></p>
+<h1 id="h1"></h1>
+<section class="sat" id="sat"></section>
+<section class="td" id="today"></section>
+<section class="three" id="three"></section>
+<section class="int" id="int"></section>
+<section class="rv" id="rv"></section>
+<p class="leannote" id="leannote"></p>
+<div id="flowwrap"><details class="allsteps"><summary>every step, by rhythm</summary><div class="blocks" id="blocks"></div></details>
+<h2 class="ftitle">How things flow</h2>
+<p class="fsub">today's steps → the drives they serve → the rhythms → ☸️ the wellness wheel, and on to where each drive leads. Tap anything to follow it.</p>
+<div class="card"><div class="scroll"><svg id="flow" role="img" aria-label="Steps flowing into drives, rhythms, the wellness wheel and destinations"></svg></div>
+<div class="sum" id="sum"></div>
+<p class="hint">each list runs from the easiest next step · tap anything on the flow to follow it · tap again to see all</p></div>
+<div class="focus" id="focus" hidden></div></div>
+<section class="sp" id="spent"></section>
+<section class="mv" id="moved"></section>
+<section class="wh" id="wheel"></section>
+<p id="questlink" style="text-align:center;margin:28px 0 0" hidden></p>
+</main>
+<script>/*BFJS*/</script>
+<script>
+/* the theme button: plain line icons, a sun or a moon (7 Nov 2026, her words: just the white outline, very simple, clean glyphs) */
+const D = /*DATA*/;
+/*BASICSJS*/
+if(D.quest){const q=document.getElementById('questlink'),a=document.createElement('a');a.href=D.quest.u;a.target='_blank';a.rel='noopener';a.textContent=D.quest.t;q.appendChild(a);q.hidden=false;}
+
+/* how today leans (29 Oct 2026, her words: there is the tending, the taking care of things, and then
+   there is the growing, the pushing, the drive — different actions, and some days I may want to do the
+   min of one and the max of the other, so the system needs to be responsive to that).
+   tending day: every tending step; each drive rests to one line.
+   balanced: the easiest next step on each rhythm and each drive (no stars, her words 29 Oct 2026).
+   growing day: tending only where something is due today; each drive opens to its next few steps.
+   It starts from the morning's secure base: knocked back leans to tending. */
+const LEAN = {tend:{rh:4, dr:0}, bal:{rh:1, dr:1}, grow:{rh:'due', dr:4}};
+/* be•do chooses the lean (29 Oct 2026, her words: I'd rather that you could choose for me based on my
+   readiness and general sense of how caught up I am, how I'm feeling). Read off the day, never guessed:
+   the morning Oura readiness (80 and up leans to growing, under 70 to tending), the secure base (knocked
+   back leans to tending), and how caught up she is (three or more tending things past their date leans
+   to tending). How she's feeling joins this once the morning carries it.
+   No switch and no week or month view (29 Oct 2026, her words): just today, and the next right step
+   made very clear — what is actionable. */
+/* the morning card chooses first (29 Oct 2026): optimal leans to growing, good to balanced, pay attention
+   to tending; a knocked-back secure base still pulls to tending. Without the card, the readiness rule below. */
+/*BFCARDJS*/
+function chooseLean(){
+  if(BFV!=null){ const st=BedoBaseFlow.state(BFV), why=[`the morning card ${BFV}, ${st}`];
+    let l = st==='optimal'?'grow':st==='good'?'bal':'tend';
+    if(D.secure && D.secure!=='secure'){ l='tend'; why.push('knocked back this morning'); } else if(D.secure) why.push('secure base');
+    return {lean:l, why}; }
+  const R=D.ready||{}, why=[]; let s=0;
+  if(R.readiness!=null){ if(R.readiness>=80){ s+=1; why.push(`readiness ${R.readiness}`); } else if(R.readiness<70){ s-=1; why.push(`readiness ${R.readiness}, low`); } else why.push(`readiness ${R.readiness}`); }
+  else why.push('no readiness yet this morning');
+  if(D.secure && D.secure!=='secure'){ s-=2; why.push('knocked back this morning'); } else if(D.secure) why.push('secure base');
+  if((R.late_tend||0)>=3){ s-=1; why.push(`${R.late_tend} tending things past their date`); }
+  else if(R.late_tend) why.push(`${R.late_tend} tending ${R.late_tend===1?'thing':'things'} a little behind`);
+  else why.push('caught up on tending');
+  return {lean: s>=1?'grow':s<=-1?'tend':'bal', why};
+}
+const CHOSEN = chooseLean();
+const lean = CHOSEN.lean, win = 0;
+let cur=null, part={};
+const note = {tend:'a tending day · taking care of things first; the drives rest',
+              bal:'balanced · one step to tend on each rhythm, one to grow on each drive',
+              grow:'a growing day · tending kept to what is due today; the drives open up'};
+
+function ease(a){ return (a.dl?4:0)+(a.mo?3:0)+((a.links||[]).length?2:0)+(a.today?1:0); }
+function whyOf(a){ const w=[]; if(a.dl) w.push('its deliverable is on it · done?'); if(a.mo) w.push('already in motion');
+  if((a.links||[]).length) w.push('its chat or file is linked'); if(a.today) w.push('today'); else if(a.d) w.push(fmt(a.d)); return w; }
+const byEase=(a,b)=>ease(b)-ease(a)||(a.d||'9').localeCompare(b.d||'9');
+
+// the shape: each rhythm, its own steps to tend, and the drives under it (a drive whose rhythm is unknown sits apart)
+function shape(){
+  const end=plus(D.day,win), inWin=a=>a.today||(a.d&&a.d<=end);
+  const doneBy={}; (D.done||[]).forEach(x=>{ (doneBy[x.rd]=doneBy[x.rd]||[]).push({t:x.t,done:true,today:true}); });
+  const L=LEAN[lean];
+  const keep=(acts,n)=>{ const open=acts.filter(a=>!a.done).sort(byEase); open.forEach(a=>a.pick=false); if(open[0]) open[0].pick=true;
+    const shown = n==='due' ? open.filter(a=>a.today).slice(0,2) : open.slice(0,n);
+    return {shown, open}; };
+  const known=new Set(D.order);
+  const blocks=D.order.map(r=>{ const R=D.rhythms.find(x=>x.n===r); if(!R) return null;
+    const tend=keep(R.acts.filter(inWin), L.rh);
+    const drives=D.drives.filter(d=>d.parent===r).map(d=>({d, ...keep(d.acts.filter(inWin), L.dr), done:doneBy[d.n]||[]})).filter(x=>x.open.length||x.done.length);
+    return {R, ...tend, done:doneBy[R.n]||[], drives}; }).filter(b=>b&&(b.open.length||b.drives.length||b.done.length));
+  const loose=D.drives.filter(d=>!known.has(d.parent)).map(d=>({d, ...keep(d.acts.filter(inWin), L.dr), done:doneBy[d.n]||[]})).filter(x=>x.open.length||x.done.length);
+  if(loose.length) blocks.push({R:{n:'',short:'drives with no rhythm yet',g:'',c:'clay'}, shown:[], open:[], done:[], drives:loose, loose:true});
+  return blocks;
+}
+function stepLine(a){ return `<p class="st">${a.done?'✅ ':'→ '}${esc(a.t)}</p><div class="why">${a.done?'<span>done today</span>':whyOf(a).map(w=>`<span>${esc(w)}</span>`).join('')}${(a.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l)} ↗</a>`).join('')}</div>`; }
+function lists(blocks){
+  const when='today';
+  document.getElementById('leannote').innerHTML = `<b>be•do chose ${lean==='grow'?'a growing day':lean==='tend'?'a tending day':'balanced'}</b> · ${esc(CHOSEN.why.join(' · '))}<br>${note[lean]}`;
+  document.getElementById('blocks').innerHTML=blocks.map(b=>{
+    const R=b.R, tendHtml = b.loose ? '' :
+      (b.done.length||b.shown.length ? `<p class="k">tend</p>${b.done.map(a=>stepLine(a)).join('')}${b.shown.map(a=>stepLine(a)).join('')}${b.open.length>b.shown.length?`<p class="st more">+${b.open.length-b.shown.length} more to tend</p>`:''}`
+       : b.open.length ? `<p class="rest">${b.open.length} to tend, resting ${when}</p>` : '');
+    const drv=b.drives.map(x=>{ const g=D.goals[x.d.n]||'';
+      const body = x.shown.length||x.done.length ? `${x.done.map(a=>stepLine(a)).join('')}${x.shown.map(a=>stepLine(a)).join('')}${x.open.length>x.shown.length?`<p class="st more">+${x.open.length-x.shown.length} more on it</p>`:''}`
+        : `<p class="rest">resting ${when} · ${x.open.length} ${x.open.length===1?'step':'steps'} waiting</p>`;
+      return `<div class="dr" style="--dc2:${col(x.d.c)}"><div class="dn">${esc((x.d.g||'')+' '+(x.d.short||x.d.n))}</div>${g&&(x.shown.length||lean!=='tend')?`<div class="gl">${esc(g)}</div>`:''}${body}</div>`; }).join('');
+    return `<section class="rb" style="--dc:${col(R.c)}"><h2>${esc((R.g||'')+' '+(R.short||R.n))}${b.loose?'':'<span class="to">→ ☸️ the wellness wheel</span>'}</h2>${tendHtml}${drv?`${b.loose?'':'<p class="k">grow</p>'}${drv}`:''}</section>`;
+  }).join('');
+}
+
+// the flow: steps → drives → rhythms → the wheel; each drive also on to its destinations
+function flow(blocks){
+  const svg=document.getElementById('flow'); svg.textContent=''; cur=null; part={}; document.getElementById('focus').hidden=true;
+  const ROW=24, TOP=34, GAP=12, X0=12, XS=330, XD=500, XR=680, XO=860;
+  const reg=(k,e)=>{(part[k]=part[k]||[]).push(e);};
+  const rows=[], drs=[], rhs=[];
+  let y=TOP;
+  blocks.forEach(b=>{ const y0=y, R=b.R;
+    const own=[...b.done,...b.shown].map(a=>({a,to:'r'}));
+    own.forEach(s=>{ s.y=y+ROW/2; rows.push({...s,b}); y+=ROW; });
+    b.drives.forEach(x=>{ const dy0=y; const acts=[...x.done,...x.shown]; acts.forEach(a=>{ rows.push({a,to:'d',x,b,y:y+ROW/2}); y+=ROW; });
+      if(!acts.length){ y+=ROW*.75; } x.y0=dy0; x.y1=y; x.ym=(dy0+y)/2; drs.push({x,b}); });
+    b.y0=y0; b.y1=y; b.ym=(y0+y)/2; if(!b.loose) rhs.push(b); y+=GAP; });
+  const dests={}; drs.forEach(({x})=>x.d.dest.forEach(n=>{ (dests[n]=dests[n]||[]).push(x); }));
+  const H=Math.max(y, TOP+60+Object.keys(dests).length*34)+10; svg.setAttribute('viewBox',`0 0 1000 ${H}`);
+  [['steps',X0,'start'],['drives',XD+10,'start'],['rhythms',XR+10,'start'],['what they rest on · where they lead',XO,'start']].forEach(([t,x,a])=>T(t,{x,y:20,'font-family':MONO,'font-size':11,fill:cv('--muted'),'text-anchor':a},svg));
+  const G={b:S('g',{},svg),n:S('g',{},svg)};
+  // the wheel, the foundation, at the top of the last column; the destinations under it
+  const wheelY=TOP+6, wH=Math.max(26,rhs.length*10);
+  const wn=S('g',{class:'n'},G.n); reg('wheel',wn);
+  S('rect',{x:XO,y:wheelY,width:10,height:wH,rx:4,fill:cv('--accent')},wn);
+  T('☸️ a balanced wellness wheel',{x:XO+16,y:wheelY+wH/2+3,'font-size':13,'font-weight':600},wn);
+  T('the foundation',{x:XO+16,y:wheelY+wH/2+17,'font-family':MONO,'font-size':10,fill:cv('--muted')},wn);
+  wn.addEventListener('click',()=>focus('wheel',{title:'☸️ a balanced wellness wheel — the foundation', list:rows.filter(r=>r.to==='r').map(r=>r.a)}));
+  const dn=Object.keys(dests).map(n=>({n,ym:dests[n].reduce((s,x)=>s+x.ym,0)/dests[n].length})).sort((a,b)=>a.ym-b.ym);
+  let oy=wheelY+wH+40; dn.forEach(o=>{ o.y=Math.max(oy,o.ym-10); oy=o.y+34; });
+  const dY={}; dn.forEach(o=>dY[o.n]=o.y+10);
+  // rhythms → wheel
+  window.__fnode={};
+  rhs.forEach(b=>{ const c=col(b.R.c), k='r:'+b.R.n;
+    const p=S('path',{d:`M${XR+10},${b.ym} C${XR+90},${b.ym} ${XO-90},${wheelY+wH/2} ${XO},${wheelY+wH/2}`,fill:'none',stroke:c,'stroke-width':5,opacity:.35},G.b); reg(k,p); reg('wheel',p);
+    const n=S('g',{class:'n'},G.n); reg(k,n); window.__fnode[k]=n;
+    S('rect',{x:XR,y:b.y0,width:10,height:Math.max(12,b.y1-b.y0),rx:4,fill:c},n);
+    T(cut((b.R.g||'')+' '+(b.R.short||b.R.n),20),{x:XR+16,y:b.ym+4,'font-size':12.5,'font-weight':600},n);
+    n.addEventListener('click',()=>focus(k,{title:(b.R.g||'')+' '+b.R.n, list:rows.filter(r=>r.b===b).map(r=>r.a)})); });
+  // drives → their rhythm, and on to their destinations
+  drs.forEach(({x,b})=>{ const c=col(x.d.c), k='d:'+x.d.n;
+    if(!b.loose){ const p=S('path',{d:`M${XD+10},${x.ym} C${XD+80},${x.ym} ${XR-80},${b.ym} ${XR},${b.ym}`,fill:'none',stroke:c,'stroke-width':3,opacity:.4},G.b); reg(k,p); reg('r:'+b.R.n,p); }
+    x.d.dest.forEach(n=>{ if(dY[n]==null) return; const p=S('path',{d:`M${XD+10},${x.ym} C${XD+200},${x.ym} ${XO-160},${dY[n]} ${XO},${dY[n]}`,fill:'none',stroke:c,'stroke-width':2,opacity:.28,'stroke-dasharray':'2 4'},G.b); reg(k,p); reg('o:'+n,p); });
+    const n=S('g',{class:'n'},G.n); reg(k,n); window.__fnode[k]=n; if(!b.loose) reg('r:'+b.R.n,n);
+    S('rect',{x:XD,y:x.y0,width:8,height:Math.max(10,x.y1-x.y0),rx:3,fill:c,opacity:x.shown.length||x.done.length?1:.4},n);
+    const P=x.d.prog||{}, tot=(P.done||0)+(P.open||0), nd=x.done.length;
+    T(cut((x.d.g||'')+' '+(x.d.short||x.d.n),20),{x:XD+14,y:x.ym-(tot?1:-4),'font-size':12.5},n);
+    if(tot) T(nd?`${Math.round(100*Math.max(0,P.done-nd)/tot)}% → ${Math.round(100*P.done/tot)}% today`:`${Math.round(100*P.done/tot)}%`,{x:XD+14,y:x.ym+12,'font-family':MONO,'font-size':10.5,fill:cv('--muted')},n);
+    n.addEventListener('click',()=>focus(k,{title:(x.d.g||'')+' '+x.d.n, list:x.open.concat(x.done)})); });
+  dn.forEach(o=>{ const n=S('g',{class:'n'},G.n), k='o:'+o.n; reg(k,n);
+    S('rect',{x:XO,y:o.y,width:10,height:20,rx:4,fill:cv('--dest')},n);
+    T(((D.dest[o.n]||'')+' '+cut(o.n,22)).trim(),{x:XO+16,y:o.y+14,'font-size':12.5},n);
+    n.addEventListener('click',()=>focus(k,{title:(D.dest[o.n]||'')+' '+o.n, list:dests[o.n].flatMap(x=>x.open)})); });
+  // the steps
+  rows.forEach((s,i)=>{ const k='s'+i, b=s.b, tx=s.to==='r'?XR:XD, ty=s.to==='r'?b.ym:s.x.ym, c=col((s.to==='r'?b.R:s.x.d).c);
+    const p=S('path',{d:`M${XS},${s.y} C${XS+(tx-XS)*.45},${s.y} ${tx-(tx-XS)*.45},${ty} ${tx},${ty}`,fill:'none',stroke:c,'stroke-width':s.a.done?5:3,opacity:s.a.done?.9:.45,'stroke-dasharray':s.a.done?'0':'5 4'},G.b);
+    reg(k,p); reg(s.to==='r'?'r:'+b.R.n:'d:'+s.x.d.n,p); if(s.to==='r') reg('wheel',p);
+    const n=S('g',{class:'n'},G.n); reg(k,n); reg(s.to==='r'?'r:'+b.R.n:'d:'+s.x.d.n,n);
+    if(s.a.done){ S('rect',{x:X0,y:s.y-7,width:13,height:13,rx:3,fill:cv('--accent')},n); S('path',{d:`M${X0+3.5},${s.y} l2.5,2.8 l4,-5.5`,fill:'none',stroke:cv('--card'),'stroke-width':2},n); }
+    else if(s.a.today) S('rect',{x:X0,y:s.y-7,width:13,height:13,rx:3,fill:cv('--card'),stroke:cv('--accent'),'stroke-width':2},n);
+    else S('path',{d:'M6.6 0 0 8h4.2L3.4 14 11 5.6H6.6z',transform:`translate(${X0+1},${s.y-7})`,fill:cv('--bolt')},n);
+    const t=T(cut(s.a.t,40),{x:X0+22,y:s.y+4.5,'font-size':12.5,fill:s.a.done?cv('--muted'):cv('--ink')},n);
+    if(s.a.done) t.setAttribute('text-decoration','line-through');
+    n.addEventListener('click',()=>focus(k,{title:s.a.t, list:[s.a]})); });
+  const nt=rows.filter(r=>r.to==='r'&&!r.a.done).length, ng=rows.filter(r=>r.to==='d'&&!r.a.done).length, nd=rows.filter(r=>r.a.done).length;
+  document.getElementById('sum').innerHTML=`${nd?`<span><b>${nd}</b> done today</span>`:''}<span><b>${nt}</b> to tend</span><span><b>${ng}</b> to grow</span><span><b>${drs.filter(({x})=>x.shown.length).length}</b> drives moving · ${drs.filter(({x})=>!x.shown.length&&!x.done.length).length} resting</span>`;
+}
+function focus(k,info){
+  const svg=document.getElementById('flow'), box=document.getElementById('focus');
+  if(cur===k){ cur=null; svg.querySelectorAll('.dim').forEach(e=>e.classList.remove('dim')); box.hidden=true; return; }
+  cur=k; const on=new Set(part[k]||[]);
+  svg.querySelectorAll('path,g.n').forEach(e=>e.classList.toggle('dim',!on.has(e)));
+  box.innerHTML=`<h3>${esc(info.title)}</h3><ul>${info.list.map(a=>`<li>${a.done?'✅ ':''}${esc(a.t)}${a.done?'<span class="when">done today</span>':a.today?'<span class="when">today</span>':a.d?`<span class="when">${esc(fmt(a.d))}</span>`:''}${(a.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l)} ↗</a>`).join('')}</li>`).join('')}</ul>`;
+  box.hidden=false;
+}
+/* the intention step (29 Oct 2026): after the lean, how much the day holds — today's free hours off the
+   calendar, scaled by base flow (optimal aims for most of it, good a comfortable share, pay attention a
+   little) — and she fills it from the easiest next steps, ranked from the highest priority. Steps record no size yet:
+   be•do guesses 15 min, 1 h or half a day off the words and says so; a tap on the size sets hers. Her picks
+   and sizes stay in this browser for now. */
+const H = D.holds, SZ=[15,60,240], SZN={15:'15 min',60:'1 h',240:'half day'};
+const store=(k,v)=>{ try{ if(v===undefined) return JSON.parse(localStorage.getItem(k)||'null'); localStorage.setItem(k,JSON.stringify(v)); }catch(e){ return null; } };
+const PK='bedo-flow-int-'+D.day, SK='bedo-flow-size';
+let picked=new Set(store(PK)||[]), mySize=store(SK)||{};
+const hm=m=>m<60?`${m} min`:`${Math.floor(m/60)} h${m%60?' '+m%60:''}`;
+const half=h=>{ const r=Math.round(h*2)/2; return r===1?'1 hour':r<1?'half an hour':`${String(r).replace('.5','½')} hours`; };
+function stars(blocks){
+  const mix=[];
+  blocks.forEach(b=>{ const t=b.loose?null:b.open.find(a=>a.pick); if(t) mix.push({a:t,c:b.R.c,on:(b.R.g||'')+' '+(b.R.short||b.R.n),k:'tend'});
+    b.drives.forEach(x=>{ const g=x.open.find(a=>a.pick); if(g) mix.push({a:g,c:x.d.c,on:(x.d.g||'')+' '+(x.d.short||x.d.n),k:'grow'}); }); });
+  /* ranked from the highest priority, no stars (29 Oct 2026, her words): the lean's own kind first, then
+     what is past its date, then due today, then the easiest way in, then the soonest date */
+  const pri=s=>(s.k===(lean==='tend'?'tend':lean==='grow'?'grow':'')?100:0)+(s.a.d&&s.a.d<D.day?8:s.a.today?6:0)+ease(s.a);
+  return mix.sort((x,y)=>pri(y)-pri(x)||(x.a.d||'9').localeCompare(y.a.d||'9'));
+}
+function three(){
+  /* be•do's three, right under base flow (12 Nov 2026, her words: I like seeing the base flow first … and then I want
+     to see the Pareto 3, like the recommendation about what I work on today). Each with why it rose and its one next
+     step; a tap opens its card. A pick closed later in the day is drawn done. */
+  const el=document.getElementById('three'); const T=D.three||[]; if(!T.length){ el.innerHTML=''; return; }
+  const nt=t=>String(t||'').replace(/^⚡\s*/,'').trim();
+  const doneSet=new Set((D.done||[]).map(x=>nt(x.t)));
+  const nxt=(D.three_next||[]).filter(x=>x&&x.t);
+  el.innerHTML=`<h2>be•do's three</h2><p class="how">what, done today, frees the most for the rest of the day and week · a recommendation, not your intention</p><ol>${T.map((x,i)=>{ const dn=/✅/.test(x.st)||doneSet.has(nt(x.t));
+    return `<li data-n="${i}" class="${dn?'done':''}"><span class="t">${esc((x.g?x.g+' ':'')+nt(x.t))}</span>${x.why?`<span class="why">${esc(x.why)}</span>`:''}${x.nx&&!dn?`<span class="nx">→ ${esc(x.nx)}</span>`:''}${(x.links||[]).length&&!dn?`<span class="lks">${x.links.map(l=>`<a class="lk" href="${esc(l.url||l.u)}" target="_blank" rel="noopener">${esc(l.label||l.l||'link')} ↗</a>`).join(' ')}</span>`:''}<small>${esc(x.drive||'')}${x.waiting?' · ⏸ waiting on '+esc(x.waiting):''}</small></li>`; }).join('')}</ol>${nxt.length?`<p class="then">next in line: ${nxt.map(x=>esc(nt(x.t))).join(' · ')}</p>`:''}`;
+  el.querySelectorAll('.lk').forEach(a=>a.addEventListener('click',e=>e.stopPropagation()));
+  el.querySelectorAll('li').forEach(li=>li.onclick=()=>{ const x=T[+li.dataset.n]; sheet({k:'step',t:x.t,drive:x.drive,nx:x.nx,links:(x.links||[]).map(l=>({l:l.label||l.l,u:l.url||l.u})),s:0,e:0}); });
+}
+function intention(blocks){
+  /* not on today's calendar (2 Nov 2026, her words: it should only be an intention if it can actually fit on my
+     calendar; it would be nice to show what doesn't fit; the intention list and below are extra and could be
+     integrated into the calendar). The calendar holds what fits; this lists the rest: steps pushed past the
+     evening, then the easiest next steps with no time today, each with its drive, a guess at its size and its
+     next step. A tap opens its card. */
+  const el=document.getElementById('int'); const nt=t=>String(t||'').replace(/^⚡\s*/,'').trim();
+  const onCal=new Set((window.__cards||[]).map(x=>nt(x.t)));
+  const over_=new Date().toLocaleDateString('en-CA')>D.day;
+  /* a day that is over lists only what was open at its end, reconciled: a session block is only a container, and a step
+     worked on today and still in motion says so (7 Nov 2026, her words: several things on here should have been
+     reconciled during the QA before this got printed). The easiest next steps for later days belong to the day ahead. */
+  const late=(window.__nofit||[]).filter(x=>!(over_&&x.session)).map(x=>({t:x.t,drive:x.drive,sz:x.e-x.s,nx:x.nx,worked:x.worked,x}));
+  const rest=over_?[]:stars(blocks).filter(s=>!onCal.has(nt(s.a.t))&&!late.some(l=>nt(l.t)===nt(s.a.t))&&!/be•do/.test(s.on))
+    .map(s=>({t:s.a.t,drive:s.on.trim(),sz:s.a.sz,nx:s.a.nx||null,c:s.c}));
+  const all=late.concat(rest), hmz=m=>m>=60?`${Math.floor(m/60)} h${m%60?' '+(m%60)+' min':''}`:`${m} min`;
+  if(!all.length){ el.innerHTML=''; return; }
+  const free=`<p class="how">${over_?'the day is over; these were open at its end and wait for a time':'the calendar above holds what fits today; these wait for a time'}</p>`;
+  el.innerHTML=`<h2>${over_?'still open':'not on today\'s calendar'}</h2>${free}<ul class="nf">${all.map((s,i)=>{ const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===s.drive||(s.drive||'').endsWith(r.n));
+    return `<li data-n="${i}" style="--dc:${col((d&&d.c)||s.c)}"><span class="st">${esc(nt(s.t))}</span><small>${i<late.length?(over_?(s.worked?'worked on today, still in motion · ':'didn\'t happen · '):'doesn\'t fit today · '):''}${esc(s.drive||'')}${s.sz?' · about '+hmz(s.sz):''}</small></li>`; }).join('')}</ul>`;
+  el.querySelectorAll('.nf li').forEach(li=>li.onclick=()=>{ const s=all[+li.dataset.n]; const x=s.x||{k:'step',t:s.t,drive:(s.drive||'').replace(/^\S+\s/,''),nx:s.nx,s:0,e:s.sz||0};
+    sheet(Object.assign({},x,{s:x.s||0})); });
+}
+/* today, as a calendar (31 Oct 2026, her words: I want it to look like how the schedule looks in Google
+   calendar; I expected to see celebration as the intention, and the whole list of things I said I wanted
+   to do this afternoon — those are my intentions). Her intention first, in her words; then every event
+   and every step set for a time today, each at its time, overlaps side by side, a line at the clock. */
+/* what a card opens to: the next step, the ways in, her words */
+const more=x=>{ const L=(x.links||[]).map(l=>`<a class="lk" href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l||'link')} ↗</a>`).join('');
+  return (x.nx||L||x.det)?`<span class="more">${x.nx?`<b class="nx">→ ${esc(x.nx)}</b>`:''}${L?`<span class="lks">${L}</span>`:''}${x.det?`<span class="det">${esc(x.det)}</span>`:''}</span>`:''; };
+function today(){
+  const el=document.getElementById('today'), S=D.schedule||[], I=D.intentions||[];
+  if(!S.length && !I.length && !(D.tasks||[]).length){ el.innerHTML=''; return; }
+  const min=t=>{const [h,m]=t.split(':').map(Number); return h*60+m;};
+  const now=new Date(), nowM=now.toLocaleDateString('en-CA')===D.day?now.getHours()*60+now.getMinutes():null; /* the device's own clock, where she is */
+  /* doable (31 Oct 2026, her words: I don't like seeing two things on one time slot, that makes no sense —
+     think about what is realistic). A long event (two hours or more, the party) is the ground the steps sit
+     on, drawn behind them; every other event and step is laid end to end in time order, nothing open before
+     the clock (she can't go back), each at its own time or as soon as the one before it ends. */
+  const all=S.map(x=>({...x,s:min(x.a),e:Math.max(min(x.b),min(x.a)+(x.k==='lived'?(x.pt?10:1):15))}));
+  /* someone else's long event out in town has two moments she can't miss: the drop-off and the pick-up (7 Nov 2026, her
+     words: pick up and drop off are important events on my calendar on Fridays, but they're implied — those are things I just can't miss). Each is its own card in the calendar's colour, while it
+     is still ahead; once past, her own rows (the drive there, the pick-up) are the record */
+  const ahead_=t=>now.toLocaleDateString('en-CA')<D.day||(nowM!=null&&t>nowM);
+  all.filter(x=>x.k==='event'&&x.who&&x.who!=='you'&&x.where&&x.e-x.s>=120).forEach(x=>{
+    const nm=String(x.summary||x.t||'').replace(/^\s*(⬜|✅|✔️|✔)\uFE0F?/,'').trim(), lk=x.link;
+    const one=(w,t,a)=>({...x,t:w+' · '+nm,summary:w+' · '+nm,s:t,e:t+15,a,b:a,handoff:true,star:false,covers:null,photos:null,links:lk?[{l:'calendar event',u:lk}]:null});
+    if(ahead_(x.s)) all.push(one('drop-off',x.s,x.a));
+    if(ahead_(x.e)) all.push(one('pick-up',x.e,x.b)); });
+  /* a long event, or a block of hers already done that holds other things (her prep window), is ground */
+  /* her own meetings stay cards in their calendar colour (4 Nov 2026, her words: the precipitation check and the
+     Louisiana work are purple like on my calendar, but it seems to be missing the work weekly): an event of hers
+     is ground only at three hours or more (a party); someone else's long event (Greenhouse) still at two */
+  /* a long stretch of one thing is ground under the day, named at the top, never a card that swallows the hours (7 Nov
+     2026: her Copilot work from getting home until about 10 PM) */
+  /* a flow is ground too: a dotted outline behind its steps, as the river drew it (7 Nov 2026, her words: I loved how the
+     river showed the dawn flow and the dusk flow with a dotted outline around all the different things, in the background,
+     kind of like how you did Greenhouse) */
+  const bands=all.filter(x=>x.flowcard||(x.k==='event'&&x.e-x.s>=(x.who==='you'?180:120))||(x.k==='lived'&&x.cat!=='stretch'&&!x.column&&x.cat!=='sleep'&&((x.act&&x.e-x.s>=60)||x.e-x.s>=180)));
+  /* what she has done stays where it happened; what's ahead is laid end to end from the clock */
+  /* what's done reads as a list in time (2 Nov 2026, her words: show me my day flow, up to date, for what I've
+     already accomplished): an event already over joins the done side, so it never covers what she did in it,
+     and a moment logged with no end of its own runs only until the next thing, so the done items stack down
+     the clock one per line instead of squeezing side by side */
+  /* on a day already gone every event is over (4 Nov 2026, her words: it looks like there's stuff behind it that
+     I can't see): it sits beside what she did during it, never on top of it */
+  const gone=now.toLocaleDateString('en-CA')>D.day;
+  const over=x=>x.k==='event'&&(gone||(nowM!=null&&x.e<=nowM));
+  /* once an hour has passed it folds to what mattered (2 Nov 2026, her words: condensed after that hour passes;
+     I want to see the highlights or glimmers or the big accomplishments, but BM and morning water don't need to
+     show unless I expand it): a finished action, an event, a moment (highlight, glimmer, noticing, dream, journal,
+     gratitude) stays; the routine folds behind 'show everything'. Anything that took ten minutes or more stays too
+     (3 Nov 2026, her words: the goal is to show how I spent my time, and there's a lot of gaps, especially at the
+     end of the day): only the instant blips fold */
+  const big=x=>x.act||x.felt||x.keeper||(!x.pt&&x.e-x.s>=10)||x.k==='event'||x.cat==='moment'||/^(⭐|✨|🌟|👁|💭|📒|🙏|🪨|📗)/.test(x.t||'');
+  const pastAll=all.filter(x=>(x.k==='lived'||over(x))&&!bands.includes(x)).sort((x,y)=>x.s-y.s);
+  /* a day already over shows every row it holds (11 Nov 2026: her evening — tea, meds, the quest, the inbox, the QA, the dusk
+     close — sat behind "show everything", and the evening read as missing); a day still going folds the routine away */
+  /* the day in six (11 Nov 2026, her words: when the my day is done, when I'm looking behind, I really want the timeline to
+     collapse down to those like six things that were the really relevant things about that day … progressive
+     summarization … but I want to be able to expand it out and see all the little minutia): a day that's over opens on
+     the few things that mattered, and one tap shows every row; a day still going folds only the routine */
+  const SIX=gone?sixOf(pastAll):[];
+  if(window.__dayview===undefined||(window.__dayview==='six'&&!gone)) window.__dayview=gone&&SIX.length?'six':'fold';
+  const view=window.__dayview, past=view==='six'?SIX.slice():view==='all'?pastAll:pastAll.filter(big), folded=pastAll.length-past.length;
+  window.__six=SIX;
+  if(view==='six') bands.splice(0);   /* the day in six is the six: the flows and long events behind it wait for the whole day */
+  past.forEach((x,i)=>{ if(x.pt){ const nx=past.slice(i+1).find(o=>o.s>x.s); if(nx) x.e=Math.max(x.s+1,Math.min(x.e,nx.s)); } });
+  const its=all.filter(x=>x.k!=='lived'&&!over(x)&&!bands.includes(x)).sort((x,y)=>x.s-y.s);
+  /* a step she set inside an event (2 Nov 2026: a phone call during a class she waits through) is hers: it sits
+     beside the event at its own time, never pushed after it */
+  its.forEach(x=>{ if(x.k==='step'&&!x.done){ const ev=its.find(o=>o.k==='event'&&o.s<=x.s&&x.s<o.e); if(ev){ x.beside=true; x.ev=ev; ev.half=true; } } });
+  /* steps beside one event stack down it one after another, never on one spot (4 Nov 2026, her words: there's two
+     items that are right on top of each other, and that needs to be addressed to make it more usable) */
+  { const ends=new Map(); its.filter(x=>x.beside).forEach(x=>{ const d=Math.max(15,x.e-x.s), at=ends.get(x.ev);
+      if(at!=null&&x.s<at){ x.s=at; x.e=at+d; } ends.set(x.ev,x.e); });
+    its.filter(x=>x.beside).forEach(x=>its.forEach(o=>{ if(o.k==='event'&&o.s<x.e&&x.s<o.e) o.half=true; })); }
+  /* an event on the calendar never moves (2 Nov 2026: PE was drawn at 11:25 when it starts at 11:05); a step
+     never lands on one, it goes after it; and a block of hers already under way keeps its own end */
+  const evs=its.filter(x=>x.k==='event'||x.session), nowS=nowM!=null?Math.ceil(nowM/15)*15:0;
+  /* a step whose own time is still ahead keeps it, and is placed first (4 Nov 2026: date night at 5 was pushed to 8
+     behind the morning's leftovers); the rest fill the gaps after now, and one that would land more than an hour past
+     its time leaves the clock for the list under it, never a pile at the end of the day (her words, 4 Nov 2026: the
+     problem where it stacks up a bunch of tasks at the end of the day doesn't work for me at all) */
+  const blk=evs.slice(), PUSH=60;
+  const place=x=>{ const d=x.e-x.s, want=x.s, live=!x.sized&&x.s<nowS&&x.e>nowS;
+    x.s=Math.max(x.s,nowS); x.e=live?Math.max(x.e,x.s+15):x.s+d;
+    let hit; while((hit=blk.find(o=>o!==x&&o.s<x.e&&x.s<o.e))){ x.s=hit.e; x.e=x.s+d; }
+    x.moved=!live&&x.s!==want?want:null; x.late=!live&&x.s-want>PUSH; if(!x.late) blk.push(x); };
+  const free=x=>!(x.k==='event'||x.beside||x.done||x.session);
+  its.forEach(x=>{ if(!free(x)) x.moved=null; });
+  its.filter(x=>free(x)&&x.s>=nowS).forEach(place);
+  its.filter(x=>free(x)&&x.s<nowS).forEach(place);
+  its.sort((p,q)=>p.s-q.s);
+  /* only what fits is today's (2 Nov 2026, her words: it really should only be an intention if it can actually
+     fit on my calendar; it would be nice to show what doesn't fit): a step pushed past the evening's end
+     comes off the calendar and goes to the list under it */
+  const END=(D.day_end?min(D.day_end):21*60); window.__nofit=[];
+  /* a day already over keeps no open step on its clock (3 Nov 2026): what she didn't get to waits in the list */
+  const closed=now.toLocaleDateString('en-CA')>D.day;
+  for(let i=its.length-1;i>=0;i--){ const x=its[i]; if(x.k==='step'&&!x.done&&(closed||x.late||(!x.beside&&x.e>END))){ window.__nofit.unshift(x); its.splice(i,1); } }
+  const WKND=D.shape==='saturday'||D.shape==='sunday';
+  const span0=view==='six'?past:all;
+  const h0=Math.max(0,Math.floor(Math.min(...span0.map(x=>x.s),...its.map(x=>x.s),nowM??1e9)/60)), h1=Math.min(24,Math.max(WKND&&!gone?Math.ceil(END/60):0,Math.ceil(Math.max(...span0.map(x=>x.e),...its.map(x=>x.e),(nowM??0)+30)/60)));
+  /* a stretched clock (2 Nov 2026, her words: lengthen the calendar so all these things fit on it, and make
+     things not overlap, cuz that is confusing): an hour is at least 72px, and a stretch of time grows until
+     every card in it has room for its words, so a five-minute step never sits on the one after it */
+  const PX=72, MINH=26, minOf=px=>px*60/PX, need=x=>(x.photos&&x.photos.length)?56:past.includes(x)?MINH+4:(x.pick&&x.why?64:48);
+  /* the past as it was: two things at once sit side by side, as the calendar does */
+  const isCol=x=>x.cat==='stretch'||x.column;
+  const cols=[]; past.forEach(x=>{ x.de=x.e; if(isCol(x)){ x.col=0; return; } let c=0; while(cols[c]&&cols[c]>x.s) c++; cols[c]=x.de; x.col=c; });
+  /* every card in a run of overlapping ones shares one width, so three at once never sit on each other (4 Nov 2026);
+     three or more at once are one card (5 Nov 2026, her words: I wanted to see them combined): the longest of them
+     names it — an action she finished first — and the others are its lines, their photos together on it */
+  const STACKS=[];
+  { let run=[], end=-1; const close=()=>{ const n=1+Math.max(...run.map(o=>o.col));
+      if(n>=3){ const st={s:Math.min(...run.map(o=>o.s)),e:Math.max(...run.map(o=>o.de)),m:run.slice().sort((a,b)=>a.s-b.s)};
+        /* a calendar event heads the group it sits in, in its own colour; then a finished action that took real time
+           (a ten-minute text never names a two-hour walk, 7 Nov 2026); then the longest of what she did */
+        const host=st.m.slice().sort((a,b)=>((b.k==='event'?1:0)-(a.k==='event'?1:0))||((b.act&&!b.pt?1:0)-(a.act&&!a.pt?1:0))||((b.de-b.s)-(a.de-a.s)))[0];
+        st.card=Object.assign({},host,{s:st.s,e:st.e,n:1,col:0,combo:true,
+          members:st.m.filter(o=>o!==host).map(o=>({t:o.t,s:o.s,e:o.de,photos:o.photos,act:o.act,links:o.links})),
+          photos:st.m.flatMap(o=>o.photos||[]),links:host.links||[]});   /* each deliverable stays with its own line */
+        st.m.forEach((o,i)=>{ o.n=1; o.col=0; o.stk=st; o.si=i; }); STACKS.push(st); }
+      else run.forEach(o=>o.n=n); run=[]; };
+    /* a chat she kept open beside other things is never folded into them, and never joins them into one card (7 Nov 2026:
+       a two-hour phone session through a walk, lunch and work made one card of 10 AM to 2 PM): it keeps its own column */
+    past.forEach(x=>{ if(x.k==='event'||isCol(x)){ return; } if(run.length&&x.s>=end) close(); run.push(x); end=Math.max(end,x.de); }); if(run.length) close();
+    /* a calendar event keeps its own card at its own times, beside what she did meanwhile (6 Nov 2026, her words: the
+       meeting only went 30 minutes) */
+    past.filter(x=>x.k==='event').forEach(x=>{ const o=past.filter(p=>p!==x&&!p.stk&&p.s<x.de&&x.s<p.de); if(o.length){ x.n=2; x.col=0; o.forEach(p=>{ p.n=Math.max(p.n||1,2); if(p.col===0) p.col=1; }); } else { x.n=1; x.col=0; } });
+    STACKS.forEach(st=>{ if(past.some(x=>x.k==='event'&&x.s<st.e&&st.s<x.de)){ st.card.n=2; st.card.col=1; st.m.forEach(o=>{o.n=2;o.col=1;}); } });
+    /* each chat stretch, and each long running effort, takes the column after whatever it ran beside, the longest first;
+       two of them at once sit side by side */
+    const placed=[];
+    past.filter(isCol).sort((a,b)=>(b.de-b.s)-(a.de-a.s)).forEach(x=>{
+      const ov=p=>p!==x&&p.s<x.de&&x.s<p.de;
+      /* a long running effort is the ground the breaks sit on (11 Nov 2026, her words: when I was eating dinner you can bet
+         that I wasn't actively working, so that bar should extend all the way across … if there's a continuous work
+         session, show it, but then show the breaks kind of overlapping it): it runs behind at full width, sharing it only
+         with another long effort at the same time, and what she did meanwhile is drawn across it, never squeezed beside it */
+      if(x.column){ const pc=placed.filter(p=>p.column&&ov(p)); x.col=pc.length?Math.max(...pc.map(p=>p.col+1)):0; x.n=x.col+1;
+        pc.forEach(p=>{ p.n=Math.max(p.n,x.n); }); x.runner=true; placed.push(x); return; }
+      const o=past.filter(p=>ov(p)&&!isCol(p)), cards=[...new Set(o.map(p=>p.stk?p.stk.card:p))], pc=placed.filter(ov);
+      const k=Math.max(cards.length?Math.max(...cards.map(c=>(c.n||1))):0, pc.length?Math.max(...pc.map(p=>p.col+1)):0), n=k+1;
+      x.col=k; x.n=n; cards.forEach(c=>{ c.n=Math.max(c.n||1,n); }); o.forEach(p=>{ p.n=Math.max(p.n||1,n); }); pc.forEach(p=>{ p.n=Math.max(p.n,n); });
+      placed.push(x); }); }
+  const cuts=[...new Set([h0*60,h1*60,...(nowM!=null?[nowM]:[]),...Array.from({length:h1-h0+1},(_,i)=>(h0+i)*60),...all.map(x=>x.s),...all.map(x=>x.e),...its.map(x=>x.s),...its.map(x=>x.e)].filter(m=>m>=h0*60&&m<=h1*60))].sort((a,b)=>a-b);
+  const PXP=18;   /* an hour already gone is short: it only grows to fit what's kept in it */
+  const segH=cuts.slice(1).map((m,i)=>(m-cuts[i])*(nowM!=null&&m<=nowM?PXP:PX)/60);
+  const span=(s,e)=>cuts.slice(1).reduce((t,m,i)=>t+(cuts[i]>=s&&m<=e?segH[i]:0),0);
+  for(let pass=0;pass<3;pass++) past.concat(its.filter(x=>!bands.includes(x))).sort((a,b)=>(a.e-a.s)-(b.e-b.s)).forEach(x=>{
+    const have=span(x.s,x.e), want=need(x); if(have>0&&have<want){ const f=want/have; cuts.slice(1).forEach((m,i)=>{ if(cuts[i]>=x.s&&m<=x.e) segH[i]*=f; }); } });
+  STACKS.forEach(st=>{ const have=span(st.s,st.e), want=40+16*st.card.members.length+(st.card.photos.length?48:0);
+    if(have>0&&have<want){ const f=want/have; cuts.slice(1).forEach((m,i)=>{ if(cuts[i]>=st.s&&m<=st.e) segH[i]*=f; }); } });
+  /* sleep is a short band, not hours of it (6 Nov 2026, her words: show it starting at midnight, but just condense it) */
+  past.filter(x=>x.cat==='sleep').forEach(x=>{ const idx=cuts.slice(1).map((m,i)=>i).filter(i=>cuts[i]>=x.s&&cuts[i+1]<=x.e); const tot=idx.reduce((t,i)=>t+segH[i],0); if(tot>0) idx.forEach(i=>segH[i]*=30/tot); });
+  /* an empty stretch ahead is one short band, never hours of empty grid (7 Nov 2026, her words: just show the calendar
+     shortened if it's empty, cuz there's nothing going on for me this afternoon; it's wide open) */
+  const OPENS=[], QUIET=[];
+  /* the day in six folds the hours between its cards to a sliver, so the six read as one short page */
+  if(view==='six'){ const busy=past.map(x=>[x.s,x.de||x.e]).sort((a,b)=>a[0]-b[0]); let at=h0*60;
+    const gap=(a,b)=>{ if(b-a>=45) QUIET.push([a,b]); };
+    busy.forEach(([a,b])=>{ if(a>at) gap(at,a); at=Math.max(at,b); });
+    QUIET.forEach(([a,b])=>{ const idx=cuts.slice(1).map((m,i)=>i).filter(i=>cuts[i]>=a&&cuts[i+1]<=b); const tot=idx.reduce((t,i)=>t+segH[i],0); if(tot>0) idx.forEach(i=>segH[i]*=16/tot); }); }
+  if(!gone){ const busy=all.concat(its).map(x=>[x.s,x.e]).concat(nowM!=null?[[0,nowM]]:[]).sort((a,b)=>a[0]-b[0]);
+    let at=h0*60; const gap=(a,b)=>{ if(b-a>=120) OPENS.push([a,b]); };
+    busy.forEach(([a,b])=>{ if(a>at) gap(at,a); at=Math.max(at,b); }); gap(at,h1*60);
+    OPENS.forEach(([a,b])=>{ const idx=cuts.slice(1).map((m,i)=>i).filter(i=>cuts[i]>=a&&cuts[i+1]<=b); const tot=idx.reduce((t,i)=>t+segH[i],0); if(tot>0) idx.forEach(i=>segH[i]*=34/tot); }); }
+  const y=m=>{ let t=0; for(let i=0;i<segH.length;i++){ const a=cuts[i], b=cuts[i+1]; if(m>=b){ t+=segH[i]; continue; } if(m>a) t+=segH[i]*(m-a)/(b-a); break; } return t; };
+  const dc=n=>{ const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===n); return col(d&&d.c); };
+  /* a done event is ✔️ on her calendar and ✅ here (4 Nov 2026, her words: the simple check on my calendar, and a green check on the timeline) */
+  /* an event drawn once names what it covered, and shows it carries a link (4 Nov 2026) */
+  const cov=x=>(x.covers&&x.covers.length?`<span class="cov">covered ${x.covers.map(esc).join(' · ')}</span>`:'')+((x.links||[]).length?`<span class="cov">🔗 ${esc(x.links[0].l)}</span>`:'');
+  const thumb=x=>(x.photos||[]).length?`<img class="th" alt="" src="${x.photos[0].src}">`:'';
+  /* an event that happened is ✅ here, whether her calendar says ✔️ or still ⬜ while its own row closed (7 Nov 2026) */
+  const dn=(t,done)=>String(t||'').replace(done?/^\s*(✔️|✔|⬜)\uFE0F?/:/^\s*(✔️|✔)\uFE0F?/,'✅');
+  /* one shade per kind, the same meaning every day (6 Nov 2026, her words: the coloring's not
+     super consistent or easy to follow): a logged row, a work stretch, a moment; events have their own two below */
+  /* logged rows wear their being and doing colours, as the look behind draws them (6 Nov 2026, her words: I really love
+     the idea of doing the being and doing colors); a work stretch is work */
+  const kind=c=>c==='stretch'?'work':(c||'flow');
+  const kv=c=>`--fill:var(--k-${kind(c)});--edge:var(--k-${kind(c)}-d);--dc:var(--k-${kind(c)}-d)`;
+  /* each logged row wears its wellness element, the wheel's own colours in pastel, so the timeline builds the wheel as
+     the day goes (6 Nov 2026, her yes to the element colours); a row with no element keeps its kind */
+  /* a second element is a stripe down the card's right side, in its own colour (6 Nov 2026, her pick: option one) */
+  const two=x=>{ const w2=x&&x.el2&&WDOM[x.el2]; return w2&&x.el2!==x.el?`;box-shadow:inset -10px 0 0 color-mix(in srgb,${w2.c} 75%,var(--card))`:''; };
+  /* how the time was spent, in seven earthy chunks (6 Nov 2026, her words: when was I sleeping, eating or doing food prep,
+     doing care tasks, doing my profession, exercise and movement … earthy colors, not a lot of colors to look at) */
+  const CH=PICK_DEFAULT;   /* one scheme, chosen for her (6 Nov 2026, her words: just pick the colors that make the most sense) */
+  const chunk=c=>({sleep:'sleep',eat:'food',cook:'food',move:'move',family:'care',pet:'care',home:'care',personal:'care',
+    work:'work',stretch:'work',recreation:'play',moment:'play',travel:'playhot',drive:'playhot',system:'admin',flow:'admin'})[c]||'admin';   /* travelling is its own kind of time, not admin (her words, 6 Nov) */
+  /* a chat stretch takes the kind of the drive it served (7 Nov 2026, her words: how is it that only just over an hour was
+     spent on be•do? her be•do chats were counted as work) */
+  const chc=x=>{ const k0=chunk(x&&(x.cat==='stretch'&&x.sk?x.sk:x.cat)), k=k0==='play'&&x&&(x.hr!=null?x.hot:(x.hot||x.el==='fire'))?'playhot':k0;   /* her heart rate decides, when it was read (8 Nov 2026) */ return CH[k]||PICK_DEFAULT[k]||PICK_DEFAULT.admin; };
+  window.__chc=chc;
+  const kvx=x=>{ const k=chc(x); return `--fill:color-mix(in srgb,${k[0]} 52%,#FBF8F4);--edge:${k[0]};--dc:${k[0]}`; };   /* a pastel fill and a deep edge, so the glyphs read */
+  /* wellness as dots, one to three, so a row can be heart and water at once (her words: it could be 2 or 3 wellness
+     areas, and that is how we show balance) */
+  const dots=x=>{ const e=[x.el,x.el2].filter((v,i,a)=>v&&WDOM[v]&&a.indexOf(v)===i); return e.length?`<span class="dots">${e.map(v=>`<span class="wg" title="${v}">${wicon(v,14)}</span>`).join('')}</span>`:''; };
+  const lab=h=>`${h%12||12} ${h<12||h===24?'AM':'PM'}`, tm=m=>`${Math.floor(m/60)%12||12}:${String(m%60).padStart(2,'0')}`;
+  /* a long event's name sits on a line above the clock, never over the cards in it (4 Nov 2026) */
+  const bandTop=[];
+  let g=''; const CARDS=window.__cards=[]; const ci=x=>{ CARDS.push(x); return CARDS.length-1; };
+  { let last=-99; for(let h=h0;h<=h1;h++){ if(OPENS.concat(QUIET).some(([a,b])=>h*60>a&&h*60<b)) continue; const t=y(h*60); if(t-last<14) continue; last=t; g+=`<div class="hr" style="top:${t}px"><span>${lab(h)}</span></div>`; } }   /* hours inside the condensed sleep are not labelled */
+  bands.forEach(x=>{ if(x.flowcard){ g+=`<div class="band flowband" style="top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"><span>${esc(String(x.t).split(' · ')[0])}</span></div>`; bandTop.push(`<span class="fl"><i></i>${esc(String(x.t).split(' · ')[0])} · ${tm(x.s)}–${tm(x.e)}</span>`); return; }
+    if(x.k!=='event'){ g+=`<div class="band" title="${x.act?'✅ ':''}${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; if(x.e-x.s>=180) bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.act?'✅ ':''}${esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); });
+  past.forEach(x=>{ const w=100/x.n; let top=y(x.s), h=Math.max(MINH,y(x.e)-y(x.s)-1);
+    if(x.stk){ if(x.si) return; const c=x.stk.card; h=Math.max(MINH,y(c.e)-y(c.s)-1);
+      const ths=(c.photos||[]).slice(0,4).map(p=>`<img alt="" src="${p.src}">`).join('');
+      g+=`<div data-c="${ci(c)}" class="ev lived combo tall${c.k==='event'?' gcal past':''}" title="${esc(c.t)} · ${tm(c.s)}" style="${c.k==='event'?`--gc:${pcol(c)};--gi:${gink(gcol(c))}`:kvx(c)};top:${top}px;height:${h}px;left:calc(${(c.col||0)*100/(c.n||1)}% + 2px);width:calc(${100/(c.n||1)}% - 4px)"><b>${c.k==='event'?esc(dn(c.summary||c.t,c.done)):(c.act?'✅ ':'')+esc(c.t)}</b><i>${tm(c.s)}–${tm(c.e)}${c.drive?' · '+esc(c.drive):''}</i>${c.members.map(m=>`<span class="ln">${m.act?'✅ ':''}${esc(m.t)}</span>`).join('')}${ths?`<span class="ths">${ths}</span>`:''}</div>`; return; }
+    if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past${(x.photos||[]).length?' hasph':''}${x.star?' star':''}" style="--gc:${pcol(x)};--gi:${gink(gcol(x))};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${esc(dn(x.summary||x.t,x.done))}</b><i>${x.star?'the highlight · ':''}${tm(x.s)}–${tm(x.e)}${x.lastmin?' · last-minute':''}${x.covers&&x.covers.length?` · covers ${x.covers.length}`:''}${(x.links||[]).length?' · 🔗':''}${x.where?', '+esc(x.where):''}</i><span class="rt">${thumb(x)}${dots(x)}</span></div>`; return; }
+    g+=`<div data-c="${ci(x)}" class="ev lived${x.runner?' runner':''}${h>=40?' tall':''}${x.est?' est':''}${(x.photos||[]).length?' hasph':''}${x.mom?' mom':''}${x.star?' star':''}${x.cat==='sleep'?' slp':''}" title="${esc(x.hl||x.t)} · ${tm(x.s)}" style="${kvx(x)};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${x.act||(x.closes||[]).length?'✅ ':''}${esc(x.t)}</b>${x.hl?`<span class="why">the highlight: ${esc(String(x.hl).replace(/^\W*⭐\s*/,''))}</span>`:''}<i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${(()=>{ const dl=delivOf(x)[0], mv=movedBy(x);
+      /* on the box itself (7 Nov 2026, her words: when there's a deliverable I would really like for that to show up on the
+         little calendar box; as much of what was meaningful as possible on the entry itself) */
+      return dl||mv?`<span class="cx">${dl?`<a class="dlk" href="${esc(dl.u)}" target="_blank" rel="noopener">📎 ${esc(dl.l==='deliverable'?'deliverable':dl.l)}</a>`:''}${mv?`<span class="mvt">+${mv}%</span>`:''}</span>`:''; })()}${more(x)}<span class="rt">${thumb(x)}${dots(x)}</span></div>`; });
+  its.forEach(x=>{ if(x.k==='event'){ const inner=`<b>${esc(dn(x.summary||x.t,x.done))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i>${cov(x)}`;
+    g+=`<div data-c="${ci(x)}" class="ev event gcal" style="--gc:${gcol(x)};--gi:${gink(gcol(x))};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:${x.half?'calc(50% - 5px)':'calc(100% - 6px)'}">${inner}</div>`; return; }
+    if(x.session){ const top=(x.list||[]).filter(o=>o.top), rest=(x.list||[]).length-top.length;
+      g+=`<div data-c="${ci(x)}" class="ev step session" style="${kvx(x)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:calc(100% - 6px)"><b>${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)} · ${(x.list||[]).length} things · tap for the list</i>${top.map((o,i)=>`<span class="sl">${i+1}. ${esc(o.t)}</span>`).join('')}${rest?`<span class="sl more">+ ${rest} more</span>`:''}</div>`; return; }
+    if(x.link) x.links=[{l:'calendar event',u:x.link}].concat(x.links||[]); const inner=`<b>${x.done?'✅ ':''}${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)}${x.sized&&!x.done?' · about':''}${x.moved!=null?` · <span class="was">planned ${tm(x.moved)}</span>`:''}${x.drive?' · '+esc(x.drive):''}</i>${x.pick&&x.why?`<span class="why">${esc(x.why)}</span>`:''}${more(x)}`;
+    g+=`<div data-c="${ci(x)}" class="ev ${x.k}${x.done?' done':''}${x.pick?' pick':''}" style="${kvx(x)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:${x.beside?'calc(50% + 2px)':'3px'};width:${x.beside||x.half?'calc(50% - 5px)':bands.some(b=>b.s<x.e&&b.e>x.s)?'58%':'calc(100% - 6px)'}">${inner}</div>`; });
+  /* the day behind's own words for the categories, being then doing, only those on the day */
+  const NAMES={eat:'eating and drinking',move:'moving',personal:'personal care',recreation:'recreation',travel:'travel',
+    work:'professional work',family:'family care',pet:'pet care',home:'home care',cook:'making',drive:'driving',system:'be•do',flow:'dawn and dusk',moment:'moments'};
+  const on=new Set(all.map(x=>kind(x.cat))), grp=(t,ks)=>{ const h=ks.filter(k=>on.has(k)); return h.length?`<b>${t}</b>`+h.map(k=>`<span style="${kv(k)}"><i></i>${NAMES[k]}</span>`).join(''):''; };
+  /* the key, folded: swatches and glyphs only (7 Nov 2026, her words: this key has a whole lot of unnecessary and
+     confusing text; what I really want is to click on an event and get all the relevant info) */
+  const legend=`<details class="legend-key"><summary>key</summary><div class="legend">${Object.values(CH).map(k=>`<span><i style="background:color-mix(in srgb,${k[0]} 52%,#FBF8F4);border-color:${k[0]}"></i>${esc(String(k[2]).split(' · ')[0])}</span>`).join('')}</div><div class="legend">${['heart','mind','body','spirit','water','air','earth','fire'].map(k=>`<span>${wicon(k,14)}&nbsp;${k}</span>`).join('')}</div></details>`;
+  const t12=m=>{ const h=Math.floor(m/60)%24, mm=m%60; return `${h%12||12}${mm?':'+String(mm).padStart(2,'0'):''}`; }, ap=m=>Math.floor(m/60)%24<12?'AM':'PM';
+  OPENS.forEach(([a,b])=>{ g+=`<div class="open" style="top:${y(a)+2}px;height:${Math.max(26,y(b)-y(a)-4)}px"><span>open · ${t12(Math.ceil(a/15)*15)}${ap(a)!==ap(b)?' '+ap(a):''}–${t12(b)} ${ap(b)}</span></div>`; });
+  if(nowM!=null&&nowM>=h0*60&&nowM<=h1*60) g+=`<div class="now" style="top:${y(nowM)}px"></div>`;
+  el.innerHTML=(I.length&&!D.ideas?`<p class="say"><small>your intention</small>${I.map(esc).join('<br>')}</p>`:'')
+    +sixCard(SIX)
+    +`<div class="sth"><h2>my stream</h2>${gone&&SIX.length?`<button class="fold" onclick="window.__dayview=window.__dayview==='six'?'all':'six';draw()">${view==='six'?`show the whole day · ${folded} more`:'back to the highlights'}</button>`
+      :folded||view==='all'?`<button class="fold" onclick="window.__dayview=window.__dayview==='all'?'fold':'all';draw()">${view==='all'?'fold the routine away':`show everything · ${folded} more`}</button>`:''}</div>`
+    +(all.length?legend.replace('</details>',(its.some(x=>nowM!=null&&x.s>nowM)?`<div class="key2"><span><i style="background:var(--k-flow)"></i>done</span><span><i style="border:2px solid var(--ink)"></i>on your calendar</span><span><i style="border:2px solid #B8860B;box-shadow:0 0 0 2px #F2C14E66"></i>★ be•do's picks</span><span><i style="border:1.5px dashed var(--muted);opacity:.7"></i>your choices</span></div>`:'')+'</details>')+`${bandTop.length?`<div class="bandtop"><b>behind the day</b>${bandTop.join('')}</div>`:''}<div class="cal" style="height:${y(h1*60)}px">${g}</div>`:'')
+    /* a weekend's open steps, off the clock (7 Nov 2026, her words: those aren't work, those are just tasks) */
+    +((D.tasks||[]).length?`<details class="tasks"><summary>tasks, if you want them · ${D.tasks.length}</summary><ul>${D.tasks.map(x=>`<li>${x.worked?'▶️ ':''}${esc(x.t)}${x.drive?`<span>${esc(x.drive)}</span>`:''}</li>`).join('')}</ul></details>`:'');
+}
+/* tap a card on the calendar to read all of it (2 Nov 2026, her words: if I click on the calendar it shows more detail) */
+/*KINDSJS*/
+/* what a card is worth to its drive (the 30 Oct page's moves it +N%), and its deliverable, first */
+const movedBy=x=>{ const d=(D.drives||[]).find(r=>r.n===x.drive), p=d&&d.prog, tot=p?(p.done||0)+(p.open||0):0;
+  return (x.k==='step'||x.act||(x.closes||[]).length)&&tot&&!(D.hidden||[]).includes(x.drive)?Math.round(100/tot):null; };
+const delivOf=x=>(x.links||[]).filter(l=>l&&l.u&&l.l!=='calendar event');
+const takeHome=x=>{ if(!x.her) return ''; const plain=x.her.replace(/https?:\/\/\S+/g,'').replace(/\s+/g,' ').trim(),
+  m=plain.match(/^.{20,140}?[.!?](\s|$)/); return m?m[0].trim():plain.slice(0,140)+(plain.length>140?'…':''); };
+const photosOf=x=>(x.photos||[]).map(p=>p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener"><img class="ph" alt="" src="${p.src}"></a>`:`<img class="ph" alt="" src="${p.src}">`).join('');
+/* which few rows were the day (11 Nov 2026, her words: when I'm proud or when I've accomplished something or when I'm
+   having a strong feeling or a meaningful moment, or there's a glimmer, all these things are things I want to remember …
+   three to twelve, even, isn't too much if it's a really busy day, max 12). Meaning first: her highlight, anyone's
+   highlight, a glimmer or gratitude, the words she was proud or moved in; then what she finished with something to show,
+   her own events and keeper photos. Time spent counts a little, the routine and sleep never. Three to twelve, in the
+   order they happened (a highlight told at night is already moved to its moment by flow.py). */
+const EMO=/^(\p{Extended_Pictographic}|\p{Regional_Indicator})(️|‍\p{Extended_Pictographic}|\p{Emoji_Modifier})*/u;
+const MEANT=/\b(proud|accomplish\w*|finally|awesome|amazing|thrill\w*|so happy|happy|grateful|gratitude|thankful|love[ds]?|cried|tears|upset|mad|angry|scared|worried|frustrat\w*|joy\w*|beautiful|blessed|glimmer|milestone|breakthrough|first time|thriving|wow)\b/i;
+function sixOf(rows){
+  /* its kind, read the same on every draw (the colour chunks are set later in the draw) */
+  const chunk=x=>x.k==='event'?'work':({stretch:'work',cook:'eat',home:'family',pet:'family',personal:'family',drive:'travel'})[x.cat]||x.cat||'';
+  const score=x=>{ if(x.cat==='sleep'||x.flowcard||x.nopie) return -1;
+    let s=0; const d=x.e-x.s, t=x.t||'';
+    if(x.star||/^(⭐)/.test(t)) s+=100;                    // her highlight
+    else if(/^🌟/.test(t)) s+=60;                          // someone's highlight
+    else if(x.mom) s+=50;                                  // a glimmer, a milestone
+    if(x.cat==='moment') s+=30;                            // gratitude, an insight, a journal
+    if(MEANT.test(t+' '+(x.hl||'')+' '+(x.her||''))) s+=30; // the words she was proud, moved, upset in
+    if(x.felt) s+=x.hot?25:15;                             // a feeling she named
+    if(x.act) s+=20;                                       // something she finished
+    if(delivOf(x).length) s+=15;                           // with something to show for it
+    if(x.keeper||(x.photos||[]).length) s+=30;             // a keeper photo
+    if(x.k==='event') s+=x.who==='you'?30:10;              // her own event (a child's is his)
+    if(!x.pt) s+=Math.min(20,d/12);                        // the time she gave it
+    if(x.cat==='flow'||x.cat==='system'||(D.hidden||[]).includes(x.drive)||x.drive==='be•do') s-=40;   // the system's own work
+    return s; };
+  /* one kind of time never takes the whole list: a long work day still leaves room for the meal and the family */
+  const seen=new Set(), per={}, out=[], ranked=rows.map(x=>[score(x),x]).filter(([s])=>s>=20).sort((a,b)=>b[0]-a[0]);
+  ranked.forEach(([s,x])=>{
+    const key=String(x.hl||x.t||'').replace(EMO,'').replace(/^\s*✅\s*/,'').trim().toLowerCase().slice(0,40), c=chunk(x);
+    if(out.length<12&&(s>=40||out.length<3)&&!seen.has(key)&&(per[c]||0)<4){ seen.add(key); per[c]=(per[c]||0)+1; out.push(x); } });
+  return out.sort((a,b)=>a.s-b.s); }
+function glyphOf(x){ const m=String(x.hl||x.t||'').match(EMO); if(m) return m[0];
+  if(x.k==='event') return '🗓️'; const k=window.__chc?String(window.__chc(x)[2]):'';
+  return /work/.test(k)?'💻':/food/.test(k)?'🍽️':/care/.test(k)?'🏡':/move/.test(k)?'🤸':/play|recreation|relax/.test(k)?'🎈':'✨'; }
+function sixLine(x){ return String(x.hl||(x.k==='event'?(x.summary||x.t):x.t)||'').replace(/^\s*(✔️|✔|⬜|✅|⚡)️?\s*/,'').replace(EMO,'').replace(/^\s*[—–-]\s*/,'').trim(); }
+function sixCard(six){ if(!six.length) return '';
+  const t12=m=>`${Math.floor(m/60)%12||12}:${String(m%60).padStart(2,'0')}${Math.floor(m/60)%24<12?'a':'p'}`;
+  return `<section class="six"><h2>the day in ${['','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve'][six.length]||six.length}</h2><ul>${six.map((x,i)=>`<li><button data-six="${i}"><span class="g">${glyphOf(x)}</span><span class="t">${esc(sixLine(x))}</span><span class="w">${t12(x.s)}</span></button></li>`).join('')}</ul></section>`; }
+/* a line of the day in six drops to its own card on the timeline (11 Nov 2026, her words: I would like to be able to click
+   on it and then drop down to that actual entry) */
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-six]'); if(!b) return;
+  const x=(window.__six||[])[+b.dataset.six]; if(!x) return; const C=window.__cards||[];
+  let i=C.indexOf(x); if(i<0&&x.stk) i=C.indexOf(x.stk.card); const n=i>=0&&document.querySelector(`#today .ev[data-c="${i}"]`);
+  if(n){ n.scrollIntoView({behavior:'smooth',block:'center'}); n.classList.add('flash'); setTimeout(()=>n.classList.remove('flash'),1600); } });
+/* every card leads to the drive and the rhythm it was part of (11 Nov 2026, her words: I want each of those cards to link
+   to the drive that they were part of, to the rhythm they were part of … all linked up so that it's all coherent) */
+function linkChips(x){ const dn=x&&x.drive; if(!dn) return '';
+  const dd=(D.drives||[]).find(d=>d.n===dn), rr=(D.rhythms||[]).find(r=>r.n===(dd?dd.parent:dn));
+  const chip=(k,o)=>`<button class="chip go" data-go="${esc(k)}">${esc(((o.g||'')+' '+(o.short||o.n)).trim())} →</button>`;
+  return dd||rr?`<div class="chips">${dd?chip('d:'+dd.n,dd):''}${rr?chip('r:'+rr.n,rr):''}</div>`:''; }
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-go]'); if(!b) return;
+  const s=document.getElementById('sheet'); if(s) s.classList.remove('on');
+  const k=b.dataset.go, n=(window.__fnode||{})[k], w=document.getElementById(n?'flow':'flowwrap');
+  if(!n){ const d=document.querySelector('#flowwrap details.allsteps'); if(d) d.open=true; }
+  if(w) w.scrollIntoView({behavior:'smooth',block:'start'}); if(n) setTimeout(()=>n.dispatchEvent(new Event('click')),350); });
+function sheet(x){
+  let s=document.getElementById('sheet'); if(!s){ s=document.createElement('div'); s.id='sheet'; s.className='sheet'; document.body.appendChild(s); }
+  const t12=m=>`${Math.floor(m/60)%12||12}:${String(m%60).padStart(2,'0')}`;
+  const d=(D.drives||[]).concat(D.rhythms||[]).find(r=>r.n===x.drive), done=x.done||x.act||x.k==='lived';
+  const L=(x.links||[]).map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l||'link')} ↗</a>`).join('');
+  s.style.setProperty('--dc', d?col(d.c):'var(--accent)');
+  if(x.k==='event'){ const c=gcol(x); s.style.setProperty('--dc',c);
+    s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc gc"><div class="at">${x.s?t12(x.s):'later'}</div>`
+      +`<div class="ttl"><span class="sq" style="background:${c}"></span>${esc(String(x.summary||x.t).replace(/^\s*(✔️|✔)\uFE0F?/,'✅'))}</div>`
+      +`<div class="when">${t12(x.s)} – ${t12(x.e)}</div>`
+      +(x.where?`<div class="where">📍 ${/^https?:/.test(x.where)?`<a href="${esc(x.where)}" target="_blank" rel="noopener">${esc(x.where)}</a>`:`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.where)}" target="_blank" rel="noopener">${esc(x.where)}</a>`}</div>`:'')
+      +`<div class="when">🗓️ ${esc(x.who==='you'?'my events':x.who||'')}${x.drive?` · ${esc(x.drive)}`:''}</div>`+linkChips(x)
+      +(x.covers&&x.covers.length?`<div class="when">covered: ${x.covers.map(esc).join(' · ')}</div>`:'')
+      +(L?`<div class="lks">${L}</div>`:'')
+      +(x.link?`<div class="lks"><a href="${esc(x.link)}" target="_blank" rel="noopener">open in Google Calendar ↗</a></div>`:'')+photosOf(x)+`</div>`;
+    requestAnimationFrame(()=>s.classList.add('on')); s.querySelector('.x').onclick=()=>s.classList.remove('on'); return; }
+  if(x.session){ const top=(x.list||[]).filter(o=>o.top), rest=(x.list||[]).filter(o=>!o.top);
+    const li=o=>`<li><span class="bx"></span><b>${esc(o.t)}</b>${o.why?`<div class="why">${esc(o.why)}</div>`:''}${o.nx?`<div class="nx">${esc(o.nx.replace(/\s*\((?:https?|claude):[^)]*\)|\s*(?:https?|claude):\/\/\S+/g,''))}</div>`:''}${(o.links||[]).length?`<div class="lks">${o.links.map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l||'link')} ↗</a>`).join('')}</div>`:''}<small>about ${o.sz} min · a default</small></li>`;
+    s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${t12(x.s)} – ${t12(x.e)}</div>`
+      +`<div class="ttl">${esc(x.t)}</div><div class="when">what I'd tackle in this hour, in order</div>`
+      +`<ol class="sess">${top.map(li).join('')}</ol>`
+      +(rest.length?`<details class="sess"><summary>the rest · ${rest.length}</summary><ul class="sess">${rest.map(li).join('')}</ul></details>`:'')
+      +`<div class="det sd">Each one is about ${(x.list[0]||{}).sz||15} minutes by default — be•do has no history of how long these take yet.</div></div>`;
+    requestAnimationFrame(()=>s.classList.add('on')); s.querySelector('.x').onclick=()=>s.classList.remove('on'); return; }
+  if(x.k==='lived'){
+    /* what was meaningful, not the details (7 Nov 2026, her words: the deliverable is high priority; if there's a picture
+       it should be featured; what's the take-home message — what was the effort, did I move the ball forward, what was
+       meaningful about it; I don't need to read little details) */
+    const kind=window.__chc?window.__chc(x):null, wl=[x.el,x.el2].filter((k,i,a)=>k&&WDOM[k]&&a.indexOf(k)===i), mv=movedBy(x), dl=delivOf(x);
+    const who=String(x.who||'').split(',').map(n=>n.trim()).filter(n=>n&&n!==D.me), th=takeHome(x);
+    s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${t12(x.s)}${x.e>x.s+1?`<br>${t12(x.e)}`:''}</div>`
+      +`<div class="ttl">${x.act||(x.closes||[]).length?'✅ ':''}${esc(x.t)}</div>`
+      +(dl.length?`<div class="dlv">${dl.map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">📎 ${esc(l.l==='deliverable'?'open the deliverable':l.l==='the page'?'open the page':l.l==='notes'?'open the notes':l.l)} ↗</a>`).join('')}</div>`:'')
+      +((x.photos||[]).length?`<div class="phs">${photosOf(x)}</div>`:'')
+      +(mv?`<div class="ball">moved ${esc(x.drive)} forward <b>+${mv}%</b></div>`:'')
+      +(th?`<div class="her">${esc(th)}</div>`:'')
+      +linkChips(x)+(x.flowcard?'':`<div class="chips">${kind?`<span class="chip"><i style="background:${kind[0]}"></i>${esc(String(kind[2]).split(' · ')[0])}</span>`:''}${x.hr?`<span class="chip" title="her median heart rate over it: it decides relaxing versus energizing">♥ ${x.hr} bpm</span>`:''}${wl.map(k=>`<span class="chip">${wicon(k,15)} ${k}</span>`).join('')}${x.felt_word?`<span class="chip">${esc(x.felt_word)}</span>`:''}${x.drive?`<span class="chip">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</span>`:`<span class="chip none">no drive or rhythm yet</span>`}${who.length?`<span class="chip">👥 ${esc(who.join(', '))}</span>`:''}</div>`)
+      +(x.members&&x.members.length?`<ul class="inside">${x.members.map(m=>`<li>${m.act?'✅ ':''}${esc(m.t)} <small>${t12(m.s)}–${t12(m.e)}</small>${delivOf(m).map(l=>` <a class="dlk" href="${esc(l.u)}" target="_blank" rel="noopener">📎 ${esc(l.l)}</a>`).join('')}</li>`).join('')}</ul>`:'')
+      +`</div>`;
+    requestAnimationFrame(()=>s.classList.add('on')); s.querySelector('.x').onclick=()=>s.classList.remove('on'); return; }
+  const kind=x.k==='lived'&&window.__chc?window.__chc(x):null, wl=[x.el,x.el2].filter(k=>k&&WDOM[k]);
+  const chips=x.k==='lived'?`<div class="chips">${kind?`<span class="chip"><i style="background:${kind[0]}"></i>${esc(String(kind[2]).split(' · ')[0])}</span>`:''}${wl.map(k=>`<span class="chip">${wicon(k,15)} ${k}</span>`).join('')}${x.felt_word?`<span class="chip">${esc(x.felt_word)}</span>`:''}${x.drive?`<span class="chip">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</span>`:''}</div>`:'';
+  s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${x.s?t12(x.s):'later'}${x.k==='lived'&&x.e>x.s+1?`<br>${t12(x.e)}`:''}</div>`
+    +`<div class="ttl">${x.k==='event'?'🗓️ ':`<span class="bx${done?' ok':''}"></span>${x.k==='step'||x.act?'<span class="bolt">⚡</span>':''}`}${esc(x.t)}</div>`
+    +chips+(()=>{ const w=String(x.who||'').split(',').map(n=>n.trim()).filter(n=>n&&n!==D.me); return w.length?`<div class="who">👥 with ${esc(w.join(', '))}</div>`:''; })()+((x.closes||[]).length?`<div class="who">✅ ${x.closes.map(esc).join(' · ')}</div>`:'')+(x.her?(()=>{ /* one line of her words; the rest folded (7 Nov 2026, her words: the level of detail on the cards is too great,
+       I'm never going to read all that — shoot for something like the 28 Oct card) */
+      const lk=t=>esc(t).replace(/https?:\/\/[^\s<]+/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]} ↗</a>`);
+      const plain=x.her.replace(/https?:\/\/\S+/g,'').replace(/\s+/g,' ').trim(), m=plain.match(/^.{20,140}?[.!?](\s|$)/), one=m?m[0].trim():plain.slice(0,140)+(plain.length>140?'…':'');
+      return `<div class="her">${esc(one)}</div>`+(plain.length>one.length+2?`<details class="more"><summary>her words</summary><div class="her full">${lk(x.her)}</div></details>`:''); })():'')
+    +(x.drive&&x.k!=='lived'?`<div class="dv">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</div>`:'')+linkChips(x)
+    +(()=>{ /* what one step is worth to its drive, as the 30 Oct page showed it (moves it +50%) */
+      const p=d&&d.prog, tot=p?(p.done||0)+(p.open||0):0;
+      return (x.k==='step'||x.act)&&tot&&!(D.hidden||[]).includes(x.drive)?`<div class="chips"><span class="chip mv">${x.done||x.act?'moved':'moves'} it +${Math.round(100/tot)}%</span></div>`:''; })()
+    +(x.k==='lived'?'':(x.nx?`<div class="nx">${esc(x.nx.replace(/\s*\((?:https?|claude):[^)]*\)|\s*(?:https?|claude):\/\/\S+/g,''))}</div>`:`<div class="nx none">no next step named yet</div>`))
+    +(L?`<div class="lks">${L}</div>`:'')
+    +(x.wait?`<div class="wt">⏸ waiting on ${esc(x.wait)}</div>`:'')
+    +(x.why?`<div class="why">${esc(x.why)}</div>`:'')
+    +(x.det&&!x.her?`<div class="det">${esc(x.det)}</div>`:'')
+    +(x.members&&x.members.length?`<ul class="inside">${x.members.map(m=>`<li>${m.act?'✅ ':''}${esc(m.t)} <small>${t12(m.s)}–${t12(m.e)}</small></li>`).join('')}</ul>`:'')
+    +photosOf(x)+`</div>`;
+  requestAnimationFrame(()=>s.classList.add('on'));
+  s.querySelector('.x').onclick=()=>s.classList.remove('on');
+}
+document.addEventListener('click',e=>{ if(e.target.closest('#sheet')) return; const c=e.target.closest('#today .cal .ev');
+  const s=document.getElementById('sheet'); if(!c){ if(s) s.classList.remove('on'); return; }
+  if(e.target.closest('a')) return; const x=(window.__cards||[])[+c.dataset.c]; if(x) sheet(x); });
+/* the wellness wheel at the bottom, built through the day (3 Nov 2026, her words: I would like to see the
+   wellness wheel at the bottom ... built throughout the day). Today's lived rows so far, each under its
+   element; every rebuild of the page adds to it. Drawn as the look behind draws it: be to the left, do to
+   the right, each mirrored pair one line through the centre. Tap an element for the rows that made it. */
+/*WELLNESSJS*/
+let WF='';
+/*CLOCKJS*/
+function wheel(){
+  /* simpler and smaller, just the glyphs around it, beside the pie, with no list under it (7 Nov 2026, her words: there's
+     no need to list all of these things below the wellness wheel; I prefer a simpler smaller wellness wheel that just
+     has the glyphs around it). A glyph, tapped, lights its rows on the timeline; a tapped kind of time lights the
+     elements its rows fed. */
+  const slot=document.getElementById('wslot'), sec=document.getElementById('wheel'), W=D.wheel;
+  sec.innerHTML=''; const el=slot||sec;
+  const B=W&&W.domains, tot=B?Object.values(B).reduce((a,b)=>a+b,0):0;
+  if(!tot){ el.innerHTML=''; return; }
+  const KR=KF?kindRows():null, KEL=KR?new Set([...KR.els,...(W.entries||[]).filter(e=>KR.rids.has(e.rid)).map(e=>e.k)]):null;
+  const off=k=>(WF&&WF!==k)||(KEL&&!KEL.has(k));
+  const cx=100,cy=100,w=9,R0=8,RO=64, shMax=Math.max(...Object.values(B))/tot, TOP=Math.max(.3,Math.ceil(shMax*10)/10);
+  const rOf=sh=>R0+(RO-R0)*Math.min(sh,TOP*1.12)/TOP;
+  const pt=(deg,r)=>{const t=deg*Math.PI/180;return[(cx+r*Math.sin(t)),(cy-r*Math.cos(t))];};
+  let g=`<svg viewBox="0 0 200 200" role="img" aria-label="today's eight elements so far, being on the left, doing on the right">`
+   +`<circle cx="${cx}" cy="${cy}" r="${RO}" fill="none" stroke="${cv('--rule')}" stroke-dasharray="1 4" stroke-linecap="round"/>`
+   +`<line x1="${cx}" y1="${cy-RO}" x2="${cx}" y2="${cy+RO}" stroke="${cv('--rule')}" stroke-width=".8"/>`;
+  for(const k of Object.keys(WDOM).sort((x,y)=>B[y]-B[x])){ const v=B[k]||0; if(!v) continue;
+    const L=Math.max(rOf(v/tot)-(w+3)/2,.01), [x,y]=pt(WDOM[k].a,L), dim=off(k)?' dim':'';
+    g+=`<g class="wk${dim}" data-k="${k}"><line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${WDOM[k].d}" stroke-width="${w+3}" stroke-linecap="round"/>`
+     +`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${WDOM[k].c}" stroke-width="${w}" stroke-linecap="round"/><title>${k} ${Math.round(v/tot*100)}%</title></g>`; }
+  g+=`<circle cx="${cx}" cy="${cy}" r="5" fill="${cv('--card')}" stroke="${cv('--rule')}"/>`;
+  for(const k in WDOM){ const [x,y]=pt(WDOM[k].a,84), v=B[k]||0;
+    g+=`<g class="wk${off(k)||!v?' dim':''}" data-k="${k}" transform="translate(${(x-9).toFixed(1)} ${(y-9).toFixed(1)}) scale(.9)"><rect width="20" height="20" fill="transparent"/><g fill="${WDOM[k].c}" stroke="${WDOM[k].d}" stroke-width="1" stroke-linejoin="round">${WICON[k]}</g><title>${k} ${Math.round(v/tot*100)}% · ${WDOM[k].f}</title></g>`; }
+  g+=`</svg>`;
+  /* inside the day's ring (7 Nov 2026, her words: combine those two into one, with the wellness wheel in the middle and the day's 24 hours around the outside) */
+  if(slot) slot.innerHTML=g.replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,''); else el.innerHTML=g;
+  el.querySelectorAll('.wk').forEach(n=>n.addEventListener('click',()=>pickEl(n.dataset.k)));
+}
+/* how the drives move today (7 Nov 2026, her words: I really love how the 30 Oct version shows the actual progress;
+   looking out ahead I can see how it moves, and looking back behind I can see how it moved). Each drive with a step
+   today: the share of its steps done before today, what today closed, and what today still holds. */
+function moved(){
+  const el=document.getElementById('moved'); if(!el) return;
+  const over=new Date().toLocaleDateString('en-CA')>D.day, pc=(a,t)=>t?Math.round(100*a/t):0;
+  const planned={}; (D.schedule||[]).forEach(x=>{ if(x.k==='step'&&!x.done&&!x.session&&x.drive) planned[x.drive]=(planned[x.drive]||0)+1; });
+  const rows=(D.drives||[]).filter(d=>d.prog&&(d.prog.today||planned[d.n])&&!(D.hidden||[]).includes(d.n)).map(d=>{
+    const p=d.prog, tot=(p.done||0)+(p.open||0), before=Math.max(0,(p.done||0)-(p.today||0)), plan=over?0:(planned[d.n]||0);
+    const now=pc(p.done,tot), was=pc(before,tot), to=pc((p.done||0)+plan,tot);
+    const line=over?(p.today?`${was}% → <b>${now}%</b> · moved +${now-was}% today`:`${now}% · didn't move today`)
+                    :(p.today?`<b>${now}%</b> · +${now-was}% so far today`:`<b>${now}%</b>`)+(plan?` · today's step${plan>1?'s take':' takes'} it to ${to}%`:'');
+    return `<div class="mvr" style="--dc:${col(d.c)}"><div class="mvn">${esc((d.g||'')+' '+(d.short||d.n))}</div>`
+      +`<div class="mvb"><i style="width:${was}%"></i><i class="t" style="width:${now-was}%"></i><i class="p" style="width:${to-now}%"></i></div>`
+      +`<div class="mvl">${line} · ${p.done} of ${tot} steps since ${esc(fmt(p.since))}</div></div>`; });
+  el.innerHTML=rows.length?`<h2 class="ftitle">${over?'how the drives moved':'how today moves the drives'}</h2><div class="card mvc">${rows.join('')}</div>`:'';
+}
+/* how the time went, as a pie of the whole 24 hours (7 Nov 2026, her words: an updated graphic like the day behind's that
+   matches those categories; then: instead of this list, a pie chart, and 24 hours has to be the total). Every minute of
+   the day goes somewhere: to the kinds of the lived cards that cover it, shared equally when two kinds overlap (a meal
+   eaten during a long stretch of work is half each), and otherwise to not logged, or, on a day still going, to still
+   ahead. A moment, or a row with no span of its own, takes no minutes. */
+function spent(){
+  const el=document.getElementById('spent'); if(!el||!window.__chc) return;
+  const mm=t=>{ const [h,m]=String(t).split(':').map(Number); return h*60+m; };
+  const now=new Date(), today=now.toLocaleDateString('en-CA')===D.day, ahead0=today?now.getHours()*60+now.getMinutes():1440;
+  const iv=[]; (D.schedule||[]).forEach(x=>{ if(!(x.k==='lived'||(x.k==='event'&&x.done&&x.cat&&x.cat!=='event'))||x.pt||x.nopie||x.cat==='moment') return;
+    const k=window.__chc(x), a=Math.max(0,mm(x.a)), b=Math.min(1440,mm(x.b)); if(b>a) iv.push([a,b,k,x.dev||null]); });
+  if(!iv.length){ el.innerHTML=''; return; }
+  const fl=(D.schedule||[]).filter(x=>x.flowcard).map(x=>[Math.max(0,mm(x.a)),Math.min(1440,mm(x.b)||1440),window.__chc(x)]);
+  const by={}, scr={};
+  for(let m=0;m<1440;m++){
+    const ks=[...new Map(iv.filter(v=>v[0]<=m&&m<v[1]).map(v=>[v[2][2],v[2]])).values()];
+    /* screen time across the day, each device once a minute */
+    new Set(iv.filter(v=>v[0]<=m&&m<v[1]&&v[3]).map(v=>v[3])).forEach(d=>{ scr[d]=(scr[d]||0)+1; });
+    if(ks.length) ks.forEach(k=>{ (by[k[2]]=by[k[2]]||{n:k[2],c:k[0],m:0}).m+=1/ks.length;
+      /* the minutes of this kind that were on a screen, by device (8 Nov 2026) */
+      const d=(iv.find(v=>v[0]<=m&&m<v[1]&&v[2][2]===k[2]&&v[3])||[])[3]; if(d){ const o=by[k[2]].dev=by[k[2]].dev||{}; o[d]=(o[d]||0)+1/ks.length; } });
+
+    /* a minute inside her dawn or dusk flow with no card of its own is the flow's (11 Nov 2026, her question: why does it
+       still show 4 hours of not logged — the flow's steps are moments with no span, so its whole run counted as a gap) */
+    else if(m<ahead0&&fl.some(f=>f[0]<=m&&m<f[1])){ const k=fl.find(f=>f[0]<=m&&m<f[1])[2]; (by[k[2]]=by[k[2]]||{n:k[2],c:k[0],m:0}).m+=1; }
+    else { const n=m>=ahead0?'still ahead':'not logged'; (by[n]=by[n]||{n,c:m>=ahead0?'transparent':'var(--rule)',m:0,gap:true}).m+=1; }
+  }
+  /* whole minutes that still add up to exactly 24 h: floor each, then the largest remainders take the minutes left */
+  const all_=Object.values(by).map(r=>({...r,f:r.m,m:Math.floor(r.m)})), left=1440-all_.reduce((a,r)=>a+r.m,0);
+  all_.slice().sort((p,q)=>(q.f-q.m)-(p.f-p.m)).slice(0,left).forEach(r=>{ r.m+=1; });
+  const rows=all_.filter(r=>r.m>0);
+  const order=r=>/^sleep/.test(r.n)?0:r.gap?2:1;
+  rows.sort((p,q)=>order(p)-order(q)||q.m-p.m);
+  const hm=m=>m>=60?`${Math.floor(m/60)} h ${String(m%60).padStart(2,'0')}`:`${m} min`;
+  const R=117, r0=99, C=120, arc=(a0,a1)=>{ const P=(a,rr)=>[C+rr*Math.sin(a),C-rr*Math.cos(a)], big=a1-a0>Math.PI?1:0, [x0,y0]=P(a0,R),[x1,y1]=P(a1,R),[x2,y2]=P(a1,r0),[x3,y3]=P(a0,r0);
+    return `M${x0.toFixed(1)} ${y0.toFixed(1)}A${R} ${R} 0 ${big} 1 ${x1.toFixed(1)} ${y1.toFixed(1)}L${x2.toFixed(1)} ${y2.toFixed(1)}A${r0} ${r0} 0 ${big} 0 ${x3.toFixed(1)} ${y3.toFixed(1)}Z`; };
+  let at=0; const segs=rows.map(r=>{ const a0=at/1440*2*Math.PI, a1=(at+r.m)/1440*2*Math.PI; at+=r.m;
+    const fill=r.gap?(r.n==='still ahead'?'none':'var(--rule)'):`color-mix(in srgb,${r.c} 60%,var(--card))`;
+    return `<path${r.gap?'':` class="kseg${KF&&KF!==r.n?' off':''}" data-n="${esc(r.n)}"`} d="${arc(a0,Math.min(a1,a0+2*Math.PI-1e-4))}" fill="${fill}" stroke="${r.gap?'var(--rule)':r.c}" stroke-width="1"${r.n==='still ahead'?' stroke-dasharray="3 3"':''}><title>${esc(String(r.n).split(' · ')[0])} · ${hm(r.m)}</title></path>`; }).join('');
+  const over=now.toLocaleDateString('en-CA')>D.day;
+  /* the running bars under the pie, each against its goal (7 Nov 2026, her words: the pie chart with the running categories
+     underneath, because that's actually very useful, and show what the goal is — sleep 8 hours, work 4, movement 2, food 1).
+     The goals are hers, `time_goals` in her settings: hours by the kind's first word */
+  /* goals can be by the shape of the day (7 Nov 2026, her words: an ideal weekday is probably 7 hours of sleep, 4 of work,
+     4 of care, 2 of movement, 2 of food): `weekday`, `saturday`, `sunday`, else one set for every day */
+  const dow=new Date(D.day+'T12:00:00Z').getUTCDay(), shape_=dow===0?'sunday':dow===6?'saturday':'weekday';
+  const pick=o=>o&&(o.weekday||o.saturday||o.sunday)?(o[shape_]||{}):(o||{});
+  const G=pick(D.timegoals), X=pick(D.timelimits), key=(o,r)=>o[String(r.n).split(' · ')[0]]??o[String(r.n).split(' ')[0]];
+  const goal=r=>{ const h=key(G,r); return h?h*60:0; }, limit=r=>{ const v=key(X,r); return v?[].concat(v).map(h=>h*60):[]; };
+  const scrTot=Object.values(scr).reduce((a,b)=>a+b,0), meas=D.screen_measured||0;
+  const top=Math.max(...rows.filter(r=>r.n!=='still ahead').map(r=>Math.max(r.m,goal(r),...limit(r))),scrTot,meas,60);
+  /* screens, in her device words (8 Nov 2026, her words: the mobile, the phone, the Chromebook, the laptop, a TV) */
+  const DEV={phone:['📱','#4A5A8C'],chromebook:['⌨️','#2E7D7A'],laptop:['💻','#7A5C99'],tv:['📺','#B5651D'],'work desktop':['🖥️','#5A5A5A']};
+  const dv=d=>DEV[d]||['▪︎','#777'];
+  const hatch=c=>`repeating-linear-gradient(135deg,${c} 0 3px,color-mix(in srgb,${c} 35%,transparent) 3px 6px)`;
+  const devBar=(o,base)=>{ let at=0; return Object.entries(o||{}).sort((p,q)=>q[1]-p[1]).map(([d,m])=>{ const w=100*m/top, h=`<b class="dv" style="left:${at}%;width:${w}%;background:${base?dv(d)[1]:hatch(dv(d)[1])}" title="${esc(d)} ${hm(Math.round(m))}"></b>`; at+=w; return h; }).join(''); };
+  const devLine=o=>Object.entries(o||{}).filter(e=>e[1]>=1).sort((p,q)=>q[1]-p[1]).map(([d,m])=>`${dv(d)[0]} ${hm(Math.round(m))}`).join(' · ');
+  const short=n=>String(n).split(' · ')[0].replace(' and life admin',' & admin').replace(' and ',' & ');
+  const lg=rows.filter(r=>r.n!=='still ahead').map(r=>{ const g=goal(r), lim=limit(r), fill=r.gap?'var(--rule)':`color-mix(in srgb,${r.c} 60%,var(--card))`;
+    const note=g?`of ${hm(g).replace(' 00','')}`:lim.length?`≤ ${lim.map(m=>String(m/60)).join('–')} h`:'';
+    const dl=devLine(r.dev);
+    return `<div class="spr${r.gap?'':KF===r.n?' on':KF?' off':''}"${r.gap?'':` data-n="${esc(r.n)}"`}><span class="spn">${esc(short(r.n))}${dl?`<small class="spd">${dl}</small>`:''}</span><span class="spb"><i style="width:${Math.max(2,100*r.m/top)}%;background:${fill};border-color:${r.gap?'var(--muted)':r.c}"></i>${devBar(r.dev)}${g?`<em style="left:${100*g/top}%"></em>`:''}${lim.map(m=>`<em class="lim" style="left:${100*m/top}%"></em>`).join('')}</span><span class="spv">${hm(r.m)}${note?`<small>${note}</small>`:''}</span></div>`; }).join('')
+    +(by['still ahead']?`<p class="spa">${hm(rows.find(r=>r.n==='still ahead').m)} still ahead</p>`:'')
+    /* on a screen, all day, by device, beside what the phone itself measured (8 Nov 2026: measured beats logged) */
+    +(scrTot||meas?`<div class="spr scr"><span class="spn">on a screen<small class="spd">${devLine(scr)||'none logged'}</small></span><span class="spb">${devBar(scr,true)}${meas?`<em class="meas" style="left:${Math.min(100,100*meas/top)}%" title="phone, measured"></em>`:''}</span><span class="spv">${hm(scrTot)}${meas?`<small>📱&nbsp;${hm(meas).replace(/ /g,'&nbsp;')}<br>measured</small>`:''}</span></div>`:'');
+  if(KF&&!rows.some(r=>r.n===KF)) KF='';
+  const tip=KF?`<p class="spk">showing <b>${esc(short(KF))}</b> on the wheel and the timeline below · <a href="#" id="kclr">show all</a></p>`
+               :(WF?`<p class="spk">showing <b>${esc(WF)}</b> on the timeline below · <a href="#" id="kclr">show all</a></p>`:`<p class="spk">tap a kind, or a glyph on the wheel, to light it up on the timeline</p>`);
+  el.innerHTML=`<h2 class="ftitle">${over?'how the time went':'how the time is going'}</h2><div class="card spc"><div class="spl">${lg}${tip}</div><figure class="ring"><figcaption>the day's 24 hours around ☸️ the wheel</figcaption><svg viewBox="0 0 240 240" role="img" aria-label="the day's 24 hours by kind, around today's wellness wheel">${segs}<g id="wslot" transform="translate(20 20)"></g></svg></figure></div>`;
+  el.querySelectorAll('[data-n]').forEach(n=>n.addEventListener('click',()=>pickKind(n.dataset.n)));
+  const c=document.getElementById('kclr'); if(c) c.onclick=e=>{e.preventDefault(); if(KF) pickKind(KF); else pickEl(WF);};
+}
+/* one kind of time, followed through the page (7 Nov 2026, her words: when I click on something in the how I'm spending
+   my time widget, it highlights those things in the timeline and the wellness wheel). A tap on a kind in the pie or its
+   bars lights that kind's cards on the timeline (the rest fade) and the wheel's elements its rows fed, with the rows
+   listed under the wheel; a second tap, or show all, puts everything back. */
+let KF='';
+const kindOf=x=>window.__chc&&x?window.__chc(x)[2]:'';
+function kindRows(){ const S=(D.schedule||[]).filter(x=>(x.k==='lived'||(x.k==='event'&&x.done&&x.cat&&x.cat!=='event'))&&kindOf(x)===KF);
+  const rids=new Set(), els=new Set(); S.filter(x=>!x.flowcard).forEach(x=>{ if(x.rid) rids.add(x.rid); (x.rids||[]).forEach(r=>rids.add(r)); [x.el,x.el2].forEach(e=>{ if(e) els.add(e); }); });
+  return {rids,els}; }
+function markTimeline(){ document.querySelectorAll('#today .ev[data-c]').forEach(n=>{ const x=(window.__cards||[])[+n.dataset.c];
+  const on=!!(KF||WF), hit=on&&(KF?kindOf(x)===KF:!!x&&(x.el===WF||x.el2===WF)); n.classList.toggle('klit',hit); n.classList.toggle('kdim',on&&!hit); }); }
+function pickKind(n){ KF=KF===n?'':n; WF=''; spent(); wheel(); markTimeline(); }
+function pickEl(k){ WF=WF===k?'':k; KF=''; spent(); wheel(); markTimeline(); }
+/* a Saturday's things she might want to do (7 Nov 2026, her words: I really want you to try harder to pull up all the
+   things that I might want to do on Saturday, because this is a very short list): fun first and easy first, each with its
+   way in and no clock; her intention leads it */
+function sat(){
+  /* less to take in (7 Nov 2026, her words: the things you might like card is the start of something good but it's
+     overwhelming the way it is … your top three suggestions … and an expandable list: are you wanting to watch a movie?
+     here's the movies in your queue; do you want to read a book? do something fun? an urban adventure or an outdoor
+     adventure? grouping the things according to energy and distance and practicality). Three to start, then each mood
+     folded, from the least energy and the closest to home out to the farthest; the few with the most pull fold last. */
+  const el=document.getElementById('sat'), G=D.ideas||[], I=D.intentions||[];
+  if(!G.length){ el.innerHTML=''; return; }
+  const lk=x=>(x.links||[]).length?`<span class="lks">${x.links.map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l||'link')} ↗</a>`).join('')}</span>`:'';
+  const li=x=>`<li><b>${esc(x.t)}</b>${x.when?`<span class="w">${esc(x.when)}</span>`:''}${x.on?'<span class="on">started</span>':''}${x.why?`<p>${esc(x.why)}</p>`:''}${(x.also||[]).length?`<p>also: ${x.also.map(esc).join(' · ')}</p>`:''}${lk(x)}</li>`;
+  const list=(xs,n)=>`<ul>${xs.slice(0,n).map(li).join('')}</ul>${xs.length>n?`<details><summary>${xs.length-n} more</summary><ul>${xs.slice(n).map(li).join('')}</ul></details>`:''}`;
+  const grp=g=>(G.find(x=>x.g===g)||{}).items||[];
+  const stories=(G.find(x=>x.g==='stories')||{}).moods||[];
+  const kid=(stories.find(m=>m.m==='kid')||{}).label||'';
+  const watch=[], read=[], gate=D.media_gate;
+  /* with her Morning Gate named, its stories and media stay there and this links to it (7 Nov 2026, her words: I'd prefer to
+     see all of the stories / media stuff on my morning gate and just link to it); without it, each keeps its kind's glyph */
+  if(!gate) stories.forEach(m=>m.items.forEach(x=>{ const it={...x,why:x.why||(m.m==='kid'?m.label:m.m==='learn'?'learn something':'')};
+    (/📗|🎧|🎙/.test(x.kind||'')?read:watch).push({...it,t:(x.kind?x.kind+' ':'')+x.t}); }));
+  [watch,read].forEach(xs=>xs.sort((p,q)=>(q.on?1:0)-(p.on?1:0)));
+  const OUT=/\b(trails?|park|lake|ranch|river|falls|preserve|gardens?|hike|hiking|walk|zoo|camp\w*|picnic|dogs?|outdoor|nature|bosque)\b/i;
+  const out=grp('out'), outdoors=out.filter(x=>OUT.test(x.t+' '+(x.why||''))), town=out.filter(x=>!outdoors.includes(x));
+  const home=grp('home'), people=grp('people'), soon=grp('soon');
+  /* three to start: what is dated today, something easy at home, something outside — else the next nearest. Something on
+     another day is never one of today's three (7 Nov 2026, her words: the Spirits of Erath County walk should not be
+     showing up on my Saturday my day — it is Sunday's); it waits folded under coming up */
+  const three=[], took=new Set(), today_=soon.filter(x=>/^today\b/.test(x.when||''));
+  const DOW=['sunday','monday','tuesday','wednesday','thursday','friday','saturday'], dow=DOW[new Date(D.day+'T12:00:00Z').getUTCDay()];
+  const otherDay=o=>(o.when&&!/^today\b/.test(o.when))||DOW.some(d=>d!==dow&&new RegExp('\\b'+d+'\\b','i').test(o.t));
+  for(const xs of [today_,home,outdoors,town,watch,people,read,grp('day')]){ const x=xs.find(o=>!took.has(o)&&!otherDay(o)); if(x&&three.length<3){ three.push(x); took.add(x); } }
+  const rest=xs=>xs.filter(x=>!took.has(x));
+  const MENU=[['🛋️','watch something','low energy · at home',rest(watch)],
+              ['📖','read or listen','low energy · anywhere',rest(read)],
+              ['🏡','something fun at home','a little energy · at home',rest(home)],
+              ['💬','call or see someone','a little energy',rest(people)],
+              ['🏙️','an urban adventure','some energy · in town',rest(town)],
+              ['🌳','an outdoor adventure','some energy · close to home',rest(outdoors)],
+              ['📅','coming up','has a date',rest(soon)],
+              ['🚗','a day out','a full day · a drive',rest(grp('day'))],
+              ['🗺️','fun to plan','for later',rest(grp('plan'))],
+              ['✈️','farther off, to dream on','far',rest(grp('far'))]].filter(m=>m[3].length);
+  if((D.feel||[]).length) MENU.push(['⚡','if you feel like it','the few with the most pull',D.feel]);
+  const gateLink=gate?`<p class="gate"><a href="${esc(gate)}" target="_blank" rel="noopener">🗞️ watch, read or listen · your Morning Gate ↗</a></p>`:'';
+  el.innerHTML=(I.length?`<p class="say"><small>your intention</small>${I.map(esc).join('<br>')}</p>`:'')
+    +`<h2>for a Saturday</h2><p class="sub">three to start · or open what you're in the mood for · nothing here has a time</p>`
+    +`<ul>${three.map(li).join('')}</ul>`
+    +gateLink+`<div class="menu">${MENU.map(([g,t,h,xs])=>`<details><summary>${g} ${esc(t)} <span class="n">${xs.length}</span><small>${esc(h)}</small></summary>${list(xs,6)}</details>`).join('')}</div>`;
+}
+/* the page's order follows the day (7 Nov 2026, her words: I like to see the base flow up at the top early in the day,
+   but then drop it down to the very bottom in the afternoon; what I want to see at the top is the how the time is going
+   viz; and how I'm spending my time and the wellness wheel balance throughout the day with the timeline below). Before
+   noon base flow leads; from noon, and on a day already gone, the time and the wheel lead with the timeline under them,
+   and base flow closes the page. */
+function arrange(){
+  const $=id=>document.getElementById(id), m=$('h1'); if(!m) return;
+  const now=new Date(), day=now.toLocaleDateString('en-CA'), am=day<D.day||(day===D.day&&now.getHours()<12);
+  const after=['spent','wheel','today','sat','int','flowwrap','moved'], base=['rv','leannote'];
+  /* the three sit right under base flow in the morning, and right under the day's time from noon (12 Nov 2026). Before
+     10 the calendar comes straight after the three and how the time is going waits at the bottom (12 Nov 2026, her words:
+     how the time is going is pretty irrelevant at this stage in the day … till after my work day has started … after 10
+     o'clock; this is where it's helpful to see the calendar) */
+  const early=day===D.day&&now.getHours()<10;
+  const ids=early?['rv','three','leannote','today','sat','int','flowwrap','moved','spent','wheel']
+    :am?['rv','three','leannote'].concat(after):['spent','wheel','three'].concat(after.slice(2),base);
+  let at=m; ids.forEach(id=>{ const n=$(id); if(n){ at.after(n); at=n; } });
+}
+function draw(){ sat(); today(); card(); three(); const b=shape(); lists(b); intention(b); flow(b); spent(); moved(); wheel(); markTimeline(); arrange(); }
+document.addEventListener('bedo-theme',draw);
+draw();
+</script>
+<script>
+/* download HTML (261106_download, her words 6 Nov 2026: on the day behind, I'd like to be able to download that as an
+   HTML … I like saving the tokens): the page saves itself as one .html, photos and all, at her click — no storage, no
+   connector, no tokens. In claude.ai the viewer's own save prompt (the `downloads` capability, declared at publish);
+   anywhere else, a plain Blob download. What the page drew for this viewer is left out, so the copy draws itself
+   fresh when it is opened. */
+(function(){
+  function src(){ var h=document.documentElement.cloneNode(true);
+    h.querySelectorAll('[data-dyn],#sheet,#bedo-dl').forEach(function(n){ n.remove(); });
+    return '<!doctype html>\n'+h.outerHTML; }
+  function name(){ var t=(document.title||'').replace(/[^A-Za-z0-9 ._-]+/g,' ').replace(/\s+/g,' ').trim(); return (t||'be-do page')+'.html'; }
+  function blob(){ var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([src()],{type:'text/html'})); a.download=name();
+    document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500); }
+  var b=document.createElement('button'); b.id='bedo-dl'; b.type='button'; b.textContent='\u2913 download this page'; b.title='save this page as one .html file';
+  b.style.cssText='display:block;margin:28px auto 8px;font:500 12px ui-monospace,Menlo,monospace;color:inherit;opacity:.75;background:none;border:1px solid currentColor;border-radius:999px;padding:5px 14px;cursor:pointer';
+  b.onclick=function(){
+    var c=window.claude; if(!c||!c.use){ blob(); return; }
+    c.use('downloads').then(function(d){
+      if(!d){ blob(); return; }
+      return d.save({filename:name(), data:new Blob([src()],{type:'text/html'})}).catch(function(e){
+        if(e&&/^(unavailable|not_granted|capability_disabled|capability_removed)$/.test(e.code)) blob(); });
+    }, blob); };
+  (document.querySelector('main')||document.body).appendChild(b);
+})();
+</script>
+</body>
+</html>

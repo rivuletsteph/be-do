@@ -1,0 +1,16 @@
+/* a rhythm block and a step on it: the vocabulary the my day page draws its rhythms-with-drives in,
+   and the my week page draws its possible paths in. Lifted out of flow_engine.html, 9 Nov 2026. */
+.blocks{display:grid;gap:12px;margin:0 0 16px}
+.rb{background:var(--card);border:1px solid var(--rule);border-left:4px solid var(--dc);border-radius:14px;padding:12px 14px}
+.rb h2{margin:0;font-size:15.5px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.rb h2 .to{font:400 11px var(--mono);color:var(--faint)}
+.k{font:500 10.5px var(--mono);letter-spacing:.04em;color:var(--muted);text-transform:lowercase;margin:8px 0 2px}
+.st{font-size:14px;margin:2px 0 0}
+.st.more{font-size:13px;color:var(--muted)}
+.why{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.why span{font:500 10.5px var(--mono);color:var(--muted);background:var(--card2);border-radius:999px;padding:1px 8px}
+.why a{font:500 10.5px var(--mono);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:1px 8px;text-decoration:none}
+.dr{margin:10px 0 0 6px;padding:2px 0 2px 12px;border-left:2px solid var(--dc2)}
+.dr .dn{font-weight:600;font-size:13.5px}
+.dr .gl{font-size:12px;color:var(--muted);font-style:italic}
+.rest{font-size:12.5px;color:var(--faint);margin:4px 0 0}
