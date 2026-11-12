@@ -1105,6 +1105,45 @@ def build(D, rows, rhythms_read, L, behind_dir):
     return data
 
 
+def plan_items(specs, rows, L):
+    """The rest of today in order (12 Nov 2026, her journal: I'm happiest doing one thing at a time; the page leads with
+    NOW and NEXT). Each names a row; it carries the row's time today (its target, or its own end), whether it is closed,
+    its next step and its links. A label after :: replaces the row's title on the page."""
+    F = L['fields']['stream']
+    off = bedo_clock.Offset(L)
+    by = {}
+    for r in rows:
+        c = r['cellValuesByFieldId']
+        by[r['id']] = r
+        if c.get(F['key']):
+            by.setdefault(c[F['key']], r)
+    out = []
+    for spec in specs:
+        ref, _, label = spec.partition('::')
+        r = by.get(ref.strip())
+        if not r:
+            raise SystemExit(f'--plan/--later {ref.strip()!r}: no row with that key or record id in the stream read')
+        c = r['cellValuesByFieldId']
+        det = c.get(F['details']) if F.get('details') else ''
+        tg = c.get(F['target'])
+        t0 = dt.datetime.fromisoformat(tg.replace('Z', '+00:00')) + off if tg else None
+        # only a time today that wasn't made up holds a place on the clock; the rest keep their place in the order
+        if t0 and (t0.date().isoformat() != L.get('_day') or made_up(det)):
+            t0 = None
+        en = c.get(F['end']) if t0 else None
+        t1 = (dt.datetime.fromisoformat(en.replace('Z', '+00:00')) + off) if en else \
+            (t0 + dt.timedelta(minutes=60 if (F.get('event') and c.get(F['event'])) or re.search(r'(?i)meeting|with \\w+', c.get(F['title']) or '') else 15) if t0 else None)
+        at, end = (t0.strftime('%H:%M') if t0 else None), (t1.strftime('%H:%M') if t1 else None)
+        nx = [ln.split(':', 1)[1].strip() for ln in (det or '').split('\n') if re.match(r'(?i)\s*next( step)?:', ln)]
+        links = re.findall(r'https?://[^\s)\],]+', det or '')
+        if F.get('event') and c.get(F['event']):
+            links.insert(0, c[F['event']])
+        out.append(dict(id=r['id'], t=label.strip() or re.sub(r'^⚡\s*', '', c.get(F['title']) or ''), at=at, end=end,
+                        st=c.get(F['status']) or '', done=(c.get(F['status']) or '') in CLOSED,
+                        nx=nx[-1] if nx else None, links=links[:3], drive=c.get(F['rhythm']) or ''))
+    return out
+
+
 def phases_of(dd, L):
     """Each flow practice's phase (dawn or dusk), from the catalog read, when her settings name the catalog's `phase` field."""
     PF = (L.get('fields') or {}).get('practices') or {}
@@ -1134,6 +1173,10 @@ def main():
                     help='"<name>::HH:MM-HH:MM::<drive>|<drive>" — small steps on those drives, batched at that time')
     ap.add_argument('--session-top', action='append', default=[],
                     help='"<row key or record id>::<why>" — the session\'s top three, in order')
+    ap.add_argument('--plan', action='append', default=[],
+                    help='"<row key or record id>[::<label>]" — the rest of today in order, one thing at a time: NOW and NEXT')
+    ap.add_argument('--later', action='append', default=[],
+                    help='"<row key or record id>[::<label>]" — what waits quietly under NOW and NEXT')
     a = ap.parse_args()
     L = json.load(open(a.local, encoding='utf-8'))
     h, D = page_data(a.day_ahead)
@@ -1156,6 +1199,9 @@ def main():
         pth = os.path.join(dd, f'ideas_{nm}.json')
         L[f'_{nm}'] = json.load(open(pth, encoding='utf-8')).get('records') if os.path.exists(pth) else None
     data = build(D, rows, rhythms_read, L, a.behind)
+    L['_day'] = data['day']
+    data['plan'] = plan_items(a.plan, rows, L)
+    data['later'] = plan_items(a.later, rows, L)
     root = re.search(r':root\{[^}]*--c-moss[^}]*\}', h).group(0)
     night = re.search(r'html\[data-bedo="night"\]\{[^}]*\}', h).group(0)
     page = open(os.path.join(HERE, '..', 'assets', 'flow_engine.html'), encoding='utf-8').read()

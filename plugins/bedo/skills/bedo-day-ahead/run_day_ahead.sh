@@ -139,8 +139,8 @@ elif [ "$MODE" = build ]; then
   [ -f data/practices.json ] && SEC_ARGS+=(--practices data/practices.json)
   # a session (--session, --session-top) is the flow page's alone; the day ahead never sees it (4 Nov 2026)
   DA=(); SESS=(); prev=""; for a in "$@"; do
-    if [ "$prev" = --session ] || [ "$prev" = --session-top ]; then SESS+=("$prev" "$a"); prev=""; continue; fi
-    if [ "$a" = --session ] || [ "$a" = --session-top ]; then prev=$a; continue; fi
+    if [ "$prev" = --session ] || [ "$prev" = --session-top ] || [ "$prev" = --plan ] || [ "$prev" = --later ]; then SESS+=("$prev" "$a"); prev=""; continue; fi
+    if [ "$a" = --session ] || [ "$a" = --session-top ] || [ "$a" = --plan ] || [ "$a" = --later ]; then prev=$a; continue; fi
     DA+=("$a"); prev=$a; done
   "$PY" scripts/day_ahead.py --today "$DAY" --local day_ahead_local.json $STREAMS \
     --rhythms data/rhythms.json --calendar cal.json --template day_ahead_engine.html \
