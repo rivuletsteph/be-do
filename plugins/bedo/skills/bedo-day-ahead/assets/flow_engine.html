@@ -26,13 +26,13 @@
 .now{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:14px 16px;margin:0 0 16px}
 .now .int0{font:italic 400 15px var(--serif);color:var(--muted);margin:0 0 10px}
 .now .int0 b{font-style:normal;color:var(--ink)}
-.now .lab{font:italic 400 13px var(--serif);color:var(--muted);margin:0}
-.now .big{font:400 20px/1.3 var(--serif);margin:2px 0 4px}
+.now .lab{font:500 12px var(--mono);color:var(--accent);margin:0}
+.now .big{font:600 20px/1.3 var(--serif);margin:2px 0 4px}
 .now .nx{font-size:14px;margin:0 0 4px}
 .now .when{font:500 12px var(--mono);color:var(--muted)}
 .now .lks{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 0}.now .lk{font:500 12px var(--mono);padding:3px 8px;border:1px solid var(--rule);border-radius:999px;text-decoration:none;color:var(--accent)}
 .now .next{border-top:1px solid var(--rule);margin-top:12px;padding-top:10px}
-.now .next .big{font-size:16px;color:var(--muted)}
+.now .next .big{font-size:16px}
 .now ul.then{margin:10px 0 0;padding:0;list-style:none;font-size:13px;color:var(--muted)}.now ul.then li{padding:2px 0}.now ul.then li:before{content:'· ';opacity:.6}
 .now ul.then li.done{opacity:.55}
 .now details{margin-top:10px;font-size:13px;color:var(--muted)}.now details ul{margin:6px 0 0;padding-left:18px}
@@ -49,6 +49,8 @@
 .three .nx{display:block;font-size:13.5px;font-weight:600;margin:3px 0 0}
 .three small{display:block;font:500 11.5px var(--mono);color:var(--muted);margin:3px 0 0}
 .three .lks{display:flex;flex-wrap:wrap;gap:6px;margin:5px 0 0}.three .lk{font:500 12px var(--mono);padding:3px 8px;border:1px solid var(--rule);border-radius:999px;text-decoration:none;color:var(--accent)}
+.three h3.more3{font:italic 400 15px var(--serif);color:var(--accent);margin:14px 0 4px}
+.three ol.m3{margin:0;padding:0 0 0 22px;font-size:13.5px}.three ol.m3 li:before{content:none}.three ol.m3{list-style:decimal}.three ol.m3 li{padding:5px 0;border-top:1px solid var(--rule);cursor:pointer}.three ol.m3 li:first-child{border-top:0}.three ol.m3 li.done{opacity:.55}
 .three .then{font-size:12px;color:var(--muted);margin:8px 0 0}
 .int h2{font:italic 400 18px var(--serif);color:var(--accent);margin:0}
 .int .holds{font-size:15px;margin:4px 0 0}
@@ -541,9 +543,9 @@ function nowNext(){
   const ints=(D.intentions||[]).filter(Boolean);
   const L=D.later||[];
   el.hidden=false;
-  el.innerHTML=`${ints.length?`<p class="int0">your intention · <b>${esc(ints[0])}</b></p>`:''}${N?one(N,'one thing, when you\'re ready'):`<p class="big">that\'s everything for today — go easy</p>`}${X?`<div class="next">${one(X,'and after that')}</div>`:''}`
-    +`<details><summary>the rest of today, loosely</summary><ul class="then">${P.map(x=>`<li class="${over(x)?'done':''}">${over(x)?'✓ ':''}${x.at?t12(x.at)+' · ':''}${esc(x.t)}</li>`).join('')}</ul></details>`
-    +(L.length?`<details><summary>it can all wait · ${L.length}</summary><ul>${L.map(x=>`<li>${esc(x.t)}${(x.links||[]).length?` · <a href="${esc(x.links[0])}" target="_blank" rel="noopener">link ↗</a>`:''}</li>`).join('')}</ul></details>`:'');
+  el.innerHTML=`${ints.length?`<p class="int0">your intention · <b>${esc(ints[0])}</b></p>`:''}${N?one(N,'now'):`<p class="big">that\'s the plan for today ✓</p>`}${X?`<div class="next">${one(X,'then')}</div>`:''}`
+    +`<ul class="then">${P.map(x=>`<li class="${over(x)?'done':''}">${over(x)?'✓ ':''}${x.at?t12(x.at)+' · ':''}${esc(x.t)}</li>`).join('')}</ul>`
+    +(L.length?`<details><summary>can wait · ${L.length}</summary><ul>${L.map(x=>`<li>${esc(x.t)}${(x.links||[]).length?` · <a href="${esc(x.links[0])}" target="_blank" rel="noopener">link ↗</a>`:''}</li>`).join('')}</ul></details>`:'');
 }
 function three(){
   /* be•do's three, right under base flow (12 Nov 2026, her words: I like seeing the base flow first … and then I want
@@ -552,11 +554,12 @@ function three(){
   const el=document.getElementById('three'); const T=D.three||[]; if(!T.length){ el.innerHTML=''; return; }
   const nt=t=>String(t||'').replace(/^⚡\s*/,'').trim();
   const doneSet=new Set((D.done||[]).map(x=>nt(x.t)));
-  const nxt=(D.three_next||[]).filter(x=>x&&x.t);
+  const nxt=(D.three_next||[]).filter(x=>x&&x.t); const M=D.three_more||[];
   el.innerHTML=`<h2>be•do's three</h2><p class="how">what, done today, frees the most for the rest of the day and week · a recommendation, not your intention</p><ol>${T.map((x,i)=>{ const dn=/✅/.test(x.st)||doneSet.has(nt(x.t));
-    return `<li data-n="${i}" class="${dn?'done':''}"><span class="t">${esc((x.g?x.g+' ':'')+nt(x.t))}</span>${x.why?`<span class="why">${esc(x.why)}</span>`:''}${x.nx&&!dn?`<span class="nx">→ ${esc(x.nx)}</span>`:''}${(x.links||[]).length&&!dn?`<span class="lks">${x.links.filter((l,i,A)=>A.findIndex(o=>(o.url||o.u)===(l.url||l.u))===i).map(l=>`<a class="lk" href="${esc(l.url||l.u)}" target="_blank" rel="noopener">${esc(l.label||l.l||'link')} ↗</a>`).join(' ')}</span>`:''}<small>${esc(x.drive||'')}${x.waiting?' · ⏸ waiting on '+esc(x.waiting):''}</small></li>`; }).join('')}</ol>${nxt.length?`<p class="then">next in line: ${nxt.map(x=>esc(nt(x.t))).join(' · ')}</p>`:''}`;
+    return `<li data-n="${i}" class="${dn?'done':''}"><span class="t">${esc((x.g?x.g+' ':'')+nt(x.t))}</span>${x.why?`<span class="why">${esc(x.why)}</span>`:''}${x.nx&&!dn?`<span class="nx">→ ${esc(x.nx)}</span>`:''}${(x.links||[]).length&&!dn?`<span class="lks">${x.links.filter((l,i,A)=>A.findIndex(o=>(o.url||o.u)===(l.url||l.u))===i).map(l=>`<a class="lk" href="${esc(l.url||l.u)}" target="_blank" rel="noopener">${esc(l.label||l.l||'link')} ↗</a>`).join(' ')}</span>`:''}<small>${esc(x.drive||'')}${x.waiting?' · ⏸ waiting on '+esc(x.waiting):''}</small></li>`; }).join('')}</ol>${M.length?[[0,'be•do\'s next three'],[3,'three after that']].filter(([i])=>M[i]).map(([i,h])=>`<h3 class="more3">${h}</h3><ol class="m3" start="${i+4}">${M.slice(i,i+3).map((x,j)=>{ const dn=/✅/.test(x.st)||doneSet.has(nt(x.t)); return `<li data-m="${i+j}" class="${dn?'done':''}"><span class="t">${esc((x.g&&x.g!=='·'?x.g+' ':'')+nt(x.t))}</span>${x.nx&&!dn?`<span class="nx">→ ${esc(x.nx)}</span>`:''}${(x.links||[]).length&&!dn?`<span class="lks">${x.links.filter((l,k,A)=>A.findIndex(o=>(o.url||o.u)===(l.url||l.u))===k).map(l=>`<a class="lk" href="${esc(l.url||l.u)}" target="_blank" rel="noopener">${esc(l.label||l.l||'link')} ↗</a>`).join(' ')}</span>`:''}</li>`; }).join('')}</ol>`).join(''):(nxt.length?`<p class="then">next in line: ${nxt.map(x=>esc(nt(x.t))).join(' · ')}</p>`:'')}`;
   el.querySelectorAll('.lk').forEach(a=>a.addEventListener('click',e=>e.stopPropagation()));
-  el.querySelectorAll('li').forEach(li=>li.onclick=()=>{ const x=T[+li.dataset.n]; sheet({k:'step',t:x.t,drive:x.drive,nx:x.nx,links:(x.links||[]).map(l=>({l:l.label||l.l,u:l.url||l.u})),s:0,e:0}); });
+  el.querySelectorAll('li[data-m]').forEach(li=>li.onclick=()=>{ const x=M[+li.dataset.m]; sheet({k:'step',t:x.t,drive:x.drive,nx:x.nx,links:(x.links||[]).map(l=>({l:l.label||l.l,u:l.url||l.u})),s:0,e:0}); });
+  el.querySelectorAll('li[data-n]').forEach(li=>li.onclick=()=>{ const x=T[+li.dataset.n]; sheet({k:'step',t:x.t,drive:x.drive,nx:x.nx,links:(x.links||[]).map(l=>({l:l.label||l.l,u:l.url||l.u})),s:0,e:0}); });
 }
 function intention(blocks){
   /* not on today's calendar (2 Nov 2026, her words: it should only be an intention if it can actually fit on my
@@ -781,20 +784,28 @@ function today(){
   const lab=h=>`${h%12||12} ${h<12||h===24?'AM':'PM'}`, tm=m=>`${Math.floor(m/60)%12||12}:${String(m%60).padStart(2,'0')}`;
   /* a long event's name sits on a line above the clock, never over the cards in it (4 Nov 2026) */
   const bandTop=[];
+  /* someone else's calendar sits behind her day (12 Nov 2026, her words: his eye exam should not get a green check for me,
+     it has nothing to do with me … anything on his calendar needs to be in a light blue fading to the back): faded, in its
+     calendar's colour lightened, never a check */
+  const bgev=x=>x.k==='event'&&x.who&&x.who!=='you';
+  const bgs=x=>`--gc:color-mix(in srgb,${gcol(x)} 28%,var(--card));--gi:var(--muted);opacity:.6;z-index:0`;
+  const bgt=x=>String(x.summary||x.t||'').replace(/^\s*(✔️|✔|⬜|✅)\uFE0F?\s*/,'');
   let g=''; const CARDS=window.__cards=[]; const ci=x=>{ CARDS.push(x); return CARDS.length-1; };
   { let last=-99; for(let h=h0;h<=h1;h++){ if(OPENS.concat(QUIET).some(([a,b])=>h*60>a&&h*60<b)) continue; const t=y(h*60); if(t-last<14) continue; last=t; g+=`<div class="hr" style="top:${t}px"><span>${lab(h)}</span></div>`; } }   /* hours inside the condensed sleep are not labelled */
   bands.forEach(x=>{ if(x.flowcard){ g+=`<div class="band flowband" style="top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"><span>${esc(String(x.t).split(' · ')[0])}</span></div>`; bandTop.push(`<span class="fl"><i></i>${esc(String(x.t).split(' · ')[0])} · ${tm(x.s)}–${tm(x.e)}</span>`); return; }
-    if(x.k!=='event'){ g+=`<div class="band" title="${x.act?'✅ ':''}${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; if(x.e-x.s>=180) bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.act?'✅ ':''}${esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); });
+    if(x.k!=='event'){ g+=`<div class="band" title="${x.act?'✅ ':''}${esc(x.t)}" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; if(x.e-x.s>=180) bandTop.push(`<span style="--dc:${dc(x.drive)}"><i></i>${x.act?'✅ ':''}${esc(x.t)} · ${tm(x.s)}–${tm(x.e)}</span>`); return; } g+=`<div class="band" style="--dc:${dc(x.drive)};top:${y(x.s)}px;height:${y(x.e)-y(x.s)}px"></div>`; const bl=bgev(x)?bgt(x):x.t; bandTop.push(`<span style="--dc:${bgev(x)?gcol(x):dc(x.drive)}"><i></i>${x.link?`<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(bl)}</a>`:esc(bl)} · ${tm(x.s)}–${tm(x.e)}</span>`); });
   past.forEach(x=>{ const w=100/x.n; let top=y(x.s), h=Math.max(MINH,y(x.e)-y(x.s)-1);
     if(x.stk){ if(x.si) return; const c=x.stk.card; h=Math.max(MINH,y(c.e)-y(c.s)-1);
       const ths=(c.photos||[]).slice(0,4).map(p=>`<img alt="" src="${p.src}">`).join('');
-      g+=`<div data-c="${ci(c)}" class="ev lived combo tall${c.k==='event'?' gcal past':''}" title="${esc(c.t)} · ${tm(c.s)}" style="${c.k==='event'?`--gc:${pcol(c)};--gi:${gink(gcol(c))}`:kvx(c)};top:${top}px;height:${h}px;left:calc(${(c.col||0)*100/(c.n||1)}% + 2px);width:calc(${100/(c.n||1)}% - 4px)"><b>${c.k==='event'?esc(dn(c.summary||c.t,c.done)):(c.act?'✅ ':'')+esc(c.t)}</b><i>${tm(c.s)}–${tm(c.e)}${c.drive?' · '+esc(c.drive):''}</i>${c.members.map(m=>`<span class="ln">${m.act?'✅ ':''}${esc(m.t)}</span>`).join('')}${ths?`<span class="ths">${ths}</span>`:''}</div>`; return; }
+      g+=`<div data-c="${ci(c)}" class="ev lived combo tall${c.k==='event'?' gcal past':''}" title="${esc(c.t)} · ${tm(c.s)}" style="${bgev(c)?bgs(c):c.k==='event'?`--gc:${pcol(c)};--gi:${gink(gcol(c))}`:kvx(c)};top:${top}px;height:${h}px;left:calc(${(c.col||0)*100/(c.n||1)}% + 2px);width:calc(${100/(c.n||1)}% - 4px)"><b>${bgev(c)?esc(bgt(c)):c.k==='event'?esc(dn(c.summary||c.t,c.done)):(c.act?'✅ ':'')+esc(c.t)}</b><i>${tm(c.s)}–${tm(c.e)}${c.drive?' · '+esc(c.drive):''}</i>${bgev(c)?'':c.members.map(m=>`<span class="ln">${m.act?'✅ ':''}${esc(m.t)}</span>`).join('')}${ths?`<span class="ths">${ths}</span>`:''}</div>`; return; }
+    if(bgev(x)){ g+=`<div data-c="${ci(x)}" class="ev event gcal past bg" style="${bgs(x)};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(bgt(x))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i></div>`; return; }
     if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past${(x.photos||[]).length?' hasph':''}${x.star?' star':''}" style="--gc:${pcol(x)};--gi:${gink(gcol(x))};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${esc(dn(x.summary||x.t,x.done))}</b><i>${x.star?'the highlight · ':''}${tm(x.s)}–${tm(x.e)}${x.lastmin?' · last-minute':''}${x.covers&&x.covers.length?` · covers ${x.covers.length}`:''}${(x.links||[]).length?' · 🔗':''}${x.where?', '+esc(x.where):''}</i><span class="rt">${thumb(x)}${dots(x)}</span></div>`; return; }
     g+=`<div data-c="${ci(x)}" class="ev lived${x.runner?' runner':''}${h>=40?' tall':''}${x.est?' est':''}${(x.photos||[]).length?' hasph':''}${x.mom?' mom':''}${x.star?' star':''}${x.cat==='sleep'?' slp':''}" title="${esc(x.hl||x.t)} · ${tm(x.s)}" style="${kvx(x)};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${x.act||(x.closes||[]).length?'✅ ':''}${esc(x.t)}</b>${x.hl?`<span class="why">the highlight: ${esc(String(x.hl).replace(/^\W*⭐\s*/,''))}</span>`:''}<i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${(()=>{ const dl=delivOf(x)[0], mv=movedBy(x);
       /* on the box itself (7 Nov 2026, her words: when there's a deliverable I would really like for that to show up on the
          little calendar box; as much of what was meaningful as possible on the entry itself) */
       return dl||mv?`<span class="cx">${dl?`<a class="dlk" href="${esc(dl.u)}" target="_blank" rel="noopener">📎 ${esc(dl.l==='deliverable'?'deliverable':dl.l)}</a>`:''}${mv?`<span class="mvt">+${mv}%</span>`:''}</span>`:''; })()}${more(x)}<span class="rt">${thumb(x)}${dots(x)}</span></div>`; });
-  its.forEach(x=>{ if(x.k==='event'){ const inner=`<b>${esc(dn(x.summary||x.t,x.done))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i>${cov(x)}`;
+  its.forEach(x=>{ if(bgev(x)){ g+=`<div data-c="${ci(x)}" class="ev event gcal bg" style="${bgs(x)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:${x.half?'calc(50% - 5px)':'calc(100% - 6px)'}"><b>${esc(bgt(x))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i></div>`; return; }
+    if(x.k==='event'){ const inner=`<b>${esc(dn(x.summary||x.t,x.done))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i>${cov(x)}`;
     g+=`<div data-c="${ci(x)}" class="ev event gcal" style="--gc:${gcol(x)};--gi:${gink(gcol(x))};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:${x.half?'calc(50% - 5px)':'calc(100% - 6px)'}">${inner}</div>`; return; }
     if(x.session){ const top=(x.list||[]).filter(o=>o.top), rest=(x.list||[]).length-top.length;
       g+=`<div data-c="${ci(x)}" class="ev step session" style="${kvx(x)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:calc(100% - 6px)"><b>${esc(x.t)}</b><i>${tm(x.s)}–${tm(x.e)} · ${(x.list||[]).length} things · tap for the list</i>${top.map((o,i)=>`<span class="sl">${i+1}. ${esc(o.t)}</span>`).join('')}${rest?`<span class="sl more">+ ${rest} more</span>`:''}</div>`; return; }
@@ -1155,9 +1166,11 @@ function arrange(){
   /* once the workday starts, base flow goes to the bottom (12 Nov 2026, her words: once I start my workday, the
      baseflow needs to move to the bottom) */
   const ids=early?['rv','three','leannote','today','sat','int','flowwrap','moved','spent','wheel']
-    :am?['three','spent','wheel'].concat(after.slice(2),base):['spent','wheel','three'].concat(after.slice(2),base);
+    :['today','three','spent','wheel','sat','int','flowwrap','moved'].concat(base);   /* the workday: my stream first, then the three (12 Nov 2026, her words: during the day the thing that is really helpful is seeing my stream and where I am in it … I don't want to have to scroll down) */
   /* NOW and NEXT lead whenever there is a plan for the rest of today; the three then wait below the calendar (12 Nov 2026) */
-  let L_=ids; if((D.plan||[]).length&&!(day>D.day)){ L_=L_.filter(i=>i!=='three'); const k=L_.indexOf('today'); L_.splice(k<0?L_.length:k+1,0,'three'); L_=['now'].concat(L_); }
+  let L_=ids; const nowEl=$('now'); if(nowEl) nowEl.hidden=!(early&&(D.plan||[]).length);
+  if(early&&(D.plan||[]).length){ L_=L_.filter(i=>i!=='three'); const k=L_.indexOf('today'); L_.splice(k<0?L_.length:k+1,0,'three'); L_=['now'].concat(L_); }
+  const intEl=$('int'); if(intEl&&(D.three_more||[]).length) intEl.hidden=true;
   let at=m; L_.forEach(id=>{ const n=$(id); if(n){ at.after(n); at=n; } });
 }
 function draw(){ nowNext(); sat(); today(); card(); three(); const b=shape(); lists(b); intention(b); flow(b); spent(); moved(); wheel(); markTimeline(); arrange(); }
