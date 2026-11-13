@@ -51,6 +51,7 @@ bash run_checks.sh judgment                  # the judgment file, every chat's f
 bash run_checks.sh how dayqa                 # a command's notes, before its first run in a chat
 bash run_checks.sh preflight                 # my day; --part B when the day already has a chat
 bash run_checks.sh preflight --kind week --week 40
+bash run_checks.sh preflight --kind branch --n 4 --what "👁️ my day page"   # a branch chat: its numbered title, the clock, the base
 bash run_checks.sh remaining                 # the open flow as one code line; --flow dawn|dusk to name one
 bash run_checks.sh dusk                      # today; --date YYYY-MM-DD for another day
 bash run_checks.sh meals                     # the day's meals: prep and eating, placed from context

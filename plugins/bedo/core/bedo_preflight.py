@@ -77,6 +77,23 @@ def chat_name(day, kind='day', part=None, status=FACTS['chat_status']['moving'],
     return f'{status}🔆{day:%m%d}{p} {FACTS["day_emoji"][d3]} {d3} {MARK} W{week_number(day)} my day'
 
 
+def branch_name(day, n=None, what=None, status=FACTS['chat_status']['moving']):
+    """A branch chat's title (12 Nov 2026, her words: we need to start numbering
+    the branches): ▶️↳1112.4 🌳 Thu 👁️ my day page. The number is the order the
+    branch opened that day and stays with it to its close. It comes from the
+    day's session list, never from memory, so with none given the title says so."""
+    d3 = DAY3[day.weekday()]
+    return f'{status}↳{day:%m%d}.{n if n else "?"} {FACTS["day_emoji"][d3]} {d3} {what or "…"}'
+
+
+BRANCH_LINES = (
+    'writes this branch writes its own rows, each one through `entry --chat {mmdd}` first; '
+    'the my day chat gets one line when it closes, never the rows',
+    'closes when its objective is met, or at the day\'s dusk close if it is still open: '
+    'QA, the session entry, the rename',
+)
+
+
 def clock(local, now=None):
     """(now UTC, now local, offset hours, problems)."""
     now = now or dt.datetime.now(dt.timezone.utc)
@@ -262,11 +279,11 @@ def due(now_local):
 
 
 def report(local, names, rows, now=None, kind='day', part=None, week=None, handoff=None, amendments=None,
-           built=None, log_rows=None):
+           built=None, log_rows=None, n=None, what=None):
     now, now_local, off, probs = clock(local, now)
     day = now_local.date()
     want, bprobs, stop = check_base(names, rows, now, day, local, handoff)
-    lines = [chat_name(day, kind, part, week=week),
+    lines = [branch_name(day, n, what) if kind == 'branch' else chat_name(day, kind, part, week=week),
              f'clock  {now:%Y-%m-%dT%H:%M}Z · {now_local:%a %d %b %H:%M} local (UTC{off:+g})',
              f'base   {want[0]}' + (f' · and {want[1]} for yesterday' if len(want) > 1 else '')]
     t = newest(rows, now)
@@ -276,11 +293,17 @@ def report(local, names, rows, now=None, kind='day', part=None, week=None, hando
         lines.append(yesterday_line(day, look_behind_url(local), built, log_rows))
         if quest_line(local):
             lines.append(quest_line(local))
-    d = due(now_local)
+    if kind == 'branch':
+        # a branch does one job: no morning line, no list of what the day owes, no rules on paper
+        if not n:
+            lines.append("number count today's sessions tagged bedo:%s, this one included, and run again with --n"
+                         % day.strftime('%m%d'))
+        lines += [b.format(mmdd=day.strftime('%m%d')) for b in BRANCH_LINES]
+    d = due(now_local) if kind != 'branch' else None
     if d:
         lines.append(d)
     lines += ['⚠ ' + p for p in probs + bprobs]
-    if amendments is not None:
+    if amendments is not None and kind != 'branch':
         lines += ['⚠ ' + p for p in bedo_rules.lines(amendments, local.get('amendment_checks'))]
     if stop:
         lines.append('STOP: verify the base before any read or write (I2)')
@@ -293,7 +316,9 @@ def main(argv=None):
     ap.add_argument('--live', action='store_true')
     ap.add_argument('--bases', help='a JSON map of base name to id')
     ap.add_argument('--stream', help='a complete read of the live base\'s stream')
-    ap.add_argument('--kind', choices=['day', 'week'], default='day')
+    ap.add_argument('--kind', choices=['day', 'week', 'branch'], default='day')
+    ap.add_argument('--n', type=int, help="a branch's number: the order it opened today, from the day's session list")
+    ap.add_argument('--what', help="a branch's glyph and what it does, for its title")
     ap.add_argument('--part', help="the chat's letter when the day has more than one: a, b, c…")
     ap.add_argument('--week', type=int, help='the week under review, for a my week chat')
     ap.add_argument('--handoff', help='the week\'s handoff file')
@@ -318,7 +343,7 @@ def main(argv=None):
             rows = as_rows(src['records'], fields)
         log_rows = read_log_rows(air, names, now_local.date(), L) if a.kind == 'day' else None
         built = built_pages(log_rows) if log_rows is not None else None
-        amend = (L.get('bases') or {}).get('amendments')
+        amend = (L.get('bases') or {}).get('amendments') if a.kind != 'branch' else None   # a branch reads no rule list
         st = (L.get('amendments_fields') or {}).get('status', 'status')
         amendments = (bedo_rules.active(air.records(*amend, by_id=bool(L.get('amendments_fields')), ttl=SLOW,
                                                     formula=f"{{{st}}}='active'"), L)   # the active ones: one page, not four
@@ -334,7 +359,8 @@ def main(argv=None):
                     if a.look_behind else None)
         built = built_pages(log_rows) if log_rows is not None else None
     handoff = open(a.handoff, encoding='utf-8').read() if a.handoff else None
-    text, stop = report(L, names, rows, now, a.kind, a.part, a.week, handoff, amendments, built, log_rows)
+    text, stop = report(L, names, rows, now, a.kind, a.part, a.week, handoff, amendments, built, log_rows,
+                        n=a.n, what=a.what)
     print(text)
     sys.exit(1 if stop else 0)
 
