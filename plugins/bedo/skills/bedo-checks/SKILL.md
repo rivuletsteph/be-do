@@ -38,6 +38,7 @@ it runs one, so nothing has to be remembered.
 | a session entry | `stretches FILE --day YYYY-MM-DD --json` | the session's time, from her own stretches |
 | the weekly close, right after the split | `cleanup` | the weekly drive cleanup, one drive at a time |
 | the weekly close, after the cleanup; and whenever she asks about her drives | `drives --rhythms rhythms.json --stream live.json` | effort with no drive, drives with no goal or date |
+| the weekly close, and after a pull request that changes a skill | `skills` | installed skills in step with the version store: loaders, older copies, installed only |
 | the weekly close | `order --json` | her predicted flow order, written to the catalog |
 | every calendar write, before calling it done | `calendar event.json`, then again with `--readback` | the calendar named, the write read back, work in purple |
 | the 📧 clear gmail inbox, before anything is archived | `inbox threads.json --archive planned.json` | her automatic keeps are never archived |

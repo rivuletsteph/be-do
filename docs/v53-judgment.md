@@ -207,6 +207,6 @@ what needs a model.**
 Each skill carries its own procedure; this file doesn't repeat them.
 
 - **In the version store** (`plugins/bedo/skills/<name>/SKILL.md`): `bedo-checks` · `bedo-day-ahead` · `bedo-week-ahead` · `bedo-weekly-close` · `bedo-ahead-review` · `bedo-oura` · `bedo-meal-plan` · `session-entry` · `chat-sweep` · `morning-news` · `stories-queue` · `grant-watch`. Retired and kept: `bedo-look-behind` · `bedo-week-look-behind`.
-- **Installed only, for now:** `chat-title` · `clear-inbox` · `provisions` · `shopping-watch` · `bedo-airtable`, and the screen-time spec for her son's quest.
+- **Installed only, for now:** `chat-title` · `clear-inbox` · `provisions` · `shopping-watch` · `bedo-airtable` · `bedo-money-check`, and the screen-time spec for her son's quest. `skills` (in `bedo-checks`) names every installed skill that is out of step, at the weekly close.
 
 **The version store's copy wins over an installed one** (25 Oct 2026). Where a skill's procedure lives in the repo, that file is the skill; an installed copy that still carries its whole text is older and is overruled wherever they differ. A session entry's times come from `stretches`, never from the chat's open and close, whatever an installed session-entry skill says.
