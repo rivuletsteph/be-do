@@ -208,11 +208,12 @@ case "$CMD" in
     "$PY" "$W/core/bedo_chats.py" "$@" ;;
   entry)
     [ -d "$W/core" ] || fetch_core; find_local
-    ROW=${1:?usage: run_checks.sh entry row.json [--base NAME] [--chat MMDD] [--catalog FILE] [--rhythms FILE] [--day FILE]}; shift
-    BASE=""; CHAT=""; CAT=""; RHY=""; DAY=""
+    ROW=${1:?usage: run_checks.sh entry row.json [--base NAME] [--chat MMDD] [--catalog FILE] [--rhythms FILE] [--day FILE] [--keys FILE]}; shift
+    BASE=""; CHAT=""; CAT=""; RHY=""; DAY=""; KEYS=""
     while [ $# -gt 0 ]; do case "$1" in --base) BASE=${2:-}; shift 2;; --chat) CHAT=${2:-}; shift 2;;
-      --catalog) CAT=${2:-}; shift 2;; --rhythms) RHY=${2:-}; shift 2;; --day) DAY=${2:-}; shift 2;; *) shift;; esac; done
-    "$PY" - "$W/core" "$ROW" "$BASE" "$CHAT" "$CAT" "$RHY" "$DAY" <<'E'
+      --catalog) CAT=${2:-}; shift 2;; --rhythms) RHY=${2:-}; shift 2;; --day) DAY=${2:-}; shift 2;;
+      --keys) KEYS=${2:-}; shift 2;; *) shift;; esac; done
+    "$PY" - "$W/core" "$ROW" "$BASE" "$CHAT" "$CAT" "$RHY" "$DAY" "$KEYS" <<'E'
 import datetime as dt, json, sys
 sys.path.insert(0, sys.argv[1])
 from bedo_entry import notes, problems, utc
@@ -236,6 +237,28 @@ fill = FL.Context(catalog=FL.catalog_wellness(cat, L) if cat else None,
                   drives=FL.drive_elements(complete(sys.argv[6], 'rhythms'), L) if sys.argv[6] else None,
                   day_rows=rows + [r for r in day if r.get('id') not in ids], local=L,
                   flows=FL.catalog_flows(cat, L) if cat else None)
+# one row per key (12 Nov 2026): what the live base already holds on these keys. Read here when Airtable
+# answers (one call), from --keys FILE where it doesn't, else from the day's rows, and said when it's only those
+NAMES = {**{k: k for k in ('datetime', 'end', 'status', 'practice', 'title', 'key')}, **(L.get('stream_fields') or {})}
+keys = sorted({(r.get('key') or '').strip() for r in rows} - {''})
+existing = [r for r in day if (r.get('key') or '').strip() in keys]
+if keys:
+    import bedo_air
+    from bedo_entry import week_number
+    if sys.argv[8]:
+        existing = as_rows(complete(sys.argv[8], 'keys'), NAMES)
+    elif NAMES['key'] != 'key' and bedo_air.can_read():
+        air = bedo_air.Air()
+        want = sys.argv[3] or L.get('weekly_name', 'w{n} be•do').format(n=week_number(bedo_clock.now_local(L).date()))
+        base = air.bases().get(want)
+        if base:
+            f = 'OR(' + ', '.join("{%s}='%s'" % (NAMES['key'], k.replace("'", '')) for k in keys) + ')'
+            existing = as_rows(air.records(base, L['stream_table'], formula=f, by_id=True), NAMES)
+        else:
+            print(f'key: no base named {want}, so the keys were checked against the day\'s rows only')
+    else:
+        print('key: not checked against the base here — read the rows on ' + ', '.join(keys) +
+              ' through the connector and pass them as --keys FILE')
 # the clock is the zone, read for each row's own instant; the hand-kept number is only for a machine with no zone (f6)
 CLOCK = L if (bedo_clock.zone(L) is not None or L.get('utc_offset_hours') is not None) else None
 if bedo_clock.zone(L) is None:
@@ -244,7 +267,7 @@ if bedo_clock.zone(L) is None:
 bad = 0
 for r in rows:
     p = problems(r, sys.argv[3] or None, CLOCK, L.get('weekly_name', 'w{n} be•do'), chat, fill,
-                 (L.get('people') or {}).get('self'))
+                 (L.get('people') or {}).get('self'), existing=existing)
     print(('ok    ' if not p else 'FIX   ') + (r.get('title') or r.get('practice') or '?'))
     for x in p:
         print('      · ' + x)
