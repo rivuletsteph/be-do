@@ -216,6 +216,7 @@ case "$CMD" in
 import datetime as dt, json, sys
 sys.path.insert(0, sys.argv[1])
 from bedo_entry import notes, problems, utc
+import bedo_clock
 from bedo_reader import as_rows, complete, load_local
 import bedo_fill as FL
 L = load_local()
@@ -235,9 +236,14 @@ fill = FL.Context(catalog=FL.catalog_wellness(cat, L) if cat else None,
                   drives=FL.drive_elements(complete(sys.argv[6], 'rhythms'), L) if sys.argv[6] else None,
                   day_rows=rows + [r for r in day if r.get('id') not in ids], local=L,
                   flows=FL.catalog_flows(cat, L) if cat else None)
+# the clock is the zone, read for each row's own instant; the hand-kept number is only for a machine with no zone (f6)
+CLOCK = L if (bedo_clock.zone(L) is not None or L.get('utc_offset_hours') is not None) else None
+if bedo_clock.zone(L) is None:
+    print('clock: the time zone could not be read here, so times use the fixed number '
+          f'({L.get("utc_offset_hours")}) — check it against a real clock before writing')
 bad = 0
 for r in rows:
-    p = problems(r, sys.argv[3] or None, L.get('utc_offset_hours'), L.get('weekly_name', 'w{n} be•do'), chat, fill,
+    p = problems(r, sys.argv[3] or None, CLOCK, L.get('weekly_name', 'w{n} be•do'), chat, fill,
                  (L.get('people') or {}).get('self'))
     print(('ok    ' if not p else 'FIX   ') + (r.get('title') or r.get('practice') or '?'))
     for x in p:
