@@ -364,6 +364,28 @@ def span_problems(row, utc_offset_hours=None):
     return out
 
 
+def key_problems(row, existing=None):
+    """One row per key (12 Nov 2026). An action sat ▶️ and ✅ at once on one
+    key, and a close written as a second row left the open one showing past
+    its date for days. `existing` is every row the live base already holds on
+    this row's key. A close, a reopen or a new target changes that row in
+    place; only a different action takes a new key, the next letter."""
+    key = (row.get('key') or '').strip()
+    if not key or not existing:
+        return []
+    others = [e for e in existing if (e.get('key') or '').strip() == key and e.get('id') != row.get('id')]
+    if not others:
+        return []
+    e = others[0]
+    what = ' · '.join(x for x in (e.get('status'), (e.get('title') or '').strip()[:60], e.get('id')) if x)
+    more = f' (and {len(others) - 1} more)' if len(others) > 1 else ''
+    if row.get('id'):
+        return [f'key: {key} is on another row too — {what}{more}; one key, one row: fold them into one '
+                'and say which was kept']
+    return [f'key: {key} already has a row — {what}{more}; update that row in place (its status, its end), '
+            'never add a second. A different action takes the next letter']
+
+
 def future_problems(row, clock=None, now=None):
     """12 Nov 2026: a branch chat read the clock an hour ahead and wrote 8:50a
     at 8:27a (her words: I just want this to work right). A row for something
@@ -389,7 +411,7 @@ def future_problems(row, clock=None, now=None):
 
 
 def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•do', chat_day=None, fill=None,
-             self_name=None, now=None):
+             self_name=None, now=None, existing=None):
     """`fill` is a bedo_fill.Context; without one the device rules still run and
     wellness, which needs the catalog, is asked. `self_name` is hers: her own
     name on her own plan is not someone she hasn't met yet."""
@@ -433,6 +455,7 @@ def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•
 
     out += span_problems(row, utc_offset_hours)
     out += future_problems(row, utc_offset_hours, now)
+    out += key_problems(row, existing)
     out += details_problems(row.get('details'))
     prac = (row.get('practice') or '').strip()
     if not prac:
