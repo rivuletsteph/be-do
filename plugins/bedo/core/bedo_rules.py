@@ -26,6 +26,7 @@ CHECKS = {
     'entry.base': "bedo_entry — a row goes in its own week's base",
     'entry.day_chat': 'bedo_entry — a my day chat holds one day',
     'entry.one_row_per_key': 'bedo_entry — a key already in the live base is updated in place, never given a second row',
+    'entry.no_made_up_target': "bedo_entry — a target is her date, an event's or a notice's; be•do's own placeholder is refused",
     'entry.not_future': "bedo_entry — a row for something that happened can't start or end later than now; the refusal names the clock",
     'entry.practice': 'bedo_entry — every row carries a practice',
     'entry.whole': 'bedo_entry + bedo_fill — device and wellness at write time, deduced or asked',
