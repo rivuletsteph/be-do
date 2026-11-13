@@ -364,6 +364,30 @@ def span_problems(row, utc_offset_hours=None):
     return out
 
 
+def future_problems(row, clock=None, now=None):
+    """12 Nov 2026: a branch chat read the clock an hour ahead and wrote 8:50a
+    at 8:27a (her words: I just want this to work right). A row for something
+    that happened can't start or end later than now; a plan (▫️ ⬜) may. The
+    refusal names the clock, so a wrong time is fixed from it and never from
+    memory."""
+    if row.get('status') in PLANS:
+        return []
+    now = now or dt.datetime.now(dt.timezone.utc)
+    late = dt.timedelta(minutes=RULES['future_grace_minutes'])
+    out = []
+    for f in ('datetime', 'end'):
+        v = row.get(f)
+        if not (v and v.endswith('Z')) or utc(v) - now <= late:
+            continue
+        if clock is None:
+            out.append(f'{f}: {v} is later than now ({now:%H:%M}Z) — it hasn\'t happened yet; read the clock again')
+        else:
+            t, n = bedo_clock.to_local(clock, utc(v)), bedo_clock.to_local(clock, now)
+            out.append(f'{f}: {t:%a %d %b %H:%M} is later than now — the clock says {n:%a %d %b %H:%M}; '
+                       'it hasn\'t happened yet, so read the clock again and never write a time from memory')
+    return out
+
+
 def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•do', chat_day=None, fill=None,
              self_name=None, now=None):
     """`fill` is a bedo_fill.Context; without one the device rules still run and
@@ -408,6 +432,7 @@ def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•
         out.append('end is before the start — a status change moved one without the other')
 
     out += span_problems(row, utc_offset_hours)
+    out += future_problems(row, utc_offset_hours, now)
     out += details_problems(row.get('details'))
     prac = (row.get('practice') or '').strip()
     if not prac:

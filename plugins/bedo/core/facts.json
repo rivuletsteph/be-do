@@ -214,6 +214,7 @@
  "entry_rules": {
   "_about": "The 9 Oct amendment, rules 2 and 6, and the 8 Oct one that every row carries a practice. A row's datetime and end fall on one local day and span at most max_span_hours; closing an old chain row sets its datetime to the act, never a multi-day span from its first date. A night's sleep is the one row that crosses midnight. person is for people she was with or in direct contact with; a plan (▫️ ⬜) names them in mentioned until it happens.",
   "max_span_hours": 12,
+  "future_grace_minutes": 5,
   "overnight_practices": ["sleep"],
   "not_activities": ["location"]
  },

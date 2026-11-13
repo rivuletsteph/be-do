@@ -25,6 +25,7 @@ CHECKS = {
     'entry.divider': 'bedo_entry — her words, one divider, then the [be•do] block',
     'entry.base': "bedo_entry — a row goes in its own week's base",
     'entry.day_chat': 'bedo_entry — a my day chat holds one day',
+    'entry.not_future': "bedo_entry — a row for something that happened can't start or end later than now; the refusal names the clock",
     'entry.practice': 'bedo_entry — every row carries a practice',
     'entry.whole': 'bedo_entry + bedo_fill — device and wellness at write time, deduced or asked',
     'entry.one_day': 'bedo_entry — datetime and end on one day, at most 12 h',
