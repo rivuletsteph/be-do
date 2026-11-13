@@ -364,6 +364,37 @@ def span_problems(row, utc_offset_hours=None):
     return out
 
 
+OPEN_ACTIONS = set(FACTS['status']['actions'][:3])       # ▫️ ⬜ ▶️: a target only matters while the row is open
+CLOCK_ONLY = re.compile(r"(noon|midnight|\d{1,2}(:\d\d)?\s?(am|pm|a|p))\s+(is\s+)?(only\s+)?(a|be•do's)\s+placeholder", re.I)
+MADE_UP = re.compile(r"be•do's\s+(own\s+)?placeholder|\bdate\s+(is\s+)?a\s+placeholder|"
+                     r"target\b[^.;\n]{0,60}\bis\s+a\s+placeholder", re.I)
+
+
+def _target_talk(row):
+    """The sentences of the [be•do] block that speak of the target, oldest first."""
+    d = row.get('details') or ''
+    block = d.split(DIVIDER, 1)[-1] if DIVIDER in d else ''
+    return [x.strip() for x in re.split(r'(?<=[.;\n])\s*|\[be•do\]', block)
+            if x and ('target' in x.lower() or 'placeholder' in x.lower())]
+
+
+def target_problems(row):
+    """A made-up time is not a deadline (12 Nov 2026, her words: the made up
+    times, that's uncool; that morning 13 of 17 rows past their date carried a
+    date be•do had put there itself). A target is a date she gave, or one an
+    event or a notice set. be•do never writes one of its own: the row goes in
+    with no target and its when in words. The stream stores a clock time with
+    every date, so a clock time filled in beside a real date is fine. A block
+    keeps its history, so only the last thing it says about the target counts."""
+    if not row.get('target') or row.get('status') not in OPEN_ACTIONS:
+        return []
+    talk = _target_talk(row)
+    if talk and MADE_UP.search(talk[-1]) and not CLOCK_ONLY.search(talk[-1]):
+        return ['target: this date is be•do\'s own placeholder — a made-up time is not a deadline. Leave the '
+                'target empty and say when in words (in November, after the trip), or ask her for the date']
+    return []
+
+
 def key_problems(row, existing=None):
     """One row per key (12 Nov 2026). An action sat ▶️ and ✅ at once on one
     key, and a close written as a second row left the open one showing past
@@ -456,6 +487,7 @@ def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•
     out += span_problems(row, utc_offset_hours)
     out += future_problems(row, utc_offset_hours, now)
     out += key_problems(row, existing)
+    out += target_problems(row)
     out += details_problems(row.get('details'))
     prac = (row.get('practice') or '').strip()
     if not prac:
