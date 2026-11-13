@@ -95,6 +95,13 @@ fetch_core() {
   # dayqa's painted check reads the day page's own rules (30 Oct 2026); they import only the core
   cp "$T/be-do-main/plugins/bedo/skills/bedo-week-look-behind/scripts/day_rings.py" "$W/core/" 2>/dev/null || true
   cp "$T/be-do-main/docs/v53-judgment.md" "$W/core/judgment.md" 2>/dev/null || true
+  # what the version store holds, for `skills` (12 Nov 2026): each skill, and whether it has a loader
+  "$PY" - "$T/be-do-main/plugins/bedo/skills" "$W/core/skills.json" <<'S' 2>/dev/null || true
+import json, os, sys
+d = sys.argv[1]
+json.dump({n: {'loader': os.path.isfile(os.path.join(d, n, 'loader', 'SKILL.md'))}
+           for n in sorted(os.listdir(d)) if os.path.isfile(os.path.join(d, n, 'SKILL.md'))}, open(sys.argv[2], 'w'))
+S
   rm -rf "$T"
 }
 
@@ -281,8 +288,17 @@ E
     R=${BEDO_REPO:-$(git rev-parse --show-toplevel 2>/dev/null || true)}
     [ -n "$R" ] && [ -f "$R/tools/privacy_check.py" ] || { echo "outgoing: run this inside the be-do clone, or set BEDO_REPO to it"; exit 2; }
     (cd "$R" && "$PY" tools/privacy_check.py --outgoing "$@") ;;
+  skills)     # 12 Nov 2026: installed skills in step with the version store
+    fetch_core
+    REPO_SKILLS="$W/core/skills.json"
+    [ -n "${BC_CORE_SRC:-}" ] && [ -d "$BC_CORE_SRC/../skills" ] && REPO_SKILLS="$BC_CORE_SRC/../skills"   # testing a branch
+    [ -e "$REPO_SKILLS" ] || { echo "skills: the list of repo skills is missing from the download"; exit 1; }
+    set -- --repo "$REPO_SKILLS" "$@"
+    case " $* " in *" --installed "*) ;; *)
+      for c in "$HOME/.claude/skills" /root/.claude/skills /mnt/skills/user; do [ -d "$c" ] && set -- "$@" --installed "$c"; done ;; esac
+    "$PY" "$W/core/bedo_skills.py" "$@" ;;
   usage)      # 4 Nov 2026: what the checks spend, so the plan can be sized from real numbers
     [ -d "$W/core" ] || fetch_core
     "$PY" "$W/core/bedo_air.py" usage "$@" ;;
-  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|daygate|entry|stretches|order|cleanup|drives|close|calendar|calsync|inbox|chats|outgoing|usage|how [args]"; exit 2 ;;
+  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|daygate|entry|stretches|order|cleanup|drives|close|calendar|calsync|inbox|chats|outgoing|skills|usage|how [args]"; exit 2 ;;
 esac
