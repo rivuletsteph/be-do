@@ -6,6 +6,7 @@
 - A highlight logged during the day keeps its own card at its own time; only one told at night is matched to the
   earlier card it names (her words: these need to be integrated into the stream with the correct times and pictures).
 - The day in six is retired: the stream holds the moments.
+- Sleep on the time-went line is the night she slept, from her ring, never two nights in bed added by the clock.
 
 Every name below is an obvious invention.
 
@@ -45,6 +46,18 @@ def test_did_of():
     assert did[1]['g'] == '⭐' and all(x['st'] == '✅' for x in did)
 
 
+def test_night_of():
+    rows = [
+        rec('n1', '2026-03-13T05:02:00.000Z', '😴 sleep', '😴 sleep, night before Fri', details='———\n[be•do] From the ring: in bed 11:02 PM to 7:08 AM, 8 h 06; 7 h 26 asleep, efficiency 92%.'),
+        rec('n2', '2026-03-14T03:12:00.000Z', '😴 sleep', '😴 sleep, night before Sat', details='7 h 50 asleep'),   # tonight
+    ]
+    rows[0]['cellValuesByFieldId']['e'] = '2026-03-13T13:08:00.000Z'
+    rows[1]['cellValuesByFieldId']['e'] = '2026-03-14T12:48:00.000Z'
+    G = dict(F, end='e')
+    n = flow.night_of(rows, G, Off(), dt.date(2026, 3, 13))
+    assert n['asleep'] == 7 * 60 + 26 and n['label'] == 'Thu night', n
+
+
 def card(t, a, b, k='lived', **kw):
     return dict(k=k, t=t, a=a, b=b, **kw)
 
@@ -67,6 +80,7 @@ def test_engine():
     page = open(os.path.join(os.path.dirname(HERE), 'assets', 'flow_engine.html'), encoding='utf-8').read()
     assert 'what you did' in page and "over3&&!D.picked?(D.did||[])" in page
     assert ".three li.did:before" in page and "class=\"${over3?'did'" in page   # checked, fully bright
+    assert "asleep · ${esc(NG.label)}" in page   # the night she slept, never two nights in bed
     assert 'const SIX=[];' in page     # the day in six is retired
     assert "const ids=over?['three','today'" in page   # a finished day leads with what she did
 
@@ -74,6 +88,7 @@ def test_engine():
 def main():
     test_did_of()
     test_highlight_keeps_its_time()
+    test_night_of()
     test_engine()
     print('ok — a finished day: what she did, moments in the stream at their own time')
 

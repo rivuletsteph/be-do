@@ -1079,10 +1079,13 @@ function spent(){
   const devBar=(o,base)=>{ let at=0; return Object.entries(o||{}).sort((p,q)=>q[1]-p[1]).map(([d,m])=>{ const w=100*m/top, h=`<b class="dv" style="left:${at}%;width:${w}%;background:${base?dv(d)[1]:hatch(dv(d)[1])}" title="${esc(d)} ${hm(Math.round(m))}"></b>`; at+=w; return h; }).join(''); };
   const devLine=o=>Object.entries(o||{}).filter(e=>e[1]>=1).sort((p,q)=>q[1]-p[1]).map(([d,m])=>`${dv(d)[0]} ${hm(Math.round(m))}`).join(' · ');
   const short=n=>String(n).split(' · ')[0].replace(' and life admin',' & admin').replace(' and ',' & ');
+  /* sleep is the night she slept, as her ring measured it, never the clock-day sum of two nights in bed (14 Nov 2026, her
+     words: there's no way I slept 9 hours and 55 minutes) */
+  const NG=D.night, sleepM=r=>NG&&/^sleep/.test(r.n)?NG.asleep:r.m;
   const lg=rows.filter(r=>r.n!=='still ahead').map(r=>{ const g=goal(r), lim=limit(r), fill=r.gap?'var(--rule)':`color-mix(in srgb,${r.c} 60%,var(--card))`;
     const note=g?`of ${hm(g).replace(' 00','')}`:lim.length?`≤ ${lim.map(m=>String(m/60)).join('–')} h`:'';
     const dl=devLine(r.dev);
-    return `<div class="spr${r.gap?'':KF===r.n?' on':KF?' off':''}"${r.gap?'':` data-n="${esc(r.n)}"`}><span class="spn">${esc(short(r.n))}${dl?`<small class="spd">${dl}</small>`:''}</span><span class="spb"><i style="width:${Math.max(2,100*r.m/top)}%;background:${fill};border-color:${r.gap?'var(--muted)':r.c}"></i>${devBar(r.dev)}${g?`<em style="left:${100*g/top}%"></em>`:''}${lim.map(m=>`<em class="lim" style="left:${100*m/top}%"></em>`).join('')}</span><span class="spv">${hm(r.m)}${note?`<small>${note}</small>`:''}</span></div>`; }).join('')
+    return `<div class="spr${r.gap?'':KF===r.n?' on':KF?' off':''}"${r.gap?'':` data-n="${esc(r.n)}"`}><span class="spn">${esc(short(r.n))}${dl?`<small class="spd">${dl}</small>`:''}</span><span class="spb"><i style="width:${Math.max(2,100*sleepM(r)/top)}%;background:${fill};border-color:${r.gap?'var(--muted)':r.c}"></i>${devBar(r.dev)}${g?`<em style="left:${100*g/top}%"></em>`:''}${lim.map(m=>`<em class="lim" style="left:${100*m/top}%"></em>`).join('')}</span><span class="spv">${hm(Math.round(sleepM(r)))}${NG&&/^sleep/.test(r.n)?`<small>asleep · ${esc(NG.label)}</small>`:note?`<small>${note}</small>`:''}</span></div>`; }).join('')
     +(by['still ahead']?`<p class="spa">${hm(rows.find(r=>r.n==='still ahead').m)} still ahead</p>`:'')
     /* on a screen, all day, by device, beside what the phone itself measured (8 Nov 2026: measured beats logged) */
     +(scrTot||meas?`<div class="spr scr"><span class="spn">on a screen<small class="spd">${devLine(scr)||'none logged'}</small></span><span class="spb">${devBar(scr,true)}${meas?`<em class="meas" style="left:${Math.min(100,100*meas/top)}%" title="phone, measured"></em>`:''}</span><span class="spv">${hm(scrTot)}${meas?`<small>📱&nbsp;${hm(meas).replace(/ /g,'&nbsp;')}<br>measured</small>`:''}</span></div>`:'');

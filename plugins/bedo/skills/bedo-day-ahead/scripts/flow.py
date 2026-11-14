@@ -750,6 +750,29 @@ def did_of(rows, F, off, today):
     return sorted(out, key=lambda x: x['at'])
 
 
+def night_of(rows, F, off, today, C=None):
+    """Her night that ended this morning, as her ring measured it: minutes asleep, read from the 😴 sleep row's own words
+    ("7 h 26 asleep"), and the night's name (Thu night). The time-went line shows this, never the clock-day sum of two
+    nights in bed (14 Nov 2026, her words: there's no way I slept 9 hours and 55 minutes — the line had added Thursday
+    night after midnight to Friday night before it). None when no sleep row says how long she slept."""
+    best = None
+    for r in rows:
+        c = r['cellValuesByFieldId']
+        if low(c.get(F['practice'])) not in ('sleep',) or not c.get(F['end']) or theirs(c.get(F['title']), C):
+            continue
+        z = dt.datetime.fromisoformat(c[F['end']].replace('Z', '+00:00')) + off
+        a = dt.datetime.fromisoformat(c[F['when']].replace('Z', '+00:00')) + off
+        if z.date() != today or z.hour >= 14:
+            continue
+        m = re.search(r'(\d+)\s*h\s*(\d+)\s*asleep', c.get(F['details']) or '')
+        if not m:
+            continue
+        mins = int(m.group(1)) * 60 + int(m.group(2))
+        if best is None or mins > best['asleep']:
+            best = dict(asleep=mins, label=f"{a.strftime('%a')} night", inbed=int((z - a).total_seconds() // 60))
+    return best
+
+
 def links_of(c, F):
     """The row's deliverable as links: every url in the field, labelled by what it is."""
     out = []
@@ -1049,6 +1072,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
                                    L.get('_flows') or frozenset(), dict(with_drives(care_settings(L), W, L), _phase=L.get('_phase') or {}),
                                    L.get('_picks'), me=L.get('self_person') or '')
     data['quest'] = quest_link(L, data['schedule'])
+    data['night'] = night_of(rows, F, off, today, care_settings(L))
     # each card opens to what the 28 Oct day ahead showed (2 Nov 2026, her words: it would be so awesome to
     # have the day ahead show the detail about the next steps and everything the way that day ahead did):
     # her words on the row and its ways in (the chat, the deliverable, the links), from card 1's steps
