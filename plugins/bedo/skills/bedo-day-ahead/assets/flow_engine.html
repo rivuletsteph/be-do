@@ -44,6 +44,8 @@
 .three li:first-child{border-top:0}
 .three li:before{content:counter(t);position:absolute;left:0;top:9px;width:20px;height:20px;border-radius:50%;background:#B8860B;color:#fff;font:600 12px/20px var(--mono);text-align:center}
 .three li.done{opacity:.6}.three li.done:before{content:"✓";background:var(--k-flow,#5a8)}
+/* what she did, on a finished day: checked and fully bright, never dimmed (14 Nov 2026, her words: I don't want them to be dimmed, that's a parking lot, I want them to be fully bright) */
+.three li.did:before{content:"✓";background:var(--k-flow,#5a8)}
 .three .t{font-weight:600;display:block}
 .three .why{display:block;font-size:13.5px;margin:2px 0 0}
 .three .nx{display:block;font-size:13.5px;font-weight:600;margin:3px 0 0}
@@ -560,7 +562,7 @@ function three(){
   const doneSet=new Set((D.done||[]).map(x=>nt(x.t)));
   const nxt=(D.three_next||[]).filter(x=>x&&x.t); const M=D.three_more||[];
   el.innerHTML=(over3?`<h2>what you did</h2><p class="how">the day's big ones, as you lived them</p><ol>`:`<h2>be•do's three</h2><p class="how">what, done today, frees the most for the rest of the day and week · a recommendation, not your intention</p><ol>`)+`${T.map((x,i)=>{ const dn=over3||/✅/.test(x.st)||doneSet.has(nt(x.t));
-    return `<li data-n="${i}" class="${dn?'done':''}"><span class="t">${esc((x.g?x.g+' ':'')+nt(x.t))}</span>${x.why?`<span class="why">${esc(x.why)}</span>`:''}${x.nx&&!dn&&!over3?`<span class="nx">→ ${esc(x.nx)}</span>`:''}${(x.links||[]).length&&!dn&&!over3?`<span class="lks">${x.links.filter((l,i,A)=>A.findIndex(o=>(o.url||o.u)===(l.url||l.u))===i).map(l=>`<a class="lk" href="${esc(l.url||l.u)}" target="_blank" rel="noopener">${esc(l.label||l.l||'link')} ↗</a>`).join(' ')}</span>`:''}<small>${esc(x.drive||'')}${x.waiting?' · ⏸ waiting on '+esc(x.waiting):''}</small></li>`; }).join('')}</ol>${over3?'':M.length?[[0,'be•do\'s next three'],[3,'three after that']].filter(([i])=>M[i]).map(([i,h])=>`<h3 class="more3">${h}</h3><ol class="m3" start="${i+4}">${M.slice(i,i+3).map((x,j)=>{ const dn=/✅/.test(x.st)||doneSet.has(nt(x.t)); return `<li data-m="${i+j}" class="${dn?'done':''}"><span class="t">${esc((x.g&&x.g!=='·'?x.g+' ':'')+nt(x.t))}</span>${x.nx&&!dn?`<span class="nx">→ ${esc(x.nx)}</span>`:''}${(x.links||[]).length&&!dn?`<span class="lks">${x.links.filter((l,k,A)=>A.findIndex(o=>(o.url||o.u)===(l.url||l.u))===k).map(l=>`<a class="lk" href="${esc(l.url||l.u)}" target="_blank" rel="noopener">${esc(l.label||l.l||'link')} ↗</a>`).join(' ')}</span>`:''}</li>`; }).join('')}</ol>`).join(''):(nxt.length?`<p class="then">next in line: ${nxt.map(x=>esc(nt(x.t))).join(' · ')}</p>`:'')}`;
+    return `<li data-n="${i}" class="${over3?'did':dn?'done':''}"><span class="t">${esc((x.g?x.g+' ':'')+nt(x.t))}</span>${x.why?`<span class="why">${esc(x.why)}</span>`:''}${x.nx&&!dn&&!over3?`<span class="nx">→ ${esc(x.nx)}</span>`:''}${(x.links||[]).length&&!dn&&!over3?`<span class="lks">${x.links.filter((l,i,A)=>A.findIndex(o=>(o.url||o.u)===(l.url||l.u))===i).map(l=>`<a class="lk" href="${esc(l.url||l.u)}" target="_blank" rel="noopener">${esc(l.label||l.l||'link')} ↗</a>`).join(' ')}</span>`:''}<small>${esc(x.drive||'')}${x.waiting?' · ⏸ waiting on '+esc(x.waiting):''}</small></li>`; }).join('')}</ol>${over3?'':M.length?[[0,'be•do\'s next three'],[3,'three after that']].filter(([i])=>M[i]).map(([i,h])=>`<h3 class="more3">${h}</h3><ol class="m3" start="${i+4}">${M.slice(i,i+3).map((x,j)=>{ const dn=/✅/.test(x.st)||doneSet.has(nt(x.t)); return `<li data-m="${i+j}" class="${dn?'done':''}"><span class="t">${esc((x.g&&x.g!=='·'?x.g+' ':'')+nt(x.t))}</span>${x.nx&&!dn?`<span class="nx">→ ${esc(x.nx)}</span>`:''}${(x.links||[]).length&&!dn?`<span class="lks">${x.links.filter((l,k,A)=>A.findIndex(o=>(o.url||o.u)===(l.url||l.u))===k).map(l=>`<a class="lk" href="${esc(l.url||l.u)}" target="_blank" rel="noopener">${esc(l.label||l.l||'link')} ↗</a>`).join(' ')}</span>`:''}</li>`; }).join('')}</ol>`).join(''):(nxt.length?`<p class="then">next in line: ${nxt.map(x=>esc(nt(x.t))).join(' · ')}</p>`:'')}`;
   el.querySelectorAll('.lk').forEach(a=>a.addEventListener('click',e=>e.stopPropagation()));
   el.querySelectorAll('li[data-m]').forEach(li=>li.onclick=()=>{ const x=M[+li.dataset.m]; sheet({k:'step',t:x.t,drive:x.drive,nx:x.nx,links:(x.links||[]).map(l=>({l:l.label||l.l,u:l.url||l.u})),s:0,e:0}); });
   el.querySelectorAll('li[data-n]').forEach(li=>li.onclick=()=>{ const x=T[+li.dataset.n]; sheet({k:'step',t:x.t,drive:x.drive,nx:x.nx,links:(x.links||[]).map(l=>({l:l.label||l.l,u:l.url||l.u})),s:0,e:0}); });
@@ -617,12 +619,12 @@ function today(){
   /* a long event, or a block of hers already done that holds other things (her prep window), is ground */
   /* her own meetings stay cards in their calendar colour (4 Nov 2026, her words: the precipitation check and the
      Louisiana work are purple like on my calendar, but it seems to be missing the work weekly): an event of hers
-     is ground only at three hours or more (a party); someone else's long event (Greenhouse) still at two */
+     is ground only at three hours or more (a party); someone else's long event (her son's school day) still at two */
   /* a long stretch of one thing is ground under the day, named at the top, never a card that swallows the hours (7 Nov
      2026: her Copilot work from getting home until about 10 PM) */
   /* a flow is ground too: a dotted outline behind its steps, as the river drew it (7 Nov 2026, her words: I loved how the
      river showed the dawn flow and the dusk flow with a dotted outline around all the different things, in the background,
-     kind of like how you did Greenhouse) */
+     kind of like how you did the school day) */
   const bands=all.filter(x=>x.flowcard||(x.k==='event'&&x.e-x.s>=(x.who==='you'?180:120))||(x.k==='lived'&&x.cat!=='stretch'&&!x.column&&x.cat!=='sleep'&&((x.act&&x.e-x.s>=60)||x.e-x.s>=180)));
   /* what she has done stays where it happened; what's ahead is laid end to end from the clock */
   /* what's done reads as a list in time (2 Nov 2026, her words: show me my day flow, up to date, for what I've

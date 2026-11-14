@@ -66,6 +66,7 @@ def test_highlight_keeps_its_time():
 def test_engine():
     page = open(os.path.join(os.path.dirname(HERE), 'assets', 'flow_engine.html'), encoding='utf-8').read()
     assert 'what you did' in page and "over3&&!D.picked?(D.did||[])" in page
+    assert ".three li.did:before" in page and "class=\"${over3?'did'" in page   # checked, fully bright
     assert 'const SIX=[];' in page     # the day in six is retired
     assert "const ids=over?['three','today'" in page   # a finished day leads with what she did
 

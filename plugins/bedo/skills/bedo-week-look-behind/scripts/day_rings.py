@@ -392,7 +392,7 @@ def day_rings(rows, day, L, flows=frozenset(), not_lived=frozenset(), sleep=None
         chore_care = pr in HOME and span and any(w in said for w in FAMILY_CHORES)   # the kitchen after a family meal
         # a be•do session that talks about care is still be•do work: its notes never make it care (1 Nov 2026:
         # a session settling the care kinds drew as two hours of community care, from "voting is community care"
-        # in its notes, then as pet care, from "Rosa and Buddy the whole time at Greenhouse")
+        # in its notes, then as pet care, from "the dogs the whole time at school")
         by_words = rh != system
         is_community = span and by_words and any(w in said for w in COMMUNITY + community_words)
         # an action is caretaking when her words or its title say it was with or for them, or it was lived together on
