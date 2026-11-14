@@ -23,6 +23,7 @@ Everything it draws it draws with the my day page's own code:
 | a day's wellness wheel, and how evenly it was shared | `flow.wheel_of()`, `flow.evenness()` |
 | the space between her and what's due | `flow.buffer_on()` |
 | which kind of time a row was | `flow.kind_of()` |
+| a day that is over, in its three to twelve highlights | `sixOf()`, `glyphOf()`, `sixLine()` — read out of the my day engine at the build (`/*DAYSIX*/`), never copied |
 | the shell, the card, the glyphs, the colours, the clock, the base-flow river | `plugins/bedo/assets/flow-parts` |
 
 **Never borrow the my day page's stylesheet** (her words). What both pages share
@@ -106,10 +107,45 @@ The Monday rules in `bedo-weekly-close`, then the day page's own parts:
    live commitment and still pulls.
 4. **The week on the calendar** — seven days, hers, her son's and her husband's.
    A day ahead keeps its Google colour; a day lived wears the be•do colour of
-   the kind of time it was. **A day already lived folds** to what mattered —
-   anything on the calendar, anything that ran 45 minutes or more, the
-   highlight, anything still open — with the rest one tap under it, because
-   seven days of every logged row is a wall.
+   the kind of time it was.
+
+   **By weight** (her words, 12 Nov 2026: *too many things on the calendar — and
+   the answer is not to take things out. I want to see the family's recurring
+   events so I can prepare for them. Drop only what is not happening (✖️ and
+   duplicates), and fix the crowding with weight: mine first and full, theirs
+   quieter but plainly there*). `weigh_day()` in `week.py`:
+
+   - **hers are full cards**, first, in time order; a ▫️ maybe and a step still
+     to do are outlines, lighter than a thing that is on.
+   - **the family's are one quiet line each**, under hers: its hours, whose it
+     is, its whole title, an edge in that calendar's colour. No fill, no check,
+     no strike, whatever its row says (the my day page's rule of 12 Nov). Never
+     faded away: it is there to be read. A stay over midnight says when it ends.
+   - **an event whose title opens with ✖️ is left off.** The mark used to be
+     stripped with the others and the event drawn as if it were on.
+   - **one happening on two calendars is shown once, as hers** — the same title
+     at the same time, or a family event that overlaps one of hers and shares a
+     telling word with it. Hers says whose calendar also holds it and when
+     theirs ends, because a pick-up is the thing she cannot miss.
+   - **an all-day thing is a band** across each day it covers, never a card at
+     midnight — and it is there at all: the day page's cards skip an event with
+     no hour, so a report due or a holiday was nowhere.
+   - what was left off is **said under the week**, by name and why, one tap.
+   - the week's clashes and its lead line are read off what is left, so a
+     called-off meeting is not a clash and her subbing at his school is not two
+     things at once.
+
+   **A day that is over folds to its highlights** — the my day page's rule of
+   11 Nov 2026, by its own `sixOf()`: three to twelve lines, meaning first, the
+   whole day one tap under them. Today folds only what she has already lived.
+   (Before, a past day kept everything on the calendar and everything of 45
+   minutes or more, which was a wall seven days wide.)
+
+   **Every card opens** (the my day page, 11 Nov 2026: *each of those cards to
+   link to the drive … to the rhythm*): a tap shows what it is, whose, where,
+   her words, and its drive and rhythm, which lead to that block in *the
+   rhythms, with their drives*. Every day's events carry their drive, not only
+   today's.
 5. **How the time is going** — the week so far by kind of time, as a ring, as
    bars, and as one bar a day. A day is scaled back to the hours it had: two
    things at once are two rows, so a day of rows adds up to more than it lasted,
@@ -141,8 +177,11 @@ on the day page).
    ```
    LB_DIR=<working folder> bash run_week_ahead.sh prep [WEEK]
    ```
-   `prep` clones the version store, reads the live weekly base and the one
-   before it with the read-only token, and prints the **calendar plan**: the
+   `prep` clones the version store, reads **her settings row** (`day_ahead_local`
+   in `be•do system › settings` — it always wins; the file in the folder is
+   only the fallback, as on the my day page since 11 Nov 2026), reads the live
+   weekly base and the one before it with the read-only token, and prints the
+   **calendar plan**: the
    21-day window (the week's Sunday and the two weeks after) and, for each
    calendar the settings name, the exact `list_events` arguments and the file to
    save the result to. The working folder is the my day page's: the my week page
@@ -180,7 +219,9 @@ on the day page).
 - `assets/week_engine.html` — the page; nothing personal in it
 - `tests/test_week.py` — drives the builder over a small fixture and checks the
   week it writes: the seven days, the word's slot, the paths, the two weeks
-  after, base flow stopping at today, and the a-or-p clock
+  after, base flow stopping at today, the a-or-p clock, the calendar's weight
+  (a ✖️ event left off, one thing on two calendars shown once, a family event
+  kept and marked theirs), and that every script on the built page parses
 
 There is no `week_local.json`. The my week page reads the my day page's
 settings, so a setting is changed in one place.

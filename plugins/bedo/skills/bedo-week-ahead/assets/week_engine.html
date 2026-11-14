@@ -125,6 +125,50 @@ html[data-bedo="night"] .ev{background:color-mix(in srgb,var(--e) 26%,var(--card
 .ev .who{font:500 9.5px var(--mono);opacity:.75}
 .ev a{color:inherit;text-decoration:none}
 .gold{box-shadow:0 0 0 2px #E0A526}
+/* THE CALENDAR, BY WEIGHT. Her words, 12 Nov 2026: too many things on the calendar — and the answer
+   is not to take things out. I want to see the family's recurring events so I can prepare for them.
+   Drop only what is not happening, and fix the crowding with weight: mine first and full, theirs
+   quieter but plainly there. So her own events keep the full card, in their calendar colour; a
+   family event is one line under them — its time, whose it is, its whole title, an edge in that
+   calendar's colour — with no fill, no check and no strike (the my day page's rule of 12 Nov: his
+   eye exam should not get a green check for me). Never faded to nothing: it is there to be read. */
+.ev.maybe{background:none;border:1px dashed var(--e);border-left:4px solid var(--e);color:var(--ink)}
+/* a step still to do, and a maybe, are outlines on either ground: lighter than a thing that is on */
+html[data-bedo="night"] .ev.step,html[data-bedo="night"] .ev.maybe{background:none}
+.ev .also{display:block;font:500 9.5px var(--mono);opacity:.85;margin-top:1px}
+.fam{display:block;padding:1px 2px 1px 7px;margin:0 0 4px;border-left:3px solid var(--e);font-size:11.5px;line-height:1.35;cursor:pointer;color:color-mix(in srgb,var(--ink) 74%,var(--card))}
+.fam .at{display:block;font:500 9.5px var(--mono);color:var(--muted)}
+.fam b{display:block;font-weight:400;overflow-wrap:anywhere}
+.fam b i{font-style:normal;font-weight:600}
+.fam.fade{opacity:.3}
+.famk{font:500 9px var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin:8px 0 4px;border-top:1px solid var(--rule);padding-top:5px}
+.bandx{display:block;font:500 10.5px/1.35 var(--mono);border-radius:8px;padding:2px 7px;margin:0 0 5px;cursor:pointer}
+.bandx.mine{background:color-mix(in srgb,var(--e) 30%,var(--card));color:var(--ink);font-weight:600;border-left:4px solid var(--e)}
+.bandx.theirs{color:var(--muted);border:1px solid var(--rule);border-left:3px solid var(--e)}
+/* a day that is over, in its highlights — the my day page's own rule (11 Nov 2026), three to twelve */
+.hi{list-style:none;margin:2px 0 4px;padding:0;display:grid;gap:1px}
+.hi li{display:grid;grid-template-columns:1.45em minmax(0,1fr);gap:4px;align-items:baseline;font-size:12px;line-height:1.35;padding:2px 0;cursor:pointer;border-radius:6px}
+.hi li:hover{background:var(--card2)}
+.hi li .t{overflow-wrap:anywhere}
+.hi li small{font:500 9.5px var(--mono);color:var(--faint);margin-left:5px;white-space:nowrap}
+.leftoff{font:500 11px var(--mono);color:var(--faint);margin:10px 2px 0}
+.leftoff summary{cursor:pointer}
+.leftoff ul{margin:6px 0 0;padding-left:1.2em;font:400 12px/1.5 var(--sans);color:var(--muted)}
+/* the card a tap opens: what it is, whose, where, and the drive and rhythm it leads to (her words on
+   the my day page, 11 Nov 2026: I want each of those cards to link to the drive that they were part
+   of, to the rhythm they were part of) */
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:70vh;overflow:auto;background:var(--card);color:var(--ink);border-radius:20px 20px 0 0;box-shadow:0 -10px 34px rgba(0,0,0,.32);padding:16px 20px 26px;z-index:60;transform:translateY(105%);transition:transform .2s ease}
+.sheet.on{transform:none}
+.sheet .in{max-width:640px;margin:0 auto;border-left:5px solid var(--e,var(--accent));padding-left:14px}
+.sheet .at{font:500 12px var(--mono);color:var(--muted);margin:0}
+.sheet h3{font:600 19px/1.25 var(--sans);margin:2px 0 4px;overflow-wrap:anywhere}
+.sheet p{font-size:14px;margin:4px 0 0}
+.sheet p.q{color:var(--muted)}
+.sheet p.her{font:italic 400 15px/1.45 var(--serif);color:var(--muted)}
+.sheet a{color:var(--dest)}
+.sheet .chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+.sheet .chips button,.sheet .chips a{font:500 12.5px var(--sans);color:var(--dest);background:var(--dest-soft,var(--card2));border:0;border-radius:999px;padding:4px 12px;cursor:pointer;text-decoration:none}
+.sheet .x{position:absolute;right:14px;top:8px;background:none;border:0;font-size:22px;color:var(--muted);cursor:pointer}
 /* how the time is going, over the week */
 .hb{display:grid;gap:14px;grid-template-columns:1fr}
 @media (min-width:700px){.hb{grid-template-columns:minmax(0,260px) minmax(0,1fr)}}
@@ -217,6 +261,7 @@ html[data-bedo="night"] .ev{background:color-mix(in srgb,var(--e) 26%,var(--card
 <section id="pareto"></section>
 <p class="foot" id="foot"></p>
 </main>
+<div class="sheet" id="sheet" role="dialog" aria-label="one thing on the calendar"></div>
 <script>/*BFJS*/</script>
 <script>
 const D = /*DATA*/;
@@ -226,8 +271,14 @@ const D = /*DATA*/;
 /*WELLNESSJS*/
 /*BFCARDJS*/
 
+/* the my day page's own highlights rule, cut out of its engine at the build: EMO, MEANT, sixOf,
+   glyphOf and sixLine. Nothing here is a copy; change the rule on the my day page and it lands here. */
+const delivOf = x => (x.links||[]).filter(l => l && l.u && l.l !== 'calendar event');
+/*DAYSIX*/
+
 /* ------------------------------------------------------------------ the week's own drawing */
 const $ = id => document.getElementById(id);
+const mm = t => { const [h, m] = String(t).split(':').map(Number); return h*60 + m; };
 const mins = (a, b) => { const [h1,m1]=a.split(':').map(Number), [h2,m2]=b.split(':').map(Number);
   return Math.max(0, (h2*60+m2) - (h1*60+m1)); };
 const hrs = m => m >= 60 ? `${Math.floor(m/60)}h${m%60?' '+(m%60)+'m':''}` : `${m}m`;
@@ -447,12 +498,19 @@ function paths(){
 }
 
 /* ------------------------------------------------------------------ the week on the calendar */
+/* every card and line on the calendar is kept here by number, so a tap can open it */
+const CARDS = [];
+const reg = (x, day) => CARDS.push({x, day}) - 1;
+/* a family event: on the calendar, not hers */
+const fam = x => x.k === 'event' && !x.mine;
 function evCard(x, day){
+  if(fam(x)) return famLine(x, day);
   const k = lived(x, day) ? kindOf(x) : null;
   const ahead = !lived(x, day) && x.k === 'event';
   const colour = ahead ? gcol(x) : (k ? kc(k) : pcol(x));
   const cls = ['ev'];
   if(k === 'sleep') cls.push('sleep');
+  else if(ahead && x.maybe) cls.push('maybe');
   else if(ahead && x.meet) cls.push('meeting');
   if(x.k === 'step') cls.push('step');
   /* struck through only once the day has arrived: a recurring event whose series row has been
@@ -462,21 +520,44 @@ function evCard(x, day){
   if(x.est) cls.push('est');
   if(k && KF && k !== KF) cls.push('fade');
   if(WF2 && x.el !== WF2 && x.el2 !== WF2) cls.push('fade');
-  if(x.gold) cls.push('gold');
+  if(x.gold || x.star || x.mom) cls.push('gold');
   const gl = [x.el, x.el2].filter(e => e && WDOM[e]).map(e => wicon(e, 13)).join('');
-  const who = x.who && x.who !== D.me ? `<span class="who">${esc(x.who)}</span> ` : '';
-  const body = `<span class="gl">${gl}</span><span class="at">${esc(wt(x.a))}–${esc(wt(x.b))}</span>`
-    + `<b>${who}${esc(x.t)}</b>`;
-  const inner = x.link ? `<a href="${esc(x.link)}" target="_blank" rel="noopener">${body}</a>` : body;
-  return `<div class="${cls.join(' ')}" data-k="${esc(k||'')}" style="--e:${colour};--ec:${gink(colour)}">${inner}</div>`;
+  const who = x.k === 'lived' && x.who && x.who !== D.me ? `<span class="who">${esc(x.who)}</span> ` : '';
+  const also = (x.also||[]).map(o => `<span class="also">also on ${esc(o.who)}’s · ${esc(wt(o.a))}–${esc(wt(o.b))}</span>`).join('');
+  return `<div class="${cls.join(' ')}" data-c="${reg(x, day)}" data-k="${esc(k||'')}" style="--e:${colour};--ec:${gink(colour)}">`
+    + `<span class="gl">${gl}</span><span class="at">${esc(span(x))}${x.maybe ? ' · a maybe' : ''}</span>`
+    + `<b>${who}${esc(x.t)}</b>${also}</div>`;
 }
-/* a day already lived folds to what mattered — her rule on the my day page (2 Nov 2026: condensed
-   after that hour passed), which a week needs far more than a day: seven days of every logged row
-   is a wall. What stays out: anything on the calendar, anything that ran three quarters of an hour
-   or more, the highlight, and anything still open. The rest sits under one line, a tap away. */
-const KEEP_MIN = 45;
-function worthIt(x){
-  return x.k === 'event' || x.k === 'step' || x.gold || x.hl || mins(x.a, x.b) >= KEEP_MIN;
+/* a card's own hours — and for a stay over midnight, the day it ends or the day it began */
+const span = x => x.till ? `${wt(x.a)} → ${x.till.d} ${wt(x.till.t)}`
+  : x.since ? `since ${x.since.d} → ${wt(x.b)}` : `${wt(x.a)}–${wt(x.b)}`;
+/* theirs: one quiet line, plainly there. No fill, no check, no strike, whatever its row says. */
+function famLine(x, day){
+  return `<div class="fam${KF || WF2 ? ' fade' : ''}" data-c="${reg(x, day)}" style="--e:${gcol(x)}">`
+    + `<span class="at">${esc(span(x))}</span>`
+    + `<b><i>${esc(x.who)}</i> · ${esc(x.t)}${x.maybe ? ' · a maybe' : ''}</b></div>`;
+}
+/* an all-day thing is a band across its day, hers full and theirs quiet, never a card at midnight */
+const bandsOf = day => (day.bands||[]).map(b => `<span class="bandx ${b.mine ? 'mine' : 'theirs'}" `
+  + `data-c="${reg({k: 'event', t: b.t, who: b.who, mine: b.mine, link: b.link, allday: true}, day)}" `
+  + `style="--e:${gcol({who: b.who})}">${b.mine ? '' : esc(b.who) + ' · '}${esc(b.t)}</span>`).join('');
+/* a day's cards: hers first and full, in time order; then the family's, quieter, in time order */
+function dayBody(day, cards){
+  const mine = cards.filter(x => !fam(x)), theirs = cards.filter(fam);
+  return mine.map(x => evCard(x, day)).join('')
+    + (theirs.length ? `<p class="famk">family</p>` + theirs.map(x => famLine(x, day)).join('') : '');
+}
+/* what was left off, said — a picker that takes things out has to show what and why */
+function leftLine(days){
+  const ls = [].concat(...(days||[]).map(d => (d.left||[]).map(l => ({...l, d}))));
+  if(!ls.length) return '';
+  const off = ls.filter(l => l.why === 'off').length, tw = ls.length - off;
+  const say = [off && `${off} not happening`, tw && `${tw} already there on your own calendar`].filter(Boolean).join(' · ');
+  return `<details class="leftoff"><summary>left off: ${say}</summary><ul>`
+    + ls.map(l => `<li>${esc(l.d.day3)} ${esc(l.d.label.replace(/^\w{3}\s/, ''))} · ${esc(l.t)}`
+        + `${l.who && l.who !== D.mycal ? ` (${esc(l.who)}’s)` : ''} — `
+        + `${l.why === 'off' ? 'marked ✖️, not happening' : 'the same thing as one of yours'}</li>`).join('')
+    + `</ul></details>`;
 }
 /* how a day's time went, in one strip — the same kinds and colours as the pie below */
 function strip(day){
@@ -487,30 +568,84 @@ function strip(day){
     + `opacity:${KF && KF!==n ? .2 : 1}" title="${esc((PICK_DEFAULT[n]||PICK_DEFAULT.admin)[2])}"></i>`).join('');
   return `<div class="st daystrip">${seg}</div><p class="note">${hrs(t)} logged</p>`;
 }
+/* A DAY THAT IS OVER FOLDS TO ITS HIGHLIGHTS — the my day page's rule of 11 Nov 2026 (her words: when
+   I'm looking behind, I really want the timeline to collapse down to those few things that were the
+   really relevant things about that day … but I want to be able to expand it out and see all the
+   little minutia). Three to twelve lines, by sixOf() itself; the whole day is one tap under them.
+   Until now a past day kept everything on the calendar and everything of 45 minutes or more, which
+   was a wall seven days wide. Today folds only what she has already lived; a day ahead shows all. */
+function highlights(day, cards){
+  const six = sixOf(cards.filter(x => !x.flowcard && !fam(x)).map(x => ({...x, s: mm(x.a),
+    e: Math.max(mm(x.b), mm(x.a) + (x.k === 'lived' ? (x.pt ? 10 : 1) : 15))})));
+  return six.length ? `<ul class="hi">${six.map(x => `<li data-c="${reg(x, day)}"><span>${glyphOf(x)}</span>`
+    + `<span class="t">${esc(sixLine(x))}<small>${esc(wt(x.a))}</small></span></li>`).join('')}</ul>` : '';
+}
 function week(){
   const html = (D.days||[]).map(day => {
     const cards = (day.cards||[]).slice().sort((p,q) => String(p.a).localeCompare(String(q.a)));
-    const fold = (day.past || day.today) && cards.length > 8;
-    const shown = fold ? cards.filter(worthIt) : cards;
-    const rest = fold ? cards.filter(x => !worthIt(x)) : [];
+    let body;
+    if(day.past){
+      body = strip(day) + highlights(day, cards)
+        + (cards.length ? `<details class="more"><summary>the whole day · ${cards.length}</summary>`
+            + dayBody(day, cards) + `</details>` : `<p class="none">nothing on it</p>`);
+    } else if(day.today){
+      const keep = cards.filter(x => x.k !== 'lived' || x.star || x.mom), rest = cards.filter(x => !keep.includes(x));
+      body = strip(day) + dayBody(day, keep)
+        + (rest.length ? `<details class="more"><summary>+${rest.length} lived so far</summary>`
+            + rest.map(x => evCard(x, day)).join('') + `</details>` : '');
+    } else body = cards.length || (day.bands||[]).length ? dayBody(day, cards) : `<p class="none">nothing on it</p>`;
     const tags = (day.tags||[]).map(t => `<b class="${esc(t)}">${esc(t)}</b>`).join('');
     const notes = (day.notes||[]).map(n => `<p class="note">${esc(n)}</p>`).join('');
-    const bands = (day.bands||[]).map(b => `<span class="band">${esc(b)}</span>`).join('');
     return `<div class="dcol${day.today?' is-today':''}${day.past?' gone':''}">`
       + `<h3>${esc(day.day3)} <em>${esc(day.label.replace(/^\w{3}\s/,''))}</em></h3>`
-      + `<div class="tags">${tags}</div>${notes}${bands}`
-      + ((day.past || day.today) ? strip(day) : '')
-      + (shown.length ? shown.map(x => evCard(x, day)).join('') : (cards.length ? '' : `<p class="none">nothing on it</p>`))
-      + (rest.length ? `<details class="more"><summary>+${rest.length} more that day</summary>`
-          + rest.map(x => evCard(x, day)).join('') + `</details>` : '')
-      + `</div>`;
+      + `<div class="tags">${tags}</div>${notes}${bandsOf(day)}${body}</div>`;
   }).join('');
   $('week').innerHTML = `<h2 class="sec">the week on the calendar</h2>`
-    + `<p class="say">your calendar, your son’s and your husband’s, and what you have lived so far. `
-    + `A day gone wears the be•do colour of the kind of time it was; a day ahead keeps its Google colour. `
-    + `A day already lived shows what mattered — the rest is one tap under it.</p>`
-    + `<div class="wk">${html}</div>`;
+    + `<p class="say">Yours first and full; the family’s under them, quieter, so you can see what to `
+    + `prepare for. A day gone folds to its highlights, the whole day one tap under them. `
+    + `Tap anything for where it is and what it serves.</p>`
+    + `<div class="wk">${html}</div>` + leftLine(D.days);
 }
+
+/* ------------------------------------------------- the card a tap opens */
+function sheet(i){
+  const c = CARDS[i]; if(!c) return;
+  const x = c.x, day = c.day, ev = x.k === 'event';
+  const colour = ev ? gcol(x) : pcol(x);
+  const title = ev && x.mine && !x.allday ? String(x.summary || x.t).replace(/^\s*(✔️|✔)️?/, '✅') : x.t;
+  const when = `${esc(day.day3)} ${esc(day.label.replace(/^\w{3}\s/, ''))}`
+    + (x.allday ? ' · all day' : ` · ${esc(span(x))}`);
+  const whose = ev ? (x.mine ? 'on your calendar' : `on ${esc(x.who)}’s calendar`) : '';
+  const also = (x.also||[]).map(o => `<p class="q">also on ${esc(o.who)}’s calendar, ${esc(wt(o.a))}–${esc(wt(o.b))}: ${esc(o.t)}</p>`).join('');
+  const where = x.where ? `<p>📍 <a href="${/^https?:/.test(x.where) ? esc(x.where) : 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(x.where)}" target="_blank" rel="noopener">${esc(x.where)}</a></p>` : '';
+  const her = x.her ? `<p class="her">${esc(cut(String(x.her), 260))}</p>` : '';
+  const T = D.tree || {}, dn = x.drive && T[x.drive] ? x.drive : '', rn = dn ? (T[dn].drive ? T[dn].parent : dn) : '';
+  const chip = n => `<button type="button" data-go="${esc(n)}">${esc(((T[n].g || '') + ' ' + n).trim())} →</button>`;
+  const chips = [dn && T[dn].drive ? chip(dn) : '', rn && T[rn] ? chip(rn) : '']
+    .concat((x.links||[]).filter(l => l && l.u).map(l => `<a href="${esc(l.u)}" target="_blank" rel="noopener">${esc(l.l || 'link')} ↗</a>`))
+    .concat(x.link ? [`<a href="${esc(x.link)}" target="_blank" rel="noopener">open in Google Calendar ↗</a>`] : []).join('');
+  $('sheet').innerHTML = `<button type="button" class="x" aria-label="close">×</button>`
+    + `<div class="in" style="--e:${colour}"><p class="at">${when}</p><h3>${esc(title)}</h3>`
+    + (whose ? `<p class="q">${whose}${x.maybe ? ' · a maybe' : ''}</p>` : '') + also + where + her
+    + (chips ? `<div class="chips">${chips}</div>` : '') + `</div>`;
+  $('sheet').classList.add('on');
+}
+/* a drive or a rhythm, followed to its block in the rhythms, with their drives */
+function goTo(n){
+  $('sheet').classList.remove('on');
+  const sec = $('rhythms'); if(!sec) return;
+  if(QUIET && !sec.classList.contains('show')){ sec.classList.add('show'); modeBar(); }
+  const T = D.tree || {}, rn = T[n] && T[n].drive ? T[n].parent : n;
+  const hit = [...sec.querySelectorAll('.rb')].find(b => b.dataset.r === rn) || sec;
+  hit.scrollIntoView({block: 'start', behavior: 'smooth'});
+}
+document.addEventListener('click', ev => {
+  const go = ev.target.closest('#sheet [data-go]'); if(go){ goTo(go.dataset.go); return; }
+  if(ev.target.closest('#sheet')){ if(ev.target.closest('.x')) $('sheet').classList.remove('on'); return; }
+  const n = ev.target.closest('[data-c]');
+  if(n) sheet(+n.dataset.c); else $('sheet').classList.remove('on');
+});
+document.addEventListener('keydown', ev => { if(ev.key === 'Escape') $('sheet').classList.remove('on'); });
 
 /* ------------------------------------------------------------------ how the time is going */
 function spent(){
@@ -586,8 +721,7 @@ function ahead(){
     + w.days.filter(d => (d.cards||[]).length || (d.bands||[]).length).map(d =>
         `<div class="ad${d.weekend ? ' wknd' : ''}">`
         + `<b>${esc(d.day3)}<i>${esc(d.label.replace(/^\w{3}\s/, ''))}</i></b><div class="its">`
-        + (d.bands||[]).map(b => `<span class="band">${esc(b)}</span>`).join('')
-        + (d.cards||[]).map(x => evCard(x, d)).join('')
+        + bandsOf(d) + dayBody(d, d.cards||[])
         + `</div></div>`).join('')
     + `</div></div>`).join('');
   const hz = (D.horizon || []).map(h => `<div class="r"><b>${esc(h.emoji||'')} ${esc(h.label||h.title||'')}</b>`
@@ -598,7 +732,8 @@ function ahead(){
     + `</div>`).join('');
   $('ahead').innerHTML = `<h2 class="sec">the two weeks after</h2>`
     + `<p class="say">what is already on the calendar past this week, and the big things worth preparing for.</p>`
-    + `<div class="ah">${body}</div>` + (hz ? `<div class="hz">${hz}</div>` : '');
+    + `<div class="ah">${body}</div>` + leftLine([].concat(...ws.map(w => w.days)))
+    + (hz ? `<div class="hz">${hz}</div>` : '');
 }
 
 /* ------------------------------------------------------------------ the rhythms, with their drives */
@@ -606,7 +741,7 @@ function rhythms(){
   const rs = D.rhythms || [];
   if(!rs.length){ $('rhythms').innerHTML = ''; return; }
   const step = s => `<p class="st">${esc(s.st||'')} ${esc(s.t)}${s.date?` <span class="to">${esc(s.date)}</span>`:''}</p>`;
-  const body = rs.map(r => `<div class="rb" style="--dc:${r.tend?'var(--c-moss,var(--rule))':'var(--accent)'};--dc2:var(--rule)">`
+  const body = rs.map(r => `<div class="rb" data-r="${esc(r.n)}" style="--dc:${r.tend?'var(--c-moss,var(--rule))':'var(--accent)'};--dc2:var(--rule)">`
     + `<h2>${esc(r.emoji||'')} ${esc(r.n)} <span class="to">${r.tend?'tend':'grow'}</span></h2>`
     + (r.goal ? `<p class="st more">${esc(r.goal)}</p>` : '')
     + (r.own||[]).map(step).join('')
@@ -659,6 +794,7 @@ function draw(){
   const r = D.read || {};
   $('foot').textContent = `built ${D.today}${D.now ? ' at ' + wt(D.now) : ''} · `
     + `${r.rows||0} rows read, ${r.open||0} open · ${r.events||0} calendar events over three weeks`
+    + (r.off ? ` · ${r.off} not happening, left off` : '') + (r.twice ? ` · ${r.twice} told twice, shown once` : '')
     + (r.gaps ? ` · ${r.gaps} with no row yet` : '') + (r.clashes ? ` · ${r.clashes} clash` : '');
   if((D.baseflow||{}).missing && D.baseflow.missing.length)
     $('rv').insertAdjacentHTML('beforeend',
