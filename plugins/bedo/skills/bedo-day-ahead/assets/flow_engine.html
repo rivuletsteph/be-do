@@ -551,12 +551,16 @@ function three(){
   /* be•do's three, right under base flow (12 Nov 2026, her words: I like seeing the base flow first … and then I want
      to see the Pareto 3, like the recommendation about what I work on today). Each with why it rose and its one next
      step; a tap opens its card. A pick closed later in the day is drawn done. */
-  const el=document.getElementById('three'); const T=D.three||[]; if(!T.length){ el.innerHTML=''; return; }
+  /* a finished day shows what she did, at the top, as complete — never a recommendation (14 Nov 2026, her words: no reason
+     to do this … I like this list and could be listed at the top as complete): her picks when she named them, else the
+     actions closed that day and her highlight */
+  const over3=new Date().toLocaleDateString('en-CA')>D.day;
+  const el=document.getElementById('three'); const T=over3&&!D.picked?(D.did||[]):(D.three||[]); if(!T.length){ el.innerHTML=''; return; }
   const nt=t=>String(t||'').replace(/^⚡\s*/,'').trim();
   const doneSet=new Set((D.done||[]).map(x=>nt(x.t)));
   const nxt=(D.three_next||[]).filter(x=>x&&x.t); const M=D.three_more||[];
-  el.innerHTML=`<h2>be•do's three</h2><p class="how">what, done today, frees the most for the rest of the day and week · a recommendation, not your intention</p><ol>${T.map((x,i)=>{ const dn=/✅/.test(x.st)||doneSet.has(nt(x.t));
-    return `<li data-n="${i}" class="${dn?'done':''}"><span class="t">${esc((x.g?x.g+' ':'')+nt(x.t))}</span>${x.why?`<span class="why">${esc(x.why)}</span>`:''}${x.nx&&!dn?`<span class="nx">→ ${esc(x.nx)}</span>`:''}${(x.links||[]).length&&!dn?`<span class="lks">${x.links.filter((l,i,A)=>A.findIndex(o=>(o.url||o.u)===(l.url||l.u))===i).map(l=>`<a class="lk" href="${esc(l.url||l.u)}" target="_blank" rel="noopener">${esc(l.label||l.l||'link')} ↗</a>`).join(' ')}</span>`:''}<small>${esc(x.drive||'')}${x.waiting?' · ⏸ waiting on '+esc(x.waiting):''}</small></li>`; }).join('')}</ol>${M.length?[[0,'be•do\'s next three'],[3,'three after that']].filter(([i])=>M[i]).map(([i,h])=>`<h3 class="more3">${h}</h3><ol class="m3" start="${i+4}">${M.slice(i,i+3).map((x,j)=>{ const dn=/✅/.test(x.st)||doneSet.has(nt(x.t)); return `<li data-m="${i+j}" class="${dn?'done':''}"><span class="t">${esc((x.g&&x.g!=='·'?x.g+' ':'')+nt(x.t))}</span>${x.nx&&!dn?`<span class="nx">→ ${esc(x.nx)}</span>`:''}${(x.links||[]).length&&!dn?`<span class="lks">${x.links.filter((l,k,A)=>A.findIndex(o=>(o.url||o.u)===(l.url||l.u))===k).map(l=>`<a class="lk" href="${esc(l.url||l.u)}" target="_blank" rel="noopener">${esc(l.label||l.l||'link')} ↗</a>`).join(' ')}</span>`:''}</li>`; }).join('')}</ol>`).join(''):(nxt.length?`<p class="then">next in line: ${nxt.map(x=>esc(nt(x.t))).join(' · ')}</p>`:'')}`;
+  el.innerHTML=(over3?`<h2>what you did</h2><p class="how">the day's big ones, as you lived them</p><ol>`:`<h2>be•do's three</h2><p class="how">what, done today, frees the most for the rest of the day and week · a recommendation, not your intention</p><ol>`)+`${T.map((x,i)=>{ const dn=over3||/✅/.test(x.st)||doneSet.has(nt(x.t));
+    return `<li data-n="${i}" class="${dn?'done':''}"><span class="t">${esc((x.g?x.g+' ':'')+nt(x.t))}</span>${x.why?`<span class="why">${esc(x.why)}</span>`:''}${x.nx&&!dn&&!over3?`<span class="nx">→ ${esc(x.nx)}</span>`:''}${(x.links||[]).length&&!dn&&!over3?`<span class="lks">${x.links.filter((l,i,A)=>A.findIndex(o=>(o.url||o.u)===(l.url||l.u))===i).map(l=>`<a class="lk" href="${esc(l.url||l.u)}" target="_blank" rel="noopener">${esc(l.label||l.l||'link')} ↗</a>`).join(' ')}</span>`:''}<small>${esc(x.drive||'')}${x.waiting?' · ⏸ waiting on '+esc(x.waiting):''}</small></li>`; }).join('')}</ol>${over3?'':M.length?[[0,'be•do\'s next three'],[3,'three after that']].filter(([i])=>M[i]).map(([i,h])=>`<h3 class="more3">${h}</h3><ol class="m3" start="${i+4}">${M.slice(i,i+3).map((x,j)=>{ const dn=/✅/.test(x.st)||doneSet.has(nt(x.t)); return `<li data-m="${i+j}" class="${dn?'done':''}"><span class="t">${esc((x.g&&x.g!=='·'?x.g+' ':'')+nt(x.t))}</span>${x.nx&&!dn?`<span class="nx">→ ${esc(x.nx)}</span>`:''}${(x.links||[]).length&&!dn?`<span class="lks">${x.links.filter((l,k,A)=>A.findIndex(o=>(o.url||o.u)===(l.url||l.u))===k).map(l=>`<a class="lk" href="${esc(l.url||l.u)}" target="_blank" rel="noopener">${esc(l.label||l.l||'link')} ↗</a>`).join(' ')}</span>`:''}</li>`; }).join('')}</ol>`).join(''):(nxt.length?`<p class="then">next in line: ${nxt.map(x=>esc(nt(x.t))).join(' · ')}</p>`:'')}`;
   el.querySelectorAll('.lk').forEach(a=>a.addEventListener('click',e=>e.stopPropagation()));
   el.querySelectorAll('li[data-m]').forEach(li=>li.onclick=()=>{ const x=M[+li.dataset.m]; sheet({k:'step',t:x.t,drive:x.drive,nx:x.nx,links:(x.links||[]).map(l=>({l:l.label||l.l,u:l.url||l.u})),s:0,e:0}); });
   el.querySelectorAll('li[data-n]').forEach(li=>li.onclick=()=>{ const x=T[+li.dataset.n]; sheet({k:'step',t:x.t,drive:x.drive,nx:x.nx,links:(x.links||[]).map(l=>({l:l.label||l.l,u:l.url||l.u})),s:0,e:0}); });
@@ -643,7 +647,9 @@ function today(){
      collapse down to those like six things that were the really relevant things about that day … progressive
      summarization … but I want to be able to expand it out and see all the little minutia): a day that's over opens on
      the few things that mattered, and one tap shows every row; a day still going folds only the routine */
-  const SIX=gone?sixOf(pastAll):[];
+  /* retired 14 Nov 2026 (her words: the day in five should get absorbed by the stream, so it's redundant, I don't need it):
+     each moment keeps its own card in the stream at its time with its photo; a finished day opens on the stream, folded */
+  const SIX=[];
   if(window.__dayview===undefined||(window.__dayview==='six'&&!gone)) window.__dayview=gone&&SIX.length?'six':'fold';
   const view=window.__dayview, past=view==='six'?SIX.slice():view==='all'?pastAll:pastAll.filter(big), folded=pastAll.length-past.length;
   window.__six=SIX;
@@ -1165,7 +1171,8 @@ function arrange(){
   const early=day===D.day&&now.getHours()<10;
   /* once the workday starts, base flow goes to the bottom (12 Nov 2026, her words: once I start my workday, the
      baseflow needs to move to the bottom) */
-  const ids=early?['rv','three','leannote','today','sat','int','flowwrap','moved','spent','wheel']
+  const over=day>D.day;   /* a finished day: what she did first, as complete, then her stream (14 Nov 2026) */
+  const ids=over?['three','today','spent','wheel','sat','int','flowwrap','moved'].concat(base):early?['rv','three','leannote','today','sat','int','flowwrap','moved','spent','wheel']
     :['today','three','spent','wheel','sat','int','flowwrap','moved'].concat(base);   /* the workday: my stream first, then the three (12 Nov 2026, her words: during the day the thing that is really helpful is seeing my stream and where I am in it … I don't want to have to scroll down) */
   /* NOW and NEXT lead whenever there is a plan for the rest of today; the three then wait below the calendar (12 Nov 2026) */
   /* before 10, base flow leads and nothing sits above it (12 Nov 2026, her words: before 10am I just want to see the base
