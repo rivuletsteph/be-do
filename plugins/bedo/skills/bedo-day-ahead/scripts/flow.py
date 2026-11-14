@@ -660,6 +660,9 @@ TELLING = re.compile(r"\b(tell|tells|telling|told|talk|talks|talking|talked|said
 MEALTIME = {'breakfast': 8 * 60, 'lunch': 12 * 60, 'dinner': 18 * 60 + 30, 'supper': 18 * 60 + 30}
 
 
+DAYTIME_END = '17:00'   # a highlight logged before this sits where it happened; one told after it is matched to its card
+
+
 def star_the_highlight(items):
     """A highlight is drawn when it happened, not when she named it (6 Nov 2026, her words: mark the actual event that
     was the highlight, not when I chose the highlight; 11 Nov 2026: the highlights should get tagged like when they
@@ -672,7 +675,8 @@ def star_the_highlight(items):
         that person after it, not the event itself
       · anyone else's 🌟 highlight moves to that moment (a meal it names, inside the event: pizza for lunch at
         school lands at noon), keeping the hour it was told as `told`
-    No match strong enough, and the row stays where it was."""
+    No match strong enough, and the row stays where it was. A highlight logged before DAYTIME_END already sits where
+    it happened (its time read from her photos): it keeps its own card (14 Nov 2026)."""
     mm = lambda s: int(s[:2]) * 60 + int(s[3:5])
     hm = lambda m: f'{m // 60 % 24:02d}:{m % 60:02d}'
     stop = {'the', 'and', 'with', 'for', 'was', 'that', 'there', 'him', 'her', 'his', 'hers', 'highlight', 'game',
@@ -690,6 +694,11 @@ def star_the_highlight(items):
     out = []
     for x in items:
         if not told(x):
+            out.append(x)
+            continue
+        if x['a'] < DAYTIME_END:
+            # placed during the day (by its photo, or told then): it keeps its own card at its own time (14 Nov 2026, her
+            # words: these need to be integrated into the stream with the correct times and pictures)
             out.append(x)
             continue
         hw = words(re.sub(r'^\W*', '', x['t']))
@@ -718,6 +727,27 @@ def star_the_highlight(items):
             at = meal
         out.append(dict(x, told=x['a'], a=hm(at), b=hm(at + 10)))
     return sorted(out, key=lambda x: (x['a'], x['k'] != 'event'))
+
+
+def did_of(rows, F, off, today):
+    """What she did that day, for a finished day's top list: each ⚡ action closed ✅ that day and each ⭐ highlight, in
+    time order, as the three's items (title, glyph, drive, why from her words)."""
+    out = []
+    for r in rows:
+        c = r['cellValuesByFieldId']
+        st = c.get(F['status']) or ''
+        st = st.get('name') if isinstance(st, dict) else st
+        pr = (c.get(F['practice']) or '').strip()
+        when = c.get(F['when'])
+        if not when or (dt.datetime.fromisoformat(when.replace('Z', '+00:00')) + off).date() != today:
+            continue
+        if not ((st == '✅ done' and pr.startswith('⚡')) or pr.startswith('⭐')):
+            continue
+        t = re.sub(r'^\s*(⚡|⭐)\s*', '', c.get(F['title']) or '')
+        her = (c.get(F['details']) or '').split('———')[0].strip().split('\n')[0]
+        rh = c.get(F['rhythm']) if F.get('rhythm') else ''
+        out.append(dict(t=t, g='⭐' if pr.startswith('⭐') else '', drive=rh or '', st='✅', why=her[:160], at=when))
+    return sorted(out, key=lambda x: x['at'])
 
 
 def links_of(c, F):
@@ -1108,6 +1138,11 @@ def build(D, rows, rhythms_read, L, behind_dir):
                           nx=((p.get('move') or {}).get('step')), who=(p.get('move') or {}).get('who') or [],
                           links=(p.get('move') or {}).get('links') or [], waiting=(p.get('move') or {}).get('waiting'))
                      for p in (D.get('pareto') or [])]
+    # a finished day shows what she did, never a recommendation (14 Nov 2026, her words: no reason to do this; the thing I
+    # accomplished was teaching and starting the trip): the actions closed that day and her ⭐ highlight; her
+    # own picks (--pick) take their place when she names them
+    data['picked'] = bool(L.get('_picks'))
+    data['did'] = did_of(rows, F, off, today)
     data['three_next'] = [dict(t=x.get('title'), kind=x.get('kind')) for x in (D.get('next') or [])]
     data['three_more'] = [dict(t=p.get('title'), why=p.get('why'), drive=p.get('drive'), g=p.get('emoji'), st=(p.get('st') or '').strip(),
                                nx=((p.get('move') or {}).get('step')), links=(p.get('move') or {}).get('links') or [])

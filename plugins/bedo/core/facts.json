@@ -310,7 +310,7 @@
   "day_strip_max": 5,
   "day_page_max": 6,
   "burst_seconds": 90,
-  "highlight_practices": ["highlight"],
+  "highlight_practices": ["highlight", "glimmer"],
   "_day_page": "2 Nov 2026: at most six photos on the day page, one per burst, the highlight and moments with people first; a place-only keeper gives way. The record keeps every link.",
   "drive_host": "drive.google.com",
   "drive_path": "/file/d/{id}/view",

@@ -190,7 +190,7 @@ in `facts.json`), softened.
 
 **Meaning, not efficiency, 24 Oct.** Looking at the outside band and the
 everything-else column: "those are often the things that are more interesting
-or meaningful." Rosa greeting everyone at Greenhouse was a pickup (caretaking)
+or meaningful." The dog greeting everyone at the school pickup was a pickup (caretaking)
 and also fun, "a glittery moment". "I recognize I'm trying to create this to
 show efficiency, but maybe that's not a good goal. Maybe it's really about
 showing meaning and meaningfulness." So:
