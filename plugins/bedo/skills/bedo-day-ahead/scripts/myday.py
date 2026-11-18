@@ -235,9 +235,7 @@ def today_link(rows, today, local, living=''):
     `deliverable` — the link the day ahead republishes to, and the pieces after
     it (the day's rows and photos, the close). The old living page is not a day's
     own. `row` is today's look ahead row, where a new link is written; None
-    before the row exists. `standing` is the link that never changes (the old
-    living page, which her browser opens at start): every publish to the day's
-    own page is also published there, so the browser always shows today."""
+    before the row exists."""
     url = row = None
     for r in sorted(rows, key=lambda r: r['created']):
         if not (r['practice'] or '').startswith(LOOK_AHEAD) or local(r['created']).date() != today:
@@ -246,4 +244,13 @@ def today_link(rows, today, local, living=''):
         u = (r.get('deliverable') or '').strip()
         if u and u != living:
             url = u
-    return dict(url=url, row=row, standing=living or None)
+    return dict(url=url, row=row)
+
+
+def page_links(rows, today, local, living=''):
+    """Where the day's page is published: the day's own link and its look ahead
+    row (`today_link`), and `standing`, the link that never changes (the old
+    living page, which her browser opens at start; her yes, 18 Nov 2026). Every
+    publish to the day's own page goes to the standing link too, so the browser
+    always shows today. None when the settings name no standing link."""
+    return dict(today_link(rows, today, local, living), standing=living or None)

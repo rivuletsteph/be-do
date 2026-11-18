@@ -77,10 +77,10 @@ def main():
     assert 'in the queue' not in [x['t'] for x in a['acts']] and a['past'] == ['2026-02-25', '2026-03-04'], a
     assert whole['begin'] == '2026-02-25' and whole['end'] == '2026-12-31'
     # the day's own link: none while the row carries the living page, then the day's
-    assert myday.today_link(ROWS, TODAY, local, 'https://example.invalid/living') == dict(url=None, row=ROWS[-1]['id'], standing='https://example.invalid/living')
+    assert myday.today_link(ROWS, TODAY, local, 'https://example.invalid/living') == dict(url=None, row=ROWS[-1]['id'])
     ROWS[-1]['deliverable'] = 'https://example.invalid/the-day'
     assert myday.today_link(ROWS, TODAY, local, 'https://example.invalid/living')['url'] == 'https://example.invalid/the-day'
-    assert myday.today_link(ROWS, TODAY + dt.timedelta(days=1), local) == dict(url=None, row=None, standing=None)
+    assert myday.today_link(ROWS, TODAY + dt.timedelta(days=1), local) == dict(url=None, row=None)
     # the ledger: a step finished long before the read still counts, and only once
     old = row('⚡ finished long ago', A, status='✅ done', end='2025-12-01T08:00:00Z', created='2025-12-01T08:00:00Z')
     card2, whole2 = myday.build(ROWS, LATEST, OPEN_IDS, lambda r: False, TODAY, DRIVES, {'map_end': '2026-12-31'}, local,

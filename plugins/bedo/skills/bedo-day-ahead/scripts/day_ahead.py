@@ -1315,7 +1315,7 @@ def main():
     ahead_ = horizon(open_rows, today, L, move)
     card1, whole = myday.build(rows, latest, {r['id'] for r in open_rows}, hidden_drive, today, DRIVES, L, local,
                                lambda r: bedo_reader.chain_key(r['key'], r['status'], r['id']), history)
-    plan['page'] = dict(title=chip, **myday.today_link(rows, today, local, L.get('artifact_url') or ''))
+    plan['page'] = dict(title=chip, **myday.page_links(rows, today, local, L.get('artifact_url') or ''))
 
     DATA = dict(
         chip=chip, weekN=wk, card=card1, whole=whole, date=today.isoformat(), dateLabel=f'{today:%A} {today.day} {today:%B}', lead=lead, chore=chore,
