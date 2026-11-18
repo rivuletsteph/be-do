@@ -569,7 +569,8 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
                           keeper=is_keeper(c, F, me),
                           # a time be•do placed from context is drawn as an estimate (8 Nov 2026, the gap-filling pass)
                           est='ESTIMATED FROM CONTEXT' in (c.get(F['details']) or '')))   # an action she finished, drawn with its green check (2 Nov 2026)
-    return star_the_highlight(fold_into_events(fold_done_plans(fill_between(flow_cards(sorted(items, key=lambda x: (x['a'], x['k'] != 'event')))))))
+    titles = {r['id']: re.sub(r'^⚡\s*', '', (r['cellValuesByFieldId'].get(F['title']) or '').strip()) for r in rows}
+    return link_moments(star_the_highlight(fold_into_events(fold_done_plans(fill_between(flow_cards(sorted(items, key=lambda x: (x['a'], x['k'] != 'event'))))))), titles)
 
 
 def flow_cards(items, gap=240):
@@ -634,8 +635,68 @@ def opens_to(c, F):
     her = re.sub(r'(?m)^overlap — .*$', '', her).strip()
     emo = c.get(F['emotion']) if F.get('emotion') else None
     emo = ', '.join(emo) if isinstance(emo, list) else (emo or '')
-    return dict(her=her[:700] or None, who=(c.get(F['person']) or '') if F.get('person') else '', felt_word=emo or None,
-                dev=screen_of(c, F))
+    # her words whole, never cut (18 Nov 2026, her words: click on it and have the whole entry pop up and be readable;
+    # a 700-character cap had cut a journal mid-thought)
+    journal = 'journal' in low(c.get(F['practice']))
+    return dict(her=her or None, who=(c.get(F['person']) or '') if F.get('person') else '', felt_word=emo or None,
+                dev=screen_of(c, F), pts=(key_points(d, her, True) if journal else None) or None, moment=moment_of(d), jr=journal or None)
+
+
+KEY_POINT = re.compile(r'(?m)^\s*[·•]\s+(.+?)\s*$')
+MOMENT = re.compile(r'(?mi)^\s*(?:\[be•do\]\s*)?moment\s*:\s*(rec[A-Za-z0-9]{14})\b')
+
+
+def be_do_part(d):
+    """Below the divider: be•do's own block, where the key points and the links live."""
+    parts = re.split(r'\n?(?:———|---|——)\n?', d or '', maxsplit=1)
+    return parts[1] if len(parts) > 1 else (d if (d or '').lstrip().startswith('[be•do]') else '')
+
+
+def key_points(d, her, journal=False, most=6):
+    """A 📒 journal's highlights (J2: one row with a short key-points block; 18 Nov 2026, her words: a list of highlights
+    from the journal entry). The block is `· ` lines in the row's [be•do] part, her words, written once by the chat that
+    logs it. A journal written before that has none: the first sentence of each paragraph stands in, so an older one
+    still reads as a list."""
+    pts = KEY_POINT.findall(be_do_part(d))
+    if pts or not journal or not her:   # only a journal is read for highlights; other rows keep their notes in the sheet
+        return pts[:most]
+    out = []
+    for para in [p.strip() for p in her.split('\n') if p.strip()]:
+        m = re.match(r'^(.{12,180}?[.!?])(\s|$)', para)
+        out.append(m.group(1) if m else (para[:160] + ('…' if len(para) > 160 else '')))
+    return out[:most] if len(out) > 1 else []
+
+
+def moment_of(d):
+    """The moment a journal is the download of (18 Nov 2026, her words: it'd be nice if it was clearly linked to the coffee,
+    because it's kind of the download of that): `moment: rec…` in its [be•do] part, written once by the chat
+    that logs it, the way a 📍 row names its place. The page works out after, before or during from the two times."""
+    m = MOMENT.search(be_do_part(d))
+    return m.group(1) if m else None
+
+
+def link_moments(items, titles=None):
+    """A journal and its moment point at each other: the journal's card says which moment it follows and jumps there, and
+    the moment's card points back to the journal. A moment folded into its calendar event is found on the event's card
+    (its `rids`). A moment not on today's page leaves the journal as it was."""
+    by = {}
+    for x in items:
+        for r in [x.get('rid')] + list(x.get('rids') or []):
+            if r:
+                by.setdefault(r, x)
+    for x in items:
+        m = x.get('moment')
+        if not m:
+            continue
+        host = by.get(m)
+        if host is None or host is x or not x.get('rid'):
+            x.pop('moment', None)
+            continue
+        host.setdefault('journals', []).append(x['rid'])
+        # named by the moment's own row (a calendar title can be a forwarded invite's subject line)
+        if (titles or {}).get(m):
+            x['momentT'] = titles[m]
+    return items
 
 
 def screen_of(c, F):
