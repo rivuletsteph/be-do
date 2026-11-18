@@ -21,7 +21,7 @@
 #                                # picture, this week's drives, and the evidence on each stale row (9 Nov 2026)
 #   bash run_checks.sh drives --rhythms rhythms.json --stream live.json [--stream older.json] [--json]
 #                                # the drive check (10 Nov 2026): effort with no drive, drives with no goal or date
-#   bash run_checks.sh close --chat URL --title "TITLE" [--date YYYY-MM-DD]   # the chat close: QA, entry, title
+#   bash run_checks.sh close --chat URL --title "TITLE" [--date YYYY-MM-DD --sessions page.json]   # the chat close: QA, entry, title, and a my day chat's branches
 #   bash run_checks.sh calendar event.json [--readback read.json --from CALENDAR_ID] [--rhythms rhythms.json]
 #   bash run_checks.sh calsync YYYY-MM-DD [--events events.json --calendars calendars.json]
 #                                # the dusk close: the calendar mirrors the stream (the done marks). First run lists
