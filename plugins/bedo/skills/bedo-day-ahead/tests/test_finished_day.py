@@ -45,6 +45,19 @@ def test_did_of():
     assert did[1]['g'] == '⭐' and all(x['st'] == '✅' for x in did)
 
 
+def test_picks_are_not_done():
+    """A recommended pick never counts as done on its own (18 Nov 2026, her words: number two and three did not happen on
+    the what you did, so there needs to be a better check there). The picks passed to a finished day's build are be•do's
+    three; what you did is only what the record shows closed that day."""
+    rows = [
+        rec('a', '2026-03-13T16:00:00.000Z', '⚡ action', '⚡ Lead the pond walk', '✅ done'),
+        rec('p', '2026-03-01T16:00:00.000Z', '⚡ action', '⚡ Ask the clinic about the form', '⬜ intention'),   # a pick, still open
+        rec('q', '2026-03-13T15:00:00.000Z', '⚡ action', '⚡ Send the grant list', '⬜ intention'),             # a pick, today, open
+    ]
+    did = flow.did_of(rows, F, Off(), dt.date(2026, 3, 13))
+    assert [x['t'] for x in did] == ['Lead the pond walk'], did
+
+
 def test_system_work_is_one_line():
     """The system's own work folds into one line (18 Nov 2026, her words: I did the weekly close, Claude handled the details)."""
     rows = [
@@ -93,7 +106,8 @@ def test_highlight_keeps_its_time():
 
 def test_engine():
     page = open(os.path.join(os.path.dirname(HERE), 'assets', 'flow_engine.html'), encoding='utf-8').read()
-    assert 'what you did' in page and "over3&&!D.picked?(D.did||[])" in page
+    assert 'what you did' in page and "const T=over3?(D.did||[]):(D.three||[]);" in page
+    assert 'D.picked' not in page      # a finished day's list never takes be•do's picks as done (18 Nov 2026)
     assert ".three li.did:before" in page and "class=\"${over3?'did'" in page   # checked, fully bright
     assert 'const SIX=[];' in page     # the day in six is retired
     assert "const ids=over?['three','today'" in page   # a finished day leads with what she did
@@ -101,6 +115,7 @@ def test_engine():
 
 def main():
     test_did_of()
+    test_picks_are_not_done()
     test_system_work_is_one_line()
     test_the_day_links_its_own_quest()
     test_highlight_keeps_its_time()

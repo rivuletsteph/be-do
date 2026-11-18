@@ -1179,9 +1179,9 @@ def build(D, rows, rhythms_read, L, behind_dir):
                           links=(p.get('move') or {}).get('links') or [], waiting=(p.get('move') or {}).get('waiting'))
                      for p in (D.get('pareto') or [])]
     # a finished day shows what she did, never a recommendation (14 Nov 2026, her words: no reason to do this; the thing I
-    # accomplished was teaching and starting the trip): the actions closed that day and her ⭐ highlight; her
-    # own picks (--pick) take their place when she names them
-    data['picked'] = bool(L.get('_picks'))
+    # accomplished was teaching and starting the trip): the actions closed that day and her ⭐ highlight, and only
+    # those. The --pick list is be•do's three, a recommendation, so a pick is never done on its own; it is on this
+    # list only once its row is ✅ (18 Nov 2026, her words: number two and three did not happen on the what you did)
     data['did'] = did_of(rows, F, off, today, hidden=set(L.get('hide_drives') or []))
     data['three_next'] = [dict(t=x.get('title'), kind=x.get('kind')) for x in (D.get('next') or [])]
     data['three_more'] = [dict(t=p.get('title'), why=p.get('why'), drive=p.get('drive'), g=p.get('emoji'), st=(p.get('st') or '').strip(),
