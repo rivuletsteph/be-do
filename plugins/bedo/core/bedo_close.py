@@ -171,7 +171,8 @@ def qa_done(rows, day):
                 None)
 
 
-CLOSED = (GLYPH['done'], GLYPH['window_closed'], GLYPH['dropped'])
+# closed: done, a window closed, dropped, or handed to a new chat with its next push (⏯️, the work carried on a row)
+CLOSED = (GLYPH['done'], GLYPH['window_closed'], GLYPH['dropped'], GLYPH['next_push'])
 
 
 def session_list(pages):

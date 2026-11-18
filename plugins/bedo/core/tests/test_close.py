@@ -250,8 +250,8 @@ class Branches(unittest.TestCase):
         self.assertNotIn('1024.1', br[2])
 
     def test_every_branch_closed_with_its_entry_passes(self):
-        s = self.sessions(('session_01B1', '☑️↳1024.1 ⏳ Sat 🗞️ morning gate'), ('session_01X', '▶️↳1025.1 ⏳ Sun another day'))
-        rows = [close_row(), entry(), entry(chat='https://claude.ai/code/session_01B1')]
+        s = self.sessions(('session_01B1', '☑️↳1024.1 ⏳ Sat 🗞️ morning gate'), ('session_01B3', '⏯️↳1024.3 ⏳ Sat 📅 a close carried on'), ('session_01X', '▶️↳1025.1 ⏳ Sun another day'))
+        rows = [close_row(), entry(), entry(chat='https://claude.ai/code/session_01B1'), entry(chat='https://claude.ai/code/session_01B3')]
         found = C.findings(rows, URL, self.TITLE, DAY, LOCAL, self.MORNING, s)
         self.assertTrue(all(ok for ok, _, _ in found), found)
 
