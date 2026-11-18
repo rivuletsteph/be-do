@@ -235,7 +235,9 @@ def today_link(rows, today, local, living=''):
     `deliverable` — the link the day ahead republishes to, and the pieces after
     it (the day's rows and photos, the close). The old living page is not a day's
     own. `row` is today's look ahead row, where a new link is written; None
-    before the row exists."""
+    before the row exists. `standing` is the link that never changes (the old
+    living page, which her browser opens at start): every publish to the day's
+    own page is also published there, so the browser always shows today."""
     url = row = None
     for r in sorted(rows, key=lambda r: r['created']):
         if not (r['practice'] or '').startswith(LOOK_AHEAD) or local(r['created']).date() != today:
@@ -244,4 +246,4 @@ def today_link(rows, today, local, living=''):
         u = (r.get('deliverable') or '').strip()
         if u and u != living:
             url = u
-    return dict(url=url, row=row)
+    return dict(url=url, row=row, standing=living or None)

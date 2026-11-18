@@ -378,8 +378,15 @@ contents never pass through the chat.
    **Every publish declares `capabilities: {downloads: true}`** (261106_download, her word 7 Nov 2026): the page's
    *download this page* button saves it as one .html, photos and all, through the viewer's own save prompt; without
    the capability the button falls back to a plain browser download, which the claude.ai frame may block.
-   `artifact_url` in the settings is the old single living page; it is never a
-   day's own, and the build ignores it as one. No Drive copy each time: the
+   **Then publish the same file to `page.standing`** (her yes, 18 Nov 2026: the
+   dashboard is the my day page, kept current at the standing link). That is
+   `artifact_url` in the settings, the old single living page that her browser
+   opens at start; it is never a day's own, and the build never takes it for
+   one. Every publish to `page.url` (the draft, the final, every later piece)
+   goes there too, in the same reply, with the same capabilities, so the browser
+   shows today without a chat remembering. The publish tool asks for a read of a
+   page before its first publish in a chat: read `page.standing` once, then
+   publish. `page.standing` empty: skip it. No Drive copy each time: the
    pages are exported at the desktop (her word, 28 Oct 2026).
 7. **Log the step**: the ◉ 👁️ look ahead row, dawn, with the day's page as its
    deliverable and one `[be•do]` line naming the three, the gaps and the clashes.
@@ -395,7 +402,7 @@ page was built with the map branch still open and showed nothing of her hour in 
 `cal/calendars.json`, then `list_events` for each calendar the plan names (the
 same window and arguments `bedo_cal.py --plan` prints, each saved to `cal/<who>.json`,
 every page) — and `cal`; then `build` (with the Drive key here, so her keeper photos
-are on their cards), then republish to `page.url`. The morning's `cal.json` is never
+are on their cards), then republish to `page.url` and to `page.standing`. The morning's `cal.json` is never
 the day as lived (11 Nov 2026: Tuesday's day-as-lived page was built on it, and
 the evening's events were the morning's). `build` stops with a `FIX calendar` when
 `cal.json` is not today's read or is more than 90 minutes older than the last fetch
