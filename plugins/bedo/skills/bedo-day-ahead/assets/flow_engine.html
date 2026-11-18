@@ -330,6 +330,22 @@ html[data-bedo="night"] .td{--k-logged:#4A4540;--k-logged-d:#D9CCBC;--k-stretch:
 .sat .menu summary::-webkit-details-marker{display:none}
 .sat .menu summary small{display:block;font:400 12px var(--mono);color:var(--muted);margin:1px 0 0 1.6em}
 .sat .menu summary .n{font:500 12px var(--mono);color:var(--accent)}
+/* the computer: a dashboard in three columns (18 Nov 2026, her words: right now it's optimized for my phone, and I'd like
+   for everything to reorganize into more of a dashboard when I'm on the computer). What to do on the left, my stream in
+   the middle, how the day is going on the right, each side column held in view while the stream scrolls. The phone keeps
+   its one column. */
+@media (min-width:1100px){
+main{max-width:1720px;padding:22px 28px 60px}
+.dash{display:grid;grid-template-columns:minmax(300px,24%) minmax(0,1fr) minmax(320px,27%);gap:24px;align-items:start;margin-top:16px}
+.dash>div{min-width:0}
+.dash .dL,.dash .dR{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto;scrollbar-width:thin;padding-bottom:8px}
+.dash .td{margin-top:0}
+.dash .dR>section:first-child .ftitle,.dash .dR>.wh:first-child{margin-top:0}
+.dash .dR .wh{margin-top:24px}
+.dash .dR .wh .wrap{grid-template-columns:1fr}.dash .dR .wh svg{max-width:280px;margin:0 auto}
+.dash .dR #questlink{margin-top:20px!important}
+.sheet{max-width:760px;margin:0 auto}
+}
 @media (max-width:620px){.wh .wrap{grid-template-columns:1fr}.wh svg{max-width:300px;margin:0 auto}}
 </style>
 </head>
@@ -1166,6 +1182,16 @@ function sat(){
    viz; and how I'm spending my time and the wellness wheel balance throughout the day with the timeline below). Before
    noon base flow leads; from noon, and on a day already gone, the time and the wheel lead with the timeline under them,
    and base flow closes the page. */
+/* the computer's three columns (18 Nov 2026): wrap() lays the placed sections into them, unwrap() puts them back in
+   one column first, so the phone and the computer read the same order of the day */
+const WIDE=window.matchMedia?matchMedia('(min-width:1100px)'):null, DASH={dL:['now','rv','three','int','sat','leannote'],dM:['today'],dR:['spent','wheel','moved','questlink']}; let QNEXT=null;
+function unwrap(){ const d=document.querySelector('main>.dash'); if(!d) return;
+  d.querySelectorAll(':scope>div>*').forEach(n=>{ if(n.id==='questlink'&&QNEXT&&QNEXT.parentNode) QNEXT.before(n); else if(n.id==='questlink') d.parentNode.appendChild(n); else d.before(n); }); d.remove(); }
+function wrap(order){ if(!(WIDE&&WIDE.matches)) return; const m=document.getElementById('h1'); if(!m) return;
+  const d=document.createElement('div'); d.className='dash'; m.after(d);
+  Object.keys(DASH).forEach(k=>{ const c=document.createElement('div'); c.className=k; d.appendChild(c);
+    const ids=order.filter(id=>DASH[k].includes(id)).concat(DASH[k].filter(id=>!order.includes(id)));
+    ids.forEach(id=>{ const n=document.getElementById(id); if(n){ if(id==='questlink'&&!QNEXT) QNEXT=n.nextSibling; c.appendChild(n); } }); }); }
 function arrange(){
   const $=id=>document.getElementById(id), m=$('h1'); if(!m) return;
   const now=new Date(), day=now.toLocaleDateString('en-CA'), am=day<D.day||(day===D.day&&now.getHours()<12);
@@ -1185,10 +1211,13 @@ function arrange(){
      flow at the top); NOW and NEXT stay off the page for now */
   let L_=ids; const nowEl=$('now'); if(nowEl) nowEl.hidden=true;
   const intEl=$('int'); if(intEl&&(D.three_more||[]).length) intEl.hidden=true;
+  unwrap();
   let at=m; L_.forEach(id=>{ const n=$(id); if(n){ at.after(n); at=n; } });
+  wrap(L_);
 }
 function draw(){ nowNext(); sat(); today(); card(); three(); const b=shape(); lists(b); intention(b); flow(b); spent(); moved(); wheel(); markTimeline(); arrange(); }
 document.addEventListener('bedo-theme',draw);
+if(WIDE) (WIDE.addEventListener?WIDE.addEventListener('change',draw):WIDE.addListener(draw));
 draw();
 </script>
 <script>
