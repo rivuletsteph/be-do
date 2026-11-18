@@ -435,9 +435,14 @@ python3 <repo>/plugins/bedo/assets/quest-day/quest_page.py \
 Exit 4 means no scored row that day: build nothing and say so. **Read every line
 as him**: second person, his register, a missed quest a next-time line. A line
 carrying the scorer's reasoning is reworded in his copy only (`--row`, see
-`assets/quest-day/README.md`); the stream row is never touched. Publish to
-`quest_url`. The last rebuild then draws the link on the my day page by itself,
-whenever the day has a scored ⚔️ row.
+`assets/quest-day/README.md`); the stream row is never touched. **Each day's quest
+is its own page** (her yes, 18 Nov 2026: the shared link had moved on to Tuesday
+and taken Monday's link with it): publish it as a new artifact (icon trophy,
+`capabilities: {downloads: true}` so its download button saves it), write its link
+to that day's ⚔️ row's `deliverable`, and republish it there on any later change.
+`quest_url`, the one living page, may also carry the newest day. The last rebuild
+then draws the day's own link on the my day page by itself (the ⚔️ row's link
+first, else `quest_url`), whenever the day has a scored ⚔️ row.
 
 **Saving to Drive from the cloud** is the Drive connector's `create_file`,
 `contentMimeType` `text/html`, conversion off, into the week's folder found by

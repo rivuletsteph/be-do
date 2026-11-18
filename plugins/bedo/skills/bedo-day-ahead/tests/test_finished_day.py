@@ -58,6 +58,21 @@ def test_system_work_is_one_line():
     assert len(flow.did_of(rows, F, Off(), dt.date(2026, 3, 13))) == 3   # no hidden drives, nothing folds
 
 
+def test_the_day_links_its_own_quest():
+    """Each day's quest page is its own, linked from that day's page (18 Nov 2026)."""
+    G = dict(F, deliverable='v')
+    rows = [dict(id='q', cellValuesByFieldId=dict(w='2026-03-14T03:30:00.000Z', p='⚔️ the quest', t='⚔️ the quest — 5 of 10',
+                                               s='◉ done', v='https://example.org/quest/day-13')),
+            dict(id='o', cellValuesByFieldId=dict(w='2026-03-15T03:30:00.000Z', p='⚔️ the quest', t='⚔️ the quest — 7 of 10',
+                                               s='◉ done', v='https://example.org/quest/day-14'))]
+    own = flow.day_quest_url(rows, G, Off(), dt.date(2026, 3, 13))
+    assert own == 'https://example.org/quest/day-13', own
+    sched = [dict(k='lived', t='⚔️ the quest — 5 of 10')]
+    assert flow.quest_link({'quest_url': 'https://example.org/quest/shared'}, sched, own)['u'] == own
+    assert flow.quest_link({'quest_url': 'https://example.org/quest/shared'}, sched)['u'].endswith('shared')
+    assert flow.day_quest_url(rows, F, Off(), dt.date(2026, 3, 13)) is None   # no deliverable field, no link
+
+
 def card(t, a, b, k='lived', **kw):
     return dict(k=k, t=t, a=a, b=b, **kw)
 
@@ -87,6 +102,7 @@ def test_engine():
 def main():
     test_did_of()
     test_system_work_is_one_line()
+    test_the_day_links_its_own_quest()
     test_highlight_keeps_its_time()
     test_engine()
     print('ok — a finished day: what she did, moments in the stream at their own time')

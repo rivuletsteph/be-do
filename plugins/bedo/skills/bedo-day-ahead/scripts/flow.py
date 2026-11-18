@@ -261,13 +261,35 @@ except Exception as _e:                             # a copy without the day beh
 BEING = ('eat', 'move', 'personal', 'recreation', 'travel')
 
 
-def quest_link(L, schedule):
+def day_quest_url(rows, F, off, today):
+    """The day's own quest page: the link in the deliverable of that day's ⚔️ row, or None."""
+    if not F.get('deliverable'):
+        return None
+    for r in rows:
+        c = r['cellValuesByFieldId']
+        when = c.get(F['when'])
+        if not when or '⚔' not in (c.get(F['practice']) or ''):
+            continue
+        if (dt.datetime.fromisoformat(when.replace('Z', '+00:00')) + off).date() != today:
+            continue
+        m = re.search(r'https?://[^\s)\]>"]+', c.get(F['deliverable']) or '')
+        if m:
+            return m.group(0)
+    return None
+
+
+def quest_link(L, schedule, own=None):
     """His quest page, linked on the day it scores (8 Nov 2026, her words: when I am wrapping up the day I want the
-    quest linked to it). `quest_url` from these settings, else her facts_local row; nothing without a
+    quest linked to it). The day's own page first (18 Nov 2026, her yes: each day's quest gets its own page, linked
+    from that day's page, so the shared link moving on to the next day never takes an older day's link with it): the
+    link on that day's ⚔️ row. Else `quest_url` from these settings, else her facts_local row; nothing without a
     scored ⚔️ row on the day."""
     if not any(x.get('k') == 'lived' and '⚔' in (x.get('t') or '') and re.search(r'\d+ of \d+', x.get('t') or '')
                for x in schedule or []):
         return None
+    if own:
+        name = L.get('quest_name')
+        return dict(u=own, t=f"⚔️ {name}'s quest" if name else '⚔️ the quest page')
     S = L if L.get('quest_url') else None
     if S is None:
         try:
@@ -1066,7 +1088,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
     data['schedule'] = schedule_of(today, rows, today_page, F, off, set(L.get('hide_drives') or []),
                                    L.get('_flows') or frozenset(), dict(with_drives(care_settings(L), W, L), _phase=L.get('_phase') or {}),
                                    L.get('_picks'), me=L.get('self_person') or '')
-    data['quest'] = quest_link(L, data['schedule'])
+    data['quest'] = quest_link(L, data['schedule'], day_quest_url(rows, F, off, today))
     # each card opens to what the 28 Oct day ahead showed (2 Nov 2026, her words: it would be so awesome to
     # have the day ahead show the detail about the next steps and everything the way that day ahead did):
     # her words on the row and its ways in (the chat, the deliverable, the links), from card 1's steps
