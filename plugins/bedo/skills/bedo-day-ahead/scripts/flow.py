@@ -493,7 +493,13 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
                 sa, sb = max(a, d0), min(z, d1)
                 if sb > sa and sb - sa >= dt.timedelta(minutes=20):
                     t12 = lambda d: f"{d.hour % 12 or 12}:{d.minute:02d} {'AM' if d.hour < 12 else 'PM'}"
-                    items.append(dict(k='lived', t=f'😴 sleep {t12(sa)}–{t12(sb)}', a=hm(sa), b=hm(sb), drive='', done=True, cat='sleep',
+                    # asleep and in bed, both (18 Nov 2026, her words: it should show asleep and in bed): the night's
+                    # asleep share, from the sleep row's own words (7 h 14 asleep), carried to the part inside the day
+                    ms = re.search(r'(\d+)\s*h\s*(\d+)\s*(?:min\s*)?asleep', c.get(F['details']) or '')
+                    bed = (z - a).total_seconds() / 60
+                    asl = round((int(ms.group(1)) * 60 + int(ms.group(2))) / bed * (sb - sa).total_seconds() / 60) if ms and bed > 0 else None
+                    lab = f'😴 in bed {t12(sa)}–{t12(sb)}' + (f' · {asl // 60} h {asl % 60:02d} asleep' if asl is not None else '')
+                    items.append(dict(k='lived', t=lab, a=hm(sa), b=hm(sb), drive='', done=True, cat='sleep', asleep=asl,
                                       rid=None, links=None, act=False, pt=False, felt=False, el='body', el2=None, mom=False))
             continue
         if a.date() != today:
