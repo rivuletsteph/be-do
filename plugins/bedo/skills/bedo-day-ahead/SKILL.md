@@ -163,6 +163,7 @@ zip; the installed loader fetches the change by itself.
 - `scripts/saturday.py` — a Saturday's things she might want to do, for the my day page.
 - `tests/test_saturday.py` — the Saturday list, and a weekend's steps off the clock.
 - `tests/test_flow.py` — base flow's balance and buffer, a drive's goal in her words, the hours the day holds and a step's guessed size.
+- `tests/test_journal.py` — a 📒 journal's highlights (`· ` lines in its [be•do] part), her whole words, and the `moment: rec…` line that ties it to the moment it is the download of.
 
 The runner copies them into the working folder fresh from the version store on
 every `prep`; nothing here is used from a project copy. Three things differ by
