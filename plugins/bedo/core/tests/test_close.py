@@ -232,5 +232,32 @@ class Stretches(unittest.TestCase):
         self.assertIn('not the sum of her stretches, 25m', why)
 
 
+
+class Branches(unittest.TestCase):
+    """A my day chat's day closes only when every branch of it wrote its entry and closed (18 Nov 2026)."""
+    TITLE = '✔️🔆1024 ⏳ Sat W43 my day'
+    MORNING = dt.datetime(2026, 10, 25, 8, 0)
+
+    def sessions(self, *pairs):
+        return C.session_list([{'ccr': {'data': [{'id': i, 'title': t} for i, t in pairs]}}])
+
+    def test_a_branch_left_open_with_no_entry_holds_the_close(self):
+        s = self.sessions(('session_01B1', '☑️↳1024.1 ⏳ Sat 🗞️ morning gate'), ('session_01B2', '▶️↳1024.2 ⏳ Sat 🗺️ a map'))
+        rows = [close_row(), entry(), entry(chat='https://claude.ai/code/session_01B1')]
+        found = C.findings(rows, URL, self.TITLE, DAY, LOCAL, self.MORNING, s)
+        br = [f for f in found if f[1] == 'branches'][0]
+        self.assertFalse(br[0]); self.assertIn('1024.2', br[2]); self.assertIn('session entry', br[2])
+        self.assertNotIn('1024.1', br[2])
+
+    def test_every_branch_closed_with_its_entry_passes(self):
+        s = self.sessions(('session_01B1', '☑️↳1024.1 ⏳ Sat 🗞️ morning gate'), ('session_01B3', '⏯️↳1024.3 ⏳ Sat 📅 a close carried on'), ('session_01X', '▶️↳1025.1 ⏳ Sun another day'))
+        rows = [close_row(), entry(), entry(chat='https://claude.ai/code/session_01B1'), entry(chat='https://claude.ai/code/session_01B3')]
+        found = C.findings(rows, URL, self.TITLE, DAY, LOCAL, self.MORNING, s)
+        self.assertTrue(all(ok for ok, _, _ in found), found)
+
+    def test_without_the_list_it_says_so(self):
+        found = C.findings([close_row(), entry()], URL, self.TITLE, DAY, LOCAL, self.MORNING, 'missing')
+        self.assertFalse([f for f in found if f[1] == 'branches'][0][0])
+
 if __name__ == '__main__':
     unittest.main()

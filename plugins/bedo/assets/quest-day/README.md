@@ -5,8 +5,9 @@ trophy photo, the five realms with two mini-quests each, and the week line. Sett
 standing format (her words: I love this format, please save this artifact format; it works so well).
 It is built **at the dusk wrap-up** and linked on the my day page (her word, 8 Nov 2026), and gone over the next morning (her word, 4 Nov 2026: go over it
 every morning and go over it with him when he's rested — here's what went great yesterday, here's where you missed out — so he
-can correct it; in time it grows into planning). It publishes to one living page (`quest_url` in her settings), and the
-morning chat's preflight hands her the link. She can still ask for a day by hand, with photos.
+can correct it; in time it grows into planning). Each day's quest is its own page (18 Nov 2026), its link on that day's ⚔️ row (`deliverable`), and
+the my day page links it from there; `quest_url` in her settings, the one living page, may also carry the newest day, and the
+morning chat's preflight hands her that link. The page has a download button (publish with the `downloads` capability). She can still ask for a day by hand, with photos.
 
 Rules the page keeps:
 - **Written to the child**, second person, in his register. A missed quest is a *next time* line, never a mark against him.

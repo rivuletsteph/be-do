@@ -22,9 +22,15 @@ with the chat. Three checks, in her order:
           ☑️ for ✅ done, ▶️ ⏯️ or ⏸️ for work still in motion. A my day
           chat keeps ▶️ at its dusk close and takes ✔️ the next morning,
           once she has seen its page (J8; her yes, 11 Nov 2026)
+  branches a my day chat's day closes only when every branch of that day
+          (a chat titled ↳MMDD.n) has written its session entry and closed
+          with ☑️ or ✔️ (her words, 18 Nov 2026: all of the branches for Monday
+          need to write a session entry and close, and that needs to be
+          codified). Pass the chat list with --sessions (list_sessions, mine,
+          every page); without it the check says the list is missing
 
-    python3 bedo_close.py --live --chat URL --title "TITLE" [--date YYYY-MM-DD]
-    python3 bedo_close.py --rows rows.json --chat URL --title "TITLE" [--date …]
+    python3 bedo_close.py --live --chat URL --title "TITLE" [--date YYYY-MM-DD] [--sessions page.json …]
+    python3 bedo_close.py --rows rows.json --chat URL --title "TITLE" [--date …] [--sessions page.json …]
 
 `--date` is a my day chat's own day (from its title); without it the check
 reads the rows for the chat's entry wherever they are. Exit 0 when all three
@@ -165,7 +171,39 @@ def qa_done(rows, day):
                 None)
 
 
-def findings(rows, chat_url, title, day=None, local=None, now=None):
+# closed: done, a window closed, dropped, or handed to a new chat with its next push (⏯️, the work carried on a row)
+CLOSED = (GLYPH['done'], GLYPH['window_closed'], GLYPH['dropped'], GLYPH['next_push'])
+
+
+def session_list(pages):
+    """Sessions from list_sessions pages as they came (bare or wrapped as {"ccr": {...}}): [{id, title}]."""
+    out = []
+    for d in pages or []:
+        d = d.get('ccr', d) if isinstance(d, dict) else d
+        out += (d.get('data') if isinstance(d, dict) else d) or []
+    return out
+
+
+def branches_qa(rows, day, sessions):
+    """[(title, what's missing)] for each branch of `day` (↳MMDD.n) that has not written its session entry
+    or not closed (18 Nov 2026: Monday's GLO2 map branch sat open with no entry, and the day page showed
+    nothing of her hour of work in it)."""
+    tag = re.compile(r'↳' + day.strftime('%m%d') + r'\.\d+')
+    chats = ' '.join(r.get('chat') or '' for r in rows)
+    out = []
+    for x in sessions:
+        t = x.get('title') or ''
+        if not tag.search(t):
+            continue
+        sid = (x.get('id') or '').strip()
+        miss = ([] if sid and sid in chats else ['its session entry']) + \
+               ([] if lead_glyph(t) in CLOSED else ['its close (☑️)'])
+        if miss:
+            out.append((t, ' and '.join(miss)))
+    return out
+
+
+def findings(rows, chat_url, title, day=None, local=None, now=None, sessions=None):
     """[(ok, what, why)] in her order: qa, entry, title."""
     local = local or {}
     out = []
@@ -185,6 +223,16 @@ def findings(rows, chat_url, title, day=None, local=None, now=None):
         out.append((not issues, 'QA', '; '.join(issues) or why))
     else:
         out.append((False, 'QA', 'nothing to check yet — the session entry comes next, then this runs on it'))
+
+    if day and is_window(title) and sessions is not None:
+        if sessions == 'missing':
+            out.append((False, 'branches', 'pass the chat list (--sessions, every page of list_sessions mine) so '
+                                           "the day's branches can be checked"))
+        else:
+            left = branches_qa(rows, day, sessions)
+            out.append((not left, 'branches', 'every branch of the day wrote its entry and closed' if not left else
+                        '; '.join(f'“{t}” needs {m}' for t, m in left) +
+                        ' — message each to write its entry and close, carrying what is still open'))
 
     if entry:
         out.append((True, 'session entry', f'{entry.get("key") or "?"} · {entry.get("status")} · {entry.get("title")}'))
@@ -250,6 +298,7 @@ def main():
     ap.add_argument('--date', help="a my day chat's own day, YYYY-MM-DD")
     ap.add_argument('--live', action='store_true')
     ap.add_argument('--rows', help='a read of the rows, as rows (logical names) or a dump')
+    ap.add_argument('--sessions', action='append', help='a page of list_sessions (mine), as it came; give every page')
     a = ap.parse_args()
     local = load_local()
     day = dt.date.fromisoformat(a.date) if a.date else None
@@ -263,7 +312,10 @@ def main():
         sys.exit('give --live, or --rows')
     # the local clock, for a my day chat: its own night keeps ▶️, the morning after wants ✔️
     now = None if bedo_clock.problem(local) else bedo_clock.now_local(local)
-    found = findings(rows, a.chat, a.title, day, local, now)
+    # a my day chat's close always checks its branches: without the list it says the list is missing
+    sessions = (session_list([json.load(open(f, encoding='utf-8')) for f in a.sessions]) if a.sessions
+                else 'missing' if day and is_window(a.title) else None)
+    found = findings(rows, a.chat, a.title, day, local, now, sessions)
     print(render(a.title, found))
     sys.exit(0 if all(ok for ok, _, _ in found) else 1)
 

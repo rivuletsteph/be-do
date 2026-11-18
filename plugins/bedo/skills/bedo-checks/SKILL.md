@@ -42,7 +42,7 @@ it runs one, so nothing has to be remembered.
 | the weekly close | `order --json` | her predicted flow order, written to the catalog |
 | every calendar write, before calling it done | `calendar event.json`, then again with `--readback` | the calendar named, the write read back, work in purple |
 | the 📧 clear gmail inbox, before anything is archived | `inbox threads.json --archive planned.json` | her automatic keeps are never archived |
-| the end of every chat: she says *let's end the session*, or plainly that she's done | `close --chat URL --title "TITLE"` | QA, then the session entry, then the rename; the chat is done when it prints `closed` |
+| the end of every chat: she says *let's end the session*, or plainly that she's done | `close --chat URL --title "TITLE"` (a my day chat: `--date` and `--sessions`) | QA, then the session entry, then the rename; a my day chat also waits for every branch of its day to write its entry and close; the chat is done when it prints `closed` |
 | only if she asks for a Day Behind by name | `daygate YYYY-MM-DD` | the day behind is retired (8 Nov 2026); nothing routine runs this |
 
 ## Running it

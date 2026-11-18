@@ -261,13 +261,35 @@ except Exception as _e:                             # a copy without the day beh
 BEING = ('eat', 'move', 'personal', 'recreation', 'travel')
 
 
-def quest_link(L, schedule):
+def day_quest_url(rows, F, off, today):
+    """The day's own quest page: the link in the deliverable of that day's ⚔️ row, or None."""
+    if not F.get('deliverable'):
+        return None
+    for r in rows:
+        c = r['cellValuesByFieldId']
+        when = c.get(F['when'])
+        if not when or '⚔' not in (c.get(F['practice']) or ''):
+            continue
+        if (dt.datetime.fromisoformat(when.replace('Z', '+00:00')) + off).date() != today:
+            continue
+        m = re.search(r'https?://[^\s)\]>"]+', c.get(F['deliverable']) or '')
+        if m:
+            return m.group(0)
+    return None
+
+
+def quest_link(L, schedule, own=None):
     """His quest page, linked on the day it scores (8 Nov 2026, her words: when I am wrapping up the day I want the
-    quest linked to it). `quest_url` from these settings, else her facts_local row; nothing without a
+    quest linked to it). The day's own page first (18 Nov 2026, her yes: each day's quest gets its own page, linked
+    from that day's page, so the shared link moving on to the next day never takes an older day's link with it): the
+    link on that day's ⚔️ row. Else `quest_url` from these settings, else her facts_local row; nothing without a
     scored ⚔️ row on the day."""
     if not any(x.get('k') == 'lived' and '⚔' in (x.get('t') or '') and re.search(r'\d+ of \d+', x.get('t') or '')
                for x in schedule or []):
         return None
+    if own:
+        name = L.get('quest_name')
+        return dict(u=own, t=f"⚔️ {name}'s quest" if name else '⚔️ the quest page')
     S = L if L.get('quest_url') else None
     if S is None:
         try:
@@ -493,7 +515,13 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
                 sa, sb = max(a, d0), min(z, d1)
                 if sb > sa and sb - sa >= dt.timedelta(minutes=20):
                     t12 = lambda d: f"{d.hour % 12 or 12}:{d.minute:02d} {'AM' if d.hour < 12 else 'PM'}"
-                    items.append(dict(k='lived', t=f'😴 sleep {t12(sa)}–{t12(sb)}', a=hm(sa), b=hm(sb), drive='', done=True, cat='sleep',
+                    # asleep and in bed, both (18 Nov 2026, her words: it should show asleep and in bed): the night's
+                    # asleep share, from the sleep row's own words (7 h 14 asleep), carried to the part inside the day
+                    ms = re.search(r'(\d+)\s*h\s*(\d+)\s*(?:min\s*)?asleep', c.get(F['details']) or '')
+                    bed = (z - a).total_seconds() / 60
+                    asl = round((int(ms.group(1)) * 60 + int(ms.group(2))) / bed * (sb - sa).total_seconds() / 60) if ms and bed > 0 else None
+                    lab = f'😴 in bed {t12(sa)}–{t12(sb)}' + (f' · {asl // 60} h {asl % 60:02d} asleep' if asl is not None else '')
+                    items.append(dict(k='lived', t=lab, a=hm(sa), b=hm(sb), drive='', done=True, cat='sleep', asleep=asl,
                                       rid=None, links=None, act=False, pt=False, felt=False, el='body', el2=None, mom=False))
             continue
         if a.date() != today:
@@ -729,7 +757,7 @@ def star_the_highlight(items):
     return sorted(out, key=lambda x: (x['a'], x['k'] != 'event'))
 
 
-def did_of(rows, F, off, today):
+def did_of(rows, F, off, today, hidden=()):
     """What she did that day, for a finished day's top list: each ⚡ action closed ✅ that day and each ⭐ highlight, in
     time order, as the three's items (title, glyph, drive, why from her words)."""
     out = []
@@ -747,7 +775,19 @@ def did_of(rows, F, off, today):
         her = (c.get(F['details']) or '').split('———')[0].strip().split('\n')[0]
         rh = c.get(F['rhythm']) if F.get('rhythm') else ''
         out.append(dict(t=t, g='⭐' if pr.startswith('⭐') else '', drive=rh or '', st='✅', why=her[:160], at=when))
-    return sorted(out, key=lambda x: x['at'])
+    out = sorted(out, key=lambda x: x['at'])
+    # the system's own work is one line, never one per session (18 Nov 2026, her words: I did the weekly close, Claude
+    # handled the details): every action on a hidden drive (hide_drives, be•do) folds into one item at its first time,
+    # its sessions named underneath; a weekly close among them names the line
+    sys_ = [x for x in out if x['drive'] in (hidden or ())]
+    if sys_:
+        rest = [x for x in out if x not in sys_]
+        close = any(re.search(r'(?i)weekly close|w\d+ cloned|the split', x['t']) for x in sys_)
+        head = ('the weekly close' if close else 'be•do work') + ', Claude handled the details'
+        why = ' · '.join(x['t'] for x in sys_)
+        rest.append(dict(t=head, g='', drive=sys_[0]['drive'], st='✅', why=why[:240], at=sys_[0]['at']))
+        out = sorted(rest, key=lambda x: x['at'])
+    return out
 
 
 def links_of(c, F):
@@ -1048,7 +1088,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
     data['schedule'] = schedule_of(today, rows, today_page, F, off, set(L.get('hide_drives') or []),
                                    L.get('_flows') or frozenset(), dict(with_drives(care_settings(L), W, L), _phase=L.get('_phase') or {}),
                                    L.get('_picks'), me=L.get('self_person') or '')
-    data['quest'] = quest_link(L, data['schedule'])
+    data['quest'] = quest_link(L, data['schedule'], day_quest_url(rows, F, off, today))
     # each card opens to what the 28 Oct day ahead showed (2 Nov 2026, her words: it would be so awesome to
     # have the day ahead show the detail about the next steps and everything the way that day ahead did):
     # her words on the row and its ways in (the chat, the deliverable, the links), from card 1's steps
@@ -1142,7 +1182,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
     # accomplished was teaching and starting the trip): the actions closed that day and her ⭐ highlight; her
     # own picks (--pick) take their place when she names them
     data['picked'] = bool(L.get('_picks'))
-    data['did'] = did_of(rows, F, off, today)
+    data['did'] = did_of(rows, F, off, today, hidden=set(L.get('hide_drives') or []))
     data['three_next'] = [dict(t=x.get('title'), kind=x.get('kind')) for x in (D.get('next') or [])]
     data['three_more'] = [dict(t=p.get('title'), why=p.get('why'), drive=p.get('drive'), g=p.get('emoji'), st=(p.get('st') or '').strip(),
                                nx=((p.get('move') or {}).get('step')), links=(p.get('move') or {}).get('links') or [])

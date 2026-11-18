@@ -388,7 +388,10 @@ contents never pass through the chat.
 
 The my day page is the only page she sees (her words, 8 Nov 2026: all I want to see moving forward is my day, and when I am wrapping up the day I want the quest linked to it). Once the
 day is over, the my day page is rebuilt one last time to **the whole day as
-lived**: `fetch`; then **read the calendars again** — `list_calendars` saved to
+lived**. **First, the day's chat sweep** (her words, 18 Nov 2026: the chat sweep needs to happen before the my day
+gets built): every branch of the day (`↳MMDD.n`) has written its session entry and closed — run `chats`, then the
+`branches` line of `close --date … --sessions …` — so its time is in the stream the page is built from. Monday 16 Nov's
+page was built with the map branch still open and showed nothing of her hour in it. Then `fetch`; then **read the calendars again** — `list_calendars` saved to
 `cal/calendars.json`, then `list_events` for each calendar the plan names (the
 same window and arguments `bedo_cal.py --plan` prints, each saved to `cal/<who>.json`,
 every page) — and `cal`; then `build` (with the Drive key here, so her keeper photos
@@ -432,9 +435,14 @@ python3 <repo>/plugins/bedo/assets/quest-day/quest_page.py \
 Exit 4 means no scored row that day: build nothing and say so. **Read every line
 as him**: second person, his register, a missed quest a next-time line. A line
 carrying the scorer's reasoning is reworded in his copy only (`--row`, see
-`assets/quest-day/README.md`); the stream row is never touched. Publish to
-`quest_url`. The last rebuild then draws the link on the my day page by itself,
-whenever the day has a scored ⚔️ row.
+`assets/quest-day/README.md`); the stream row is never touched. **Each day's quest
+is its own page** (her yes, 18 Nov 2026: the shared link had moved on to Tuesday
+and taken Monday's link with it): publish it as a new artifact (icon trophy,
+`capabilities: {downloads: true}` so its download button saves it), write its link
+to that day's ⚔️ row's `deliverable`, and republish it there on any later change.
+`quest_url`, the one living page, may also carry the newest day. The last rebuild
+then draws the day's own link on the my day page by itself (the ⚔️ row's link
+first, else `quest_url`), whenever the day has a scored ⚔️ row.
 
 **Saving to Drive from the cloud** is the Drive connector's `create_file`,
 `contentMimeType` `text/html`, conversion off, into the week's folder found by

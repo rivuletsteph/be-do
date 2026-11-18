@@ -45,6 +45,34 @@ def test_did_of():
     assert did[1]['g'] == '⭐' and all(x['st'] == '✅' for x in did)
 
 
+def test_system_work_is_one_line():
+    """The system's own work folds into one line (18 Nov 2026, her words: I did the weekly close, Claude handled the details)."""
+    rows = [
+        rec('a', '2026-03-13T14:00:00.000Z', '⚡ action', '⚡ Chat sweep: two branches archived', '✅ done', '', 'Sysdrive'),
+        rec('b', '2026-03-13T15:00:00.000Z', '⚡ action', '⚡ Swept 40 chats; w11 cloned', '✅ done', '', 'Sysdrive'),
+        rec('c', '2026-03-13T16:00:00.000Z', '⚡ action', '⚡ Lead the pond walk', '✅ done', '', 'Home'),
+    ]
+    did = flow.did_of(rows, F, Off(), dt.date(2026, 3, 13), hidden={'Sysdrive'})
+    assert [x['t'] for x in did] == ['the weekly close, Claude handled the details', 'Lead the pond walk'], did
+    assert 'Swept 40 chats' in did[0]['why'], did[0]
+    assert len(flow.did_of(rows, F, Off(), dt.date(2026, 3, 13))) == 3   # no hidden drives, nothing folds
+
+
+def test_the_day_links_its_own_quest():
+    """Each day's quest page is its own, linked from that day's page (18 Nov 2026)."""
+    G = dict(F, deliverable='v')
+    rows = [dict(id='q', cellValuesByFieldId=dict(w='2026-03-14T03:30:00.000Z', p='⚔️ the quest', t='⚔️ the quest — 5 of 10',
+                                               s='◉ done', v='https://example.org/quest/day-13')),
+            dict(id='o', cellValuesByFieldId=dict(w='2026-03-15T03:30:00.000Z', p='⚔️ the quest', t='⚔️ the quest — 7 of 10',
+                                               s='◉ done', v='https://example.org/quest/day-14'))]
+    own = flow.day_quest_url(rows, G, Off(), dt.date(2026, 3, 13))
+    assert own == 'https://example.org/quest/day-13', own
+    sched = [dict(k='lived', t='⚔️ the quest — 5 of 10')]
+    assert flow.quest_link({'quest_url': 'https://example.org/quest/shared'}, sched, own)['u'] == own
+    assert flow.quest_link({'quest_url': 'https://example.org/quest/shared'}, sched)['u'].endswith('shared')
+    assert flow.day_quest_url(rows, F, Off(), dt.date(2026, 3, 13)) is None   # no deliverable field, no link
+
+
 def card(t, a, b, k='lived', **kw):
     return dict(k=k, t=t, a=a, b=b, **kw)
 
@@ -73,6 +101,8 @@ def test_engine():
 
 def main():
     test_did_of()
+    test_system_work_is_one_line()
+    test_the_day_links_its_own_quest()
     test_highlight_keeps_its_time()
     test_engine()
     print('ok — a finished day: what she did, moments in the stream at their own time')
