@@ -557,7 +557,7 @@ function three(){
      to do this … I like this list and could be listed at the top as complete): her picks when she named them, else the
      actions closed that day and her highlight */
   const over3=new Date().toLocaleDateString('en-CA')>D.day;
-  const el=document.getElementById('three'); const T=over3&&!D.picked?(D.did||[]):(D.three||[]); if(!T.length){ el.innerHTML=''; return; }
+  const el=document.getElementById('three'); const T=over3?(D.did||[]):(D.three||[]); if(!T.length){ el.innerHTML=''; return; }
   const nt=t=>String(t||'').replace(/^⚡\s*/,'').trim();
   const doneSet=new Set((D.done||[]).map(x=>nt(x.t)));
   const nxt=(D.three_next||[]).filter(x=>x&&x.t); const M=D.three_more||[];
