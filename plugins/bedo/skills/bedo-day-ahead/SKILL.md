@@ -388,7 +388,10 @@ contents never pass through the chat.
 
 The my day page is the only page she sees (her words, 8 Nov 2026: all I want to see moving forward is my day, and when I am wrapping up the day I want the quest linked to it). Once the
 day is over, the my day page is rebuilt one last time to **the whole day as
-lived**: `fetch`; then **read the calendars again** — `list_calendars` saved to
+lived**. **First, the day's chat sweep** (her words, 18 Nov 2026: the chat sweep needs to happen before the my day
+gets built): every branch of the day (`↳MMDD.n`) has written its session entry and closed — run `chats`, then the
+`branches` line of `close --date … --sessions …` — so its time is in the stream the page is built from. Monday 16 Nov's
+page was built with the map branch still open and showed nothing of her hour in it. Then `fetch`; then **read the calendars again** — `list_calendars` saved to
 `cal/calendars.json`, then `list_events` for each calendar the plan names (the
 same window and arguments `bedo_cal.py --plan` prints, each saved to `cal/<who>.json`,
 every page) — and `cal`; then `build` (with the Drive key here, so her keeper photos
