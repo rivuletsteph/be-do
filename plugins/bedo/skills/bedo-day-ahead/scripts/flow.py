@@ -729,7 +729,7 @@ def star_the_highlight(items):
     return sorted(out, key=lambda x: (x['a'], x['k'] != 'event'))
 
 
-def did_of(rows, F, off, today):
+def did_of(rows, F, off, today, hidden=()):
     """What she did that day, for a finished day's top list: each ⚡ action closed ✅ that day and each ⭐ highlight, in
     time order, as the three's items (title, glyph, drive, why from her words)."""
     out = []
@@ -747,7 +747,19 @@ def did_of(rows, F, off, today):
         her = (c.get(F['details']) or '').split('———')[0].strip().split('\n')[0]
         rh = c.get(F['rhythm']) if F.get('rhythm') else ''
         out.append(dict(t=t, g='⭐' if pr.startswith('⭐') else '', drive=rh or '', st='✅', why=her[:160], at=when))
-    return sorted(out, key=lambda x: x['at'])
+    out = sorted(out, key=lambda x: x['at'])
+    # the system's own work is one line, never one per session (18 Nov 2026, her words: I did the weekly close, Claude
+    # handled the details): every action on a hidden drive (hide_drives, be•do) folds into one item at its first time,
+    # its sessions named underneath; a weekly close among them names the line
+    sys_ = [x for x in out if x['drive'] in (hidden or ())]
+    if sys_:
+        rest = [x for x in out if x not in sys_]
+        close = any(re.search(r'(?i)weekly close|w\d+ cloned|the split', x['t']) for x in sys_)
+        head = ('the weekly close' if close else 'be•do work') + ', Claude handled the details'
+        why = ' · '.join(x['t'] for x in sys_)
+        rest.append(dict(t=head, g='', drive=sys_[0]['drive'], st='✅', why=why[:240], at=sys_[0]['at']))
+        out = sorted(rest, key=lambda x: x['at'])
+    return out
 
 
 def links_of(c, F):
@@ -1142,7 +1154,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
     # accomplished was teaching and starting the trip): the actions closed that day and her ⭐ highlight; her
     # own picks (--pick) take their place when she names them
     data['picked'] = bool(L.get('_picks'))
-    data['did'] = did_of(rows, F, off, today)
+    data['did'] = did_of(rows, F, off, today, hidden=set(L.get('hide_drives') or []))
     data['three_next'] = [dict(t=x.get('title'), kind=x.get('kind')) for x in (D.get('next') or [])]
     data['three_more'] = [dict(t=p.get('title'), why=p.get('why'), drive=p.get('drive'), g=p.get('emoji'), st=(p.get('st') or '').strip(),
                                nx=((p.get('move') or {}).get('step')), links=(p.get('move') or {}).get('links') or [])
