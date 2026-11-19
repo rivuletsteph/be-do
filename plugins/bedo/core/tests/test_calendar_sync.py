@@ -99,6 +99,15 @@ def main():
     check('a dropped event still on a synced calendar is listed to move', [m['key'] for m in P.get('to_move', [])], ['b'])
     check('one already on the dropped calendar is recognised, not called deleted',
           [u['why'] for u in P['unchanged'] if u['row'] == 'row 5'], ['already on dropped'])
+    # 19 Nov 2026: the plan ends with the marker the dusk close row carries, and a my day close waits for it
+    check('the plan ends with its marker and the count of changes', P.get('marker'),
+          f"calsync done 2026-09-23 · {len(P['changes'])} changed")
+    check('a day with links waits for the plan for its marker', 'marker' in L, False)
+    none = subprocess.run([sys.executable, SYNC, '--list', '--day', '2026-09-25', '--local', w('local2.json', LOCAL),
+                           '--stream', w('w2.json', {'records': STREAM, 'metadata': {'totalRecordCount': len(STREAM)}})],
+                          capture_output=True, text=True, encoding='utf-8', env=env)
+    check('a day with nothing linked gets its marker from the list', json.loads(none.stdout or '{}').get('marker'),
+          'calsync done 2026-09-25 · nothing linked')
     # the live read (11 Nov 2026): the checks' own settings name the fields, and the rows arrive
     # already in hand, in the API's shape (`fields`), as two reads: the day, and the week's linked rows
     sys.path.insert(0, os.path.dirname(HERE))

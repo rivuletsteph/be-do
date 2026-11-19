@@ -168,7 +168,7 @@
  "skills_schedule": {
   "_about": "20 Oct 2026, her words: I have a lot of skills and I just need to standardize when they get run, so I don't have to remember them. Every skill has a set time, kept here, the one place a skill's timing lives; preflight reads it at each chat's first reply and names what is due.",
   "dawn": ["👁️ look ahead (bedo-day-ahead)", "remaining, every reply"],
-  "dusk": ["📧 clear gmail inbox (clear-inbox, then inbox)", "photos (dusk --photos)", "dayqa", "dusk audit", "the quest page, linked on my day (bedo-day-ahead, The day done)", "remaining, every reply"],
+  "dusk": ["📧 clear gmail inbox (clear-inbox, then inbox)", "photos (dusk --photos)", "dayqa", "calsync (the calendar's done marks)", "dusk audit", "the quest page, linked on my day (bedo-day-ahead, The day done)", "remaining, every reply"],
   "sunday": ["the weekly close (bedo-weekly-close)", "the events calendar for the next two weeks, at the close (facts_local events_calendar)"],
   "monthly": ["the ahead review, by the 5th (bedo-ahead-review)"],
   "when_it_comes_up": ["provisions (meals)", "shopping-watch (something to buy)", "session-entry (a chat's close)"],
@@ -217,6 +217,10 @@
   "future_grace_minutes": 5,
   "overnight_practices": ["sleep"],
   "not_activities": ["location"]
+ },
+ "calsync": {
+  "_about": "19 Nov 2026, her words: a lot of the items on my calendar have not been checked off even though they were things that I did. calsync was a line in the checks' table that nothing ran, so the 16 and 17 Nov dusk closes passed without it. Its run prints this marker with the day; the dusk close row carries it in its [be•do] block, once the changes are made, and a my day chat's close waits for it, as it waits for dayqa's.",
+  "marker": "calsync done"
  },
  "dayqa": {
   "_about": "run_checks.sh dayqa DATE: meals, gaps, movement, people and device in one list. Every fill is ESTIMATED FROM CONTEXT and names its source; the dusk close shows it, writes only what she accepts, and carries the marker line in its [be•do] block. The look behind will not build a day whose rows don't carry the marker.",

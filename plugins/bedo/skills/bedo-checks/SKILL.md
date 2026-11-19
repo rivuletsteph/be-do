@@ -32,7 +32,7 @@ it runs one, so nothing has to be remembered.
 | before every push, and before a pull request is opened or its text edited | `outgoing --title "TITLE" --text pr.md` | open or push only on `0 hit(s)`, with exactly the text it checked; a hit is rewritten, never pasted anywhere public |
 | before the dusk close row | `dusk [--photos folder.json]` | the one-pass dusk list, and the day's photos |
 | the dusk close, before its close row | `dayqa YYYY-MM-DD` | be•do's own calls on the day first, then one list for her to accept |
-| the dusk close, once the day's rows are written | `calsync YYYY-MM-DD` | the calendar mirrors the stream: the done marks |
+| the dusk close, once the day's rows are written | `calsync YYYY-MM-DD` | the calendar mirrors the stream: the done marks. Its marker line goes in the dusk close row, and a my day chat's `close` waits for it |
 | the dusk close after `dayqa`, the weekly close, and on call | `chats --sessions mine.json` | the chat sweep: every open chat against its objective and its row |
 | the meals alone | `meals --json` | each meal's prep and eating, placed from context |
 | a session entry | `stretches FILE --day YYYY-MM-DD --json` | the session's time, from her own stretches |

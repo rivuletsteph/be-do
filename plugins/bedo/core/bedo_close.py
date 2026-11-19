@@ -5,8 +5,10 @@ way, in order — QA, then the session entry, then the rename to done).
 She starts it by saying *let's end the session*, or plainly that she's done
 with the chat. Three checks, in her order:
 
-  qa      a my day chat's day carries the dayqa marker line (the dusk close
-          writes it). Any other chat: the session entry passes the entry
+  qa      a my day chat's day carries the dayqa marker line and the calsync
+          marker line (the dusk close writes both; 19 Nov 2026, her words: a lot
+          of the items on my calendar have not been checked off even though they
+          were things that I did). Any other chat: the session entry passes the entry
           check, and (her rule, 25 Oct 2026) its first line under
           `what I did` names the objective and whether it was met —
           `· objective: <what it was> — met | partly met | not met, <why>` —
@@ -46,6 +48,7 @@ from bedo_reader import FACTS, as_rows, load_local
 GLYPH = FACTS['chat_status']
 WINDOWS = FACTS['window_chats']
 MARKER = FACTS['dayqa']['marker']
+CAL_MARKER = FACTS['calsync']['marker']
 DONE, MOVING = '✅ done', '▶️ in motion'
 
 
@@ -164,9 +167,9 @@ def privacy_qa(entry):
             f'(fix any hit on GitHub too), then add {PRIVACY_LINE} under `what I did`')
 
 
-def qa_done(rows, day):
-    """The dayqa marker for `day` in any row's details (the dusk close carries it)."""
-    want = f'{MARKER} {day.isoformat()}'
+def qa_done(rows, day, marker=MARKER):
+    """The dayqa marker for `day` (or another check's `marker`) in any row's details (the dusk close carries it)."""
+    want = f'{marker} {day.isoformat()}'
     return next((l.strip() for r in rows for l in (r.get('details') or '').splitlines() if l.strip().startswith(want)),
                 None)
 
@@ -210,9 +213,12 @@ def findings(rows, chat_url, title, day=None, local=None, now=None, sessions=Non
     entry = session_entry(rows, chat_url)
 
     if day:
-        line = qa_done(rows, day)
-        out.append((bool(line), 'QA', line or f'run `dayqa {day.isoformat()}`, write what she accepts, '
-                                               f'and put its last line in the dusk close row'))
+        line, cal = qa_done(rows, day), qa_done(rows, day, CAL_MARKER)
+        owed = ([] if line else [f'run `dayqa {day.isoformat()}`, write what she accepts, '
+                                 f'and put its last line in the dusk close row']) + \
+               ([] if cal else [f'run `calsync {day.isoformat()}`, make its changes on the calendar, '
+                                f'and put its marker line in the dusk close row'])
+        out.append((not owed, 'QA', '; '.join(owed) or f'{line} · {cal}'))
     elif entry:
         clock = None if bedo_clock.problem(local) else local   # time_zone, per instant; None skips the clock rules
         p = problems(entry, None, clock, local.get('weekly_name', 'w{n} be•do'))
