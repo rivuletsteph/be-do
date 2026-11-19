@@ -24,6 +24,11 @@ It never writes the calendar itself. Two steps, both printing JSON:
      python3 calendar_sync.py --plan --day 2026-09-23 --local look_behind_local.json \
          --stream w39.json [--stream w38.json] --events events.json --calendars calendars.json
 
+  Each run ends with `marker`, the line the dusk close row carries once the
+  changes are made (19 Nov 2026: the step was a line nothing ran, and her
+  calendar fell behind the stream). A day with no linked event gets its marker
+  from --list; any other day from --plan. A my day chat's close waits for it.
+
   --live     in place of --local and --stream: the settings row and the rows are
              read from Airtable here (the day's rows and the week's rows that
              carry an event link: two or three calls, never the whole week).
@@ -58,6 +63,7 @@ PREFIX = {'✅ done': '✔️', '◉ done': '✔️', '● log': '✔️',
           '⬜ intention': '⬜', '▶️ in motion': '⬜', '▫️potential': '▫️'}
 # every prefix the calendar already carries, so one is replaced, never stacked
 KNOWN = ('❔', '▫️', '▫', '⬜', '◻️', '◻', '✔️', '✔', '✅', '✖️', '✖', '▶️', '▶')
+MARKER = bedo_reader.FACTS['calsync']['marker']
 SHORT = {'m': 'gmail.com', 'g': 'group.calendar.google.com',
          'v': 'group.v.calendar.google.com', 'i': 'import.calendar.google.com'}
 
@@ -241,7 +247,10 @@ def main():
         for r in rows:
             d = decode_link(r['event'])
             (fetch if d else bad).append(dict(key=r['key'], title=r['title'], **(d or {'link': r['event']})))
-        print(json.dumps(dict(day=a.day, fetch=fetch, unreadable_links=bad), ensure_ascii=False, indent=1))
+        out = dict(day=a.day, fetch=fetch, unreadable_links=bad)
+        if not fetch and not bad:   # nothing linked: the day is synced as it stands
+            out['marker'] = f'{MARKER} {a.day} · nothing linked'
+        print(json.dumps(out, ensure_ascii=False, indent=1))
         return
 
     if not (a.events and a.calendars):
@@ -324,7 +333,8 @@ def main():
         if glyph == '✖️' and dropped_id:
             to_move.append(dict(row=name, key=r['key'], event=new_summary, calendar=allowed[cal],
                                 link=e.get('htmlLink') or r['event']))
-    out = dict(day=a.day, changes=changes, unchanged=left, to_move=to_move)
+    out = dict(day=a.day, changes=changes, unchanged=left, to_move=to_move,
+               marker=f'{MARKER} {a.day} · {len(changes)} changed')
     if a.out:
         open(a.out, 'w', encoding='utf-8').write(json.dumps(out, ensure_ascii=False, indent=1))
     print(json.dumps(out, ensure_ascii=False, indent=1))

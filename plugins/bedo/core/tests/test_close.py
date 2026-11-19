@@ -25,8 +25,9 @@ def entry(status='✅ done', chat=URL, created='2026-10-25T17:12:10.000Z', detai
             'details': details + '\n\nstill open\n· none\n———\n[be•do] written by session-entry'}
 
 
-def close_row(marker=True):
-    d = '———\n[be•do] closed.\n' + ('dayqa shown 2026-10-24 22:49 · 3 proposed' if marker else '')
+def close_row(marker=True, calsync=True):
+    d = '———\n[be•do] closed.\n' + ('dayqa shown 2026-10-24 22:49 · 3 proposed\n' if marker else '') + \
+        ('calsync done 2026-10-24 · 2 changed' if calsync else '')
     return {'id': 'recC', 'created': '2026-10-25T14:56:33.000Z', 'practice': '🌄 dusk flow close',
             'status': '◉ done', 'datetime': '2026-10-25T04:59:00.000Z', 'details': d}
 
@@ -73,6 +74,21 @@ class MyDay(unittest.TestCase):
         ok, what, why = C.findings([close_row(marker=False), entry()], URL, self.TITLE, DAY, LOCAL)[0]
         self.assertFalse(ok)
         self.assertIn('dayqa 2026-10-24', why)
+
+    def test_no_calsync_marker_holds_the_close(self):
+        # 19 Nov 2026: the 16 and 17 Nov dusk closes passed without calsync, and her calendar fell behind
+        ok, what, why = C.findings([close_row(calsync=False), entry()], URL, self.TITLE, DAY, LOCAL)[0]
+        self.assertFalse(ok)
+        self.assertIn('calsync 2026-10-24', why)
+        self.assertNotIn('dayqa 2026-10-24', why)
+
+    def test_both_markers_missing_names_both_in_order(self):
+        why = C.findings([close_row(marker=False, calsync=False), entry()], URL, self.TITLE, DAY, LOCAL)[0][2]
+        self.assertLess(why.index('dayqa'), why.index('calsync'))
+
+    def test_a_calsync_marker_for_another_day_is_not_this_days(self):
+        r = close_row(); r['details'] = r['details'].replace('calsync done 2026-10-24', 'calsync done 2026-10-23')
+        self.assertFalse(C.findings([r, entry()], URL, self.TITLE, DAY, LOCAL)[0][0])
 
     def test_a_marker_for_another_day_is_not_this_days_qa(self):
         r = close_row(); r['details'] = r['details'].replace('2026-10-24', '2026-10-23')
