@@ -583,6 +583,13 @@ function three(){
   el.querySelectorAll('li[data-m]').forEach(li=>li.onclick=()=>{ const x=M[+li.dataset.m]; sheet({k:'step',t:x.t,drive:x.drive,nx:x.nx,links:(x.links||[]).map(l=>({l:l.label||l.l,u:l.url||l.u})),s:0,e:0}); });
   el.querySelectorAll('li[data-n]').forEach(li=>li.onclick=()=>{ const x=T[+li.dataset.n]; sheet({k:'step',t:x.t,drive:x.drive,nx:x.nx,links:(x.links||[]).map(l=>({l:l.label||l.l,u:l.url||l.u})),s:0,e:0}); });
 }
+/* the same thing, by its words (19 Nov 2026: the 4 PM party, a row titled with its host, date and hours, was listed as
+   not on today's calendar beside its own event): glyphs, punctuation and case set aside, a row is on the calendar when
+   its words start with a card's, or the card's with the row's. A card of under nine letters matches only itself. */
+function calKey(t){ return String(t||'').replace(/[^A-Za-z0-9 ]/g,' ').replace(/\s+/g,' ').trim().toLowerCase(); }
+function onCalendar(t,cards){ const k=calKey(t); if(!k) return false; return (cards||[]).some(x=>[x.t,x.summary].some(v=>{ const c=calKey(v); return c===k||(c.length>8&&k.length>8&&(k.startsWith(c)||c.startsWith(k))); })); }
+/* a step set for a later day stays off today's lists (19 Nov 2026: rows moved to Wed 25 Nov still showed on Thursday) */
+function laterThan(a,day){ return !!(a&&a.d&&String(a.d).slice(0,10)>day); }
 function intention(blocks){
   /* not on today's calendar (2 Nov 2026, her words: it should only be an intention if it can actually fit on my
      calendar; it would be nice to show what doesn't fit; the intention list and below are extra and could be
@@ -590,13 +597,13 @@ function intention(blocks){
      evening, then the easiest next steps with no time today, each with its drive, a guess at its size and its
      next step. A tap opens its card. */
   const el=document.getElementById('int'); const nt=t=>String(t||'').replace(/^⚡\s*/,'').trim();
-  const onCal=new Set((window.__cards||[]).map(x=>nt(x.t)));
+  const cards=window.__cards||[];
   const over_=new Date().toLocaleDateString('en-CA')>D.day;
   /* a day that is over lists only what was open at its end, reconciled: a session block is only a container, and a step
      worked on today and still in motion says so (7 Nov 2026, her words: several things on here should have been
      reconciled during the QA before this got printed). The easiest next steps for later days belong to the day ahead. */
   const late=(window.__nofit||[]).filter(x=>!(over_&&x.session)).map(x=>({t:x.t,drive:x.drive,sz:x.e-x.s,nx:x.nx,worked:x.worked,x}));
-  const rest=over_?[]:stars(blocks).filter(s=>!onCal.has(nt(s.a.t))&&!late.some(l=>nt(l.t)===nt(s.a.t))&&!/be•do/.test(s.on))
+  const rest=over_?[]:stars(blocks).filter(s=>!laterThan(s.a,D.day)&&!onCalendar(nt(s.a.t),cards)&&!late.some(l=>nt(l.t)===nt(s.a.t))&&!/be•do/.test(s.on))
     .map(s=>({t:s.a.t,drive:s.on.trim(),sz:s.a.sz,nx:s.a.nx||null,c:s.c}));
   const all=late.concat(rest), hmz=m=>m>=60?`${Math.floor(m/60)} h${m%60?' '+(m%60)+' min':''}`:`${m} min`;
   if(!all.length){ el.innerHTML=''; return; }
