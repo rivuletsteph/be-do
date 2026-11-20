@@ -108,7 +108,7 @@ def check_intention(rows, rings, story):
     doers = realized_by(rows, what, r)
     if not doers:
         out.append(fix('intention', f'the intention “{what[:60]}” has no row that carries it out: '
-                       'name the row that did it, or score it at the action check'))
+                       'name the row that did it, or let her answer it at the dusk close'))
     for d in doers[:3]:
         if not d.get('wellness'):
             out.append(fix('intention', f'“{clean(d.get("title"))[:50]}” carries out the intention and has no wellness: '

@@ -492,7 +492,8 @@ Read these before second-guessing a number on the page.
   well-logged day read as half unaccounted for.
 - **A dropped intention check is never a line.** A ✖️ or ⨂ intention row is a
   duplicate or a withdrawn one; the action check's glyph is read whether it
-  leads or closes each part of its title.
+  leads or closes each part of its title. The action check was retired on
+  20 Nov 2026: the dusk close row carries her answer since, read the same way.
 - **The screen slice comes from the row's device field**, not from the practice,
   and only for rows the practice map didn't already place. Eating in front of
   the television is still eating.

@@ -57,7 +57,12 @@ the QA's own work, done before her list is shown, never asked of her:
             event, or its own words — is proposed closed at that row's time,
             the row named as the evidence. On 30 Oct three steps stayed open
             for days that the stream had already closed (a book finished
-            Monday, notes posted Thursday, the data checked Tuesday)
+            Monday, notes posted Thursday, the data checked Tuesday). Since
+            20 Nov a ✅ row whose block names the step's key closes it too, and
+            one uncommon word is enough on a shared drive
+  due       every step meant for the day that nothing closed gets one line —
+            done, moved or dropped — with the likely answer the day's rows give
+            (20 Nov 2026: the job of the retired ⚡ action check)
 
     python3 bedo_dayqa.py --live --date 2026-10-09 [--json]
     python3 bedo_dayqa.py --day day.json [--catalog practices.json] [--rhythms rhythms.json]
@@ -84,6 +89,7 @@ DIVIDER = FACTS['divider']
 MOVE = {FL.word(p) for p in Q['movement_practices']}
 NOTES = {FL.word(p) for p in Q['note_practices']}
 LOCATION = FL.word(FACTS['practice']['location'])
+SPAN_WORDS = {FL.word(p) for p in (FACTS.get('fill') or {}).get('span_practices') or ()} | {LOCATION, 'travel'}
 NAMES = ('datetime', 'end', 'time_spent', 'status', 'title', 'details', 'practice', 'person',
          'mentioned', 'wellness', 'device', 'rhythm', 'photo', 'key', 'attention',
          'calendar_event', 'photo_checked', 'photo_links', 'target', 'chat', 'waiting_on')
@@ -256,6 +262,30 @@ DONE_WORDS = re.compile(Q.get('done_words') or r'\b(finished|done|sent|posted|sh
 STOP = set(Q.get('reconcile_stop') or ())
 NOT_EVIDENCE = {FL.word(p) for p in Q.get('reconcile_not_evidence') or ()}
 COMMON = Q.get('reconcile_common') or 4      # a word in this many titles names nothing in particular (a name)
+KEY_RE = re.compile(r'(?<![\d_])(\d{6}_\d{4}[a-z]?)(?![\w])')
+DECIDED = re.compile(Q.get('due_decided_words') or r'\b(another night|another day|instead|cancel+ed|cancel|postponed?|'
+                     r'rescheduled?|moved|pushed|not going|won\'t|didn\'t|tomorrow|next week|stay(?:ed|ing)? (?:home|there|over))\b', re.I)
+
+
+def _cited(r):
+    """The keys a row's details name besides its own: the rows its block says it answers."""
+    own = (r.get('key') or '').split(' ')[0]
+    return {k for k in KEY_RE.findall(r.get('details') or '') if k != own}
+
+
+def _drive(r):
+    v = r.get('rhythm')
+    if isinstance(v, (list, tuple)):
+        v = v[0] if v else None
+    return (v or '').strip() or None
+
+
+def _when(v):
+    """A target as UTC, a bare date read as that date's noon, so it stays on its day."""
+    if not v:
+        return None
+    t = utc(v)
+    return t if t.tzinfo else t.replace(hour=12, tzinfo=dt.timezone.utc)
 
 
 def _sig(t):
@@ -274,9 +304,15 @@ def _shared(a, b):
     return out
 
 
-def reconcile(rows, opens, off):
+def reconcile(rows, opens, off, system=None):
     """Reconciling the stream (28 Oct 2026, her word): an open step a row of the
-    day shows done is proposed closed at that row's time, the row named."""
+    day shows done is proposed closed at that row's time, the row named.
+
+    20 Nov 2026 (her words: you suck at reconciling what I actually did with the
+    tasks … you need to be smarter about it): a ✅ row whose block names the
+    step's key closes it, just under the same key; and one uncommon word is
+    enough when the two rows share a drive (be•do's own drive excepted: its
+    sessions share their words)."""
     def evidence(r):     # something finished: a closed action or event, or a row saying it was done
         pw = FL.word(r.get('practice'))
         if not r.get('datetime') or pw in NOT_EVIDENCE or pw.split(' ')[-1] in NOT_EVIDENCE:   # someone's quest, his highlight
@@ -293,8 +329,9 @@ def reconcile(rows, opens, off):
             continue
         seen.add(o.get('id'))
         made = utc(o['datetime']) if o.get('datetime') else None
-        ahead = utc(o['target']) if o.get('target') else None
+        ahead = _when(o.get('target'))
         mine = rare(_sig(o.get('title')))
+        drive = _drive(o)
         best = None
         for r in lived:
             if r.get('id') == o.get('id'):
@@ -306,13 +343,21 @@ def reconcile(rows, opens, off):
                 if o.get('status') == OPEN_ST[-1]:
                     best = None; break    # a ▶️ chain closed by its own ✅ row is closed (I5, 11 Nov 2026): nothing to propose
                 why, rank = 'the same key', 0
+            elif (o.get('status') == OPEN_ST[0] and o.get('key') and o['key'] in _cited(r)
+                  and r.get('status') == DONE_ST[0] and (r.get('key') or '9') > o['key']):
+                # 20 Nov 2026: a ✅ row made after the ⬜ step, its block naming the step it answers. A row
+                # older than the step only mentions it (a long errand's block: still out, waiting on …),
+                # and a ▶️ step is answered a session at a time
+                why, rank = 'named in its block', 1
             elif o.get('calendar_event') and r.get('calendar_event') and o['calendar_event'] == r['calendar_event']:
-                why, rank = 'the same event', 1
+                why, rank = 'the same event', 2
             else:
                 both = _shared(mine, rare(_sig(r.get('title'))))
-                if len(both) < 2 or (ahead and t < ahead - dt.timedelta(days=1)):
+                same = bool(drive) and drive != system and drive == _drive(r)
+                named = both - _shared(both, _sig(drive)) if same else both   # the drive's own name says only the drive
+                if len(both) < 2 and len(named) < (1 if same else 2) or (ahead and t < ahead - dt.timedelta(days=1)):
                     continue                  # words alone don't close a step still days from its date
-                why, rank = 'its words: ' + ', '.join(sorted(both)), 2
+                why, rank = ('the same drive, ' if same else '') + 'its words: ' + ', '.join(sorted(both)), 3
             if best is None or (rank, -t.timestamp()) < (best[2], -best[1].timestamp()):
                 best = (r, t, rank, why)
         if best:
@@ -323,6 +368,64 @@ def reconcile(rows, opens, off):
                             patch={'id': o['id'], 'fields': {'status': DONE_ST[0], 'end': _z(t)},
                                    'week': o.get('_week')},
                             note=f'[be•do] Closed from the stream: “{_t(r)}”{key}, {_clock(t, off)} — {why}.'))
+    return out
+
+
+def _local_day(t, off):
+    return (t + dt.timedelta(hours=off)).date()
+
+
+def due(rows, opens, off, day, closed=(), events=()):
+    """Every step meant for the day that nothing closed gets one line: done,
+    moved or dropped (20 Nov 2026, when the ⚡ action check was retired: its job
+    is the QA's now). The likely answer is named when the day's rows give one,
+    and nothing is written until she accepts."""
+    seen, out = set(closed), []
+    for o in list(opens or ()) + list(rows):
+        if o.get('status') not in OPEN_ST or o.get('id') in seen or not o.get('target'):
+            continue
+        tgt = _when(o['target'])
+        if _local_day(tgt, off) != day:
+            continue
+        seen.add(o.get('id'))
+        timed = 'T' in str(o['target'])
+        at = f' at {_clock(tgt, off)}' if timed else ''
+        made = utc(o['datetime']) if o.get('datetime') else None
+        drive, mine = _drive(o), _sig(o.get('title'))
+        kin = lambda r: (drive and drive == _drive(r)) or bool(_shared(mine, _sig(r.get('title'))))
+        later = lambda r: r.get('datetime') and r.get('id') != o.get('id') and (not made or utc(r['datetime']) >= made)
+        head = f'“{_t(o)}” was for today{at}'
+        # a later row saying it changed: moved or dropped, hers to say which
+        said = [r for r in rows if later(r) and kin(r) and r.get('status') not in DONE_ST[:1] + OPEN_ST
+                and DECIDED.search((r.get('title') or '') + ' ' + her_words(r))]     # a ✅ row is a doing, not a change
+        if said:
+            r = said[-1]
+            out.append(ask('due', f'{head}: moved or dropped? “{_t(r)}” at {_clock(utc(r["datetime"]), off)} says it changed'))
+            continue
+        # a done row about it at that time, or the calendar's own done mark, or a Timeline stay
+        hit = None
+        for e in events or ():
+            if o.get('calendar_event') and _same_event(o['calendar_event'], e) and (e.get('summary') or '').startswith(DONE_MARKS):
+                b = _event_at(e.get('end'))
+                if b:
+                    hit = (b, f'your calendar marks it done', SRC['calendar'])
+        if not hit and timed:
+            near = lambda r: abs(utc(r['datetime']) - tgt) <= dt.timedelta(minutes=60) or (
+                r.get('end') and utc(r['datetime']) <= tgt <= utc(r['end']))
+            for r in sorted((r for r in rows if later(r) and near(r) and kin(r)), key=lambda r: abs(utc(r['datetime']) - tgt)):
+                if r.get('status') == DONE_ST[0] or (r.get('status') in DONE_ST and FL.word(r.get('practice')) not in NOT_EVIDENCE):
+                    hit = (utc(r.get('end') or r['datetime']), f'“{_t(r)}” ✅ at {_clock(utc(r["datetime"]), off)}', SRC['stream'])
+                    break
+                if FL.word(r.get('practice')) in SPAN_WORDS:
+                    hit = (utc(r.get('end') or r['datetime']), f'“{_t(r)}” at {_clock(utc(r["datetime"]), off)}', SRC['timeline'])
+                    break
+        if hit:
+            t, why, src = hit
+            out.append(fill('due', f'{head}: likely done — {why}; or say moved or dropped', src,
+                            patch={'id': o['id'], 'fields': {'status': DONE_ST[0], 'end': _z(t)}, 'week': o.get('_week')},
+                            note=f'[be•do] Done on the day, she said at the QA: {why}.'))
+        else:
+            out.append(ask('due', f'{head}: done, moved or dropped?'))
     return out
 
 
@@ -800,7 +903,9 @@ def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=N
         + journals(rows, off) \
         + (photos(rows, files, off, day, (local.get('people') or {}).get('self') or '') if files is not None else []) \
         + painted(rows, day, {**local, 'utc_offset_hours': off}, lb) \
-        + (reconcile(rows, opens, off) if opens else [])
+        + (reconcile(rows, opens, off, local.get('system_rhythm')) if opens else [])
+    closed = {i['patch']['id'] for i in first if (i.get('patch') or {}).get('fields', {}).get('status')}
+    first += due(rows, opens, off, day, closed, events_from(events) if events is not None else ())
     first = pre + first
     items = first + (meals(rows, off, (local.get('people') or {}).values())
              + movement(rows, off, day, local, catalog_names, typical)
@@ -816,7 +921,7 @@ def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=N
     # ate, moved and who she was with, one item each; the bookkeeping — device,
     # wellness, partial attention — one item per kind, accepted at once. Then the
     # few questions, wrong data first; a stretch with no clue is counted, never asked.
-    order = ['reconcile', 'calendar', 'meals', 'movement', 'people', 'gaps', 'synergy', 'overlaps', 'plans', 'device', 'spans']
+    order = ['reconcile', 'due', 'calendar', 'meals', 'movement', 'people', 'gaps', 'synergy', 'overlaps', 'plans', 'device', 'spans']
     rank = lambda i: order.index(i['check']) if i['check'] in order else len(order)
     fills = [i for i in items if i['kind'] == 'fill']
     batched = []
@@ -841,7 +946,10 @@ def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=N
                     'or leave them: ' + '; '.join(i['line'].split('“', 1)[-1].split('”')[0][:40] for i in nodev[:4])
                     + (' …' if len(nodev) > 4 else '')}]
     asks.sort(key=lambda i: -('spans' == i['check']))
-    items = ([i for i in items if i['kind'] == 'do'] + sorted(fills + batched, key=rank) + asks
+    # a step meant for today is answered near the top (20 Nov 2026: the action check's job), never an if-you-want
+    main = sorted(fills + batched + [i for i in asks if i['check'] == 'due'], key=rank)
+    asks = [i for i in asks if i['check'] != 'due']
+    items = ([i for i in items if i['kind'] == 'do'] + main + asks
              + [i for i in items if i['kind'] == 'open']
              + [i for i in items if i['kind'] in ('notice', 'count')])
     for i, it in enumerate(i for i in items if i['kind'] in ('fill', 'ask')):
@@ -852,7 +960,9 @@ def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=N
 def render(items, day, rows, off, now_local=None):
     (lack, n), long_ = gate(rows, off)
     fills = [i for i in items if i['kind'] == 'fill']
-    asks = [i for i in items if i['kind'] == 'ask']
+    dues = [i for i in items if i['kind'] == 'ask' and i['check'] == 'due']
+    main = [i for i in items if i['kind'] == 'fill' or i in dues]
+    asks = [i for i in items if i['kind'] == 'ask' and i not in dues]
     open_ = [i for i in items if i['kind'] == 'open']
     seen = [i for i in items if i['kind'] == 'notice']
     todo_ = [i for i in items if i['kind'] == 'do']
@@ -860,9 +970,10 @@ def render(items, day, rows, off, now_local=None):
     if todo_:
         lines.append(f'first, for the QA itself — {len(todo_)} to do before her list is shown, then run dayqa again:')
         lines += [f'  · {i["check"]} · {i["line"]}' for i in todo_]
-    lines.append(f'dayqa · {day:%a %d %b} — {len(fills)} to accept' + (f', {len(asks)} if you want' if asks else ''))
-    for i in fills:
-        lines.append(f'  {i["n"]}. {i["check"]} · {i["line"]} · {EST} · source: {i["source"]}')
+    lines.append(f'dayqa · {day:%a %d %b} — {len(fills)} to accept' + (f', {len(dues)} to answer' if dues else '')
+                 + (f', {len(asks)} if you want' if asks else ''))
+    for i in main:
+        lines.append(f'  {i["n"]}. {i["check"]} · {i["line"]}' + ('' if i['kind'] == 'ask' else f' · {EST} · source: {i["source"]}'))
     if asks:
         lines.append('  if you want — skip any of these and the day stands as it is:')
         lines += [f'  {i["n"]}. {i["check"]} · {i["line"]}' for i in asks]

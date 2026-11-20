@@ -118,7 +118,7 @@
  },
 
  "self_check": {
-  "flag_if_under_of_7": {"⚡ action check": 5, "📧 clear gmail inbox": 5, "🗺️ map check": 5},
+  "flag_if_under_of_7": {"📧 clear gmail inbox": 5, "🗺️ map check": 5},
   "flag_if_under_pct": {"attention": 95, "people": 80},
   "shrink_at_flags": 3,
   "attention_pool": "✅ done and ▶️ in motion ⚡ action chains with a real span in the window",

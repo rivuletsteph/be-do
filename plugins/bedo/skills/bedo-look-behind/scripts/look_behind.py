@@ -876,16 +876,21 @@ def main():
     # (25 Sep 2026). Each one's outcome is read from the day's ⚡ action check
     # row, whose title carries a status glyph per intention in the same order;
     # with no action check, an intention shows no glyph rather than a guess.
-    acp = {norm(x) for x in (L.get('action_check_practices') or ['action check'])}
+    # The action check was retired on 20 Nov 2026: since then the dusk close row
+    # carries her answer on the day's intention, read the same way.
+    acp = {norm(x) for x in (L.get('action_check_practices') or ['action check', 'dusk flow close'])}
     OUTCOME = ('\u2705', '\u25b6\ufe0f', '\u2716\ufe0f', '\u2b1c')   # ✅ ▶️ ✖️ ⬜
     checks, happened = [], []
     for r in day_rows:
         if r['_pr'] in acp:
             tail = r['_title'].split('\u2014', 1)[-1]
             # the glyph leads each part, or closes it ('show up fully at work ✅')
-            checks = [next((g for g in OUTCOME if part.strip().startswith(g)
-                            or part.strip().endswith(g)), '')
-                      for part in tail.split('\u00b7')]
+            got = [next((g for g in OUTCOME if part.strip().startswith(g)
+                         or part.strip().endswith(g)), '')
+                   for part in tail.split('\u00b7')]
+            if not any(got) and checks:
+                continue                 # a close row with no answer leaves an earlier one standing
+            checks = got
             # a line per intention in the details, glyph first or after an arrow:
             #   ✅ Show up at the meeting — the check-in ran 10:30 to 11:30 …
             #   ⚡ movement and the dogs → ✅ met — barre 9:06–9:48 …
