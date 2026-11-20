@@ -1053,7 +1053,10 @@ function spent(){
   const el=document.getElementById('spent'); if(!el||!window.__chc) return;
   const mm=t=>{ const [h,m]=String(t).split(':').map(Number); return h*60+m; };
   const now=new Date(), today=now.toLocaleDateString('en-CA')===D.day, ahead0=today?now.getHours()*60+now.getMinutes():1440;
+  /* only her own events count as her minutes (20 Nov 2026: his two-day stay at his grandparents' split her night in half,
+     so sleep read 2 h 32 asleep); another calendar's event stays on the page but off her pie */
   const iv=[]; (D.schedule||[]).forEach(x=>{ if(!(x.k==='lived'||(x.k==='event'&&x.done&&x.cat&&x.cat!=='event'))||x.pt||x.nopie||x.cat==='moment') return;
+    if(x.k==='event'&&x.who&&x.who!=='you') return;
     const k=window.__chc(x), a=Math.max(0,mm(x.a)), b=Math.min(1440,mm(x.b)); if(b>a) iv.push([a,b,k,x.dev||null]); });
   if(!iv.length){ el.innerHTML=''; return; }
   const fl=(D.schedule||[]).filter(x=>x.flowcard).map(x=>[Math.max(0,mm(x.a)),Math.min(1440,mm(x.b)||1440),window.__chc(x)]);
