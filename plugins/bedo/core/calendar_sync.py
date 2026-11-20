@@ -43,6 +43,8 @@ Rules it keeps (V51 + the 23 Sep calendar amendment):
   · an all-day event keeps its dates; only its prefix follows the row
   · times follow the row only when the row carries a real span (an end, or a
     time spent); a row with a start and nothing else leaves the times alone
+  · an event that runs across days keeps its times, like an all-day one: a
+    row inside a stay is a moment of it, not its span (20 Nov 2026)
   · streams are read live base first and deduped by record id (I15), then the
     latest row per key wins (I5); every read must be complete (I11)
 Nothing personal lives in this file.
@@ -176,6 +178,11 @@ def span(r):
     if r.get('spent'):
         return a, a + dt.timedelta(seconds=float(r['spent']))
     return None
+
+
+def local_day(t, offset):
+    """The user's calendar day of an aware datetime, by the one clock."""
+    return (t.astimezone(dt.timezone.utc) + offset).date()
 
 
 def reprefix(summary, glyph):
@@ -317,6 +324,11 @@ def main():
             want['summary'] = new_summary; why.append(f"prefix → {glyph}")
         sp = span(r) if glyph == '✔️' else None
         ea, eb = ev_time(e['start']), ev_time(e['end'])
+        # an event across days (a stay, a trip) keeps its times, as an all-day one keeps its dates:
+        # its rows are moments inside it, and the first of them would shrink it to that moment
+        # (20 Nov 2026: a 15-minute pickup row planned a three-day stay down to its first 15 minutes)
+        if sp and ea and eb and local_day(ea, offset) != local_day(eb - dt.timedelta(seconds=1), offset):
+            sp = None; why.append('times kept: the event runs across days')
         if sp and ea and eb:
             ra, rb = sp
             if abs((ra - ea).total_seconds()) > 60 or abs((rb - eb).total_seconds()) > 60:
