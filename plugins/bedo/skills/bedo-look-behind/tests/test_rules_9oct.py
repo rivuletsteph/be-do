@@ -227,7 +227,7 @@ class Gate(unittest.TestCase):
         f.row('😴 sleep', 0, 420)
         r, D = f.build(gate='final')                          # the day ahead final, the QA never run
         self.assertIsNone(D)
-        self.assertIn('no `dayqa shown 2026-10-08` line in the dusk close row', r.stderr)
+        self.assertIn('no `braid shown 2026-10-08` line in the dusk close row', r.stderr)
         self.assertNotIn('no final day ahead', r.stderr)
         g = Fixture()
         g.row('😴 sleep', 0, 420)

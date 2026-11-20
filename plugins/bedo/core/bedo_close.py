@@ -47,7 +47,7 @@ from bedo_reader import FACTS, as_rows, load_local
 
 GLYPH = FACTS['chat_status']
 WINDOWS = FACTS['window_chats']
-MARKER = FACTS['dayqa']['marker']
+MARKER = (FACTS['dayqa']['marker'],) + tuple(FACTS['dayqa'].get('old_markers') or ())   # braid shown; dayqa shown before 20 Nov
 CAL_MARKER = FACTS['calsync']['marker']
 DONE, MOVING = '✅ done', '▶️ in motion'
 
@@ -169,7 +169,7 @@ def privacy_qa(entry):
 
 def qa_done(rows, day, marker=MARKER):
     """The dayqa marker for `day` (or another check's `marker`) in any row's details (the dusk close carries it)."""
-    want = f'{marker} {day.isoformat()}'
+    want = tuple(f'{m} {day.isoformat()}' for m in ((marker,) if isinstance(marker, str) else marker))
     return next((l.strip() for r in rows for l in (r.get('details') or '').splitlines() if l.strip().startswith(want)),
                 None)
 
@@ -214,7 +214,7 @@ def findings(rows, chat_url, title, day=None, local=None, now=None, sessions=Non
 
     if day:
         line, cal = qa_done(rows, day), qa_done(rows, day, CAL_MARKER)
-        owed = ([] if line else [f'run `dayqa {day.isoformat()}`, write what she accepts, '
+        owed = ([] if line else [f'run the 🔀 braid (`dayqa {day.isoformat()}`), write what she accepts, '
                                  f'and put its last line in the dusk close row']) + \
                ([] if cal else [f'run `calsync {day.isoformat()}`, make its changes on the calendar, '
                                 f'and put its marker line in the dusk close row'])

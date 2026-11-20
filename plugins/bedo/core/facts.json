@@ -118,7 +118,7 @@
  },
 
  "self_check": {
-  "flag_if_under_of_7": {"⚡ action check": 5, "📧 clear gmail inbox": 5, "🗺️ map check": 5},
+  "flag_if_under_of_7": {"📧 clear gmail inbox": 5, "🗺️ map check": 5},
   "flag_if_under_pct": {"attention": 95, "people": 80},
   "shrink_at_flags": 3,
   "attention_pool": "✅ done and ▶️ in motion ⚡ action chains with a real span in the window",
@@ -230,7 +230,12 @@
   "reconcile_stop": ["with", "from", "that", "this", "today", "tonight", "tomorrow", "about", "into", "your", "their", "them", "just", "some", "something", "thing", "send", "sent", "make", "made", "back", "over", "more", "next", "week", "after", "before", "what", "when", "then", "also", "have", "still", "done", "finish", "finished"],
   "calendar_done_marks": ["✔️", "✔", "✅"],
   "journal_read_mark": "Pulled out",
-  "marker": "dayqa shown",
+  "marker": "braid shown",
+  "old_markers": ["dayqa shown"],
+  "_marker_about": "20 Nov 2026: the dusk step is 🔀 braid, so its line in the dusk close row reads braid shown; the days before carry dayqa shown, read the same way.",
+  "together_heading": "🔀 braid",
+  "_together_about": "20 Nov 2026, her pick: 🔀 braid, the day's loose threads braided into her drives and goals, the way braided channels run together (her words: braid is a wonderful word … whatever it is it needs to be blue … let's go with the two arrows together). The heading over the actions reconciled, the steps due today, the calendar and the drives, leading her list.",
+  "milestone_after_days": 30,
   "movement_words": ["walk", "walked", "walking", "bike", "biked", "biking", "bicycle", "cycled", "cycling", "rode my bike", "yoga", "hike", "hiked", "swim", "swam", "barre"],
   "about_movement_words": "Only words that mean movement whatever the sentence: 'run' and 'running' read as running the checks on 6 Oct.",
   "note_practices": ["log", "journal", "highlight", "glimmer", "capture", "dream record", "text", "email"],
