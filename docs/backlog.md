@@ -169,6 +169,7 @@ what they are for), and a first draft of the overview page in her own words.
 | 261003_1433 | ▶️ | The daily measure checked against how the day felt; meals logged with how they were made and whether she ate with intention; the wellness wheel's role; the unmerged `claude/look-behind-dark-palette` branch — merge or let go |
 | 261004_1045 | ▶️ | Base flow card shipped; next the look behind and look ahead for day, week and month — an earthy palette, the look ahead light and the look behind dark; later nutrition folded into body |
 | 261004_1536 | ▶️ | Page cards from her review of every past page — card 2 (perhaps the dark mirror of card 1), whether the forward map gets its own card, card 1 into the day ahead itself |
+| 261120_nextline | ⬜ | **The day page builder reads an older `Next:` line ahead of a newer one.** When a newer `Next:` is written partway through a line inside a `[be•do]` note, the builder still takes the older one that starts a line. It should take the latest `Next:` in the row wherever it sits. Found Fri 20 Nov 2026 building that day's page. |
 
 ## Calendar
 
@@ -229,6 +230,7 @@ what they are for), and a first draft of the overview page in her own words.
 | 261104_stretch | ⬜ | Every session entry writes its `stretches:` line, the laptop's too. On 3 Nov two laptop work chats wrote their message times in prose (7:49–8:17, 1:31–2:17, 5:23–5:47; 36, 80 and 8 min), so the day page drew 100 and 124 minutes in one piece from the open, across the morning at home. The look behind's QA wrote the lines by hand; the session-entry skill should never leave them out. |
 | 261104_intent | ⬜ | The page audit's intention check matches the intention's words to the day's rows, so a way-of-being intention reads as missing from the balance because the only rows sharing its words are incidental (a drive home). J9 says a way-of-being intention is a feeling, not a task: the check should skip it, or read it from the action check. |
 | 261104_company | ⬜ | Rows written before the away rule (261104_time) still carry the household default on her office rows; nothing rereads a person field already set. A one-time sweep of the open week, or a `company` call that proposes the change when a row's person is exactly the household default inside her day away, would clean them. |
+| 261120_duetnote | ⬜ | **A note taken in Duet lands on its existing action, not as a new row.** Fri 20 Nov 2026, three Duet notes from 8:50 to 8:52a were each a loose copy of an older open action; the my day page branch joined them at her ask (her words: everything stays linked together), moving her words onto the three actions and closing the copies ✖️ as dedupes. Duet's logging should look up the open action a note is about and add to it. Part of 261118_duet. |
 
 ## Tables and catalogs
 
