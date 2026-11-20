@@ -41,11 +41,11 @@ ANSWERED = row('recAns', title="⚡ The reviewer's Table C questions 13–16 ans
 # two steps for the day with no key: one happened, one was called off
 LEAVE = row('recLeave', title='⚡ Leave the office by 3:15, meet my partner at the house at 3:30', status='⬜ intention',
             practice='⚡ action', rhythm='Taxes', datetime=z(9, 36), target=z(15, 15))
-PICKUP = row('recPick', title='🚗 Drive to the next town to get my son, arrive by 5:15', status='⬜ intention',
+PICKUP = row('recPick', title='🚗 Drive to the next town to get Robin, arrive by 5:15', status='⬜ intention',
              practice='🚗 travel', rhythm='Raising My Son', datetime=z(9, 30), target=z(17, 15))
 TAXES = row('recTax', title='⚡ Tax prep — do the taxes, get everything to the preparer, organize the office papers', status='✅ done',
             practice='⚡ action', rhythm='Taxes', key='260831_1000', datetime=z(15, 51), end=z(16))
-TEXT = row('recText', title='🗨️ texted Mom that my son could stay another night; he wants to', practice='🗨️ text',
+TEXT = row('recText', title='🗨️ texted Mom that Robin could stay another night; he wants to', practice='🗨️ text',
            rhythm='Raising My Son', datetime=z(11, 58))
 # her colleague's name is in many titles, so it names nothing in particular (on Thursday only “table” was left)
 CROWD = [row(f'recC{i}', title=f'📝 a word with Dana about thing {i}', datetime=z(8, i)) for i in range(3)]
@@ -108,6 +108,10 @@ class DueToday(unittest.TestCase):
         tomorrow = dict(LEAVE, id='recTom', target=z(15, 0, dt.date(2026, 11, 20)))
         self.assertEqual(Q.due([], [HELP, tomorrow], OFF, DAY, closed={'recHelp'}), [])
 
+    def test_last_weeks_copy_of_a_step_closed_this_week_is_not_due(self):
+        closed_here = dict(LEAVE, status='✅ done', end=z(15, 40))        # the split keeps a row's id in both weeks
+        self.assertEqual(Q.due([closed_here], [LEAVE], OFF, DAY), [])
+
     def test_a_calendared_step_her_calendar_marks_done(self):
         link = 'https://calendar.example.invalid/event?eid=abcXYZ'
         step = dict(LEAVE, rhythm=None, title='⚡ the client party', calendar_event=link)
@@ -132,6 +136,61 @@ class Thursday(unittest.TestCase):
         self.assertFalse(any(i['check'] == 'due' and 'Help Dana' in i['line'] for i in items))
         text = Q.render(items, DAY, rows, OFF)
         self.assertIn('1 to answer', text)
+
+
+# the drives (20 Nov 2026): Thursday's taxes, signed and filed, on a drive with no goal
+TAXDRIVE = {'Taxes': dict(id='recD', name='Taxes', type='♐ drive', code='D1', goal='', target=None, open_ended=False, parent=''),
+            'River Intake': dict(id='recR', name='River Intake', type='♐ drive', code='D2', goal='Intake tables for the river permit, reviewed',
+                                 target=None, open_ended=False, parent=''),
+            'the system': dict(id='recS', name='the system', type='♐ drive', code='D3', goal='', target=None, open_ended=False, parent='')}
+FILED = row('recFiled', title='⚡ Tax prep — do the taxes, get everything to the preparer', status='✅ done', practice='⚡ action',
+            rhythm='Taxes', key='260831_1000', datetime=z(15, 51), end=z(16),
+            details='The tax prep has been done, and now it is just waiting on her.\nYes, we signed, and they will have been filed today.'
+                    '\n———\n[be•do] closed at her word.')
+STATEMENT = row('recStmt', title='⚡ The year-end statement from the school, for the taxes', status='⬜ intention',
+                practice='⚡ action', rhythm='Taxes', key='260930_1817', datetime=z(18, 17, dt.date(2026, 9, 30)))
+
+
+class Drives(unittest.TestCase):
+    def test_a_step_carried_for_months_lands_a_milestone_in_her_words(self):
+        items = Q.drives([FILED], [STATEMENT], OFF, DAY, TAXDRIVE)
+        moved = [i for i in items if i['kind'] == 'moved']
+        self.assertIn('Taxes: 1 action closed', moved[0]['line'])
+        self.assertIn('1 open', moved[0]['line'])
+        mile = next(i for i in items if i['kind'] == 'fill')
+        self.assertEqual(mile['new']['practice'], '🪨 milestone')
+        self.assertEqual(mile['new']['rhythm'], 'Taxes')
+        self.assertTrue(mile['new']['details'].startswith('Yes, we signed, and they will have been filed today.'))
+        self.assertIn('carried since 31 Aug', mile['line'])
+        self.assertTrue(any(i['kind'] == 'ask' and 'no goal yet' in i['line'] for i in items))
+        self.assertTrue(any('one step left' in i['line'] for i in moved))
+
+    def test_a_milestone_already_written_is_not_proposed_again(self):
+        mark = row('recM', practice='🪨 milestone', title='🪨 the returns signed and filed', rhythm='Taxes', datetime=z(20))
+        items = Q.drives([FILED, mark], [STATEMENT], OFF, DAY, TAXDRIVE)
+        self.assertFalse(any(i['kind'] == 'fill' for i in items))
+
+    def test_a_proposed_close_counts_and_the_last_step_asks_about_the_goal(self):
+        items = Q.drives([ANSWERED], [HELP], OFF, DAY, TAXDRIVE, closing={'recHelp': z(15, 16)})
+        line = next(i for i in items if i['kind'] == 'moved')['line']
+        self.assertIn('2 actions closed', line)
+        self.assertIn('if you accept it above', line)
+        self.assertIn('goal: Intake tables', line)
+        self.assertTrue(any(i['kind'] == 'ask' and 'nothing is open on River Intake' in i['line'] for i in items))
+
+    def test_the_systems_own_drive_and_a_bare_rhythm_are_left_out(self):
+        work = dict(FILED, rhythm='the system', key='261119_0836')
+        loose = dict(FILED, id='recL', rhythm='Around the House')
+        self.assertEqual(Q.drives([work, loose], [], OFF, DAY, TAXDRIVE, system='the system'), [])
+
+    def test_they_lead_her_list_under_one_heading(self):
+        rows = CROWD + [ANSWERED, FILED, TEXT]
+        items = Q.run(rows, DAY, OFF, L, opens=[HELP, PICKUP, STATEMENT], drive_b=TAXDRIVE, catalog_names=['🪨 milestone'])
+        text = Q.render(items, DAY, rows, OFF)
+        head = Q.Q.get('together_heading')
+        self.assertIn(head + ':', text)
+        self.assertLess(text.index('↳ Taxes'), text.index('the rest of the day') if 'the rest of the day' in text else len(text))
+        self.assertLess(text.index('reconcile ·'), text.index('🪨 a milestone on Taxes'))
 
 
 if __name__ == '__main__':

@@ -129,9 +129,10 @@ what needs a model.**
 - **The dawn intention check names the week's word and asks for one concrete place it lands today, and with whom.**
 - **One intention a day**, hers, in her words (her rule, 25 Oct 2026: three is too many). Ask for one; never draw empty slots.
 - The Pareto three are be•do's recommendation, not her intentions: from uncalendared work, deduped by subject. **The test is leverage on later** (her word, 28 Oct 2026): what, done now, frees bandwidth or makes the rest of the day and week flow better. It unblocks someone or something, a deadline makes it harder if it waits, or she is carrying it around. Someone waiting · target passed · in motion · named as weighing on her are signs of leverage, not the test. Enough to feel good about, never too much. A calendar event never needs recommending.
-- **An intention that is a way of being** (have fun, be present) is a feeling, not a task: answered at the dusk close like any intention, but no span, no attention, and the overlap and synergy checks skip it; whether it happened shows in the feelings on the day's rows (25 Oct 2026).
+- **An intention that is a way of being** (have fun, be present) is a feeling, not an action: answered at the dusk close like any intention, but no span, no attention, and the overlap and synergy checks skip it; whether it happened shows in the feelings on the day's rows (25 Oct 2026).
 - An ⬜ intention carries a *when and why* in her words, not a date, unless she gives a firm one.
 - **The ⚡ action check is retired** (20 Nov 2026, her words: I think the action check needs to be retired). The dusk close row asks the day's intention in her words and carries her answer (✅ ✖️ ▶️ ⬜, her intention, not the three); the steps meant for the day are the QA's `due` lines: done, moved or dropped, each with the likely answer the day's rows give, written only on her yes.
+- **Every day reads how its actions moved her drives** (20 Nov 2026, her words: I really want that built in to this process every day). The QA leads with it: what each drive's closed actions moved against its goal, a 🪨 milestone offered when a step lands something big, a goal asked for when a drive has none. Her word is *actions*, never tasks.
 - The weekly reflection asks where the word showed up.
 
 ## J10 · Working sessions
