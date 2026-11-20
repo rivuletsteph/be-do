@@ -23,8 +23,8 @@ Each line is a rule a chat used to have to remember, and skipped:
         On a cloudy morning (the weather check says so) it names her bright
         light instead: still due, by the same time (28 Oct)
 
-Predicted order is the catalog's own `order` field, low first; a step with no
-order goes last. Nothing personal lives here: the flow's practices come from
+Predicted order is the catalog's `typical time` (bedo_order: which step came
+before which on her recent mornings), then its `order` field; see flow_steps. Nothing personal lives here: the flow's practices come from
 the live catalog, the core from facts.json.
 
     python3 bedo_remaining.py --live                 # the open flow, now
@@ -111,8 +111,10 @@ def flow_steps(cat, flow, first=(), not_before=None):
          past sunrise for the steps that wait for it (`not_before`)
       4  steps with no typical time, in the catalog's order
       5  the flow close, always last
-    then her lead steps (facts flows.leads) move to the front: 🗞️ morning gate
-    comes right after her first entry, whatever its observed time (10 Nov)."""
+    then her lead steps (facts flows.leads) move to the front, in her order:
+    💭 dream record, the 🪐 sleep readout, then 🗞️ morning gate, whatever their
+    observed times (10 and 20 Nov 2026). A lead given as a bare glyph is the
+    step whose name starts with it."""
     phase = FLOWS['phase'][flow]
     steps = [r for r in cat if r.get('active') and r.get('phase') == phase and r.get('practice')
              and (r.get('group') in FLOWS['groups'] or r.get('order') is not None)]
@@ -137,7 +139,7 @@ def flow_steps(cat, flow, first=(), not_before=None):
         if not moved:
             break
     for name in reversed(FLOWS.get('leads', {}).get(flow, [])):   # her lead steps come next (10 Nov 2026)
-        i = at(name)
+        i = at(name) if ' ' in name.strip() else lead_at(steps, name)
         if i is not None:
             steps.insert(0, steps.pop(i))
     for name in reversed([f for f in first if f]):
@@ -147,11 +149,33 @@ def flow_steps(cat, flow, first=(), not_before=None):
     return steps
 
 
+def lead_at(steps, glyph):
+    """The index of the step whose name starts with this glyph, or None."""
+    g = norm(glyph)
+    return next((i for i, r in enumerate(steps) if norm(r['practice']).split(' ')[0] == g), None)
+
+
+def leads(flow, steps):
+    """The catalog names of her lead steps in this flow — always named on the
+    line, core or not (20 Nov 2026)."""
+    out = []
+    for name in FLOWS.get('leads', {}).get(flow, []):
+        i = (next((j for j, r in enumerate(steps) if norm(r['practice']) == norm(name)), None)
+             if ' ' in name.strip() else lead_at(steps, name))
+        if i is not None:
+            out.append(steps[i]['practice'])
+    return out
+
+
 def logged(day_rows):
     """Every practice the day already carries, in any status — a ⨂ skipped
     step is captured, not remaining. One of an either-or pair closes the other
-    (facts flows.either_or)."""
+    (facts flows.either_or), and a step another covers is done with it
+    (facts flows.covers)."""
     have = {norm(r.get('practice')) for r in day_rows if r.get('practice')}
+    for by, covered in FLOWS.get('covers', {}).items():   # the gate covers the weather (20 Nov 2026)
+        if norm(by) in have:
+            have |= {norm(p) for p in covered}
     for pair in FLOWS.get('either_or', []):
         if have & {norm(p) for p in pair}:
             have |= {norm(p) for p in pair}
@@ -207,15 +231,26 @@ def open_flow(now_local, day_rows):
 
 def split(steps, day_rows, flow):
     """(done count, total, core remaining, other remaining) — each a list of
-    catalog names in predicted order."""
+    catalog names in predicted order. An ask-if-missing step (facts
+    flows.ask_if_missing: 🚽 bm, 20 Nov 2026) stays off the line until only the
+    close is left, then is named just before it."""
     have = logged(day_rows)
     left = [s['practice'] for s in steps if norm(s['practice']) not in have]
+    quiet = {norm(p) for p in FLOWS.get('ask_if_missing', {}).get(flow, [])}
+    close = norm(FLOWS['close'][flow])
+    if any(norm(p) not in quiet | {close} for p in left):          # asked only once all else is done
+        left = [p for p in left if norm(p) not in quiet]
+    else:
+        asked = [p for p in left if norm(p) in quiet]
+        left = asked + [p for p in left if norm(p) not in quiet]
+    done = sum(norm(s['practice']) in have for s in steps)
     core = FLOWS['core'].get(flow)
     if core is None:
-        return len(steps) - len(left), len(steps), left, []
-    want = {norm(c) for c in core}
-    return (len(steps) - len(left), len(steps),
-            [p for p in left if norm(p) in want], [p for p in left if norm(p) not in want])
+        return done, len(steps), left, []
+    want = {norm(c) for c in core} | {norm(p) for p in leads(flow, steps)}
+    return (done, len(steps),
+            [p for p in left if norm(p) in want or norm(p) in quiet],
+            [p for p in left if norm(p) not in want and norm(p) not in quiet])
 
 
 def holds_open(steps, day_rows, flow):
