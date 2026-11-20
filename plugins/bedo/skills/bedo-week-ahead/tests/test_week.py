@@ -143,9 +143,17 @@ def cal():
               '2026-11-10T11:00:00-06:00', 'my office', '3'),
             e('e4', '⬜ the county fair', '2026-11-21T09:00:00-06:00',
               '2026-11-21T12:00:00-06:00', 'the fairground'),
+            # called off: its own title opens with the mark
+            e('e5', '✖️ the budget meeting — called off', '2026-11-11T10:00:00-06:00',
+              '2026-11-11T11:00:00-06:00', 'my office'),
+            # one morning on two calendars: hers, and the child's own entry for the same thing
+            e('e6', '⬜ helping at the orchard school', '2026-11-13T10:00:00-06:00',
+              '2026-11-13T13:00:00-06:00', 'the orchard'),
         ]},
         {'who': 'Wren', 'events': [
             e('e3', '⬜ swimming', '2026-11-12T16:00:00-06:00', '2026-11-12T17:00:00-06:00', 'the pool'),
+            e('e7', '⬜ orchard school — Rowan is helping', '2026-11-13T10:00:00-06:00',
+              '2026-11-13T14:00:00-06:00', 'the orchard'),
         ]},
     ], 'read': {'window': 'Sun 8 Nov – Sat 28 Nov', 'you': 3, 'Wren': 1}}
 
@@ -315,7 +323,57 @@ class TheWeekPage(unittest.TestCase):
         self.assertTrue(days)
         self.assertTrue(all('cards' in d for d in days))
         self.assertTrue(any(d['cards'] for d in days), 'no card in the two weeks after')
-        self.assertIn('evCard(x, d)', self.page)
+        self.assertIn('dayBody(d, d.cards', self.page)
+
+    # ---- the calendar, by weight (her words, 12 Nov 2026: drop only what is not happening, and
+    # fix the crowding with weight: mine first and full, theirs quieter but plainly there)
+    def _events(self, iso):
+        day = next(d for d in self.plan['days'] if d['d'] == iso)
+        return day, [x for x in day['cards'] if x['k'] == 'event']
+
+    def test_an_event_marked_off_is_left_off_and_said(self):
+        day, evs = self._events('2026-11-11')
+        self.assertFalse([x for x in evs if 'budget' in x['t']])
+        self.assertIn('off', [l['why'] for l in day['left'] if 'budget' in l['t']])
+        self.assertEqual(self.plan['read']['off'], 1)
+
+    def test_one_thing_on_two_calendars_is_shown_once_as_hers(self):
+        day, evs = self._events('2026-11-13')
+        self.assertEqual([x['t'] for x in evs], ['helping at the orchard school'])
+        self.assertTrue(evs[0]['mine'])
+        self.assertEqual([(o['who'], o['b']) for o in evs[0]['also']], [('Wren', '14:00')])
+        self.assertIn('twice', [l['why'] for l in day['left']])
+        self.assertNotIn('clash', day['tags'], 'her helping at his school is not a clash')
+
+    def test_a_family_event_stays_and_is_marked_theirs(self):
+        # the answer is not to take things out: she wants to see them, to prepare for them
+        day, evs = self._events('2026-11-12')
+        swim = [x for x in evs if x['t'] == 'swimming']
+        self.assertEqual(len(swim), 1)
+        self.assertFalse(swim[0]['mine'])
+        self.assertEqual(swim[0]['who'], 'Wren')
+        # drawn as a quiet line, never with a check or a strike
+        self.assertIn('function famLine(', self.page)
+
+    def test_a_day_gone_folds_by_the_my_day_pages_own_highlights_rule(self):
+        # the rule is read out of the my day engine at the build, not copied into this one
+        engine = open(ENGINE, encoding='utf-8').read()
+        self.assertIn('/*DAYSIX*/', engine)
+        self.assertNotIn('function sixOf(', engine)
+        self.assertNotIn('/*DAYSIX*/', self.page)
+        self.assertIn('function sixOf(', self.page)
+        self.assertIn('highlights(day, cards)', self.page)
+
+    def test_every_script_on_the_built_page_parses(self):
+        import shutil
+        node = shutil.which('node')
+        if not node:
+            self.skipTest('no node here')
+        for i, js in enumerate(re.findall(r'<script>(.*?)</script>', self.page, flags=re.S)):
+            f = os.path.join(self.dir, f'block{i}.js')
+            open(f, 'w', encoding='utf-8').write(js)
+            r = subprocess.run([node, '--check', f], capture_output=True, text=True, encoding='utf-8')
+            self.assertEqual(r.returncode, 0, r.stderr[:600])
 
     def test_a_day_that_has_not_happened_has_nothing_struck_through(self):
         # a recurring event whose series row has been closed comes back done on every repeat
