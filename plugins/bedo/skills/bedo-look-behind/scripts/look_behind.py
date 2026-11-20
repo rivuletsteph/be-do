@@ -383,7 +383,8 @@ def gate(day_rows, L, day, all_rows=None):
             out.append(f'{r["_title"][:40]} spans {(b - a).total_seconds() / 3600:.0f} h '
                        f'({a:%d %b %H:%M} to {b:%d %b %H:%M}), over {hours} h')
     # the marker names the day it covers, so a dusk close written after midnight still counts (as in the week's)
-    if not any(f"{GATE['marker']} {day.isoformat()}" in (r.get('details') or '') for r in (all_rows or day_rows)):
+    marks = (GATE['marker'],) + tuple(GATE.get('old_markers') or ())        # dayqa shown before 20 Nov 2026
+    if not any(f"{m} {day.isoformat()}" in (r.get('details') or '') for m in marks for r in (all_rows or day_rows)):
         out.append(f'dayqa has not been shown for {day}: run_checks.sh dayqa {day}, show her the list, '
                    f'write what she accepts, and put its marker line ({GATE["marker"]} …) in the dusk close row')
     return out

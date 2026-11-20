@@ -489,8 +489,8 @@ def drives(rows, opens, off, day, B, closing=(), system=None, milestone=None):
         gw = _sig(b['goal']) - _sig(k) if b['goal'] else set()     # the drive's own name says only the drive
         for r in rs:
             made = _key_day(r.get('key')) or (_local_day(utc(r['datetime']), off) if r.get('datetime') else day)
-            carried = (day - made).days >= (Q.get('milestone_after_days') or 30) and not r.get('calendar_event') \
-                and FL.word(r.get('practice')) in ('action', '')        # a meeting on the calendar is not carried
+            carried = (day - made).days >= (Q.get('milestone_after_days') or 30) \
+                and FL.word(r.get('practice')) == 'action'      # an ⚡ action, not a meeting row from the calendar
             why = ('its last open step' if not left else
                    f'carried since {made:%-d %b}' if carried else
                    'the step its goal names' if len(_shared(gw, _sig(r.get('title')) - _sig(k))) >= 2 else None)
@@ -1066,13 +1066,13 @@ def render(items, day, rows, off, now_local=None):
     todo_ = [i for i in items if i['kind'] == 'do']
     lines = []
     if todo_:
-        lines.append(f'first, for the QA itself — {len(todo_)} to do before her list is shown, then run dayqa again:')
+        lines.append(f'first, for the braid itself — {len(todo_)} to do before her list is shown, then run dayqa again:')
         lines += [f'  · {i["check"]} · {i["line"]}' for i in todo_]
-    lines.append(f'dayqa · {day:%a %d %b} — {len(fills)} to accept' + (f', {len(dues)} to answer' if dues else '')
+    lines.append(f'{Q.get("together_heading") or "dayqa"} · {day:%a %d %b} — {len(fills)} to accept' + (f', {len(dues)} to answer' if dues else '')
                  + (f', {len(asks)} if you want' if asks else ''))
     top = [i for i in main if i['check'] in TOGETHER]
     if top:
-        lines.append(f'  {Q.get("together_heading") or "what the day moved"}:')
+        lines.append('  the threads — your actions and your drives:')
     for k, i in enumerate(main):
         if top and k == len(top):
             lines.append('  the rest of the day:')

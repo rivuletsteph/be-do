@@ -145,6 +145,7 @@ TAXDRIVE = {'Taxes': dict(id='recD', name='Taxes', type='♐ drive', code='D1', 
             'the system': dict(id='recS', name='the system', type='♐ drive', code='D3', goal='', target=None, open_ended=False, parent='')}
 FILED = row('recFiled', title='⚡ Tax prep — do the taxes, get everything to the preparer', status='✅ done', practice='⚡ action',
             rhythm='Taxes', key='260831_1000', datetime=z(15, 51), end=z(16),
+            calendar_event='https://calendar.example.invalid/event?eid=taxXYZ',     # on her calendar, still an action
             details='The tax prep has been done, and now it is just waiting on her.\nYes, we signed, and they will have been filed today.'
                     '\n———\n[be•do] closed at her word.')
 STATEMENT = row('recStmt', title='⚡ The year-end statement from the school, for the taxes', status='⬜ intention',
@@ -164,6 +165,10 @@ class Drives(unittest.TestCase):
         self.assertIn('carried since 31 Aug', mile['line'])
         self.assertTrue(any(i['kind'] == 'ask' and 'no goal yet' in i['line'] for i in items))
         self.assertTrue(any('one step left' in i['line'] for i in moved))
+
+    def test_a_meeting_from_the_calendar_is_not_carried(self):
+        meet = dict(FILED, id='recMeet', practice='🗓️ calendar event', title='the team meeting', key='261001_0900', details='')
+        self.assertFalse(any(i['kind'] == 'fill' for i in Q.drives([meet], [STATEMENT], OFF, DAY, TAXDRIVE)))
 
     def test_a_milestone_already_written_is_not_proposed_again(self):
         mark = row('recM', practice='🪨 milestone', title='🪨 the returns signed and filed', rhythm='Taxes', datetime=z(20))
@@ -187,10 +192,21 @@ class Drives(unittest.TestCase):
         rows = CROWD + [ANSWERED, FILED, TEXT]
         items = Q.run(rows, DAY, OFF, L, opens=[HELP, PICKUP, STATEMENT], drive_b=TAXDRIVE, catalog_names=['🪨 milestone'])
         text = Q.render(items, DAY, rows, OFF)
-        head = Q.Q.get('together_heading')
-        self.assertIn(head + ':', text)
+        self.assertTrue(text.startswith(Q.Q.get('together_heading') + ' · '))
+        self.assertIn('the threads — your actions and your drives:', text)
         self.assertLess(text.index('↳ Taxes'), text.index('the rest of the day') if 'the rest of the day' in text else len(text))
         self.assertLess(text.index('reconcile ·'), text.index('🪨 a milestone on Taxes'))
+
+
+class TheBraidsMarker(unittest.TestCase):
+    def test_the_new_line_and_the_old_one_both_read_as_done(self):
+        import bedo_close as C, bedo_daygate as G
+        old = {'practice': '🌄 dusk flow close', 'details': '———\n[be•do] closed.\ndayqa shown 2026-11-19 23:55 · 4 proposed'}
+        new = {'practice': '🌄 dusk flow close', 'details': '———\n[be•do] closed.\nbraid shown 2026-11-20 23:55 · 4 proposed'}
+        self.assertTrue(C.qa_done([old], DAY))
+        self.assertTrue(C.qa_done([new], DAY + dt.timedelta(days=1)))
+        self.assertTrue(G.dayqa_shown([old], DAY)[0])
+        self.assertTrue(Q.marker(DAY, 0).startswith('braid shown 2026-11-19'))
 
 
 if __name__ == '__main__':
