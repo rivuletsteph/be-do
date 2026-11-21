@@ -249,8 +249,9 @@ def read_log_rows(air, names, day, local):
     sf = local['stream_fields']
     f, d = sf['datetime'], sf['details']
     since = (day - dt.timedelta(days=4)).isoformat()
-    finds = ', '.join(f"FIND('{t}', {{{d}}})" for t in ('[be\u2022do] look behind ', bedo_daygate.G['head'] + ' ',
-                                                       bedo_daygate.QA_MARK + ' '))
+    marks = tuple(m + ' ' for m in bedo_daygate.QA_MARKS)   # braid shown, and dayqa shown on days closed before 20 Nov
+    finds = ', '.join(f"FIND('{t}', {{{d}}})" for t in ('[be\u2022do] look behind ', bedo_daygate.G['head'] + ' ')
+                      + marks)
     formula = (f"AND(OR({finds}), "
                f"NOT(IS_BEFORE({{{f}}}, DATETIME_PARSE('{since}'))))")
     fields = {k: sf[k] for k in LOG_FIELDS if sf.get(k)}
