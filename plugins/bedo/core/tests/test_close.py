@@ -136,6 +136,14 @@ class DriveChat(unittest.TestCase):
         found = C.findings([old, entry()], URL, '☑️ x', None, LOCAL)
         self.assertIn('✅ done', found[1][2])
 
+    def test_a_branch_or_a_drive_code_is_not_a_window_whatever_its_words(self):
+        # 21 Nov 2026: a branch of the my day was told “a window chat wants ✔️”; 9 Nov, a drive chat the same
+        for t in ('☑️↳1120.1 🏆 Fri 👁️ my day page', '☑️𖡎 My week page · be•do D6.79'):
+            self.assertFalse(C.is_window(t), t)
+            self.assertEqual(C.wanted_glyphs(t, '✅ done'), ['☑️'], t)
+        for t in ('✔️🔆1024 ⏳ Sat W43 my day', '▶️ my week w47'):
+            self.assertTrue(C.is_window(t), t)
+
     def test_render_names_what_is_left_in_order(self):
         text = C.render('t', C.findings([], URL, '▶️ t', None, LOCAL))
         self.assertIn('still to do, in order: QA, session entry, title', text)

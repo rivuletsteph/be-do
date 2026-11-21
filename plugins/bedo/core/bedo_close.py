@@ -52,9 +52,19 @@ CAL_MARKER = FACTS['calsync']['marker']
 DONE, MOVING = '✅ done', '▶️ in motion'
 
 
+BRANCH = re.compile(r'↳\d{4}\.')                 # ↳1120.1: a branch of a my day, the preflight's own marker
+DRIVE_CODE = re.compile(r'(?<![A-Za-z0-9])[A-Z]\d{1,3}\.\d{1,3}\b')   # D6.79, P03.13: a drive chat and its step
+
+
 def is_window(title):
-    t = (title or '').lower()
-    return any(w in t for w in WINDOWS)
+    """A window chat (my day, my week …) is read from what the title is, not
+    its words: a branch marker or a drive code says it is not one, whatever
+    else the title holds (9 and 21 Nov 2026: “My week page · be•do D6.79” and
+    “↳1120.1 🏆 Fri 👁️ my day page” were each told to take ✔️)."""
+    t = title or ''
+    if BRANCH.search(t) or DRIVE_CODE.search(t):
+        return False
+    return any(w in t.lower() for w in WINDOWS)
 
 
 def lead_glyph(title):
