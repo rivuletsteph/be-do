@@ -52,7 +52,15 @@ CAL_MARKER = FACTS['calsync']['marker']
 DONE, MOVING = '✅ done', '▶️ in motion'
 
 
+# A branch (↳1120.1) or a drive chat (a code such as D6.79 or P13.4) is never a window, whatever its
+# words say: "↳1120.1 … 👁️ my day page" and "My week page · be•do D6.79" were both read as windows
+# (9 and 21 Nov 2026) because "my day" and "my week" were in their titles.
+NOT_WINDOW = re.compile(r'↳\d{4}\.\d+|(?<![A-Za-z0-9])[A-Z]\d+\.\d+(?![0-9])')
+
+
 def is_window(title):
+    if NOT_WINDOW.search(title or ''):
+        return False
     t = (title or '').lower()
     return any(w in t for w in WINDOWS)
 
