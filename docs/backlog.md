@@ -170,6 +170,7 @@ what they are for), and a first draft of the overview page in her own words.
 | 261004_1045 | ▶️ | Base flow card shipped; next the look behind and look ahead for day, week and month — an earthy palette, the look ahead light and the look behind dark; later nutrition folded into body |
 | 261004_1536 | ▶️ | Page cards from her review of every past page — card 2 (perhaps the dark mirror of card 1), whether the forward map gets its own card, card 1 into the day ahead itself |
 | 261120_nextline | ⬜ | **The day page builder reads an older `Next:` line ahead of a newer one.** When a newer `Next:` is written partway through a line inside a `[be•do]` note, the builder still takes the older one that starts a line. It should take the latest `Next:` in the row wherever it sits. Found Fri 20 Nov 2026 building that day's page. |
+| 261121_drivesteps | ⬜ | **Each drive on "how the drives moved" opens to the actions that moved it.** Her words, Sat 21 Nov 2026, looking at Friday's page: I'm really wondering what the tasks are that I completed underneath those. Tapping a drive's bar lists the actions that closed that day under it (title, time, a link to its row), the same list the braid reads. |
 
 ## Calendar
 
