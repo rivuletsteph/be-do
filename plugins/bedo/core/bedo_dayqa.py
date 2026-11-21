@@ -492,7 +492,7 @@ def drives(rows, opens, off, day, B, closing=(), system=None, milestone=None):
             carried = (day - made).days >= (Q.get('milestone_after_days') or 30) \
                 and FL.word(r.get('practice')) == 'action'      # an ⚡ action, not a meeting row from the calendar
             why = ('its last open step' if not left else
-                   f'carried since {made:%-d %b}' if carried else
+                   f'carried since {made.day} {made:%b}' if carried else
                    'the step its goal names' if len(_shared(gw, _sig(r.get('title')) - _sig(k))) >= 2 else None)
             if not why or k in marked:
                 continue
