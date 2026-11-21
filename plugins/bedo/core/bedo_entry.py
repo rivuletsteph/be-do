@@ -395,6 +395,55 @@ def target_problems(row):
     return []
 
 
+WEEKDAYS = ('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday')
+SAID_DAY = re.compile(r"\b(the day after tomorrow|tomorrow|tonight|this evening|this afternoon|"
+                      r"(?:on |next |this )?(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday))\b", re.I)
+SAID_LATER = re.compile(r"\b(next week|next month|this weekend|later this week|over the weekend|sometime)\b", re.I)
+
+
+def said_day(text, made):
+    """The day a step's own words name, read from the day it was said (21 Nov
+    2026: friends to come by tomorrow morning, said on a Friday, was read as
+    Friday's). `made` is the local date the row was written. Tonight is that
+    day; tomorrow the next; a weekday the next one of it. The weekday it was
+    said on names no day (this Friday or next?), and neither does nothing.
+    Returns (date, the words) or None."""
+    m = SAID_DAY.search(text or '')
+    if not m or not made:
+        return None
+    w = m[1].lower()
+    if w == 'the day after tomorrow':
+        return made + dt.timedelta(days=2), m[1]
+    if w == 'tomorrow':
+        return made + dt.timedelta(days=1), m[1]
+    if w in ('tonight', 'this evening', 'this afternoon'):
+        return made, m[1]
+    n = (WEEKDAYS.index(w.split(' ')[-1]) - made.weekday()) % 7
+    return (made + dt.timedelta(days=n), m[1]) if n else None
+
+
+def step_words(row):
+    """A step's own words: its title and hers, never the [be•do] block."""
+    return f'{row.get("title") or ""}\n{her_words(row)}'
+
+
+def when_problems(row, utc_offset_hours=None):
+    """A ⬜ step whose words name its day carries that day as its target (21 Nov
+    2026), so the braid reads it on the day she meant, not the day she said it.
+    Her day is a firm one, not a made-up time. A block that already speaks of
+    the target has decided it."""
+    if (row.get('target') or row.get('status') not in OPEN_ACTIONS or row.get('status') == FACTS['status']['actions'][0]
+            or not row.get('datetime') or utc_offset_hours is None or _target_talk(row)):
+        return []
+    made = (utc(row['datetime']) + bedo_clock.Offset(utc_offset_hours)).date()   # the clock the row was said on
+    got = said_day(step_words(row), made)
+    if not got or got[0] == made:
+        return []
+    d, w = got
+    return [f'target: its words say “{w}”, said {made:%a %d %b}, so it is for {d:%a %d %b} — set the target to '
+            f'{d.isoformat()} (her day, not a made-up one), or say in the block why not']
+
+
 def key_problems(row, existing=None):
     """One row per key (12 Nov 2026). An action sat ▶️ and ✅ at once on one
     key, and a close written as a second row left the open one showing past
@@ -488,6 +537,7 @@ def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•
     out += future_problems(row, utc_offset_hours, now)
     out += key_problems(row, existing)
     out += target_problems(row)
+    out += when_problems(row, utc_offset_hours)
     out += details_problems(row.get('details'))
     prac = (row.get('practice') or '').strip()
     if not prac:

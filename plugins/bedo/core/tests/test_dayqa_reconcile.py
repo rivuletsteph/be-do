@@ -94,7 +94,8 @@ class DueToday(unittest.TestCase):
         got = {i['line'].split('”')[0][1:]: i for i in items}
         leave = next(i for i in items if 'Leave the office' in i['line'])
         self.assertEqual(leave['kind'], 'fill')                          # a done row on its drive at that time
-        self.assertIn('likely done', leave['line'])
+        self.assertTrue(leave['tell'])                                   # settled by the record: written, then told (21 Nov)
+        self.assertIn('done — ', leave['line'])
         self.assertEqual(leave['patch']['fields'], {'status': '✅ done', 'end': z(16)})
         pick = next(i for i in items if 'next town' in i['line'])
         self.assertEqual(pick['kind'], 'ask')                            # a later row says it changed
