@@ -47,7 +47,11 @@ python3 close.py plan   --week W     # the carry set and the delete set, by reco
    50¢, at most $5 a day). A day at his grandparents' or away overnight is a flat
    only. A day she wasn't with him gets no score and no invented one. be•do totals;
    she pays.
-4. **Reflection, word, focus practice:** hers. be•do listens and writes.
+4. **The week look behind, then reflection, word, focus practice.** Build the
+   week page (`bedo-week-look-behind`, `run_week_look_behind.sh` on the closing
+   week's Saturday) and post its link first, before the reflection is asked (her
+   amendment, 22 Nov 2026: so I can reflect from the page). The rest is hers;
+   be•do listens and writes.
 5. **The order and the review.** `run_checks.sh order --json`, written to the
    catalog's `typical time`. One backlog bucket a week. Drives and rhythms as one
    compact diff, only the few that need her word; an empty destination is never
@@ -93,8 +97,8 @@ python3 close.py plan   --week W     # the carry set and the delete set, by reco
    read back into the stories base first, then the new page. A branch chat can
    run it; it asks her nothing, and the link goes in the close's last reply.
 
-**Not in the close:** a week look behind, a review page, a handoff, three-and-three
-priorities. All retired.
+**Not in the close:** a separate review page, a handoff, three-and-three
+priorities. All retired. The week look behind is back in, at step 4 (22 Nov 2026).
 
 ## Monday: decide the week
 
