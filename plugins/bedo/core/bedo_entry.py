@@ -203,10 +203,35 @@ def notes(row, fill=None):
     if d and not d[0]:
         out.append(f'device left empty on an open action — ask in passing: laptop, Chromebook or phone for “{t}”?')
     out += synergy_now(row, ctx)
+    out += screen_time_notes(row)
     return out
 
 
 SY = FACTS['synergy']
+ST = FACTS['screen_time']
+
+
+def screen_time_notes(row):
+    """21 Nov 2026: navigation on a drive is partial screen time, not focused. A screen-time row whose
+    details name a maps app but give no partial minutes is asked, in passing, for the split."""
+    if bedo_fill.word(row.get('practice')) != ST['practice']:
+        return []
+    text = (row.get('details') or '')
+    if re.search(ST['navigation'], text, re.I) and not re.search(ST['split'], text, re.I):
+        return [f'screen time names navigation but no partial minutes — navigation while driving or riding is '
+                f'partial, not focused; ask in passing and write the split in her words ({ST["format"]}); '
+                f'the phone\'s total stays in the title']
+    return []
+
+
+def always_synergy(a, b):
+    """The always-synergy rule (facts synergy.always) a pair of rows falls under, or None."""
+    pa, pb = bedo_fill.word(a.get('practice')), bedo_fill.word(b.get('practice'))
+    for rule in SY.get('always', []):
+        x, y = ([bedo_fill.word(p) for p in side] for side in rule['pair'])
+        if (pa in x and pb in y) or (pb in x and pa in y):
+            return rule
+    return None
 
 
 def her_words(row):
@@ -250,18 +275,27 @@ def synergy_now(row, ctx):
     others = overlaps(row, ctx.day_rows)
     if not others:
         return []
+    out = []
+    for o in [o for o in others if always_synergy(row, o)]:   # always synergy: written, never asked
+        who = (o.get('title') or o.get('practice') or '?')[:50]
+        note = SY['note'].format(answer='synergizing', partner=o.get('key') or who)
+        out.append(f'two things at once with “{who}” — always synergy ({always_synergy(row, o)["why"]}): add the '
+                   f'line “{note}” at the end of her words, above the divider; never ask')
+    others = [o for o in others if not always_synergy(row, o)]
+    if not others:
+        return out
     o = others[0]
     ans, cue = synergy_from(mine)
     if not ans:
         ans, cue = synergy_from(her_words(o))
     who = (o.get('title') or o.get('practice') or '?')[:50]
     if not ans:
-        return [f'two things at once with “{who}” and her words don\'t say how they went together — ask in this '
+        return out + [f'two things at once with “{who}” and her words don\'t say how they went together — ask in this '
                 f'reply, once, while it\'s fresh: did they help each other, get in each other\'s way, both, or '
                 f'neither? No answer is fine; never ask it later. Her answer goes at the end of her words: '
                 + SY['note'].format(answer='<answer>', partner=o.get('key') or who)]
     note = SY['note'].format(answer=ans, partner=o.get('key') or who)
-    return [f'two things at once with “{who}” — her words say {ans} (“{cue}”): add the line “{note}” at the end '
+    return out + [f'two things at once with “{who}” — her words say {ans} (“{cue}”): add the line “{note}” at the end '
             f'of her words, above the divider; she corrects in passing']
 
 
