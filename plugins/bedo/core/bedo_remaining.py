@@ -18,6 +18,12 @@ Each line is a rule a chat used to have to remember, and skipped:
   A126  the dawn list stops printing at noon; dusk opens after 7 PM
   either  🌬️ evening breaths and 🌙 evening meditation are an either-or: one
         logged closes both, and the other is never asked for (8 Oct 2026)
+  closes  a flow closes right after its last logged step, read from the stream,
+        without waiting for her (21 Nov 2026): a row of the same kind counts as
+        the step (facts flows.same_kind: a 📗 book row that morning is 📗
+        morning book); once nothing required is left the line below the box
+        says to write the close now, at the last step's time; past the backup
+        hour (flows.backup_close) it says to write the backup close, unasked
   sun-by  🔅 morning sun by an hour after sunrise or waking, whichever is
         later: the line names that time while the sun is still to come (8 Oct).
         On a cloudy morning (the weather check says so) it names her bright
@@ -167,12 +173,41 @@ def leads(flow, steps):
     return out
 
 
-def logged(day_rows):
+def _local(r, loc):
+    t = dt.datetime.fromisoformat(r['datetime'].replace('Z', '+00:00'))
+    return (t + dt.timedelta(hours=offset_hours(loc, t))).replace(tzinfo=None)
+
+
+def in_hours(flow, r, loc):
+    """True when a row falls in the flow's hours: dawn before its backup close,
+    dusk from when it opens. Without a clock (`loc`) or a time, the day is enough."""
+    if loc is None or not r.get('datetime'):
+        return True
+    t = _local(r, loc).time()
+    return t < _hhmm(FLOWS['backup_close']['dawn']) if flow == 'dawn' else t >= _hhmm(FLOWS['dusk_opens_after'])
+
+
+def same_kind(day_rows, loc=None):
+    """[(row, step)] — rows of the same kind as a flow step, inside that flow's
+    hours, which show the step done (facts flows.same_kind, 21 Nov 2026: a 📗
+    book row that morning is the 📗 morning book step)."""
+    out = []
+    for flow, kinds in FLOWS.get('same_kind', {}).items():
+        for step_, practices in kinds.items():
+            want = {norm(p) for p in practices}
+            out += [(r, step_) for r in day_rows
+                    if norm(r.get('practice')) in want and in_hours(flow, r, loc)]
+    return out
+
+
+def logged(day_rows, loc=None):
     """Every practice the day already carries, in any status — a ⨂ skipped
-    step is captured, not remaining. One of an either-or pair closes the other
+    step is captured, not remaining. A row of the same kind counts as its step
+    (facts flows.same_kind), one of an either-or pair closes the other
     (facts flows.either_or), and a step another covers is done with it
     (facts flows.covers)."""
     have = {norm(r.get('practice')) for r in day_rows if r.get('practice')}
+    have |= {norm(s) for _, s in same_kind(day_rows, loc)}
     for by, covered in FLOWS.get('covers', {}).items():   # the gate covers the weather (20 Nov 2026)
         if norm(by) in have:
             have |= {norm(p) for p in covered}
@@ -229,12 +264,12 @@ def open_flow(now_local, day_rows):
     return None
 
 
-def split(steps, day_rows, flow):
+def split(steps, day_rows, flow, loc=None):
     """(done count, total, core remaining, other remaining) — each a list of
     catalog names in predicted order. An ask-if-missing step (facts
     flows.ask_if_missing: 🚽 bm, 20 Nov 2026) stays off the line until only the
     close is left, then is named just before it."""
-    have = logged(day_rows)
+    have = logged(day_rows, loc)
     left = [s['practice'] for s in steps if norm(s['practice']) not in have]
     quiet = {norm(p) for p in FLOWS.get('ask_if_missing', {}).get(flow, [])}
     close = norm(FLOWS['close'][flow])
@@ -253,11 +288,11 @@ def split(steps, day_rows, flow):
             [p for p in left if norm(p) not in want and norm(p) not in quiet])
 
 
-def holds_open(steps, day_rows, flow):
+def holds_open(steps, day_rows, flow, loc=None):
     """What still keeps the flow from closing itself: required steps only —
     never an optional one, never one collapsed off the core (A228), never the
     close itself."""
-    have = logged(day_rows)
+    have = logged(day_rows, loc)
     core = FLOWS['core'].get(flow)
     want = {norm(c) for c in core} if core is not None else None
     close = norm(FLOWS['close'][flow])
@@ -267,12 +302,12 @@ def holds_open(steps, day_rows, flow):
             and (want is None or norm(s['practice']) in want)]
 
 
-def render(flow, steps, day_rows, due=None, light=None):
+def render(flow, steps, day_rows, due=None, light=None, loc=None):
     """ONE line in a code box: the flow's glyph, n of N, the core still to do
     by name, then also: and the other steps as their glyphs. `due` is the
     sun-by time (minutes after midnight), named on 🔅 morning sun; `light` is
     her bright light on a cloudy morning, named in its place."""
-    done, total, core, rest = split(steps, day_rows, flow)
+    done, total, core, rest = split(steps, day_rows, flow, loc)
     glyph = FLOWS['phase'][flow].split(' ')[0]
     if not core and not rest:
         return f'```\n{glyph} all {total} done\n```'
@@ -288,6 +323,52 @@ def render(flow, steps, day_rows, due=None, light=None):
     if rest:
         parts.append('also: ' + ' '.join(by(p, p.split(' ')[0]) for p in rest))
     return '```\n' + ' · '.join(parts) + '\n```'
+
+
+def ampm(t):
+    """10:26 AM — a wall-clock time as the close line prints it."""
+    return f'{t.hour % 12 or 12}:{t.minute:02d} {"AM" if t.hour < 12 else "PM"}'
+
+
+def last_step(steps, day_rows, flow, loc):
+    """(catalog name, local time) of the flow's latest logged step — its own
+    row or one of the same kind — or None. The close is written at this time."""
+    names = {norm(s['practice']): s['practice'] for s in steps}
+    names.pop(norm(FLOWS['close'][flow]), None)
+    hits = [(r, names[norm(r.get('practice'))]) for r in day_rows if norm(r.get('practice')) in names]
+    hits += [(r, s) for r, s in same_kind(day_rows, loc) if norm(s) in names]
+    hits = [(r, s) for r, s in hits if r.get('datetime')]
+    if not hits:
+        return None
+    r, s = max(hits, key=lambda h: h[0]['datetime'])
+    return s, _local(r, loc if loc is not None else 0)
+
+
+def close_line(flow, steps, day_rows, day=None, now_local=None, loc=None):
+    """The flow closes itself (21 Nov 2026): once nothing required is left, the
+    line that says to write the close now, at the last step's time, without
+    asking her; past the backup hour on the day itself, the line that says to
+    write the backup close, naming what it couldn't capture, without waiting
+    for a reply. None while the flow still runs, or once its close is logged."""
+    close = FLOWS['close'][flow]
+    if norm(close) in logged(day_rows, loc):
+        return None
+    say = FLOWS['closes_itself']
+    glyph = FLOWS['phase'][flow].split(' ')[0]
+    if not holds_open(steps, day_rows, flow, loc):
+        last = last_step(steps, day_rows, flow, loc)
+        if last:
+            return say['line'].format(glyph=glyph, flow=flow, step=last[0], time=ampm(last[1]), close=close)
+    if day is None or now_local is None:
+        return None
+    now = now_local.replace(tzinfo=None)
+    backup = dt.datetime.combine(day, _hhmm(FLOWS['backup_close'][flow]))
+    if now.date() != day or now < backup:
+        return None
+    _, _, core, rest = split(steps, day_rows, flow, loc)
+    missed = [p for p in core + rest if norm(p) != norm(close)]
+    return say['backup'].format(glyph=glyph, backup=ampm(backup), close=close,
+                                missed=f', naming what it couldn\'t capture: {" · ".join(missed)}' if missed else '')
 
 
 def week_turn(day, day_rows):
@@ -308,9 +389,9 @@ def week_turn(day, day_rows):
         'next: ready for the transition to the next week? say yes and I\'ll open the my week chat'
 
 
-def spoken(flow, steps, day_rows):
+def spoken(flow, steps, day_rows, loc=None):
     """The one spoken line on voice — names only."""
-    done, total, core, rest = split(steps, day_rows, flow)
+    done, total, core, rest = split(steps, day_rows, flow, loc)
     left = core + rest
     name = flow
     if not left:
@@ -347,9 +428,14 @@ def main(argv=None):
     rows = on_day(every, day, L)
     flow = a.flow or open_flow(now_local, rows)
     turn = week_turn(day, rows)
+    dawn_left = None                                 # the dawn flow, still open past its backup hour
+    if flow != 'dawn' and norm(FLOWS['close']['dawn']) not in logged(rows, L):
+        dawn_left = close_line('dawn', flow_steps(cat, 'dawn'), rows, day, now_local, L)
     if not flow:
-        print(f'```\n{turn}\n```' if turn else 'no flow open')
+        print(dawn_left or (f'```\n{turn}\n```' if turn else 'no flow open'))
         return
+    if dawn_left:
+        print(dawn_left)
     gate, due, light = {}, None, None
     if flow == 'dawn':
         rise = sunrise(every, L)
@@ -364,7 +450,10 @@ def main(argv=None):
             light = L.get('cloudy_light') or FACTS['cloudy']['light']
     steps = flow_steps(cat, flow, a.next, gate)
     steps = drop_passed_sun(steps, due, now_local if not a.date else None)
-    print(spoken(flow, steps, rows) if a.voice else render(flow, steps, rows, due, light))
+    print(spoken(flow, steps, rows, L) if a.voice else render(flow, steps, rows, due, light, L))
+    shut = close_line(flow, steps, rows, day, now_local, L)
+    if shut:
+        print(shut)
     if turn and flow == 'dawn':
         print(turn)
 

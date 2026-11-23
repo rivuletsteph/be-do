@@ -367,26 +367,22 @@ contents never pass through the chat.
    flow page's input and its plan, never published. Each day has one my day page, named like that
    day's my day chat — the build prints it as `page.title` and puts it in the
    page's `<title>` (`▶️🔆1028 💧 Wed 𖡎 W44 my day`). The build also reads
-   today's ◉ 👁️ look ahead row and prints `page.url` and `page.row`:
-   - **`page.url` set** — the day's page exists: republish to that link, in
-     place. The draft, the final, and every later piece of the day (its rows
-     and photos, the close) go to this one link.
-   - **`page.url` empty** — the first publish of the day: publish a new
-     artifact (favicon 👁️), then write its link to the look ahead row's
-     `deliverable` (`page.row`; if the row isn't written yet, write it with the
-     link in it). That row is where every later build finds the link.
+   today's ◉ 👁️ look ahead row and prints `page.url`, `page.standing` and `page.row`.
+   **Every build through the day publishes only to `page.standing`** (her words, 20 Nov 2026: I only want to see one
+   page. I only want to check one page. This replaces the 18 Nov rule that every build went to both links; she saw
+   three cards in one day: the day's page, then the standing page twice). `page.standing` is `artifact_url` in the
+   settings, the old single living page that her browser opens at start; it is never a day's own, and the build never
+   takes it for one. The draft, the final, every later piece of the day (its rows and photos) go there, in place,
+   and nowhere else. The publish tool asks for a read of a page before its first publish in a chat: read
+   `page.standing` once, then publish. **The day's own link, `page.url`, is published once, at the dusk close's last
+   rebuild, for the record:** `page.url` set, republish to it in place; empty, publish a new artifact (favicon 👁️)
+   and write its link to the look ahead row's `deliverable` (`page.row`; if the row isn't written yet, write it with
+   the link in it). Its link stays on that row. `page.standing` empty (no `artifact_url` in the settings): publish to
+   `page.url` as the day's page, as before.
    **Every publish declares `capabilities: {downloads: true}`** (261106_download, her word 7 Nov 2026): the page's
    *download this page* button saves it as one .html, photos and all, through the viewer's own save prompt; without
    the capability the button falls back to a plain browser download, which the claude.ai frame may block.
-   **Then publish the same file to `page.standing`** (her yes, 18 Nov 2026: the
-   dashboard is the my day page, kept current at the standing link). That is
-   `artifact_url` in the settings, the old single living page that her browser
-   opens at start; it is never a day's own, and the build never takes it for
-   one. Every publish to `page.url` (the draft, the final, every later piece)
-   goes there too, in the same reply, with the same capabilities, so the browser
-   shows today without a chat remembering. The publish tool asks for a read of a
-   page before its first publish in a chat: read `page.standing` once, then
-   publish. `page.standing` empty: skip it. No Drive copy each time: the
+   No Drive copy each time: the
    pages are exported at the desktop (her word, 28 Oct 2026).
 7. **Log the step**: the ◉ 👁️ look ahead row, dawn, with the day's page as its
    deliverable and one `[be•do]` line naming the three, the gaps and the clashes.
@@ -402,7 +398,7 @@ page was built with the map branch still open and showed nothing of her hour in 
 `cal/calendars.json`, then `list_events` for each calendar the plan names (the
 same window and arguments `bedo_cal.py --plan` prints, each saved to `cal/<who>.json`,
 every page) — and `cal`; then `build` (with the Drive key here, so her keeper photos
-are on their cards), then republish to `page.url` and to `page.standing`. The morning's `cal.json` is never
+are on their cards), then publish to `page.standing` and, this once, to `page.url` (the day's own link, for the record). The morning's `cal.json` is never
 the day as lived (11 Nov 2026: Tuesday's day-as-lived page was built on it, and
 the evening's events were the morning's). `build` stops with a `FIX calendar` when
 `cal.json` is not today's read or is more than 90 minutes older than the last fetch

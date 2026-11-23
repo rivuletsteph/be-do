@@ -44,14 +44,13 @@ python3 close.py plan   --week W     # the carry set and the delete set, by reco
    ⚡ intention check. Steps come from the latest Google Health mail; none is
    *not yet received*, never zero.
 3. **The quest tally,** one line: points by day, the total, the dollars (a point is
-   50¢, at most $5 a day). A day at his grandparents' or away overnight is a flat
-   only. A day she wasn't with him gets no score and no invented one. be•do totals;
+   50¢, at most $5 a day). A day at his grandparents', even a half day (her
+   words, 22 Nov 2026), or away overnight is a flat only. A day she wasn't with him gets no score and no invented one. be•do totals;
    she pays.
-4. **The week look behind, then reflection, word, focus practice.** Build the
-   week page (`bedo-week-look-behind`, `run_week_look_behind.sh` on the closing
-   week's Saturday) and post its link first, before the reflection is asked (her
-   amendment, 22 Nov 2026: so I can reflect from the page). The rest is hers;
-   be•do listens and writes.
+4. **Reflection, word, focus practice:** hers. be•do listens and writes. **Before
+   asking for the reflection, build the week look behind page**
+   (`bedo-week-look-behind`) and post its link, so she reflects from the page (her
+   words, 22 Nov 2026).
 5. **The order and the review.** `run_checks.sh order --json`, written to the
    catalog's `typical time`. One backlog bucket a week. Drives and rhythms as one
    compact diff, only the few that need her word; an empty destination is never
@@ -68,7 +67,8 @@ python3 close.py plan   --week W     # the carry set and the delete set, by reco
 8. **Her university's events calendar** for the next two weeks (a trial, 27 Oct
    2026; the link is `events_calendar` in her settings). Offer only what fits her
    drives or her interests (talks, theatre, family events), one line each she can
-   say yes to. A yes goes on her calendar (purple for work) and in as a ⬜ row.
+   say yes to. Never sports: games, meets and matches are left out (her words,
+   22 Nov 2026: I don't follow it). A yes goes on her calendar (purple for work) and in as a ⬜ row.
 9. **The split.** Her clone, then `plan`. Rows written after the clone make the
    record-id diff unclean, and `plan` stops: a closed row left behind in the old base
    stays there, an open one is patched across, and a row dated in the new week is
@@ -97,8 +97,8 @@ python3 close.py plan   --week W     # the carry set and the delete set, by reco
    read back into the stories base first, then the new page. A branch chat can
    run it; it asks her nothing, and the link goes in the close's last reply.
 
-**Not in the close:** a separate review page, a handoff, three-and-three
-priorities. All retired. The week look behind is back in, at step 4 (22 Nov 2026).
+**Not in the close:** a review page, a handoff, three-and-three priorities. All
+retired. The week look behind came back on 22 Nov 2026 (step 4).
 
 ## Monday: decide the week
 
