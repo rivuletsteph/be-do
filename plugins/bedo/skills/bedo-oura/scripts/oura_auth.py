@@ -10,8 +10,9 @@ saved before anything else happens. Lose the latest one and the sign-in is done 
     python oura_auth.py            # sign in: asks for the app's id and secret the first
                                    # time, opens the Oura page, catches the answer
     python oura_auth.py --check    # who is signed in and until when; renews if near the end
-    python oura_auth.py --cloud    # renews now and puts the key on the clipboard, never the
-                                   # screen, for the cloud environment's Oura credential
+    python oura_auth.py --cloud    # renews now and hands over the key for the cloud
+                                   # environment's Oura credential: on the clipboard where
+                                   # that works, on screen until Enter on a Chromebook
 
 Where things live, outside the repo, never shipped:
   bedo_secrets.json   oura_client_id, oura_client_secret (beside airtable_pat)
@@ -67,7 +68,11 @@ def app(ask=False):
     cid = undouble(input('Client ID: ').strip())
     sec = undouble(getpass.getpass('Client Secret (not shown): ').strip())
     if not (cid and sec):
-        die('both are needed')
+        die('both are needed — Oura\'s Copy button for the secret can copy nothing; '
+            'press Reset Secret, select the new one with the mouse and Ctrl+C it')
+    if sec == cid:
+        die('that was the Client ID again — copy the Client Secret and run this once more')
+    print(f'Client Secret: got {len(sec)} characters.')
     s.update(oura_client_id=cid, oura_client_secret=sec)
     _write(SECRETS, s)
     return cid, sec
@@ -143,6 +148,46 @@ def access_token(force=False):
     return _save(new)['access_token']
 
 
+CHROMEBOOK = os.path.exists('/dev/.cros_milestone')   # Linux on a Chromebook (Crostini)
+
+PASTE_STEPS = """Now, in the Claude app:
+  1. Click the  v  next to the chat's title, then the settings icon by "Default".
+  2. Network secrets -> api.ouraring.com -> the circular arrow (Replace secret).
+  3. Header name: Authorization   Prefix: Bearer   Value: paste the key (Ctrl+V).
+  4. Replace secret.
+The Prefix matters: without "Bearer" Oura says 401."""
+
+
+def _clipboard(t):
+    """True when the key reached a clipboard the browser can paste from. A Chromebook's
+    Linux clipboard reports success and never reaches Chrome (23 Nov 2026), so it isn't
+    tried there."""
+    if CHROMEBOOK:
+        return False
+    copy = {'win32': ['clip'], 'darwin': ['pbcopy']}.get(sys.platform)
+    if not copy:
+        copy = ['wl-copy'] if os.environ.get('WAYLAND_DISPLAY') else ['xclip', '-selection', 'clipboard']
+    try:
+        subprocess.run(copy, input=t.encode('ascii'), check=True, timeout=10)
+        return True
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def _show(t):
+    """The key on screen until Enter, then the screen and its scrollback wiped."""
+    print('\nThe Oura key is the line below. Double-click it (or drag across the whole line),')
+    print('then press Ctrl+Shift+C to copy it.\n')
+    print(t + '\n')
+    print(PASTE_STEPS)
+    try:
+        input('\nPress Enter once it is pasted and saved; the screen clears. ')
+    except (EOFError, KeyboardInterrupt):
+        print()
+    sys.stdout.write('\033[2J\033[3J\033[H')
+    sys.stdout.flush()
+
+
 def cloud():
     """The cloud can't keep a renewing sign-in, so it carries a copy of the key, pasted
     into its environment by the user, about monthly (her choice, 23 Oct 2026). The laptop
@@ -151,14 +196,13 @@ def cloud():
     t = access_token(force=True)
     if not t:
         die('not signed in — run oura_auth.py')
-    copy = {'win32': ['clip'], 'darwin': ['pbcopy']}.get(sys.platform, ['xclip', '-selection', 'clipboard'])
-    try:
-        subprocess.run(copy, input=t.encode('ascii'), check=True)
-    except (OSError, subprocess.CalledProcessError) as e:
-        die(f'could not reach the clipboard ({e})')
+    if _clipboard(t):
+        print('The Oura key is on the clipboard.\n' + PASTE_STEPS)
+    else:
+        _show(t)
     due = _read(TOKENS)['expires_at'] - RENEW_WITHIN
-    print('The Oura key is on the clipboard. Paste it as the cloud environment credential for api.ouraring.com.')
-    print(f'Paste a fresh one by {time.strftime("%a %d %b %Y", time.localtime(due))}: python oura_auth.py --cloud')
+    print(f'Oura key renewed. Paste a fresh one by {time.strftime("%a %d %b %Y", time.localtime(due))}: '
+          f'python3 oura_auth.py --cloud')
 
 
 def main():
