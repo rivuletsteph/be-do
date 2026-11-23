@@ -34,6 +34,12 @@ Each open chat gets one verdict:
              (`keep_line`), and the week counts from that day
   routine    a scheduled run: never swept
 
+Duet's tasks are not swept (23 Nov 2026). No session list this sweep can read
+shows them: not the cloud list (mine, with or without a tag filter) and not the
+desktop one, and their rows carry no chat link. A Duet task is a branch that
+closes itself and sends Duet one line (J17), so the sweep says once that they
+are Duet's and never counts one as open or finished.
+
 Rename (her yes, 16 Nov 2026): a chat to archive that isn't in the be•do form
 is renamed first, and an open one with no be•do title gets ▶️ (it is not
 archived, nothing is sent into it). The line carries `rename → <title>` and
@@ -345,7 +351,11 @@ def render(found, now):
                    + ' '.join(x['id'] for x in pins) + ' · desktop: set_pinned false')
     if not any(x['verdict'] in TODO for x in found):
         out.append('swept: nothing left for be•do')
+    out.append(DUET_LINE)
     return '\n'.join(out)
+
+
+DUET_LINE = "Duet's tasks: not in any session list here; each closes itself and tells Duet (J17)"
 
 
 def live_rows(local, today=None):

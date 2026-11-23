@@ -149,6 +149,32 @@ def can_read():
         return False
 
 
+class Bases(dict):
+    """The base list by name. A miss reads the list live once and looks again
+    (23 Nov 2026: two sessions read a kept list from before w48 was cloned and
+    one wrote its entry to w47). A name still missing after that is missing."""
+
+    def __init__(self, names, reread):
+        super().__init__(names)
+        self._reread = reread
+
+    def _fresh(self, name):
+        if name not in self.keys() and self._reread:
+            reread, self._reread = self._reread, None   # once per list: a real miss costs one call
+            self.update(reread())
+        return name in self.keys()
+
+    def __contains__(self, name):
+        return self._fresh(name)
+
+    def __getitem__(self, name):
+        self._fresh(name)
+        return super().__getitem__(name)
+
+    def get(self, name, default=None):
+        return super().get(name, default) if self._fresh(name) else default
+
+
 class Air:
     def __init__(self, pat=None):
         self.pat = pat or find_token()
@@ -159,12 +185,13 @@ class Air:
         h = {'Authorization': 'Bearer ' + self.pat} if self.pat else {}
         return {**h, **(extra or {})}
 
-    def get(self, path, q=None, ttl=None):
+    def get(self, path, q=None, ttl=None, live=False):
         """One call, or none when a kept copy is fresh. The base list and schemas
-        are kept a day by default; anything else only when `ttl` says so."""
+        are kept a day by default; anything else only when `ttl` says so.
+        `live` skips the kept copy and refreshes it."""
         if ttl is None and path.startswith('meta/'):
             ttl = META
-        d = _kept(path, q, ttl)
+        d = None if live else _kept(path, q, ttl)
         if d is not None:
             return d
         url = API + path + ('?' + urllib.parse.urlencode(q, doseq=True) if q else '')
@@ -187,14 +214,17 @@ class Air:
                     die('NO TOKEN HERE: Airtable refused this session — read through the connector and pass files')
                 die(f'{path}: HTTP {e.code}')
 
-    def bases(self):
-        """Every base this token sees, by NAME (I2: never an id from memory)."""
+    def bases(self, live=False):
+        """Every base this token sees, by NAME (I2: never an id from memory).
+        The list is kept a day, so a name it doesn't hold is asked of Airtable
+        once more before it counts as missing: a base made since the list was
+        kept (the new week's, cloned at the weekly close) is seen at once."""
         out, q = {}, {}
         while True:
-            d = self.get('meta/bases', q)
+            d = self.get('meta/bases', q, live=live)
             out.update({b['name']: b['id'] for b in d['bases']})
             if not d.get('offset'):
-                return out
+                return out if live else Bases(out, lambda: self.bases(live=True))
             q = {'offset': d['offset']}
 
     def table(self, base, table):

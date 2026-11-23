@@ -9,6 +9,7 @@ Names, places and drives are invented.
     python3 plugins/bedo/core/tests/test_dayqa_new_steps.py
 """
 import datetime as dt, os, sys, unittest
+from unittest import mock
 
 CORE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, CORE)
@@ -133,7 +134,11 @@ class EntrySetsTheDay(unittest.TestCase):
 class TheBraid(unittest.TestCase):
     def test_a_settled_step_is_told_not_asked(self):
         rows = [SCOPE, STAY, DROP, VISIT]
-        items = Q.run(rows, FRI, OFF, {'utc_offset_hours': OFF}, opens=list(rows))
+        # The painted check runs only where day_rings can be imported, which depends on what else put
+        # its folder on sys.path (23 Nov 2026: this passed alone and failed in one pytest run of the whole
+        # core folder). It has its own tests; here it is held out so the result can't depend on the order.
+        with mock.patch.object(Q, 'painted', return_value=[]):
+            items = Q.run(rows, FRI, OFF, {'utc_offset_hours': OFF}, opens=list(rows))
         tells = [i for i in items if i.get('tell')]
         self.assertEqual([i['patch']['id'] for i in tells], ['recScope'])
         self.assertNotIn('n', tells[0])
