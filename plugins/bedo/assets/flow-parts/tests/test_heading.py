@@ -2,9 +2,11 @@
 """The heading on a day page (19 Nov 2026).
 
 On the day page the date had the week's word after it, behind a dash and in
-italics. Her intention now sits under the date in plain words, her first one,
-or the week's word where she gave none. A page with no intentions at all (the
-week page) keeps the dash and the word.
+italics. Her intention now sits under the date in plain words, her first one.
+Where she hasn't given one yet the line stays blank, never the week's word in
+its place (20 Nov 2026, her words: it's my job to say what my intention is
+today). A page with no intentions at all (the week page) keeps the dash and
+the word.
 
 The heading runs in node where it is installed; without it, only the wiring is
 checked. Every word below is an obvious invention.
@@ -34,7 +36,8 @@ def main():
     esc = re.search(r"^const esc=.*$", b, re.M).group(0)
     cases = [
         (dict(label='Thu 3 Mar', word='Rising', intentions=['moving like a kite']), 'moving like a kite', False),
-        (dict(label='Thu 3 Mar', word='Rising', intentions=[]), 'Rising', False),
+        (dict(label='Thu 3 Mar', word='Rising', intentions=[]), None, False),          # none yet: blank
+        (dict(label='Thu 3 Mar', word='Rising', intentions=[None, '']), None, False),
         (dict(label='Thu 3 Mar', word=None, intentions=[None]), None, False),
         (dict(label='Week 9', word='Rising'), None, True),
     ]
@@ -55,6 +58,7 @@ def main():
         if not say and not dash:
             assert h == D['label'], h
         assert ('—' in h) == dash, h
+        assert dash or 'Rising' not in h, h                                       # the week's word never stands in
     print('test_heading: %d headings ok' % len(got))
 
 
