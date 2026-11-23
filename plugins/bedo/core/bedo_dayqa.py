@@ -973,6 +973,10 @@ def synergy(rows, off, history=()):
                 a = noted.group(1).lower()
                 out.append({'check': 'synergy', 'kind': 'notice', 'answer': a,
                             'line': f'{pair}: {SY["say"][a]}'})
+            elif E.always_synergy(r, o):            # always synergy (facts synergy.always): written, never asked
+                note = SY['note'].format(answer='synergizing', partner=_partner(o))
+                out.append(fill('synergy', f'{pair}: synergizing, always — {E.always_synergy(r, o)["why"]} — {SY["say"]["synergizing"]}',
+                                SRC['rule'], patch={'id': r.get('id'), 'append_her_words': note}, note=note))
             elif ans:
                 note = SY['note'].format(answer=ans, partner=_partner(other))
                 out.append(fill('synergy', f'{pair}: {ans}, from your words (“{cue}”) — {SY["say"][ans]}',

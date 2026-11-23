@@ -34,7 +34,14 @@ Each open chat gets one verdict:
              (`keep_line`), and the week counts from that day
   routine    a scheduled run: never swept
 
-    python3 bedo_chats.py --sessions mine.json [--sessions other.json] (--live | --rows rows.json) [--now ISO] [--json]
+Rename (her yes, 16 Nov 2026): a chat to archive that isn't in the be•do form
+is renamed first, and an open one with no be•do title gets ▶️ (it is not
+archived, nothing is sent into it). The line carries `rename → <title>` and
+the JSON a `rename` field. Never for a busy or scheduled chat, or today's my
+day chat. The scheduled evening sweep never renames another chat (22 Nov
+2026): it runs with `--no-rename`.
+
+    python3 bedo_chats.py --sessions mine.json [--sessions other.json] (--live | --rows rows.json) [--now ISO] [--json] [--no-rename]
 
 `mine.json` is `list_sessions` (mine) as it came, in either shape: the
 desktop app's (`sessionId`, `isArchived`, `pinned`) or the cloud's
@@ -49,7 +56,7 @@ nothing is left for be•do to do, 1 otherwise.
 """
 import datetime as dt, json, re, sys
 
-from bedo_close import GLYPH, is_window, lead_glyph, next_step, objective
+from bedo_close import DRIVE_CODE, GLYPH, is_window, lead_glyph, next_step, objective
 from bedo_entry import ACTION
 from bedo_reader import FACTS, as_rows, load_local
 from bedo_stretches import utc
@@ -234,7 +241,43 @@ def never_unpinned(chat):
     return any(w in t for w in C['never_unpin'])
 
 
-def sweep(chats, rows, now, local=None):
+def be_do_title(title, glyph, row=None):
+    """The be•do form of a title: the glyph, a drive code only when the title or
+    its row already shows one, then the title's own words. Never a guessed code."""
+    words = (title or '').strip()
+    marks = tuple(GLYPH.values())
+    while words.startswith(marks):
+        words = next(words[len(g):] for g in marks if words.startswith(g)).strip()
+    words = words or 'untitled'
+    m = None if DRIVE_CODE.search(words) else DRIVE_CODE.search((row or {}).get('title') or '')
+    return f'{glyph} {m.group(0)} {words}' if m else f'{glyph} {words}'
+
+
+def rename_for(chat, row, v, now, local):
+    """The be•do title this chat should take before the sweep goes on, or None.
+    Finished chats (to archive) take their closing glyph; an open chat with no
+    status glyph takes ▶️. Never a busy or scheduled chat, today's my day chat,
+    or one already in the form."""
+    if v in ('busy', 'routine'):
+        return None
+    t, have = chat['title'], lead_glyph(chat['title'])
+    if v in ('archive', 'close_row', 'carry'):
+        if have in (GLYPH['done'], GLYPH['window_closed'], GLYPH['dropped']):
+            return None
+        if is_window(t):
+            want = GLYPH['window_closed']
+        elif (row or {}).get('status') == '✖️ dropped':
+            want = GLYPH['dropped']
+        else:
+            want = GLYPH['done']
+    else:
+        if have or (never_unpinned(chat) and touched_today(chat, now, local)):
+            return None
+        want = GLYPH['moving']
+    return be_do_title(t, want, row)
+
+
+def sweep(chats, rows, now, local=None, rename=True):
     """[{id, title, verdict, why, next, row}] for every open chat. `local` is
     her settings, for the day in her time zone (the unpin rule)."""
     out = []
@@ -255,6 +298,7 @@ def sweep(chats, rows, now, local=None):
             else:
                 why += ' · pinned, not touched today: unpin it'
         out.append({'id': c['id'], 'title': c['title'], 'verdict': v, 'why': why, 'next': nxt, 'unpin': unpin,
+                    'rename': rename_for(c, r, v, now, local) if rename else None,
                     'parent': c['parent'], 'row': {k: r.get(k) for k in ('id', 'key', 'status', 'base')} if r else None})
     # archiving a chat takes its finished side chats with it: wait for them
     for x in out:
@@ -285,7 +329,8 @@ def render(found, now):
             continue
         out.append(head)
         for x in mine:
-            out.append(f'  {SAY[x["verdict"]]:<9} “{x["title"][:60]}” — {x["why"]}')
+            out.append(f'  {SAY[x["verdict"]]:<9} “{x["title"][:60]}” — {x["why"]}'
+                       + (f' · rename → {x["rename"]}' if x.get('rename') else ''))
             if x['next']:
                 out.append(f'            next step for the new chat or row: {x["next"].lstrip("· ")}')
     n_arch = sum(x['verdict'] in ('archive', 'close_row', 'carry') for x in found)
@@ -337,6 +382,7 @@ def main():
     ap.add_argument('--rows', help='the ⚡ rows with a chat link, as rows (logical names) or a dump')
     ap.add_argument('--now', help='ISO time, for tests')
     ap.add_argument('--json', action='store_true')
+    ap.add_argument('--no-rename', action='store_true', help='the scheduled evening sweep: never renames another chat')
     a = ap.parse_args()
     local = load_local()
     now = utc(a.now) if a.now else dt.datetime.now(dt.timezone.utc)
@@ -350,7 +396,7 @@ def main():
         sys.exit('give --live, or --rows')
     reads = [json.load(open(p, encoding='utf-8')) for p in a.sessions]
     chats = chats_of(reads)
-    found = sweep(chats, rows, now, local)
+    found = sweep(chats, rows, now, local, rename=not a.no_rename)
     print(json.dumps(found, ensure_ascii=False, indent=1) if a.json else render(found, now))
     # no page given ends the list (has_more false): it isn't whole, so the sweep isn't either
     left = list_goes_on(reads)

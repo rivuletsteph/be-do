@@ -143,7 +143,7 @@ the most of the other; and *choose for me, based on my readiness and how caught 
 `scripts/flow.py` builds it from the built day-ahead page, the reads beside the settings,
 and the week's day behinds (`--behind`, a folder; the runner passes `behind/` in the
 working folder when it exists). **It is the day's my day page** (since 2 Nov 2026), titled
-with the day's my day name, built by every `build` and published to `page.url`.
+with the day's my day name, built by every `build` and published to `page.standing` (to `page.url` once, at the dusk close's last rebuild).
 
 1. **Base flow** — the morning card, drawn as water through the last seven mornings. Three
    parts, 0–100, in equal shares: **body** (that morning's readiness, the

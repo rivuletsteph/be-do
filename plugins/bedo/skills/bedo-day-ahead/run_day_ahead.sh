@@ -162,13 +162,13 @@ elif [ "$MODE" = build ]; then
   [ ${#PHO[@]} -eq 0 ] && [ -n "$(ls -A "photos-$DAY" 2>/dev/null)" ] && PHO=(--photos "photos-$DAY")
   "$PY" scripts/flow.py --day-ahead "$DAY-day-ahead.html" --local day_ahead_local.json \
     --out "$DAY-myday.html" "${BEH[@]}" "${PICKS[@]}" "${SESS[@]}" "${PHO[@]}" "${HRT[@]}"
-  echo "publish: $DAY-myday.html (the flow page) to page.url above"
+  echo "publish: $DAY-myday.html (the flow page) to page.standing above (page.url only at the dusk close's last rebuild)"
   OUT=${LB_OUT:-/mnt/user-data/outputs}
   if mkdir -p "$OUT" 2>/dev/null; then cp "$DAY-day-ahead.html" "$DAY-myday.html" "$OUT/"
     echo "also copied to $OUT/"; fi
 elif [ "$MODE" = final ]; then
   # her amendment, 6 Nov 2026: finish the day ahead, make sure you QA it, then do the day behind.
-  # Run after the last fetch and build of the day, once the page is republished to its link.
+  # Run after the last fetch and build of the day, once the page is published to page.standing and, this once, to page.url.
   need_local
   ls data/w*.json >/dev/null 2>&1 || { echo "no data/w*.json — run fetch, then build, first"; exit 1; }
   STREAMS=$(ls -r data/w*.json | sed 's/^/--stream /' | tr '\n' ' ')
