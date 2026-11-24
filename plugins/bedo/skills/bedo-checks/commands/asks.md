@@ -15,6 +15,14 @@ done when: what finished looks like, something you could check
 
 `asks` lists every open one, oldest first, from this week's base and last week's while it is still there. One filtered read a base. `asks   none open` is the usual answer.
 
+**One ask per chat** (24 Nov 2026, her words: show what's in progress so asks don't pile into one chat). `asks` knows this chat's link (the cloud session's own, else `--chat URL`) and sorts the open asks three ways:
+
+- **this chat holds:** an ask whose row already carries this chat's link. Carry on with it and take no other.
+- **take:** otherwise, the oldest ask still waiting (⬜ or ▫️), and only that one. The line ends with the `apply` op that picks it up.
+- **skip, ▶️ in another chat:** an ask in motion with another chat's link, named with that link so she can see where it is. A ▶️ row with no link is named so; ask her where it is.
+
+The rest are listed as waiting for the next `run asks` chat. Several asks mean several `run asks` chats, one each.
+
 **What the Code session owes each ask it takes**, through the connector, each write through `entry` first:
 
 - **picked up:** the row goes ▶️ in motion and carries this chat's link. The first reply reads the objective and done-when back.
