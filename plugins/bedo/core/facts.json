@@ -365,7 +365,8 @@
   "screen_name": "^Screenshot_(\\d{8})-(\\d{6}).*\\.(jpe?g|png)$",
  "screen_clips": {
   "_about": "24 Nov 2026, her words: reread my screen clips from yesterday, assuming I took each of those for a good reason; they relate to an action; and: I have this to run every evening as part of the photos import, so there are photos and then screen clips and they serve different purposes. A screen clip has found its action when a row it is linked to is an action, an event, a batch check, or the thing she is watching, reading or listening to. A clip linked only to a log, a text or a capture, or to nothing, still points to an action.",
-  "home_practices": ["action", "calendar event", "map check", "screen time", "morning oura", "evening oura", "weather check", "usage check", "mirror check", "recorder check", "clear gmail inbox", "morning gate", "video", "podcast", "book", "morning book", "reading", "news", "shopping"]
+  "home_practices": ["action", "calendar event", "screen time", "recorder check", "clear gmail inbox", "morning gate", "video", "podcast", "book", "morning book", "reading", "news", "shopping"],
+  "_home_practices": "With these, every check in garden.photo_skip_practices (the map check, the ring reads, the weather check …): a clip on one of them was the record of that check."
  },
   "phone_name": "^PXL_(\\d{8})_(\\d{6})\\d*.*\\.(jpe?g|png)$"
  },

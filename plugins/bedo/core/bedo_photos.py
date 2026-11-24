@@ -215,7 +215,7 @@ def match(rows, files, off, me=''):
     return out
 
 
-CLIP_HOME = set(P['screen_clips']['home_practices'])
+CLIP_HOME = set(P['screen_clips']['home_practices']) | set(FACTS['garden'].get('photo_skip_practices') or [])
 
 
 def screen_clips(rows, files, off, new_links=()):
