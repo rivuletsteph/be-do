@@ -88,11 +88,11 @@ class ClosesItself(unittest.TestCase):
         self.assertIn('🙏 gratitude', line)
         self.assertNotIn(CLOSE + ',', line.split('capture:')[1])
 
-    def test_dusk_backup_is_eleven_fifty_nine(self):
+    def test_dusk_writes_no_backup_at_night(self):
+        # her words, 24 Nov 2026: I want the evening to close when I fall asleep
         steps = [{'practice': '🫖 evening tea', 'phase': FL['phase']['dusk'], 'group': 'flow', 'order': 1},
                  {'practice': FL['close']['dusk'], 'phase': FL['phase']['dusk'], 'group': 'flow', 'order': 2}]
-        line = R.close_line('dusk', steps, [], DAY, dt.datetime(2026, 11, 20, 23, 59), LOCAL)
-        self.assertIn('past the 11:59 PM backup', line)
+        self.assertIsNone(R.close_line('dusk', steps, [], DAY, dt.datetime(2026, 11, 20, 23, 59), LOCAL))
 
     def test_another_day_never_gets_a_backup_line(self):
         rows = day(without=('🙏 gratitude',))

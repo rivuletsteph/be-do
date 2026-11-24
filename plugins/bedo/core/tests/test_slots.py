@@ -317,7 +317,8 @@ class Remaining(unittest.TestCase):
         steps = RL.flow_steps(CAT, 'dusk')
         day = [row(s['practice'], '2026-10-04 20:00', status=DONE_LOG) for s in steps]
         self.assertIn('all 4 done', RL.render('dusk', steps, day))
-        self.assertEqual(RL.spoken('dusk', steps, day[:1]), 'dusk: 3 left, next is 🌬️ evening breaths.')
+        # breaths come after her phone is down and are never asked (24 Nov 2026): off the spoken line too
+        self.assertEqual(RL.spoken('dusk', steps, day[:1]), 'dusk: 2 left, next is a quest day.')
 
     def test_a_week_file_reads_as_its_day(self):
         # a chat with no token passes a whole week; only the day's rows count
@@ -689,7 +690,7 @@ class DuskAudit(unittest.TestCase):
         steps = RL.flow_steps(CAT, 'dusk')
         rows = [row('🫖 evening tea', '2026-10-02 20:00', status=DONE_LOG, person='x')]
         f = audit(rows, steps=steps)['findings']
-        self.assertEqual(f['gate'], ['🌬️ evening breaths', 'a quest day'])
+        self.assertEqual(f['gate'], ['a quest day'])      # breaths: written next morning from her pattern (24 Nov 2026)
 
     def test_for_my_day_lists_are_read_from_the_rows(self):
         d = 'her words\n———\n[be•do] did a thing.\nfor my day: attention · drive'
