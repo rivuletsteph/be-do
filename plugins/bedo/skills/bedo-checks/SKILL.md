@@ -30,6 +30,8 @@ it runs one, so nothing has to be remembered.
 |---|---|---|
 | a Code session's first reply (`preflight` prints it) | `asks` | Duet's asks for Code, read from the stream; take each, oldest first |
 | every day, scheduled | `fold` | the daily amendment fold |
+| every write where code runs | `apply ops.json` | code writes the rows |
+| the day's Code steps | `daysteps` | one cheap session |
 | before any stream write | `entry row.json --chat MMDD` | write only rows that print `ok`; fix every `FIX` first |
 | before every push, and before a pull request is opened or its text edited | `outgoing --title "TITLE" --text pr.md` | open or push only on `0 hit(s)`, with exactly the text it checked; a hit is rewritten, never pasted anywhere public |
 | before the dusk close row | `dusk [--photos folder.json]` | the one-pass dusk list, and the day's photos |
@@ -52,12 +54,11 @@ it runs one, so nothing has to be remembered.
 
 ```
 bash run_checks.sh judgment                  # every chat's first reply
-bash run_checks.sh how dayqa                 # a command's notes, before its first run in a chat
-bash run_checks.sh preflight                 # my day; --part B when the day already has a chat
-bash run_checks.sh preflight --kind week --week 40
+bash run_checks.sh how dayqa                 # a command's notes
+bash run_checks.sh preflight                 # my day
 bash run_checks.sh preflight --kind branch --n 4 --what "👁️ my day page"   # a branch chat: its numbered title, the clock, the base
-bash run_checks.sh remaining                 # the open flow as one code line; --flow dawn|dusk to name one
-bash run_checks.sh dusk                      # today; --date YYYY-MM-DD for another day
+bash run_checks.sh remaining                 # --flow dawn|dusk to name one
+bash run_checks.sh dusk                      # --date for another day
 bash run_checks.sh meals                     # the day's meals, placed from context
 bash run_checks.sh dayqa 2026-10-09          # the day's QA, at the dusk close
 bash run_checks.sh entry row.json --base "w41 be•do" --chat 1008

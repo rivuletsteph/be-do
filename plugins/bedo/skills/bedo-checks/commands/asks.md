@@ -19,7 +19,7 @@ done when: what finished looks like, something you could check
 
 - **picked up:** the row goes ▶️ in motion and carries this chat's link. The first reply reads the objective and done-when back.
 - **no done-when:** draft one and get her yes before building.
-- **finished:** one `code:` line under the `[be•do]` divider saying what was done and where (the page, the pull request), then ✅ done. The session entry is a separate row, as always.
+- **finished:** one `code:` line under the `[be•do]` divider saying what was done and where (the page, the pull request), then ✅ done. The session entry is a separate row, as always. The ask closes with no end: its time is the moment she asked, and the work's time is on the session entry (24 Nov 2026: an ask closed with an end drew five hours of be•do's work as hers). Write it with `apply`: `{"id": …, "status": "✅ done", "append": "code: …"}`.
 - **can't yet:** one `code:` line saying what blocks it. The row stays open and the next session sees what was said.
 
 Duet reads the row to answer *is it done*. Nothing is relayed by hand in either direction.

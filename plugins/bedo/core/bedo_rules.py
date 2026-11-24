@@ -97,6 +97,7 @@ CHECKS = {
     'quest_page': "quest_page — the child's quest page (assets/quest-day), built with every look behind (4 Nov 2026)",
     'sweep': "bedo_sweep — a day's rows through the entry check after the fact, whoever wrote them, at the dusk close",
     'asks': "bedo_asks — an ask for Code is a row, read at a Code session's first reply; she never relays a prompt",
+    'apply': "bedo_apply — rows are written by code from a short file of changes: existing text carried forward verbatim, a new row through the entry check",
     'fold.daily': "bedo_fold — the daily fold: the week's new amendments, the oldest of the backlog, and what main already holds, every day without being asked",
     'page.meaningful': "flow — marked_meaningful: a moment be•do marked as meaningful, from her words, leads a finished day's list with her highlights; a kind alone never does",
     'close.page': 'bedo_close — a session that published a page says where its fix lives: the stream or the build, never the page alone',
