@@ -857,6 +857,28 @@ def did_of(rows, F, off, today, hidden=(), me='', flows=frozenset()):
     return out
 
 
+SUMMARY_CAP = 4                                # the summary line names at most four things, then counts the rest
+
+
+def summary_of(did):
+    """A finished day's top, as one line (24 Nov 2026, her words, through Duet: one line summarizing the day's important,
+    meaningful things; the moments themselves are on the timeline). Her highlights and the moments with her people come
+    first, in the order they happened; her finished work fills the line only when there are few of them, and is
+    otherwise a count. The system's own upkeep is never in it."""
+    clean = lambda t: re.sub(r'\s+', ' ', str(t or '')).strip().rstrip('.')
+    heart = [clean(x['t']) for x in did if x.get('kind') in ('highlight', 'meaningful', 'heart')]
+    acts = [clean(x['t']) for x in did if x.get('kind') == 'action']
+    named = (heart + acts)[:SUMMARY_CAP] if len(heart) < 2 else heart[:SUMMARY_CAP]
+    named = [t for i, t in enumerate(named) if t and t.lower() not in [u.lower() for u in named[:i]]]
+    if not named:
+        return ''
+    line = named[0] if len(named) == 1 else ', '.join(named[:-1]) + ' and ' + named[-1]
+    rest = len(heart) + len(acts) - len(named)
+    if rest > 0:
+        line += f' · {rest} more thing{"" if rest == 1 else "s"} done'
+    return line[:1].upper() + line[1:]
+
+
 def links_of(c, F):
     """The row's deliverable as links: every url in the field, labelled by what it is."""
     out = []
@@ -1251,6 +1273,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
     data['picked'] = bool(L.get('_picks'))
     data['did'] = did_of(rows, F, off, today, hidden=set(L.get('hide_drives') or []), me=L.get('self_person') or '',
                          flows=L.get('_flows') or frozenset())
+    data['summary'] = summary_of(data['did'])
     data['three_next'] = [dict(t=x.get('title'), kind=x.get('kind')) for x in (D.get('next') or [])]
     data['three_more'] = [dict(t=p.get('title'), why=p.get('why'), drive=p.get('drive'), g=p.get('emoji'), st=(p.get('st') or '').strip(),
                                nx=((p.get('move') or {}).get('step')), links=(p.get('move') or {}).get('links') or [])

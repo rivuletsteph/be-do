@@ -151,10 +151,30 @@ def test_highlight_keeps_its_time():
     assert night['a'] != '21:00' and night.get('told') == '21:00', night
 
 
+def test_summary_line():
+    """A finished day's top is one line (24 Nov 2026, her words through Duet: one line summarizing the day's important,
+    meaningful things): her moments first, her work only when they are few, the rest counted, upkeep never."""
+    did = [dict(t='soup night', kind='highlight'), dict(t='Trampoline with Pip', kind='heart'),
+           dict(t='A quiet film', kind='heart'), dict(t='Post the form', kind='action'),
+           dict(t='be•do work, Claude handled the details', kind='system')]
+    assert flow.summary_of(did) == 'Soup night, Trampoline with Pip and A quiet film · 1 more thing done', flow.summary_of(did)
+    few = [dict(t='the pond walk', kind='heart'), dict(t='Post the form', kind='action'), dict(t='Paint the door.', kind='action')]
+    assert flow.summary_of(few) == 'The pond walk, Post the form and Paint the door', flow.summary_of(few)
+    many = [dict(t=f'moment {i}', kind='heart') for i in range(6)]
+    assert flow.summary_of(many).endswith('· 2 more things done') and flow.summary_of(many).count(',') == 2
+    assert flow.summary_of([dict(t='be•do work', kind='system')]) == ''
+    assert flow.summary_of([]) == ''
+
+
 def test_engine():
     page = open(os.path.join(os.path.dirname(HERE), 'assets', 'flow_engine.html'), encoding='utf-8').read()
-    assert 'what you did' in page and "over3&&!D.picked?(D.did||[])" in page
-    assert ".three li.did:before" in page and "class=\"${over3?'did'" in page   # checked, fully bright
+    # a finished day opens on one line, never a list (24 Nov 2026)
+    assert "if(over3&&!D.picked){ el.innerHTML=D.summary?" in page and 'class="sumline"' in page
+    # its meaningful moments are drawn on the timeline, larger, with her words and photos, never folded (24 Nov 2026)
+    assert "const MOM=window.__mom=new Set(gone?sixOf(pastAll)" in page
+    assert "const big=x=>(window.__mom&&window.__mom.has(x))||" in page
+    assert "need=x=>MOM.has(x)?((x.photos||[]).length?150:76)" in page
+    assert page.count('${momBody(x)}') == 2 and '.cal .ev.meantc .mph img' in page
     assert 'const SIX=[];' in page     # the day in six is retired
     assert "const ids=over?['three','today'" in page   # a finished day leads with what she did
 
@@ -166,8 +186,9 @@ def main():
     test_system_work_is_one_line()
     test_the_day_links_its_own_quest()
     test_highlight_keeps_its_time()
+    test_summary_line()
     test_engine()
-    print('ok — a finished day: what she did, moments in the stream at their own time')
+    print('ok — a finished day: one summary line, moments in the stream at their own time')
 
 
 if __name__ == '__main__':
