@@ -158,6 +158,68 @@ class Dusk(unittest.TestCase):
         self.assertEqual(res['findings']['photo_missing'], [])
 
 
+class ScreenClips(unittest.TestCase):
+    """24 Nov 2026, her words: there are photos and then screen clips and they
+    serve different purposes. Every clip points to an action."""
+
+    def test_a_clip_on_an_action_or_a_check_has_found_it(self):
+        rows = [{'id': 'a1', 'practice': '⚡ action', 'title': 'order the part', 'photo_links': PH.link('CLIP1abcdefgh')},
+                {'id': 'm1', 'practice': '🗺️ map check', 'title': 'map', 'photo_links': PH.link('CLIP2abcdefgh')},
+                {'id': 'v1', 'practice': '📼 video', 'title': 'a sermon', 'photo_links': PH.link('CLIP3abcdefgh')}]
+        files = [{'id': 'CLIP1abcdefgh', 'name': 'Screenshot_20261025-091200.png'},
+                 {'id': 'CLIP2abcdefgh', 'name': 'Screenshot_20261025-221200.png'},
+                 {'id': 'CLIP3abcdefgh', 'name': 'Screenshot_20261025-101200.png'},
+                 {'id': 'P1', 'name': pxl(9, 12)}]
+        self.assertEqual(PH.screen_clips(rows, files, OFF), [])
+
+    def test_a_clip_on_a_text_or_capture_or_nothing_still_points_to_an_action(self):
+        rows = [{'id': 't1', 'practice': '🗨️ text', 'title': 'a colleague asked for rainfall',
+                 'photo_links': PH.link('CLIP1abcdefgh')},
+                {'id': 'c1', 'practice': '📲 capture', 'title': 'an ad', 'photo_links': PH.link('CLIP2abcdefgh')}]
+        files = [{'id': 'CLIP2abcdefgh', 'name': 'Screenshot_20261025-163600.png'},
+                 {'id': 'CLIP1abcdefgh', 'name': 'Screenshot_20261025-163248.png'},
+                 {'id': 'CLIP3abcdefgh', 'name': 'Screenshot_20261025-072900.png'}]
+        got = PH.screen_clips(rows, files, OFF)
+        self.assertEqual([x['file'] for x in got], ['CLIP3abcdefgh', 'CLIP1abcdefgh', 'CLIP2abcdefgh'])       # in time order, in her clock
+        self.assertEqual(got[0]['rows'], [])
+        self.assertEqual(got[1]['rows'], [('t1', '🗨️ text', 'a colleague asked for rainfall')])
+        self.assertEqual(got[0]['taken'], dt.datetime(2026, 10, 25, 7, 29))
+
+    def test_a_link_about_to_be_written_counts(self):
+        rows = [{'id': 'a1', 'practice': '⚡ action', 'title': 'renew the tags'}]
+        files = [{'id': 'CLIP1abcdefgh', 'name': 'Screenshot_20261025-091200.png'}]
+        self.assertEqual(PH.screen_clips(rows, files, OFF, [{'id': 'a1', 'file': 'CLIP1abcdefgh'}]), [])
+
+    def test_the_dusk_audit_lists_clips_apart_from_photos(self):
+        z = lambda h, m=0: f'2026-10-25T{h - OFF:02d}:{m:02d}:00.000Z'  # noqa: E731
+        rows = [{'id': 'l1', 'practice': '📝 log', 'title': 'saw a flyer', 'datetime': z(16, 40),
+                 'status': '● log', 'photo_links': PH.link('CLIP1abcdefgh')}]
+        files = [{'id': 'CLIP1abcdefgh', 'name': 'Screenshot_20261025-163600.png'},
+                 {'id': 'CLIP9abcdefgh', 'name': 'Screenshot_20261024-120000.png'},      # another day: not tonight's
+                 {'id': 'P1', 'name': pxl(13, 5)}]
+        now = dt.datetime(2026, 10, 26, 3, 0, tzinfo=dt.timezone.utc)
+        res = DA.audit(rows, now, OFF, day=DAY, photo_files=files, me=ME)
+        self.assertEqual(res['findings']['screen_clips'],
+                         ['4:36 PM · Screenshot_20261025-163600.png (CLIP1abcdefgh) — on 📝 log saw a flyer (l1)'])
+        self.assertEqual(res['findings']['photo_unlogged'], [f'1:05 PM · {pxl(13, 5)}'])
+        self.assertIn('screen clips', DA.render(res, 'x'))
+        self.assertNotIn('clip', res['flag'])
+
+    def test_an_older_action_carried_into_the_week_counts(self):
+        z = lambda h, m=0: f'2026-10-25T{h - OFF:02d}:{m:02d}:00.000Z'  # noqa: E731
+        files = [{'id': 'CLIP1abcdefgh', 'name': 'Screenshot_20261025-072900.png'}]
+        older = [{'id': 'a0', 'practice': '⚡ action', 'title': 'move the account email',
+                  'datetime': '2026-09-27T17:38:00.000Z', 'photo_links': PH.link('CLIP1abcdefgh')}]
+        now = dt.datetime(2026, 10, 26, 3, 0, tzinfo=dt.timezone.utc)
+        rows = [{'id': 'l1', 'practice': '📝 log', 'title': 'coffee', 'datetime': z(7, 20), 'status': '● log'}]
+        alone = DA.audit(rows, now, OFF, day=DAY, photo_files=files, me=ME)['findings']['screen_clips']
+        self.assertEqual(len(alone), 1)
+        self.assertTrue(alone[0].endswith('on no row'), alone)
+        res = DA.audit(rows, now, OFF, day=DAY, photo_files=files, me=ME, week_links={'CLIP1abcdefgh'},
+                       link_rows=older)
+        self.assertEqual(res['findings']['screen_clips'], [])
+
+
 class Settings(unittest.TestCase):
 
     def test_photo_ids_come_from_the_page_settings_when_facts_local_lacks_them(self):

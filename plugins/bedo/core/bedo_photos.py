@@ -215,6 +215,41 @@ def match(rows, files, off, me=''):
     return out
 
 
+CLIP_HOME = set(P['screen_clips']['home_practices'])
+
+
+def screen_clips(rows, files, off, new_links=()):
+    """Her screen clips that haven't found their action yet (24 Nov 2026, her
+    words: there are photos and then screen clips and they serve different
+    purposes). Every screenshot she takes points to an action. A clip has found
+    it when a row that links it is an action, an event, a batch check or the
+    thing she is watching or reading (`home_practices`); one linked only to a
+    log, a text or a capture, or to nothing, is listed, so the evening's photo
+    import gives it a step on its open action or a new ⚡ action.
+
+    `new_links` are the links the photo pass is about to write ({id, file}).
+    Returns [{file, name, taken, rows: [(id, practice, title)]}] in time order."""
+    by_id = {r['id']: r for r in rows}
+    holders = {}
+    for r in rows:
+        for i in linked(r):
+            holders.setdefault(i, []).append(r)
+    for x in new_links:
+        if x['id'] in by_id:
+            holders.setdefault(x['file'], []).append(by_id[x['id']])
+    out, seen = [], set()
+    for f in files_from(files):
+        if not is_screenshot(f['name']) or f['name'] in seen:
+            continue
+        seen.add(f['name'])
+        rs = holders.get(f['id']) or []
+        if any(word(r.get('practice')) in CLIP_HOME for r in rs):
+            continue
+        out.append({'file': f['id'], 'name': f['name'], 'taken': taken(f['name'], off),
+                    'rows': [(r['id'], r.get('practice') or '', r.get('title') or '') for r in rs]})
+    return sorted(out, key=lambda x: x['taken'] or dt.datetime.min)
+
+
 def place(rows, photos, me='', prefer=None):
     """Each photo onto its row: the row whose photo links name its file, else
     the row logged at that minute or spanning it (`prefer` orders the
