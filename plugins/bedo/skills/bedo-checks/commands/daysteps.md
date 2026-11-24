@@ -40,10 +40,11 @@ Then one line to Duet: what was filled in (counts), and anything from the inbox 
 
 Then one line to Duet: her list, in plain words, so she has it before her phone goes down.
 
-**The morning** (DAY is yesterday), after she wakes, in one short session that Duet starts:
+**The morning** (DAY is yesterday), after she wakes, in one short session. **It runs on its own at 7:47a** (24 Nov 2026, her words: can you ask code to build the look ahead for today and the look behind for yesterday and make this more automatic): a scheduled run, so nothing waits on Duet to start it. Duet starts `run morning` only when she's up and it hasn't run. Each step looks first and skips what is already on the stream (today's 🪐 morning ring row, yesterday's `final` line, today's 👁️ look ahead row), so a second run does nothing twice. A night the ring hasn't synced yet: step 1 says so, step 2 waits for the next run or `run morning`, step 3 still runs.
 
 1. **🪐 the morning ring read.** `run_oura.sh morning TODAY`: the night's 😴 sleep and her 🪐 morning row, and with it last night's close (her words: I want the evening to close when I fall asleep). The dusk close row takes the ring's bedtime and is closed; with none, one is written there. 🌬️ evening breaths and 🌌 evening blessing, done with her son after her phone is down, are written from her pattern at the same time when no row has them. She corrects.
-2. **Yesterday's my day page, final.** Rebuilt to the whole day as lived, the sleep included, republished, then `run_day_ahead.sh final DAY` and its line on the 👁️ look ahead row. That is what she opens next.
+2. **Yesterday's my day page, final.** Rebuilt to the whole day as lived, the sleep included, republished, then `run_day_ahead.sh final DAY` and its line on the 👁️ look ahead row. That is what she opens next. A day with no 👁️ look ahead row gets one, with the page as its deliverable. Its own link (`page.url`, else a new artifact) holds it; `page.standing` goes to today.
+3. **Today's look ahead, the draft.** The `bedo-day-ahead` skill's dawn draft for TODAY: `prep`, the calendars, `cal`, `build … --draft` with no intention, published to `page.standing`, then the plan's `today_rows` and `future_rows` and the 👁️ look ahead row naming the three. The final still follows her one intention, at the dawn flow's look ahead.
 
 **What it leaves for her**, one short list: the braid's questions, the inbox's few, any place new to her places, and a photo it could not read. Nothing is trashed, archived, dropped or merged on its own.
 
