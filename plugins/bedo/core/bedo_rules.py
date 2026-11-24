@@ -95,6 +95,7 @@ CHECKS = {
     'quiet_topics': 'bedo_dayqa + bedo_dayaudit — a quiet topic in her settings is never raised',
     'remaining.week_turn': "bedo_remaining — on Sunday, once the dawn flow is through, the turn to the week",
     'quest_page': "quest_page — the child's quest page (assets/quest-day), built with every look behind (4 Nov 2026)",
+    'sweep': "bedo_sweep — a day's rows through the entry check after the fact, whoever wrote them, at the dusk close",
     'asks': "bedo_asks — an ask for Code is a row, read at a Code session's first reply; she never relays a prompt",
     'close.page': 'bedo_close — a session that published a page says where its fix lives: the stream or the build, never the page alone',
     'calendar.renamed': 'bedo_reader — live_calendar: a renamed calendar is read by its id, and the settings are named to update',
