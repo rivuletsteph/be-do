@@ -207,6 +207,33 @@ class Objective(unittest.TestCase):
         self.assertIn('objective', why)
 
 
+class PageFixes(unittest.TestCase):
+    """A fix lands in the stream or the build, never only on the page (23 Nov 2026)."""
+    PG = 'https://claude.ai/' + 'artifact/' + 'X' * 9          # an obvious invention, built here so no link is in the file
+    REC = 'rec' + 'X' * 14
+
+    def test_a_session_with_no_page_owes_nothing(self):
+        self.assertIsNone(C.page_qa(entry()))
+
+    def test_a_page_without_the_line_is_owed(self):
+        e = entry(); e['deliverable'] = self.PG
+        ok, _, why = C.findings([e], URL, '☑️ x', None, LOCAL)[0]
+        self.assertFalse(ok)
+        self.assertIn('published a page', why)
+
+    def test_built_as_is_settles_it(self):
+        e = entry(details=MET + '\n· page: built from the stream and main'); e['deliverable'] = self.PG
+        self.assertTrue(C.findings([e], URL, '☑️ x', None, LOCAL)[0][0])
+
+    def test_a_fix_names_where_it_lives(self):
+        for line in ('· page: fix in the stream, ' + self.REC, '· page: fix in the build, 36f7fa48',
+                     '· page: fix in the build, https://github.com/someone/somerepo/commit/36f7fa4'):
+            e = entry(details=MET + '\n' + line); e['deliverable'] = self.PG
+            self.assertIsNone(C.page_qa(e), line)
+        e = entry(details=MET + '\n· page: fixed the hour by hand'); e['deliverable'] = self.PG
+        self.assertIsNotNone(C.page_qa(e))
+
+
 class PullRequestPrivacy(unittest.TestCase):
     """A session with a pull request says its text passed the privacy check (12 Nov 2026)."""
     PR = 'https://github.com/someone/somerepo/pull/7'

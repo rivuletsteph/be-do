@@ -267,7 +267,9 @@ def main():
     by_summary = {c['summary']: c['id'] for c in cals}
     allowed = {}
     for label in L['sync_calendars']:
-        s = L['calendar_summaries'].get(label)
+        s, note = bedo_reader.live_calendar(L['calendar_summaries'].get(label), by_summary)
+        if note:
+            print(note, file=sys.stderr)
         if s not in by_summary:
             die(f'calendar "{label}" ({s}) is not in the calendar list — read it from list_calendars, never from memory')
         allowed[by_summary[s]] = label
@@ -275,6 +277,8 @@ def main():
     # has already been moved, and a dropped one still on a synced calendar is listed
     # for the user to move (the connector can't move an event between calendars)
     dropped_name = L.get('dropped_calendar')
+    if dropped_name:
+        dropped_name = bedo_reader.live_calendar(dropped_name, by_summary)[0]
     dropped_id = by_summary.get(dropped_name) if dropped_name else None
     evs = read_dump(a.events)
     evs = evs.get('events', evs) if isinstance(evs, dict) else evs
