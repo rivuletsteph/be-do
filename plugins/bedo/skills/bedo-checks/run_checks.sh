@@ -22,6 +22,8 @@
 #   bash run_checks.sh drives --rhythms rhythms.json --stream live.json [--stream older.json] [--json]
 #                                # the drive check (10 Nov 2026): effort with no drive, drives with no goal or date
 #   bash run_checks.sh close --chat URL --title "TITLE" [--date YYYY-MM-DD --sessions page.json]   # the chat close: QA, entry, title, and a my day chat's branches
+#   bash run_checks.sh sweep [YYYY-MM-DD] [--json]   # a day's rows through the entry check, after the fact:
+#                                # what be•do writes in place, and what needs a call (24 Nov 2026)
 #   bash run_checks.sh asks [--rows rows.json] [--json]   # what Duet handed to Code: open ⚡ rows whose details
 #                                # carry `for code:` (23 Nov 2026); preflight prints them too
 #   bash run_checks.sh calendar event.json [--readback read.json --from CALENDAR_ID] [--rhythms rhythms.json]
@@ -143,6 +145,11 @@ case "$CMD" in
     "$PY" "$W/core/bedo_preflight.py" "$@" || exit $?
     # what Duet handed to Code, read from the stream at the first reply (23 Nov 2026): never a pasted prompt
     case " $* " in *" --live "*) "$PY" "$W/core/bedo_asks.py" --live || true;; esac ;;
+  sweep)      # 24 Nov 2026: a day's rows through the entry check, after the fact, whoever wrote them
+    [ -d "$W/core" ] || fetch_core; find_local
+    case "${1:-}" in 20??-??-??) set -- --date "$@";; esac
+    if live_or_files "--day today.json --catalog practices.json" "$@"; then set -- --live "$@"; fi
+    "$PY" "$W/core/bedo_sweep.py" "$@" ;;
   asks)       # 23 Nov 2026: Duet's asks for Code, open ⚡ rows whose details carry `for code:`
     [ -d "$W/core" ] || fetch_core; find_local
     if live_or_files "--rows rows.json" "$@"; then set -- --live "$@"; fi

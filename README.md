@@ -39,6 +39,7 @@ has its notes in `commands/<name>.md`.
 | `asks` | first reply of every Claude Code session | what the day's companion handed to Code, read from the record, so no one relays a prompt |
 | `remaining` | every reply while a flow is open | what's left in the flow, as one line, so nothing is forgotten |
 | `entry` | before any row is written | every row is whole, on the right day, and in the right shape |
+| `sweep` | the evening close | every row of the day through the entry check, whoever wrote it |
 | `dusk` · `dayqa` | the evening close | one pass over the day, then be•do's own calls and one short list to accept |
 | `close` | the end of every chat | QA, then the session entry, then the rename. The chat is done when it prints `closed` |
 | `chats` | evening close, weekly close, on call | the chat sweep: every open chat checked against its objective, finished ones archived |
