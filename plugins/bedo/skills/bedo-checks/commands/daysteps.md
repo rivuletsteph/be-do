@@ -1,6 +1,6 @@
 # `daysteps`
 
-**When:** once for each day, on its own, when the day's Code steps are due; and on call. 
+**When:** every morning before she wakes, for the day before, so it is there to see after her morning ring check (24 Nov 2026, her words: I'd like to see it the following morning, I think after my ring check); and on call.
 
 **Command:** `daysteps` prints this page; the steps are the commands it names.
 
