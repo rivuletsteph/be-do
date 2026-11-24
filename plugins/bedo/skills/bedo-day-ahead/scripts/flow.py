@@ -815,7 +815,7 @@ def did_of(rows, F, off, today, hidden=(), me='', flows=frozenset()):
         her = (c.get(F['details']) or '').split('———')[0].strip().split('\n')[0]
         her = '' if her.startswith('[be•do]') else her     # be•do's note is not her words
         rh = g(c, 'rhythm') or ''
-        x = dict(t=t, g='', drive=rh, st='✅', why=her[:160], at=when)
+        x = dict(t=t, g='', drive=rh, st='✅', why=her[:160], at=when, who=_names(g(c, 'person'), me))
         if pr.startswith('⭐'):
             hl.append(dict(x, g='⭐', kind='highlight'))
         elif st[:1] in ('●', '◉', '✅') and marked_meaningful(c, F):
@@ -862,20 +862,34 @@ SUMMARY_CAP = 4                                # the summary line names at most 
 
 def summary_of(did):
     """A finished day's top, as one line (24 Nov 2026, her words, through Duet: one line summarizing the day's important,
-    meaningful things; the moments themselves are on the timeline). Her highlights and the moments with her people come
-    first, in the order they happened; her finished work fills the line only when there are few of them, and is
-    otherwise a count. The system's own upkeep is never in it."""
+    meaningful things; the moments themselves are on the timeline). Three parts, the J17 order, each only when there is
+    one: her ⭐ highlights and the moments be•do marked meaningful, in her words (two moments with her people stand in
+    when there are none); then who she spent the day with, by name; then her finished work, named when it is all
+    there is and otherwise a count. Never a list of every moment, and the system's own upkeep is never in it."""
     clean = lambda t: re.sub(r'\s+', ' ', str(t or '')).strip().rstrip('.')
-    heart = [clean(x['t']) for x in did if x.get('kind') in ('highlight', 'meaningful', 'heart')]
-    acts = [clean(x['t']) for x in did if x.get('kind') == 'action']
-    named = (heart + acts)[:SUMMARY_CAP] if len(heart) < 2 else heart[:SUMMARY_CAP]
-    named = [t for i, t in enumerate(named) if t and t.lower() not in [u.lower() for u in named[:i]]]
-    if not named:
-        return ''
-    line = named[0] if len(named) == 1 else ', '.join(named[:-1]) + ' and ' + named[-1]
-    rest = len(heart) + len(acts) - len(named)
-    if rest > 0:
-        line += f' · {rest} more thing{"" if rest == 1 else "s"} done'
+    join = lambda xs: xs[0] if len(xs) == 1 else ', '.join(xs[:-1]) + ' and ' + xs[-1]
+
+    def uniq(xs):
+        out = []
+        for t in xs:
+            if t and t.lower() not in [u.lower() for u in out]:
+                out.append(t)
+        return out
+    lead = uniq([clean(x['t']) for x in did if x.get('kind') in ('highlight', 'meaningful')])[:SUMMARY_CAP]
+    heart = [x for x in did if x.get('kind') == 'heart']
+    acts = uniq([clean(x['t']) for x in did if x.get('kind') == 'action'])
+    parts = []
+    if lead:
+        parts.append(join(lead))
+    elif heart:
+        parts.append(join(uniq([clean(x['t']) for x in heart])[:2]))
+    people = uniq([n for x in did if x.get('kind') in ('highlight', 'meaningful', 'heart') for n in (x.get('who') or [])])
+    if people:
+        parts.append('time with ' + join(people[:SUMMARY_CAP]))
+    if acts:
+        parts.append(join(acts[:SUMMARY_CAP]) if not parts and len(acts) <= 2
+                     else f'{len(acts)} thing{"" if len(acts) == 1 else "s"} done')
+    line = ' · '.join(p for p in parts if p)
     return line[:1].upper() + line[1:]
 
 
