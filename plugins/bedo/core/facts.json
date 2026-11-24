@@ -79,6 +79,8 @@
  "flows": {
   "order_source": "the practices catalog's order field, filtered to active; never recited",
   "dusk_opens_after": "19:00",
+  "dusk_opens_at_sunset": true,
+  "about_dusk_opens": "24 Nov 2026, her yes: dusk opens at sunset, worked out for the day from her home in her settings row (home: lat, lon), or as soon as 🔅 evening sun is logged; dusk_opens_after is the fallback when no home is set.",
   "backup_close": {"dawn": "12:00", "dusk": "23:59"},
   "phase": {"dawn": "🌅 dawn", "dusk": "🌄 dusk"},
   "close": {"dawn": "🌅 dawn flow close", "dusk": "🌄 dusk flow close"},
@@ -91,7 +93,7 @@
   "about_either_or": "8 Oct 2026, her words: evening breaths are an either-or on the meditation. One logged closes both; the other is never asked for.",
   "sequences": {
    "dawn": [["☕ coffee", "🥤 morning water"], ["🔅 morning sun", "🧎‍♀️ hip exercises"], ["🔅 morning sun", "💪 strength training"], ["🔅 morning sun", "🌬️ morning breaths"]],
-   "dusk": []
+   "dusk": [["🔅 evening sun", "🗺️ map check"], ["🔅 evening sun", "📱 screen time"], ["🔅 evening sun", "🪐"], ["🔅 evening sun", "⏺️ recorder check"], ["🗺️ map check", "📧 clear gmail inbox"], ["📱 screen time", "📧 clear gmail inbox"], ["🪐", "📧 clear gmail inbox"], ["⏺️ recorder check", "📧 clear gmail inbox"], ["📧 clear gmail inbox", "💊 bp meds"], ["💊 bp meds", "🌈 supplements"], ["🌈 supplements", "🫖 evening tea"], ["🫖 evening tea", "⚔️"], ["⚔️", "🌟"], ["🌟", "⭐ highlight"], ["⭐ highlight", "🔀 braid"], ["🔀 braid", "🌬️ evening breaths"], ["🌬️ evening breaths", "🌌 evening blessing"]]
   },
   "leads": {"dawn": ["💭 dream record", "🪐", "🗞️ morning gate"], "dusk": []},
   "about_dream_first": "20 Nov 2026, her words: I'd always like to be asked about the dream first. 💭 dream record leads the dawn list, named. Then the 🪐 sleep readout, then the gate: her call the same morning. A lead given as a glyph alone is the flow's step that starts with it. A lead is always named, core or not.",
@@ -101,11 +103,17 @@
   "about_covers": "20 Nov 2026, her words: ideally the weather is covered by the morning gate. Once the gate is logged, the weather check counts as done and is never asked for on its own.",
   "same_kind": {"dawn": {"📗 morning book": ["📗 book"]}, "dusk": {}},
   "about_same_kind": "21 Nov 2026 amendment (a flow closes right after its last logged step, without waiting for her): a step is done when a row of the same kind shows it. Per flow, step → the practices whose rows count as it, inside the flow's hours (dawn: before its backup close; dusk: from when it opens). A 📗 book row that morning is the 📗 morning book step (20 Nov: she read on her phone and logged it as its own book row, and the flow never counted as complete).",
-  "closes_itself": {"line": "{glyph} {flow} flow complete: last step {step} at {time}. Write {close} now, at {time}, without asking her.",
+  "closes_itself": {"at_sleep": "{glyph} {flow} is in: it closes when you fall asleep. The 🪐 morning ring read writes {close} at the ring's bedtime, with {pattern}.", "line": "{glyph} {flow} flow complete: last step {step} at {time}. Write {close} now, at {time}, without asking her.",
                     "backup": "{glyph} past the {backup} backup: write the backup {close} now, at {backup}, without waiting for a reply{missed}."},
   "about_closes_itself": "21 Nov 2026 amendment: when the last required step is in (holds_open is empty), the remaining list says the flow is complete and names the close's time, the last step's; after the backup hour (backup_close) it says to write the backup close, naming what it couldn't capture.",
   "about_leads": "Steps that come next once the flow has begun, whatever the observed times say. 10 Nov 2026, her words: this is when I expect to see my morning gate, please make sure that gets slotted correctly. The Morning Gate follows her first entry (its amendment, 7 Nov 2026), so it leads the remaining list until it is logged; a step she names as next still goes ahead of it.",
-  "about_sequences": "Her stated orders, which beat any observed median. 4 Oct 2026: morning movement is early, with the coffee (easy waking-up movements); morning sun comes before the exercise block (hips, strength, breaths); water after the first coffee. Within the block the observed times decide. Dusk is ordered by clock time.",
+  "about_sequences": "Her stated orders, which beat any observed median. 4 Oct 2026: morning movement is early, with the coffee (easy waking-up movements); morning sun comes before the exercise block (hips, strength, breaths); water after the first coffee. Within the block the observed times decide. 24 Nov 2026, her order for dusk: 🔅 evening sun, then the batch (🗺️ Timeline, 📱 screen time, 🪐 ring stress, ⏺️ recorder check, then the day's photos uploaded last; her words: I want to do all the batch checks then upload the photos and have the system fill in everything based on that info), whose upload starts the dusk Code run (its 📧 inbox read comes next), then 💊 evening pills, 🫖 evening tea, ⚔️ his quest, 🌟 his highlight, ⭐ highlight (her words: my highlight after his highlight), then 🔀 braid, where it sees the whole evening (her words: move the braid to where it makes the most sense), and last 🌬️ evening breaths and 🌌 evening blessing, with her son, after the phone is down. Within the batch the observed times decide.",
+  "together": {"dawn": {}, "dusk": {"💊 evening pills": ["💊 bp meds", "🌈 supplements"]}},
+  "about_together": "24 Nov 2026, her words: maybe it's evening BP med / supplements all at once. Steps taken together are one step on the line, under the group's name, done once every member is logged. The record keeps a row per practice, so the blood-pressure med is still tracked on its own. What she takes by default is hers and lives in her settings row (evening_pills), never here.",
+  "from_pattern": {"dawn": [], "dusk": ["🌬️ evening breaths", "🌌 evening blessing"]},
+  "about_from_pattern": "24 Nov 2026, her words: [her son] and I do the evening breaths and evening blessing right before falling asleep, generally after I set my phone down. Nobody asks for them: they stay off the line, and the next morning the 🪐 morning ring read writes them from her pattern, at the ring's bedtime, when no row has them. She corrects.",
+  "close_at_sleep": ["dusk"],
+  "about_close_at_sleep": "24 Nov 2026, her words: I want the evening to close when I fall asleep. The dusk close is written the next morning by the 🪐 morning ring read, at the ring's bedtime start. No backup close is written at night; once the rest is in, the line says so.",
   "widget": {"bar": {"dawn": "#EFA038", "dusk": "#7B6FD6"}},
   "core": {
    "dawn": ["🗞️ morning gate", "🥤 morning water", "🤸🏻‍♀️ morning movement", "☕ coffee", "🪐 morning oura", "🌦️ weather check", "👁️ look ahead", "⚡ intention check", "🙏 gratitude", "📿 morning mantra", "📗 morning book", "🪞 mirror check", "🌅 dawn flow close"],

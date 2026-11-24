@@ -150,5 +150,31 @@ def main():
           'the evening carries activity, workouts and stress, refreshed in place, nothing twice')
 
 
+def dusk_closes_at_sleep():
+    """24 Nov 2026, her words: I want the evening to close when I fall asleep. Night one
+    finds the dusk close row still ▶️ from the dusk Code run: it takes the ring's bedtime
+    (10:06 PM) and is closed. Night two has no close row: one is written at 10:43 PM. Breaths
+    and the blessing are written from her pattern where no row has them; night one's
+    breaths were logged, so only the blessing is added. Run again, nothing new."""
+    spec = oura.dusk_spec()
+    close, (breaths, blessing) = spec['close'], spec['pattern']
+    st = copy.deepcopy(STREAM) + [
+        {'id': 'recClose1', 'cellValuesByFieldId': {'fP': close, 'fS': '▶️ in motion', 'fW': '2026-09-29T01:30:00.000Z',
+                                                   'fD': '———\n[be•do] braid shown 2026-09-28 · calsync done 2026-09-28'}},
+        {'id': 'recBreaths1', 'cellValuesByFieldId': {'fP': breaths, 'fS': '◉ done', 'fW': '2026-09-29T02:55:00.000Z'}}]
+    P = oura.plan(O, st, DAYS, F, -5, mode='morning', now=NOW, dusk=spec)
+    pt = {p['id']: p['fields'] for p in P['patch']}
+    assert pt['recClose1']['fW'] == '2026-09-29T03:06:00.000Z' and pt['recClose1']['fS'] == '◉ done', pt
+    assert 'braid shown 2026-09-28' in pt['recClose1']['fD'] and "ring's bedtime" in pt['recClose1']['fD'], pt
+    made = [(c['fP'], c['fW']) for c in P['create'] if c['fP'] in (close, breaths, blessing)]
+    assert (close, '2026-09-30T03:43:00.000Z') in made, made
+    assert (blessing, '2026-09-29T03:06:00.000Z') in made and (breaths, '2026-09-29T03:06:00.000Z') not in made, made
+    assert (breaths, '2026-09-30T03:43:00.000Z') in made and (blessing, '2026-09-30T03:43:00.000Z') in made, made
+    P2 = oura.plan(O, applied(P, st), DAYS, F, -5, mode='morning', now=NOW, dusk=spec)
+    assert P2['create'] == [] and P2['patch'] == [], P2
+    print('ok — the evening closes at the ring\'s bedtime, breaths and blessing from her pattern, nothing twice')
+
+
 if __name__ == '__main__':
     main()
+    dusk_closes_at_sleep()

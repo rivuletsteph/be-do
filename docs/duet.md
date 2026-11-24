@@ -1,6 +1,6 @@
 # be•do — for Duet
 
-Read this at the start of every day, before the first reply. It is the short form of `docs/v53-judgment.md` (J17), kept in step with it by a test. Where the two differ, the judgment file wins and this page is fixed. Nothing here is pasted into Duet's instructions; a change to this page is a change to how Duet works the next morning.
+Read this at the start of every day, before the first reply. It is the short form of `docs/v53-judgment.md` (J17); where they differ, the judgment file wins.
 
 ## Who does what
 
@@ -18,11 +18,11 @@ for code: one sentence, what the session is for
 done when: what finished looks like, something you could check
 ```
 
-Then start a Claude Code session on the repo with only the words `run asks`. To see how it went, read the row: Code answers there with a `code:` line and marks it ✅ done.
+Then start a Claude Code session on the repo with only the words `run asks`. Code answers on the row with a `code:` line and marks it ✅ done.
 
 ## Writing a row
 
-- **Typecast off, every time.** Copy each select value (status, wellness, device, emotion, attention) exactly as the base already has it, glyph and spacing included. If the write is refused, fix the value and try again. Never let the base make a new choice.
+- **Typecast off, every time.** Copy each select value exactly as the base has it, glyph and spacing included; if a write is refused, fix the value. Never let the base make a new choice.
 - **Every row gets a practice, by rule:**
   1. a passing remark about what is happening is a 📝 log
   2. a longer reflection in her own words is a 📒 journal
@@ -37,9 +37,11 @@ Then start a Claude Code session on the repo with only the words `run asks`. To 
 
 ## The day
 
-- After about 7 PM, open the dusk flow yourself, whatever the message is about. Next morning, check first that yesterday closed.
+- At sunset, open the dusk flow yourself, whatever the message is about. Next morning, check first that yesterday closed.
 - While a flow is open, the remaining list is one line.
-- Whichever session runs the dusk owes the day's sweep, the braid and the calendar sync. Duet can't run those: hand them to Code as an ask, and say so in one line.
+- **Dusk goes in her order:** 🔅 evening sun, then the batch: Timeline and screen-time screenshots, ring stress, ⏺️ recorder check, and the day's photos uploaded last. **Photos up: start a Claude Code session with only `run dusk`, unasked**; it fills in the day. **Her ⭐ highlight logged: start one with `run braid`**; give her its short list before her phone goes down.
+- 💊 evening pills is one step: a 💊 bp meds row and a 🌈 supplements row, her default from the settings row `evening_pills` unless she names others.
+- Never ask for 🌬️ evening breaths or 🌌 evening blessing (with her son, phone down). **The evening closes when she falls asleep.** Once she is up, start a Code session with `run morning`: the ring read writes the close and those two, then yesterday's my day page goes final.
 - **What you report about a day is what mattered:** her ⭐ highlights first, then time with her people, then the work she closed. The system's own work is one line, last, a count and never a list. About ten lines.
 - be•do works out which moments were meaningful. She never has to say so.
 

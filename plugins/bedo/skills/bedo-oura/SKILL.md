@@ -17,7 +17,7 @@ Airtable connector in one call each.
 
 ## When
 
-- **🪐 morning oura**, in the dawn flow: `run_oura.sh morning <today>`.
+- **🪐 morning oura**, in the dawn flow: `run_oura.sh morning <today>`. It also closes the evening before at the ring's bedtime (24 Nov 2026, her words: I want the evening to close when I fall asleep), and writes 🌬️ evening breaths and 🌌 evening blessing from her pattern there when no row has them.
 - **🪐 evening oura**, in the dusk flow: `run_oura.sh evening <today>`.
 - **Catch-up**: a day whose flow step was missed, or was run from the phone,
   where the script can't run: `run_oura.sh both <day> [<last day>]`. The morning

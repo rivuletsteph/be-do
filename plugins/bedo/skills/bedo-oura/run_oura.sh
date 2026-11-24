@@ -42,4 +42,5 @@ done
 rm -rf oura-data
 "$PY" oura-scripts/bedo_fetch.py --day "$END" --local look_behind_local.json "${SECARGS[@]}" --out oura-data
 STREAMS=$(ls -r oura-data/w*.json | sed 's/^/--stream /' | tr '\n' ' ')
-"$PY" oura-scripts/oura.py --mode "$MODE" --start "$START" --end "$END" --local look_behind_local.json $STREAMS --out oura-plan.json
+DUSK=(); [ "$MODE" = evening ] || DUSK=(--dusk)   # the morning closes the evening before at the ring's bedtime (24 Nov 2026)
+"$PY" oura-scripts/oura.py --mode "$MODE" --start "$START" --end "$END" --local look_behind_local.json $STREAMS --out oura-plan.json "${DUSK[@]}"
