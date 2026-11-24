@@ -76,15 +76,15 @@ class EveningPills(unittest.TestCase):
 
 
 class AfterThePhoneIsDown(unittest.TestCase):
-    def test_breaths_and_blessing_are_never_asked(self):
+    def test_breaths_and_blessing_show_last_before_the_close(self):
+        # her words: I still like to see evening breaths and evening blessing before the close
         done, total, left, _ = R.split(STEPS, [], 'dusk', LOCAL)
-        self.assertNotIn('🌬️ evening breaths', left)
-        self.assertNotIn('🌌 evening blessing', left)
-        self.assertEqual(total, len(STEPS) - 3, 'the pills count once; breaths and blessing not until logged')
+        self.assertEqual(left[-3:], ['🌬️ evening breaths', '🌌 evening blessing', CLOSE])
+        self.assertEqual(total, len(STEPS) - 1, 'the pills count once')
 
-    def test_they_count_once_written(self):
-        _, total, _, _ = R.split(STEPS, rows('🌬️ evening breaths', '🌌 evening blessing'), 'dusk', LOCAL)
-        self.assertEqual(total, len(STEPS) - 1)
+    def test_they_never_hold_the_flow_open(self):
+        self.assertNotIn('🌬️ evening breaths', R.holds_open(STEPS, [], 'dusk', LOCAL))
+        self.assertNotIn('🌌 evening blessing', R.holds_open(STEPS, [], 'dusk', LOCAL))
 
 
 class ClosesAtSleep(unittest.TestCase):

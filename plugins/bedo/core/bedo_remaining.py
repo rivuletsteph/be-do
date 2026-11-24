@@ -237,9 +237,10 @@ def together(flow):
 
 
 def from_pattern(flow):
-    """The steps nobody asks for: written next morning from her pattern
-    (facts flows.from_pattern, 24 Nov 2026: breaths and the blessing, after the
-    phone is down)."""
+    """The steps nobody asks for: still on the line, last before the close (her
+    words: I still like to see evening breaths and evening blessing before the
+    close), but they never hold the flow open, and the next morning writes them
+    from her pattern (facts flows.from_pattern, 24 Nov 2026)."""
     return {norm(p) for p in FLOWS.get('from_pattern', {}).get(flow, [])}
 
 
@@ -258,10 +259,8 @@ def collapse(names, flow):
 
 
 def counted(steps, have, flow):
-    """(done, total) with a group counted as one step, done once all its members
-    are, and a pattern step counted only once it is logged."""
-    pat = from_pattern(flow)
-    names = [s['practice'] for s in steps if norm(s['practice']) not in pat or norm(s['practice']) in have]
+    """(done, total) with a group counted as one step, done once all its members are."""
+    names = [s['practice'] for s in steps]
     groups = {g: {norm(m) for m in ms} for g, ms in together(flow).items()}
     done = total = 0
     seen = set()
@@ -370,8 +369,7 @@ def split(steps, day_rows, flow, loc=None):
     flows.ask_if_missing: 🚽 bm, 20 Nov 2026) stays off the line until only the
     close is left, then is named just before it."""
     have = logged(day_rows, loc)
-    pat = from_pattern(flow)
-    left = collapse([s['practice'] for s in steps if norm(s['practice']) not in have | pat], flow)
+    left = collapse([s['practice'] for s in steps if norm(s['practice']) not in have], flow)
     quiet = {norm(p) for p in FLOWS.get('ask_if_missing', {}).get(flow, [])}
     close = norm(FLOWS['close'][flow])
     if any(norm(p) not in quiet | {close} for p in left):          # asked only once all else is done
