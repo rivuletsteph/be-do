@@ -1188,7 +1188,7 @@ def main():
 
     def dests_through(name):
         return list(dict.fromkeys(dn for k in bedo_drives.chain(name, DRIVES)
-                                  for dn in (DRIVES[k].get('dest') or [])))
+                                  for dn in ((DRIVES.get(k) or {}).get('dest') or [])))
 
     # open work by drive — what is coming up, each row under its own drive and every
     # drive it feeds, the child nested under its parent; the total counts each row once
