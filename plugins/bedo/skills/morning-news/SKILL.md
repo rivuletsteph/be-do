@@ -133,6 +133,30 @@ touched).
 - Skip opinion pieces, ads and obituaries unless asked, or unless it's from a
   newsletter the user subscribes to.
 
+## 3b. Weather: today's forecast, with its picture
+
+Her words, 24 Nov 2026: I'd like to handle the weather check in the morning
+gate a bit more elegantly, at least the forecast for today with an image.
+
+```
+python3 scripts/forecast.py --out weather.html          # her home, from the settings
+python3 scripts/forecast.py --out weather.html --lat N --lon N   # a morning away
+```
+
+It reads the National Weather Service forecast (no key) and writes the band:
+today's sky drawn inline in the paper's colours, high and low, the forecaster's
+own words, tonight, sunrise and sunset, and the day's hours as a temperature
+line over chance-of-rain bars. **Paste the band as printed** into the
+template's `{{weather band}}` slot; never redraw or reword it. When it exits 1,
+leave the slot out and say so in the chat's one line of what couldn't be done.
+Never write a forecast from memory or a search snippet.
+
+**The Morning Gate covers 🌦️ weather check** (facts `covers`). Its `row` line
+is that step's details: sunrise first, so the remaining list can place 🔅
+morning sun, then the sky in words. Write it on the 🌦️ weather check row with
+the 🗞️ morning gate row, each through `entry`, so the weather is never asked for
+separately.
+
 ## 4. Photos
 
 Real photos make the paper. Aim for one per section that has a fitting one,
@@ -163,6 +187,7 @@ Build the page from `reference/paper-template.html`. Keep its palette, type and
 layout, and fill in the slots. Read the `artifact-design` guidance (or run the
 Artifact quickstart) before the first publish of a session.
 
+- **Weather:** the band from step 3b, right under the dateline, as printed.
 - **Masthead:** the settings' `masthead`. The dateline gives the weekday and
   date, any flag for the day (an election, a holiday, a storm), and the read time.
 - **Lead story:** the day's biggest story among the topics and places, with the
