@@ -31,7 +31,7 @@ it runs one, so nothing has to be remembered.
 | a Code session's first reply (`preflight` prints it) | `asks` | Duet's asks for Code, read from the stream; take each, oldest first |
 | every day, scheduled | `fold` | the daily amendment fold |
 | every write where code runs | `apply ops.json` | code writes the rows |
-| `run dusk` or `run morning` | `daysteps` | the day's Code steps, in order |
+| `run dusk`, `run braid`, `run morning` | `daysteps` | the day's Code steps |
 | before any stream write | `entry row.json --chat MMDD` | write only rows that print `ok`; fix every `FIX` first |
 | before every push, and before a pull request is opened or its text edited | `outgoing --title "TITLE" --text pr.md` | open or push only on `0 hit(s)`, with exactly the text it checked; a hit is rewritten, never pasted anywhere public |
 | before the dusk close row | `dusk [--photos folder.json]` | the one-pass dusk list, and the day's photos |

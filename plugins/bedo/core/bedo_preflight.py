@@ -263,14 +263,16 @@ def read_log_rows(air, names, day, local):
     return rows
 
 
-def due(now_local):
-    """What the skills schedule says is due at this hour, as one line, or None."""
+def due(now_local, local=None):
+    """What the skills schedule says is due at this hour, as one line, or None.
+    Dusk is due from sunset at her home when the settings carry one (24 Nov 2026)."""
+    import bedo_remaining
     S, F = FACTS['skills_schedule'], FACTS['flows']
     t = now_local.time()
     out = []
     if t < dt.time(*map(int, F['backup_close']['dawn'].split(':'))):
         out += S['dawn']
-    if t >= dt.time(*map(int, F['dusk_opens_after'].split(':'))):
+    if t.hour * 60 + t.minute >= bedo_remaining.dusk_opens(now_local.date(), (), local):
         out += S['dusk']
     if now_local.weekday() == 6:
         out += S['sunday']
@@ -300,7 +302,7 @@ def report(local, names, rows, now=None, kind='day', part=None, week=None, hando
             lines.append("number count today's sessions tagged bedo:%s, this one included, and run again with --n"
                          % day.strftime('%m%d'))
         lines += [b.format(mmdd=day.strftime('%m%d')) for b in BRANCH_LINES]
-    d = due(now_local) if kind != 'branch' else None
+    d = due(now_local, local) if kind != 'branch' else None
     if d:
         lines.append(d)
     lines += ['⚠ ' + p for p in probs + bprobs]

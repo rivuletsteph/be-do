@@ -6,7 +6,9 @@ day's photos, Timeline, screen time, ring stress, and probably just after
 evening sun · maybe it's evening BP med / supplements all at once · [her son] and
 I do the evening breaths and evening blessing right before falling asleep,
 generally after I set my phone down · I want the evening to close when I fall
-asleep · my highlight after his highlight.
+asleep · my highlight after his highlight · move the braid to where it makes
+the most sense · I want to do all the batch checks then upload the photos and
+have the system fill in everything based on that info. And dusk opens at sunset.
 
     python3 core/tests/test_dusk_order.py
 """
@@ -46,15 +48,15 @@ class HerOrder(unittest.TestCase):
         names = [s['practice'] for s in STEPS]
         self.assertEqual(names[0], '🔅 evening sun')
         self.assertEqual(set(names[1:5]), BATCH, 'the batch comes right after evening sun')
-        self.assertEqual(names[5:], ['📧 clear gmail inbox', '🔀 braid', '💊 bp meds', '🌈 supplements',
+        self.assertEqual(names[5:], ['📧 clear gmail inbox', '💊 bp meds', '🌈 supplements',
                                      '🫖 evening tea', "⚔️ his quest", "🌟 his highlight",
-                                     '⭐ highlight', '🌬️ evening breaths', '🌌 evening blessing', CLOSE])
+                                     '⭐ highlight', '🔀 braid', '🌬️ evening breaths', '🌌 evening blessing', CLOSE])
 
     def test_the_line_reads_in_her_order(self):
         _, _, left, _ = R.split(STEPS, [], 'dusk', LOCAL)
         self.assertEqual(left[0], '🔅 evening sun')
         self.assertLess(left.index("🌟 his highlight"), left.index('⭐ highlight'))
-        self.assertLess(left.index('🔀 braid'), left.index(PILLS))
+        self.assertLess(left.index('⭐ highlight'), left.index('🔀 braid'), 'the braid sees the whole evening')
 
 
 class EveningPills(unittest.TestCase):
@@ -108,6 +110,27 @@ class ClosesAtSleep(unittest.TestCase):
         self.assertEqual(R.open_flow(dt.datetime(2026, 11, 24, 21, 0), open_close), 'dusk')
         done_close = rows(CLOSE, status='◉ done')
         self.assertIn(R.norm(CLOSE), R.logged(done_close, LOCAL))
+
+
+class OpensAtSunset(unittest.TestCase):
+    HOME = dict(LOCAL, home={'lat': 32.2, 'lon': -97.8})     # an invented spot in her time zone
+
+    def test_sunset_moves_with_the_season(self):
+        late_nov = R.sunset(DAY, 32.2, -97.8, LOCAL)
+        june = R.sunset(dt.date(2026, 6, 21), 32.2, -97.8, LOCAL)
+        self.assertTrue(17 * 60 + 15 <= late_nov <= 17 * 60 + 40, R.clock12(late_nov))
+        self.assertTrue(20 * 60 + 25 <= june <= 20 * 60 + 55, R.clock12(june))
+
+    def test_dusk_opens_at_sunset_not_seven(self):
+        self.assertEqual(R.open_flow(dt.datetime(2026, 11, 24, 17, 45), [], self.HOME), 'dusk')
+        self.assertIsNone(R.open_flow(dt.datetime(2026, 11, 24, 16, 50), [], self.HOME))
+
+    def test_evening_sun_logged_opens_it(self):
+        self.assertEqual(R.open_flow(dt.datetime(2026, 11, 24, 17, 5), rows('🔅 evening sun', at='17:00'), self.HOME), 'dusk')
+
+    def test_without_a_home_the_old_hour_holds(self):
+        self.assertIsNone(R.open_flow(dt.datetime(2026, 11, 24, 18, 0), [], LOCAL))
+        self.assertEqual(R.open_flow(dt.datetime(2026, 11, 24, 19, 5), [], LOCAL), 'dusk')
 
 
 if __name__ == '__main__':
