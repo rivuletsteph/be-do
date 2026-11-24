@@ -58,6 +58,17 @@ class NamedInItsBlock(unittest.TestCase):
         self.assertEqual(items[0]['patch']['fields'], {'status': '✅ done', 'end': z(15, 16)})
         self.assertIn('named in its block', items[0]['line'])
 
+    def test_a_row_that_says_the_step_stays_open_does_not_close_it(self):
+        # 23 Nov 2026: a session entry said "the build row (key) stays open", and the braid proposed closing it
+        key = HELP['key']
+        OTHER = dict(ANSWERED, title='⚡ A long session about other things')   # its words alone close nothing
+        for words in (f'what I did\n· moved a thing\n\nstill open\n· the build row ({key}) for a later session',
+                      f'· the build row ({key}) stays open for a later session',
+                      f'[be•do] {key} is not done yet.'):
+            self.assertEqual(Q.reconcile([dict(OTHER, details=words)], [HELP], OFF), [], words)
+        # the same row answering it plainly still closes it
+        self.assertEqual(len(Q.reconcile([dict(OTHER, details=f'[be•do] answers {key}.')], [HELP], OFF)), 1)
+
     def test_its_own_key_in_its_block_names_nothing(self):
         own = dict(ANSWERED, key='261105_1153', details='[be•do] 261105_1153 is this row.', status='● log')
         self.assertEqual(Q.reconcile([own], [dict(HELP, rhythm=None, title='call the clinic')], OFF), [])

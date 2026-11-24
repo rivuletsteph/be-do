@@ -273,10 +273,23 @@ def _key_day(k):
     return dt.date(2000 + int(m[1]), int(m[2]), int(m[3])) if m else None
 
 
+_STILL = re.compile(r'\b(stays? open|still open|not (?:yet )?(?:done|built|closed)|left open|remains open)\b')
+
+
 def _cited(r):
     """The keys a row's details name besides its own: the rows its block says it answers."""
     own = (r.get('key') or '').split(' ')[0]
-    return {k for k in KEY_RE.findall(r.get('details') or '') if k != own}
+    # a line that says a step is still open names it without answering it (23 Nov 2026: a session entry's
+    # "the build row (261122_1429) stays open" was read as that row done, and the braid proposed closing it)
+    said, still = [], False
+    for line in (r.get('details') or '').splitlines():
+        t = line.strip().lower()
+        if t in ('still open', 'what i did') or t.startswith('———'):
+            still = t == 'still open'
+            continue
+        if not still and not _STILL.search(t):
+            said.append(line)
+    return {k for k in KEY_RE.findall('\n'.join(said)) if k != own}
 
 
 def _drive(r):

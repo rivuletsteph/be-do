@@ -26,6 +26,8 @@
 #                                # what be•do writes in place, and what needs a call (24 Nov 2026)
 #   bash run_checks.sh asks [--rows rows.json] [--json]   # what Duet handed to Code: open ⚡ rows whose details
 #                                # carry `for code:` (23 Nov 2026); preflight prints them too
+#   bash run_checks.sh apply ops.json [--base "w48 be•do"] [--chat MMDD] [--dry]   # write rows in code: a change names
+#                                # only what changes, a line is added to the details code reads (24 Nov 2026)
 #   bash run_checks.sh fold [--date YYYY-MM-DD] [--amendments amendments.json] [--json]   # the daily fold: what main
 #                                # already holds (to mark folded), the new rows, and the oldest of the backlog (23 Nov 2026)
 #   bash run_checks.sh calendar event.json [--readback read.json --from CALENDAR_ID] [--rhythms rhythms.json]
@@ -160,6 +162,11 @@ case "$CMD" in
     [ -d "$W/core" ] || fetch_core; find_local
     if live_or_files "--amendments amendments.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_fold.py" "$@" ;;
+  daysteps)   # 24 Nov 2026: the day's Code steps as one cheap session; its notes are the whole of it
+    cat "$(dirname "$0")/commands/daysteps.md" ;;
+  apply)      # 24 Nov 2026: rows written by code from a short file of changes, never retyped by a model
+    [ -d "$W/core" ] || fetch_core; find_local
+    "$PY" "$W/core/bedo_apply.py" "$@" ;;
   remaining)
     [ -d "$W/core" ] || fetch_core; find_local
     if live_or_files "--catalog practices.json --day today.json" "$@"; then set -- --live "$@"; fi
@@ -321,5 +328,5 @@ E
   usage)      # 4 Nov 2026: what the checks spend, so the plan can be sized from real numbers
     [ -d "$W/core" ] || fetch_core
     "$PY" "$W/core/bedo_air.py" usage "$@" ;;
-  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|daygate|entry|stretches|order|cleanup|drives|close|calendar|calsync|inbox|chats|outgoing|skills|fold|usage|how [args]"; exit 2 ;;
+  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|daygate|entry|stretches|order|cleanup|drives|close|calendar|calsync|inbox|chats|outgoing|skills|fold|apply|daysteps|usage|how [args]"; exit 2 ;;
 esac
