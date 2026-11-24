@@ -26,6 +26,8 @@
 #                                # what be•do writes in place, and what needs a call (24 Nov 2026)
 #   bash run_checks.sh asks [--rows rows.json] [--json]   # what Duet handed to Code: open ⚡ rows whose details
 #                                # carry `for code:` (23 Nov 2026); preflight prints them too
+#   bash run_checks.sh fold [--date YYYY-MM-DD] [--amendments amendments.json] [--json]   # the daily fold: what main
+#                                # already holds (to mark folded), the new rows, and the oldest of the backlog (23 Nov 2026)
 #   bash run_checks.sh calendar event.json [--readback read.json --from CALENDAR_ID] [--rhythms rhythms.json]
 #   bash run_checks.sh calsync YYYY-MM-DD [--events events.json --calendars calendars.json]
 #                                # the dusk close: the calendar mirrors the stream (the done marks). First run lists
@@ -124,7 +126,7 @@ find_local() {
   echo "facts_local.json not found — copy the skill's assets/facts_local.json into the working folder"; exit 1
 }
 
-has_files() { for a in "$@"; do case "$a" in --bases|--stream|--catalog|--day|--rows) return 0;; esac; done; return 1; }
+has_files() { for a in "$@"; do case "$a" in --bases|--stream|--catalog|--day|--rows|--amendments) return 0;; esac; done; return 1; }
 
 live_or_files() {   # $1 = what to say is needed; rest = the args
   local need=$1; shift
@@ -154,6 +156,10 @@ case "$CMD" in
     [ -d "$W/core" ] || fetch_core; find_local
     if live_or_files "--rows rows.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_asks.py" "$@" ;;
+  fold)       # 23 Nov 2026: the daily fold, one day's share of the amendments
+    [ -d "$W/core" ] || fetch_core; find_local
+    if live_or_files "--amendments amendments.json" "$@"; then set -- --live "$@"; fi
+    "$PY" "$W/core/bedo_fold.py" "$@" ;;
   remaining)
     [ -d "$W/core" ] || fetch_core; find_local
     if live_or_files "--catalog practices.json --day today.json" "$@"; then set -- --live "$@"; fi
@@ -315,5 +321,5 @@ E
   usage)      # 4 Nov 2026: what the checks spend, so the plan can be sized from real numbers
     [ -d "$W/core" ] || fetch_core
     "$PY" "$W/core/bedo_air.py" usage "$@" ;;
-  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|daygate|entry|stretches|order|cleanup|drives|close|calendar|calsync|inbox|chats|outgoing|skills|usage|how [args]"; exit 2 ;;
+  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|daygate|entry|stretches|order|cleanup|drives|close|calendar|calsync|inbox|chats|outgoing|skills|fold|usage|how [args]"; exit 2 ;;
 esac

@@ -140,6 +140,23 @@ class Stretches(unittest.TestCase):
         # the old count, every turn: one 3:20–5:00 block
         self.assertEqual(ST.minutes(ST.stretches([l['timestamp'] for l in lines])), 100)
 
+    def test_a_message_sent_while_claude_works_is_hers(self):
+        # 23 Nov 2026: she wrote at 10:45, 10:58 and 11:01 PM; the last two arrived while Claude was
+        # mid-turn, so the transcript kept them as queued commands, and the session read as 0 minutes
+        lines = [
+            {'type': 'user', 'timestamp': z('2026-11-23 22:45'), 'origin': {'kind': 'human'},
+             'message': {'role': 'user', 'content': 'a message'}},
+            {'type': 'attachment', 'timestamp': z('2026-11-23 22:58'),
+             'attachment': {'type': 'queued_command', 'prompt': 'again', 'origin': {'kind': 'human'}, 'humanTurn': True}},
+            {'type': 'attachment', 'timestamp': z('2026-11-23 23:01'),
+             'attachment': {'type': 'queued_command', 'prompt': 'one more', 'origin': {'kind': 'human'}, 'humanTurn': True}},
+            {'type': 'attachment', 'timestamp': z('2026-11-23 23:20'),       # an agent's notice, queued the same way
+             'attachment': {'type': 'queued_command', 'prompt': '<task-notification>', 'origin': {'kind': 'task-notification'}}},
+            {'type': 'attachment', 'timestamp': z('2026-11-23 23:30'), 'attachment': {'type': 'file', 'name': 'a.png'}},
+            {'type': 'assistant', 'timestamp': z('2026-11-23 23:40')},
+        ]
+        self.assertEqual(ST.named(ST.stretches(ST.times_from(lines)), -5), '10:45–11:01 = 16m')
+
     def test_a_cloud_sessions_event_read_counts_her_turns(self):
         # list_events, saved as the tool gave it: wrapper text around {"ccr": {"data": […]}}
         ev = {'ccr': {'data': [

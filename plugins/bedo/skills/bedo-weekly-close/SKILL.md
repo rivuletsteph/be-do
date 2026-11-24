@@ -55,14 +55,18 @@ python3 close.py plan   --week W     # the carry set and the delete set, by reco
    catalog's `typical time`. One backlog bucket a week. Drives and rhythms as one
    compact diff, only the few that need her word; an empty destination is never
    raised.
-6. **The fold,** about five minutes, and it never holds up the close. `close.py fold`
-   lists the week's amendments and a few older active ones, one line each saying
-   where it landed. Before she sees it, open each line's evidence: the check it
-   names, or the words in `docs/v53-judgment.md`. A mapping can be wrong. She says
-   yes or fixes a line. Mark the rows she confirmed folded, by the ids in
-   `fold_list.json`; in a cloud chat that goes through the Airtable connector.
-   A row that hasn't landed stays active and rolls to next week. The quest's data
-   row is never folded. There is no master version to approve.
+6. **The fold,** about five minutes, and it never holds up the close. The fold
+   itself runs every day on its own (23 Nov 2026; `run_checks.sh how fold`), so
+   the close reads it back: `close.py fold` lists the week's amendments and a
+   few older active ones, one line each saying where it landed, and
+   `run_checks.sh fold` gives the count still active. Before she sees it, open
+   each line's evidence: the check it names, or the words in
+   `docs/v53-judgment.md`. A mapping can be wrong. She says yes or fixes a line;
+   a line she fixes on a row the daily fold marked goes back to active. Mark the
+   rows she confirmed folded, by the ids in `fold_list.json`; in a cloud chat
+   that goes through the Airtable connector. A row that hasn't landed stays
+   active and rolls on. The quest's data row is never folded. There is no master
+   version to approve.
 7. **The chat sweep:** `run_checks.sh chats` (J11).
 8. **Her university's events calendar** for the next two weeks (a trial, 27 Oct
    2026; the link is `events_calendar` in her settings). Offer only what fits her

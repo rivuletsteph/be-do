@@ -882,7 +882,7 @@ function sixOf(rows){
   const chunk=x=>x.k==='event'?'work':({stretch:'work',cook:'eat',home:'family',pet:'family',personal:'family',drive:'travel'})[x.cat]||x.cat||'';
   const score=x=>{ if(x.cat==='sleep'||x.flowcard||x.nopie) return -1;
     let s=0; const d=x.e-x.s, t=x.t||'';
-    if(x.star||/^(⭐)/.test(t)) s+=100;                    // her highlight
+    if(x.star||x.meant||/^(⭐)/.test(t)) s+=100;           // her highlight, or a moment marked meaningful from her words
     else if(/^🌟/.test(t)) s+=60;                          // someone's highlight
     else if(x.mom) s+=50;                                  // a glimmer, a milestone
     if(x.cat==='moment') s+=30;                            // gratitude, an insight, a journal

@@ -167,6 +167,17 @@ def _hers(turn):
     return True
 
 
+def _sent_mid_turn(e):
+    """A message she sent while Claude was still working (23 Nov 2026: a session she
+    messaged at 10:45, 10:58 and 11:01 PM read as 0 minutes). A Claude Code transcript
+    keeps it as a queued command, never as a user turn; a task's own notice is queued
+    the same way and is not hers."""
+    a = e.get('attachment')
+    if e.get('type') != 'attachment' or not isinstance(a, dict) or a.get('type') != 'queued_command' or e.get('isSidechain'):
+        return False
+    return (a.get('origin') or {}).get('kind') == 'human' or (a.get('humanTurn') is True and not a.get('origin'))
+
+
 def _parse(text):
     """One JSON document; a list_events read saved as the tool gave it (inside
     its wrapper text, or as [{"type": "text", "text": …}]); or one object a
@@ -211,7 +222,8 @@ def times_from(src):
                 out.append(e['created_at'])
         return out
     if isinstance(d, list) and d and isinstance(d[0], dict):
-        return [e['timestamp'] for e in d if e.get('type') == 'user' and e.get('timestamp') and _hers(e)]
+        return sorted(e['timestamp'] for e in d if e.get('timestamp')
+                      and ((e.get('type') == 'user' and _hers(e)) or _sent_mid_turn(e)))
     return list(d)
 
 

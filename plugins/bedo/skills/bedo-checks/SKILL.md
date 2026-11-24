@@ -29,6 +29,7 @@ it runs one, so nothing has to be remembered.
 | when | command | what it is for |
 |---|---|---|
 | a Code session's first reply (`preflight` prints it) | `asks` | Duet's asks for Code, read from the stream; take each, oldest first |
+| every day, scheduled | `fold` | the daily amendment fold |
 | before any stream write | `entry row.json --chat MMDD` | write only rows that print `ok`; fix every `FIX` first |
 | before every push, and before a pull request is opened or its text edited | `outgoing --title "TITLE" --text pr.md` | open or push only on `0 hit(s)`, with exactly the text it checked; a hit is rewritten, never pasted anywhere public |
 | before the dusk close row | `dusk [--photos folder.json]` | the one-pass dusk list, and the day's photos |
@@ -50,19 +51,19 @@ it runs one, so nothing has to be remembered.
 ## Running it
 
 ```
-bash run_checks.sh judgment                  # the judgment file, every chat's first reply
+bash run_checks.sh judgment                  # every chat's first reply
 bash run_checks.sh how dayqa                 # a command's notes, before its first run in a chat
 bash run_checks.sh preflight                 # my day; --part B when the day already has a chat
 bash run_checks.sh preflight --kind week --week 40
 bash run_checks.sh preflight --kind branch --n 4 --what "👁️ my day page"   # a branch chat: its numbered title, the clock, the base
 bash run_checks.sh remaining                 # the open flow as one code line; --flow dawn|dusk to name one
 bash run_checks.sh dusk                      # today; --date YYYY-MM-DD for another day
-bash run_checks.sh meals                     # the day's meals: prep and eating, placed from context
-bash run_checks.sh dayqa 2026-10-09          # the day's QA: one list to accept, at the dusk close
+bash run_checks.sh meals                     # the day's meals, placed from context
+bash run_checks.sh dayqa 2026-10-09          # the day's QA, at the dusk close
 bash run_checks.sh entry row.json --base "w41 be•do" --chat 1008
 bash run_checks.sh stretches transcript.jsonl --day 2026-10-24 --json
 bash run_checks.sh outgoing --title "The my week page opens quiet" --text pr.md   # before the push and the PR
-bash run_checks.sh cleanup                   # the weekly drive cleanup, after the split
+bash run_checks.sh cleanup                   # after the split
 bash run_checks.sh close --chat https://claude.ai/code/session_… --title "▶️1024 … my day" --date 2026-10-24   # at its dusk close a my day chat keeps ▶️; ✔️ is the next morning's
 ```
 
