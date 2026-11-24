@@ -266,6 +266,23 @@ class Air:
             except urllib.error.HTTPError as e:
                 die(f'{base}/{table}: PATCH HTTP {e.code}')
 
+    def create(self, base, table, records):
+        """New records, ten a call. `records` are {field id: value}; returns their ids."""
+        ids = []
+        for i in range(0, len(records), 10):
+            body = json.dumps({'records': [{'fields': r} for r in records[i:i + 10]]}).encode()
+            req = urllib.request.Request(API + f'{base}/{table}', data=body, method='POST',
+                                         headers=self._headers({'Content-Type': 'application/json'}))
+            forget(base, table)
+            _count('POST', f'{base}/{table}')
+            try:
+                with urllib.request.urlopen(req, timeout=60) as r:
+                    ids += [x['id'] for x in json.load(r)['records']]
+                    time.sleep(.22)
+            except urllib.error.HTTPError as e:
+                die(f'{base}/{table}: POST HTTP {e.code}')
+        return ids
+
     def dump(self, base, table, **kw):
         recs = self.records(base, table, **kw)
         return {'records': recs, 'metadata': {'totalRecordCount': len(recs)}}
