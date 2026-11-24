@@ -184,6 +184,13 @@
   "when_it_comes_up": ["provisions (meals)", "shopping-watch (something to buy)", "session-entry (a chat's close)"],
   "monthly_by_day": 5
  },
+ "capture": {
+  "_about": "24 Nov 2026, her yes to six capture rules: a row told in passing gets its practice by rule, and she is asked only when no rule fits. A passing remark is a log; a longer reflection in her own words is a journal; a talk with someone is face-to-face (her words: the talk with her son was a talk); a note on something she is watching, reading or listening to goes on that thing's own row with its link; a gratitude is one bullet a thing; when she says she did something its action is closed, not logged again.",
+  "log": "📝 log", "journal": "📒 journal", "talk": "🗣️ face-to-face", "journal_words": 60,
+  "talk_openers": ["talked with", "talked to", "talk with", "a talk with", "conversation with", "a conversation with", "chatted with", "spoke with"],
+  "link_practice": {"youtu": "📼 video", "/watch?v=": "📼 video", "/episode/": "🎙️ podcast", "podcasts.": "🎙️ podcast"},
+  "taking_in": ["listening to", "watching", "reading", "this episode", "this podcast", "this video", "this article"]
+ },
  "calendar": {
   "_about": "6 Oct 2026: every calendar write names its calendar and is read back before it's called done. 9 Oct 2026: every work event is purple, Google Calendar colorId 3 (Grape), her employer's colour. Her calendar ids, work parents and work words live in facts_local under calendar.",
   "work_color": "3",

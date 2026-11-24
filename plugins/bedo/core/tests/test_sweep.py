@@ -26,11 +26,6 @@ def row(rid, **kw):
 
 
 class Sweep(unittest.TestCase):
-    def test_a_row_with_no_practice_is_a_call(self):
-        found = S.sweep([row('recA', practice=None)], L, now=NOW)
-        self.assertEqual(len(found), 1)
-        self.assertTrue(any(p.startswith('practice:') for p in found[0][2]), found)
-
     def test_a_status_the_base_does_not_carry_is_a_call(self):
         found = S.sweep([row('recB', status='done-ish')], L, now=NOW)
         self.assertTrue(any(p.startswith('status:') for p in found[0][2]), found)
@@ -44,8 +39,32 @@ class Sweep(unittest.TestCase):
         self.assertTrue(S._DEDUCED.match('device: empty — deduced 🚫 none (a body practice)'))
         self.assertFalse(S._DEDUCED.match('practice: every row carries one'))
 
+    def test_a_row_with_no_practice_gets_one_by_rule(self):
+        want = {'Pip is still asleep': '📝 log', 'Talked with Pip about the pond': '🗣️ face-to-face'}
+        for title, prac in want.items():
+            got, _ = S.capture_practice(row('r', practice=None, title=title, details='A few words.'))
+            self.assertEqual(got, prac, title)
+        long = ' '.join(['word'] * 70) + '\n———\n[be•do] told at 6 PM.'
+        self.assertEqual(S.capture_practice(row('r', practice=None, title='Thinking it over', details=long))[0], '📒 journal')
+        self.assertEqual(S.capture_practice(row('r', practice=None, title='A fine sermon', deliverable='https://youtu.be/xxxxxxxxxxx'))[0], '📼 video')
+        got, why = S.capture_practice(row('r', practice=None, title='Listening to something good'))
+        self.assertIsNone(got)
+        self.assertIn('find its row', why)
+
+    def test_a_ruled_practice_is_bedos_to_write(self):
+        (r, mine, hers), = S.sweep([row('recA', practice=None, title='Pip is still asleep')], L, now=NOW)
+        self.assertEqual(r['_set']['practice'], '📝 log')
+        self.assertFalse([p for p in hers if p.startswith('practice')])
+
+    def test_a_gratitude_is_set_one_bullet_a_thing(self):
+        d = "I'm grateful for the rain, and I'm grateful to Pip for the ride.\n———\n[be•do] told at 6 PM."
+        out = S.gratitude_bullets(row('r', details=d))
+        self.assertEqual(out.split('\n')[:2], ['• the rain', '• Pip for the ride'])
+        self.assertIn('[be•do] told at 6 PM.', out)
+        self.assertIsNone(S.gratitude_bullets(row('r', details='Rain.')))
+
     def test_the_report_counts_and_names_each_row(self):
-        found = S.sweep([row('recA', practice=None), row('recD', datetime='2026-03-13T16:00:00.000Z', end='2026-03-13T16:05:00.000Z')], L, now=NOW)
+        found = S.sweep([row('recA', status='done-ish'), row('recD', datetime='2026-03-13T16:00:00.000Z', end='2026-03-13T16:05:00.000Z')], L, now=NOW)
         out = S.report(found, 2, dt.date(2026, 3, 13), 'w11')
         self.assertIn('Fri 13 Mar: 2 rows in w11', out[0])
         self.assertTrue(any('recA' in l for l in out))
