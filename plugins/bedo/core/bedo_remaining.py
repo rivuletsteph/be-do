@@ -315,6 +315,16 @@ def clock12(minutes):
 def sunset(day, lat, lon, local=None):
     """Local minutes after midnight of the day's sunset at (lat, lon), by NOAA's
     solar formula; the offset is her time zone's on that evening. None at the poles."""
+    return _sun_event(day, lat, lon, local, rise=False)
+
+
+def sunrise_at(day, lat, lon, local=None):
+    """Local minutes after midnight of the day's sunrise at (lat, lon): the
+    Morning Gate's forecast writes it on the 🌦️ weather check (24 Nov 2026)."""
+    return _sun_event(day, lat, lon, local, rise=True)
+
+
+def _sun_event(day, lat, lon, local, rise):
     import math
     n = day.timetuple().tm_yday
     g = 2 * math.pi / 365 * (n - 1)
@@ -326,8 +336,9 @@ def sunset(day, lat, lon, local=None):
     x = math.cos(math.radians(90.833)) / (math.cos(la) * math.cos(decl)) - math.tan(la) * math.tan(decl)
     if not -1 <= x <= 1:
         return None
-    utc = 720 - 4 * (lon - math.degrees(math.acos(x))) - eq
-    at = dt.datetime.combine(day, dt.time(18), dt.timezone.utc)
+    ha = math.degrees(math.acos(x))
+    utc = 720 - 4 * (lon + ha if rise else lon - ha) - eq
+    at = dt.datetime.combine(day, dt.time(12 if rise else 18), dt.timezone.utc)
     off = offset_hours(local, at) if local is not None else -6
     return int(round(utc + off * 60)) % 1440
 
