@@ -53,7 +53,7 @@
 
  "day_emoji": {"Sun": "☀️", "Mon": "🌕", "Tue": "🔥", "Wed": "💧", "Thu": "🌳", "Fri": "🏆", "Sat": "⏳"},
  "week": {"opens": "Sunday", "anchor_sunday": "2026-05-03", "anchor_number": 19},
- "fold": {"keep_active_words": ["ten mini-quests"], "recheck_per_week": 5, "about": "The weekly fold (close.py fold): a row whose decision holds a keep word stays active, because the scorer reads it (9 Nov 2026)."},
+ "fold": {"keep_active_words": ["ten mini-quests"], "recheck_per_week": 5, "daily": {"new_days": 7, "backlog": 5, "mark": 10}, "about": "The fold (bedo_fold.py daily, close.py fold weekly): a row whose decision holds a keep word stays active, because the scorer reads it (9 Nov 2026). daily: how far back a row counts as new, how many of the oldest unlanded rows a day takes, and how many landed rows a day marks (23 Nov 2026)."},
  "clock": {"store": "UTC", "about": "Every stream datetime is stored UTC with a Z; the local offset comes from facts_local, checked against the time zone on the day (I12)."},
 
  "glyph_codepoints": {
