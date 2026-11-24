@@ -757,36 +757,83 @@ def star_the_highlight(items):
     return sorted(out, key=lambda x: (x['a'], x['k'] != 'event'))
 
 
-def did_of(rows, F, off, today, hidden=()):
-    """What she did that day, for a finished day's top list: each ⚡ action closed ✅ that day and each ⭐ highlight, in
-    time order, as the three's items (title, glyph, drive, why from her words)."""
+DID_CAP = 10                                   # the top list is a summary: about ten lines, never the whole day
+DID_HEART_CAP = 8                              # highlights and time with her people together, before her work
+_HEART_WORDS = ('with them', 'together', 'my guys', 'family', 'the kids', 'snuggl', 'hug')
+_FILLER = re.compile(r'(?i)\bunlogged\b|\(estimated\)')
+
+
+def _names(who, me=''):
+    """The first names in a person cell, glyphs and her own name set aside."""
     out = []
+    for n in re.split(r'[,;]', who or ''):
+        n = re.sub(r'^[^\w]+', '', n).strip()
+        if n and n != re.sub(r'^[^\w]+', '', me or '').strip():
+            out.append(n.split()[0])
+    return out
+
+
+def did_of(rows, F, off, today, hidden=(), me='', flows=frozenset()):
+    """What she did that day, for a finished day's top list: a summary, ranked by what was meaningful, never by the
+    clock alone (23 Nov 2026, her words: the memorable things are, where was I with my family … making sure that the
+    meaningful things stay up at the top). In this order, each in time order within itself:
+      1. her ⭐ highlights
+      2. time with her people: a lived row that is not a flow step or an action, whose words name someone on it or
+         say together, or that she named a feeling for, or that keeps a photo
+      3. each ⚡ action closed ✅ that day
+      4. the system's own work, one line, last, as a count
+    About DID_CAP lines: the highlights always, then her people up to DID_HEART_CAP, then her work. The rest stays on
+    the day's timeline below."""
+    g = lambda c, k: (c.get(F[k]) if F.get(k) else None)
+    name = lambda v: v.get('name') if isinstance(v, dict) else v
+    hl, heart, acts, sys_ = [], [], [], []
     for r in rows:
         c = r['cellValuesByFieldId']
-        st = c.get(F['status']) or ''
-        st = st.get('name') if isinstance(st, dict) else st
-        pr = (c.get(F['practice']) or '').strip()
+        st = name(c.get(F['status']) or '') or ''
+        pr = (name(c.get(F['practice'])) or '').strip()
         when = c.get(F['when'])
         if not when or (dt.datetime.fromisoformat(when.replace('Z', '+00:00')) + off).date() != today:
             continue
-        if not ((st == '✅ done' and pr.startswith('⚡')) or pr.startswith('⭐')):
-            continue
-        t = re.sub(r'^\s*(⚡|⭐)\s*', '', c.get(F['title']) or '')
+        title = c.get(F['title']) or ''
+        t = re.sub(r'^\s*(⚡|⭐)\s*', '', title)
         her = (c.get(F['details']) or '').split('———')[0].strip().split('\n')[0]
-        rh = c.get(F['rhythm']) if F.get('rhythm') else ''
-        out.append(dict(t=t, g='⭐' if pr.startswith('⭐') else '', drive=rh or '', st='✅', why=her[:160], at=when))
-    out = sorted(out, key=lambda x: x['at'])
+        her = '' if her.startswith('[be•do]') else her     # be•do's note is not her words
+        rh = g(c, 'rhythm') or ''
+        x = dict(t=t, g='', drive=rh, st='✅', why=her[:160], at=when)
+        if pr.startswith('⭐'):
+            hl.append(dict(x, g='⭐', kind='highlight'))
+        elif pr.startswith('⚡'):
+            if st == '✅ done' and low(pr) == 'action':
+                (sys_ if rh in (hidden or ()) else acts).append(dict(x, kind='system' if rh in (hidden or ()) else 'action'))
+        elif (st[:1] in ('●', '◉') and rh not in (hidden or ()) and low(pr) not in flows and not _FILLER.search(title)):
+            who = _names(g(c, 'person'), me)
+            tl = title.lower()
+            named = any(re.search(r'\b%s\b' % re.escape(n.lower()), tl) for n in who) or any(w in tl for w in _HEART_WORDS)
+            felt = bool(g(c, 'emotion'))
+            kept = str(name(g(c, 'photo')) or '').lower().startswith('keeper')
+            if named or felt or kept or low(pr) in ('glimmer', 'milestone'):
+                m = re.match(r'^[^\w\s]+', pr)
+                heart.append(dict(x, g=m.group(0) if m and m.group(0) != '📝' and not title.startswith(m.group(0)) else '', kind='heart',
+                                  _w=(not (felt or kept), when)))
+    ts = lambda s: dt.datetime.fromisoformat(s.replace('Z', '+00:00'))
+    hl.sort(key=lambda x: x['at'])
+    # a row that is the highlight's own moment (the dinner beside its ⭐) is not listed twice
+    heart = [x for x in heart if not any(abs((ts(x['at']) - ts(h['at'])).total_seconds()) <= 300 for h in hl)]
+    heart = sorted(sorted(heart, key=lambda x: x['_w'])[:max(0, DID_HEART_CAP - len(hl))], key=lambda x: x['at'])
+    for x in heart:
+        x.pop('_w', None)
+    acts = sorted(acts, key=lambda x: x['at'])[:max(0, DID_CAP - len(hl) - len(heart))]
+    out = hl + heart + acts
     # the system's own work is one line, never one per session (18 Nov 2026, her words: I did the weekly close, Claude
-    # handled the details): every action on a hidden drive (hide_drives, be•do) folds into one item at its first time,
-    # its sessions named underneath; a weekly close among them names the line
-    sys_ = [x for x in out if x['drive'] in (hidden or ())]
+    # handled the details), and it is last and a count, not a list of its little things (23 Nov 2026, her words: those
+    # aren't memorable); a weekly close among them names the line
     if sys_:
-        rest = [x for x in out if x not in sys_]
+        sys_.sort(key=lambda x: x['at'])
         close = any(re.search(r'(?i)weekly close|w\d+ cloned|the split', x['t']) for x in sys_)
         head = ('the weekly close' if close else 'be•do work') + ', Claude handled the details'
-        why = ' · '.join(x['t'] for x in sys_)
-        rest.append(dict(t=head, g='', drive=sys_[0]['drive'], st='✅', why=why[:240], at=sys_[0]['at']))
-        out = sorted(rest, key=lambda x: x['at'])
+        n = len(sys_)
+        out.append(dict(t=head, g='', drive=sys_[0]['drive'], st='✅', why=f'{n} piece{"" if n == 1 else "s"} of upkeep',
+                        at=sys_[0]['at'], kind='system', covers=[x['t'] for x in sys_]))
     return out
 
 
@@ -1182,7 +1229,8 @@ def build(D, rows, rhythms_read, L, behind_dir):
     # accomplished was teaching and starting the trip): the actions closed that day and her ⭐ highlight; her
     # own picks (--pick) take their place when she names them
     data['picked'] = bool(L.get('_picks'))
-    data['did'] = did_of(rows, F, off, today, hidden=set(L.get('hide_drives') or []))
+    data['did'] = did_of(rows, F, off, today, hidden=set(L.get('hide_drives') or []), me=L.get('self_person') or '',
+                         flows=L.get('_flows') or frozenset())
     data['three_next'] = [dict(t=x.get('title'), kind=x.get('kind')) for x in (D.get('next') or [])]
     data['three_more'] = [dict(t=p.get('title'), why=p.get('why'), drive=p.get('drive'), g=p.get('emoji'), st=(p.get('st') or '').strip(),
                                nx=((p.get('move') or {}).get('step')), links=(p.get('move') or {}).get('links') or [])

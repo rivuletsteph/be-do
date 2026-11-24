@@ -162,6 +162,26 @@ def resolve(rows, key_of, status_of, created_of, id_of):
     return chains, {k: ch[-1] for k, ch in chains.items()}
 
 
+def live_calendar(name, by_summary, local=None):
+    """A calendar's name as Google has it now: (name, note). A name the list
+    holds is itself. One it doesn't hold was renamed: its id, kept in the
+    facts settings under the old name (`calendar.calendars`), finds it in the
+    live list under its new one, and the note says to update the settings (24
+    Nov 2026, her words: I don't know why that's a recurring issue. I want
+    everything to be live). A rename never stops a read; an id that is gone
+    still does: (None, None)."""
+    if name in by_summary:
+        return name, None
+    if local is None:
+        local = load_local(required=False)
+    cid = ((local.get('calendar') or {}).get('calendars') or {}).get(name)
+    now = next((s for s, i in by_summary.items() if cid and i == cid), None)
+    if not now:
+        return None, None
+    return now, (f'calendar renamed: "{name}" is now "{now}" in Google. Read by its id this time; '
+                 'put the new name in the settings rows (facts_local, day_ahead_local, look_behind_local)')
+
+
 def as_rows(recs, fields):
     """Records to rows under logical names, each carrying id and created."""
     rows = []

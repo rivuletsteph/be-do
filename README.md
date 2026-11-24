@@ -36,6 +36,7 @@ has its notes in `commands/<name>.md`.
 |---|---|---|
 | `judgment` | first reply of every chat | the rules that need a model, printed fresh |
 | `preflight` | first reply of every chat | the chat's title, the clock and the live base. Nothing is read or written until the base is right |
+| `asks` | first reply of every Claude Code session | what the day's companion handed to Code, read from the record, so no one relays a prompt |
 | `remaining` | every reply while a flow is open | what's left in the flow, as one line, so nothing is forgotten |
 | `entry` | before any row is written | every row is whole, on the right day, and in the right shape |
 | `dusk` · `dayqa` | the evening close | one pass over the day, then be•do's own calls and one short list to accept |

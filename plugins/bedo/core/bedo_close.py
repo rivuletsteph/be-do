@@ -19,6 +19,9 @@ with the chat. Three checks, in her order:
           (backlog 261024a, 25 Oct 2026: her time, not the session's).
           A session that opened or edited a pull request says its text passed
           the privacy check first: `· privacy: outgoing ok` (12 Nov 2026)
+          A session that published a page says where it stands: `· page: built
+          from the stream and main`, or where its fix lives, a row or a change in
+          the build (23 Nov 2026: never only on the page she is looking at)
   entry   a session entry exists: an ⚡ action row whose `chat` is this chat
   title   the chat's status glyph matches the entry: ✔️ for a window chat,
           ☑️ for ✅ done, ▶️ ⏯️ or ⏸️ for work still in motion. A my day
@@ -177,6 +180,30 @@ def privacy_qa(entry):
             f'(fix any hit on GitHub too), then add {PRIVACY_LINE} under `what I did`')
 
 
+PAGE = re.compile(r'claude\.ai/(?:code/)?artifact/[\w-]+')
+PAGE_LINES = ('`· page: built from the stream and main`',
+              '`· page: fix in the stream, rec…` and/or `· page: fix in the build, <pull request or commit>`')
+_PAGE_OK = re.compile(r'^·\s*page:\s*(built from the stream and main\b'
+                      r'|fix in the stream\b.*\brec\w{6,}'
+                      r'|fix in the build\b.*(github\.com/\S+|\b[0-9a-f]{7,40}\b))', re.M)
+
+
+def page_qa(entry):
+    """None, or what a session that published a page still owes (23 Nov 2026, her words:
+    fixes land in the stream and the stable build, not only on the page I'm looking at).
+    A page is only ever the stream drawn by the build on main. So a session with a page
+    says which it was: built as is, or fixed, and where the fix lives: the row it wrote
+    or the change it pushed. A page patched by hand loses the fix at its next build."""
+    text = ' '.join(str(entry.get(k) or '') for k in ('deliverable', 'details'))
+    if not PAGE.search(text):
+        return None
+    if _PAGE_OK.search(entry.get('details') or ''):
+        return None
+    return (f'this session published a page: say where it stands under `what I did`: {PAGE_LINES[0]}, or, when '
+            f'something on it was fixed, {PAGE_LINES[1]}. A fix made only on the page is redone in the row or the '
+            f'build, and the page rebuilt, before this closes')
+
+
 def qa_done(rows, day, marker=MARKER):
     """The dayqa marker for `day` (or another check's `marker`) in any row's details (the dusk close carries it)."""
     want = tuple(f'{m} {day.isoformat()}' for m in ((marker,) if isinstance(marker, str) else marker))
@@ -235,7 +262,9 @@ def findings(rows, chat_url, title, day=None, local=None, now=None, sessions=Non
         ok, why = (True, 'the session entry passes the entry check') if is_window(title) else objective_qa(entry)
         gaps = None if is_window(title) else stretches_qa(entry, clock)
         private = privacy_qa(entry)
-        issues = p + ([] if ok else [why]) + ([gaps] if gaps else []) + ([private] if private else [])
+        paged = None if is_window(title) else page_qa(entry)
+        issues = (p + ([] if ok else [why]) + ([gaps] if gaps else []) + ([private] if private else [])
+                  + ([paged] if paged else []))
         out.append((not issues, 'QA', '; '.join(issues) or why))
     else:
         out.append((False, 'QA', 'nothing to check yet — the session entry comes next, then this runs on it'))

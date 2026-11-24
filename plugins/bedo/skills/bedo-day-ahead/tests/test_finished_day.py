@@ -40,9 +40,37 @@ def test_did_of():
         rec('e', '2026-03-13T19:00:00.000Z', '☕ coffee', '☕ coffee'),                                   # a flow step
     ]
     did = flow.did_of(rows, F, Off(), dt.date(2026, 3, 13))
-    assert [x['t'] for x in did] == ['Lead the pond walk', 'the kids on the hay bales'], did
-    assert did[0]['why'] == 'We found frogs.' and did[0]['drive'] == 'Home'
-    assert did[1]['g'] == '⭐' and all(x['st'] == '✅' for x in did)
+    assert [x['t'] for x in did] == ['the kids on the hay bales', 'Lead the pond walk'], did   # her highlight leads
+    assert did[1]['why'] == 'We found frogs.' and did[1]['drive'] == 'Home'
+    assert did[0]['g'] == '⭐' and all(x['st'] == '✅' for x in did)
+
+
+def test_meaning_leads():
+    """The list is ranked by what was meaningful (23 Nov 2026, her words: the memorable things are, where was I with
+    my family): her highlights, then time with her people, then her work, then the system's line."""
+    FP = dict(F, person='who', emotion='e', photo='ph')
+    def row(rid, when, practice, title, status='● log', rhythm='', who='', e='', ph='', details=''):
+        return dict(id=rid, cellValuesByFieldId=dict(w=when, p=practice, t=title, s=status, d=details, r=rhythm, who=who, e=e, ph=ph))
+    rows = [
+        row('a', '2026-03-13T14:00:00.000Z', '⚡ action', '⚡ Rebuilt the page', '✅ done', 'Sysdrive'),
+        row('b', '2026-03-13T15:00:00.000Z', '⚡ action', '⚡ Post the form', '✅ done', 'Home'),
+        row('c', '2026-03-13T16:00:00.000Z', '🌿 fresh air', 'Trampoline with Pip', who='♑Pip Plum, Me', details='[be•do] From 2 photos.'),
+        row('d', '2026-03-13T17:00:00.000Z', '📝 log', '📝 sitting, unlogged (estimated)', who='Pip Plum'),      # a filler
+        row('e', '2026-03-13T18:00:00.000Z', '☕ coffee', 'Coffee with Pip', '◉ done', who='Pip Plum'),          # a flow step
+        row('f', '2026-03-13T19:00:00.000Z', '🍽️ dinner', 'Soup', who='Pip Plum'),                               # names no one
+        row('g', '2026-03-13T20:00:00.000Z', '⭐ highlight', '⭐ soup night', '◉ done'),
+        row('h', '2026-03-13T20:02:00.000Z', '🍽️ dinner', 'Family dinner', who='Pip Plum'),                      # the highlight's own
+        row('i', '2026-03-13T21:00:00.000Z', '🎥 movie', 'A quiet film', who='Me', ph='keeper'),                 # kept a photo
+    ]
+    did = flow.did_of(rows, FP, Off(), dt.date(2026, 3, 13), hidden={'Sysdrive'}, me='Me', flows=frozenset({'coffee'}))
+    assert [x['kind'] for x in did] == ['highlight', 'heart', 'heart', 'action', 'system'], did
+    assert [x['t'] for x in did][:4] == ['soup night', 'Trampoline with Pip', 'A quiet film', 'Post the form'], did
+    assert did[1]['why'] == '' and did[-1]['why'] == '1 piece of upkeep', did
+    many = rows + [row(f'm{i}', f'2026-03-13T2{i % 3}:1{i}:00.000Z', '🌿 fresh air', f'Outside with Pip {i}', who='Pip Plum') for i in range(9)]
+    many += [row(f'k{i}', f'2026-03-13T13:0{i}:00.000Z', '⚡ action', f'⚡ Errand {i}', '✅ done', 'Home') for i in range(6)]
+    did = flow.did_of(many, FP, Off(), dt.date(2026, 3, 13), hidden={'Sysdrive'}, me='Me', flows=frozenset({'coffee'}))
+    kinds = [x['kind'] for x in did]
+    assert kinds.count('highlight') + kinds.count('heart') == flow.DID_HEART_CAP and len(did) == flow.DID_CAP + 1, kinds
 
 
 def test_system_work_is_one_line():
@@ -53,8 +81,9 @@ def test_system_work_is_one_line():
         rec('c', '2026-03-13T16:00:00.000Z', '⚡ action', '⚡ Lead the pond walk', '✅ done', '', 'Home'),
     ]
     did = flow.did_of(rows, F, Off(), dt.date(2026, 3, 13), hidden={'Sysdrive'})
-    assert [x['t'] for x in did] == ['the weekly close, Claude handled the details', 'Lead the pond walk'], did
-    assert 'Swept 40 chats' in did[0]['why'], did[0]
+    # last, and a count: its little things are not the day (23 Nov 2026)
+    assert [x['t'] for x in did] == ['Lead the pond walk', 'the weekly close, Claude handled the details'], did
+    assert did[1]['why'] == '2 pieces of upkeep' and 'Swept 40 chats; w11 cloned' in did[1]['covers'], did[1]
     assert len(flow.did_of(rows, F, Off(), dt.date(2026, 3, 13))) == 3   # no hidden drives, nothing folds
 
 
@@ -101,6 +130,7 @@ def test_engine():
 
 def main():
     test_did_of()
+    test_meaning_leads()
     test_system_work_is_one_line()
     test_the_day_links_its_own_quest()
     test_highlight_keeps_its_time()
