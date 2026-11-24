@@ -5,7 +5,7 @@
 - **`run dusk`**, the moment her photos are up. She does the batch checks first (🗺️ Timeline, 📱 screen time and 🪐 ring stress screenshots, ⏺️ recorder check), then uploads the day's photos last (her words: I want to do all the batch checks then upload the photos and have the system fill in everything based on that info). It fills in the day from them: steps 1 to 6.
 - **`run braid`**, once her ⭐ highlight is logged, so the braid sees the whole evening (her words: move the braid to where it makes the most sense): steps 7 to 10, then her short list, before her phone goes down.
 
-In the morning only the sleep is left: see **The morning** below. The 3:23a fold and 4:41a Code steps are the backup for a night the dusk runs didn't happen, and do only what is still missing.
+In the morning: see **The morning** below, three sessions in her order. The 3:23a fold and 4:41a Code steps are the backup for a night the dusk runs didn't happen, and do only what is still missing.
 
 **Command:** `daysteps` prints this page; the steps are the commands it names.
 
@@ -40,11 +40,16 @@ Then one line to Duet: what was filled in (counts), and anything from the inbox 
 
 Then one line to Duet: her list, in plain words, so she has it before her phone goes down.
 
-**The morning** (DAY is yesterday), after she wakes, in one short session. **It runs on its own at 7:47a** (24 Nov 2026, her words: can you ask code to build the look ahead for today and the look behind for yesterday and make this more automatic): a scheduled run, so nothing waits on Duet to start it. Duet starts `run morning` only when she's up and it hasn't run. Each step looks first and skips what is already on the stream (today's 🪐 morning ring row, yesterday's `final` line, today's 👁️ look ahead row), so a second run does nothing twice. A night the ring hasn't synced yet: step 1 says so, step 2 waits for the next run or `run morning`, step 3 still runs.
+**The morning** runs in her order, never by the clock (24 Nov 2026, her words: I don't want to do any kind of timed run on a time … I want it to be in the correct order … I want to see the look behind then the morning gate then the look ahead). Three short sessions, each its own, each started by Duet when the step before it is in. DAY is yesterday.
 
-1. **🪐 the morning ring read.** `run_oura.sh morning TODAY`: the night's 😴 sleep and her 🪐 morning row, and with it last night's close (her words: I want the evening to close when I fall asleep). The dusk close row takes the ring's bedtime and is closed; with none, one is written there. 🌬️ evening breaths and 🌌 evening blessing, done with her son after her phone is down, are written from her pattern at the same time when no row has them. She corrects.
-2. **Yesterday's my day page, final.** Rebuilt to the whole day as lived, the sleep included, republished, then `run_day_ahead.sh final DAY` and its line on the 👁️ look ahead row. That is what she opens next. A day with no 👁️ look ahead row gets one, with the page as its deliverable. Its own link (`page.url`, else a new artifact) holds it; `page.standing` goes to today.
-3. **Today's look ahead, the draft.** The `bedo-day-ahead` skill's dawn draft for TODAY: `prep`, the calendars, `cal`, `build … --draft` with no intention, published to `page.standing`, then the plan's `today_rows` and `future_rows` and the 👁️ look ahead row naming the three. The final still follows her one intention, at the dawn flow's look ahead.
+1. **`run morning`, once she's up** (her first entry, or her 💭 dream record): the look behind.
+   - **🪐 the morning ring read.** `run_oura.sh morning TODAY`: the night's 😴 sleep and her 🪐 morning row, and with it last night's close (her words: I want the evening to close when I fall asleep). The dusk close row takes the ring's bedtime and is closed; with none, one is written there. 🌬️ evening breaths and 🌌 evening blessing, done with her son after her phone is down, are written from her pattern at the same time when no row has them. She corrects. The ring not synced yet: say so to Duet and stop; Duet starts it again once she has opened the ring's app.
+   - **Yesterday's my day page, final.** Rebuilt to the whole day as lived, the sleep included, then `run_day_ahead.sh final DAY` and its line on the 👁️ look ahead row. It goes to its own link (`page.url`, else a new artifact, with the link on DAY's 👁️ look ahead row; a day with none gets one). That is what she opens first.
+   - One line to Duet: the page's link.
+2. **🗞️ the morning gate**, once the look behind is back: its own branch, as always.
+3. **`run look ahead`**, once the 🗞️ morning gate row is in: today's draft (the `bedo-day-ahead` skill: `prep`, the calendars, `cal`, `build … --draft`), published to `page.standing`, with the plan's `today_rows` and `future_rows` and the 👁️ look ahead row naming the three. One line to Duet: the three. The final follows her one intention at the ⚡ intention check, in the same session or a new `run look ahead`.
+
+Each session looks first and skips what is already on the stream, so starting one twice does nothing twice.
 
 **What it leaves for her**, one short list: the braid's questions, the inbox's few, any place new to her places, and a photo it could not read. Nothing is trashed, archived, dropped or merged on its own.
 
