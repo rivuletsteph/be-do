@@ -73,6 +73,37 @@ def test_meaning_leads():
     assert kinds.count('highlight') + kinds.count('heart') == flow.DID_HEART_CAP and len(did) == flow.DID_CAP + 1, kinds
 
 
+def test_she_names_what_was_meaningful():
+    """A moment she names as meaningful leads with her highlights, whatever its kind; a kind alone never does (23 Nov
+    2026, her words: I would rather just be able to verbally say what was meaningful as kind of a closing out my day.
+    Or, maybe the following day)."""
+    said = 'I got it wrong, and we talked it through.\n\nWhat I took home.\n———\n[be•do] Said the next morning.\n[be•do] meaningful: she named it the next evening'
+    rows = [
+        rec('a', '2026-03-13T15:00:00.000Z', '⭐ highlight', '⭐ soup night', '◉ done'),
+        rec('b', '2026-03-13T16:00:00.000Z', '⚡ action', '⚡ Post the form', '✅ done', '', 'Home'),
+        rec('c', '2026-03-13T17:00:00.000Z', '💡 insight', '💡 insight · a quiet thought', '● log', 'Just a thought.\n———\n[be•do] logged.'),
+        rec('d', '2026-03-13T23:00:00.000Z', '💡 insight', '💡 insight · a miss to learn from', '● log', said),
+        rec('e', '2026-03-13T23:30:00.000Z', '📒 journal', 'What mattered', '● log', 'meaningful: my own word, not the mark'),   # her words, no block
+        rec('f', '2026-03-13T23:40:00.000Z', '⚡ action', '⚡ Call the school', '⬜ intention', '———\nmeaningful: named'),       # never happened
+    ]
+    did = flow.did_of(rows, F, Off(), dt.date(2026, 3, 13))
+    assert [(x['kind'], x['t']) for x in did] == [('highlight', 'soup night'), ('named', '💡 insight · a miss to learn from'),
+                                                  ('action', 'Post the form')], did
+    assert did[1]['g'] == '' and did[1]['why'] == 'I got it wrong, and we talked it through.', did[1]   # its own glyph, her words
+    c = lambda i: rows[i]['cellValuesByFieldId']
+    assert flow.named_meaningful(c(3), F) and not flow.named_meaningful(c(2), F) and not flow.named_meaningful(c(4), F)
+    # it is never crowded out: named moments sit above the cap, like her highlights
+    FP = dict(F, person='who')
+    many = [dict(id=f'm{i}', cellValuesByFieldId=dict(w=f'2026-03-13T1{i}:10:00.000Z', p='🌿 fresh air', t=f'Outside with Pip {i}',
+                                                      s='● log', d='', r='', who='Pip Plum')) for i in range(9)]
+    did = flow.did_of(many + rows, FP, Off(), dt.date(2026, 3, 13))
+    assert [x['kind'] for x in did][:2] == ['highlight', 'named'], did
+    assert sum(x['kind'] in ('highlight', 'named', 'heart') for x in did) == flow.DID_HEART_CAP, did
+    # on the timeline it is gold, and the engine scores it with her highlights
+    eng = open(os.path.join(os.path.dirname(HERE), 'assets', 'flow_engine.html'), encoding='utf-8').read()
+    assert 'x.star||x.meant' in eng
+
+
 def test_system_work_is_one_line():
     """The system's own work folds into one line (18 Nov 2026, her words: I did the weekly close, Claude handled the details)."""
     rows = [
@@ -130,6 +161,7 @@ def test_engine():
 
 def main():
     test_did_of()
+    test_she_names_what_was_meaningful()
     test_meaning_leads()
     test_system_work_is_one_line()
     test_the_day_links_its_own_quest()

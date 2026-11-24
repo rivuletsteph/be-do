@@ -228,6 +228,15 @@ A tap on a line drops to its card on the timeline. The timeline opens on those l
 folded to a sliver, and *show the whole day* expands it to every row; a day still going folds only the routine, as
 before. These are the day's progressive summary, the candidates for the week's own.
 
+**The meaningful moments are the ones she names** (23 Nov 2026, her words: I would rather just be able to verbally say
+what was meaningful as kind of a closing out my day. Or, maybe the following day actually is when I'm more likely to say
+what was really salient). A finished day's top list leads with her ⭐ highlights and, beside them in the order they
+happened, any other moment she named, whatever its kind: an insight, a journal, an action. The mark is one line in the
+row's `[be•do]` block, `meaningful: named <when she said it>`, written at her word (`named_meaningful` in `flow.py`).
+A named moment is never capped off the list, is gold on the timeline, and counts with her highlights among the day's
+lines. A row's kind alone never puts it there: an insight is not meaningful because it is an insight. A day already
+final is rebuilt when she names one the next day.
+
 **A highlight lands when it happened, not when it was told** (11 Nov 2026, her words: the highlights should get tagged
 like when they actually happened in the day, not necessarily when I specified what they were at the end of the day). A
 ⭐ or 🌟 row told at night is matched to the earlier card it names by its rarest words (a name on half the day's cards
