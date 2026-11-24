@@ -98,7 +98,7 @@ CHECKS = {
     'sweep': "bedo_sweep — a day's rows through the entry check after the fact, whoever wrote them, at the dusk close",
     'asks': "bedo_asks — an ask for Code is a row, read at a Code session's first reply; she never relays a prompt",
     'fold.daily': "bedo_fold — the daily fold: the week's new amendments, the oldest of the backlog, and what main already holds, every day without being asked",
-    'page.named': "flow — named_meaningful: a moment she names as meaningful leads a finished day's list with her highlights; a kind alone never does",
+    'page.meaningful': "flow — marked_meaningful: a moment be•do marked as meaningful, from her words, leads a finished day's list with her highlights; a kind alone never does",
     'close.page': 'bedo_close — a session that published a page says where its fix lives: the stream or the build, never the page alone',
     'calendar.renamed': 'bedo_reader — live_calendar: a renamed calendar is read by its id, and the settings are named to update',
     'page.did': 'flow — did_of: a finished day leads with her highlights and time with her people; the system is one line, last',

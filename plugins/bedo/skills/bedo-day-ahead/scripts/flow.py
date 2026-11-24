@@ -558,14 +558,14 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
                                   cat='stretch', sk=kind_of(c, F, flows, C),   # its kind of time: a be•do chat is be•do, not work (7 Nov 2026)
                                   rid=r['id'] if sa == first else None, links=links_of(c, F) or None,
                                   act=False, pt=False,
-                                  felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD or named_meaningful(c, F), meant=named_meaningful(c, F)))
+                                  felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD or marked_meaningful(c, F), meant=marked_meaningful(c, F)))
                 prev = sb
             continue
         items.append(dict(**opens_to(c, F), phase=(C.get('_phase') or {}).get(low(c.get(F['practice']))), k='lived', t=t, a=hm(a), b=hm(b), drive=rh, done=True, cat=kind_of(c, F, flows, C), rid=r['id'],
                           links=links_of(c, F) or None,
                           act=st == '✅ done', pt=not real,
                           # a feeling or a keeper photo marks what mattered (2 Nov 2026): it stays when the hour folds
-                          felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD or named_meaningful(c, F), meant=named_meaningful(c, F),
+                          felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD or marked_meaningful(c, F), meant=marked_meaningful(c, F),
                           keeper=is_keeper(c, F, me),
                           # a time be•do placed from context is drawn as an estimate (8 Nov 2026, the gap-filling pass)
                           est='ESTIMATED FROM CONTEXT' in (c.get(F['details']) or '')))   # an action she finished, drawn with its green check (2 Nov 2026)
@@ -760,12 +760,14 @@ def star_the_highlight(items):
 _MEANT = re.compile(r'(?im)^\W*(?:\[be•do\]\W*)?meaningful\s*:')
 
 
-def named_meaningful(c, F):
-    """She named this moment as one of the day's meaningful ones (23 Nov 2026, her words: I would rather just be able to
-    verbally say what was meaningful as kind of a closing out my day. Or, maybe the following day actually is when I'm
-    more likely to say what was really salient). The mark is a `meaningful:` line in the row's [be•do] block, written at
-    her word, at the day's close or the next day. It is never deduced from the row's kind: an insight is not one of the
-    day's meaningful moments because it is an insight."""
+def marked_meaningful(c, F):
+    """One of the day's meaningful moments, marked on its row (23 Nov 2026, her words: I would rather just be able to
+    verbally say what was meaningful as kind of a closing out my day. Or, maybe the following day; and that night: I
+    didn't want to actually have to say a moment was meaningful, I want the system to figure that out). She talks about
+    her day and be•do works out what mattered from her words, the way it deduces a feeling: it writes one `meaningful:`
+    line, with its reason, in the row's [be•do] block (J17). The builder only reads that line. Telling a take-home from
+    a passing thought needs a model, so it is never decided here, and never from the row's kind: an insight is not one
+    of the day's meaningful moments because it is an insight."""
     d = (c.get(F['details']) or '') if F.get('details') else ''
     return bool('———' in d and _MEANT.search(d.split('———', 1)[1]))
 
@@ -790,7 +792,8 @@ def did_of(rows, F, off, today, hidden=(), me='', flows=frozenset()):
     """What she did that day, for a finished day's top list: a summary, ranked by what was meaningful, never by the
     clock alone (23 Nov 2026, her words: the memorable things are, where was I with my family … making sure that the
     meaningful things stay up at the top). In this order, each in time order within itself:
-      1. her ⭐ highlights, and any other moment she named as meaningful (`named_meaningful`), whatever its kind
+      1. her ⭐ highlights, and any other moment be•do marked as meaningful from her words (`marked_meaningful`),
+         whatever its kind
       2. time with her people: a lived row that is not a flow step or an action, whose words name someone on it or
          say together, or that she named a feeling for, or that keeps a photo
       3. each ⚡ action closed ✅ that day
@@ -815,10 +818,10 @@ def did_of(rows, F, off, today, hidden=(), me='', flows=frozenset()):
         x = dict(t=t, g='', drive=rh, st='✅', why=her[:160], at=when)
         if pr.startswith('⭐'):
             hl.append(dict(x, g='⭐', kind='highlight'))
-        elif st[:1] in ('●', '◉', '✅') and named_meaningful(c, F):
-            # hers to name, so it leads with her highlights and is never capped; it keeps its own glyph
+        elif st[:1] in ('●', '◉', '✅') and marked_meaningful(c, F):
+            # read from her own words, so it leads with her highlights and is never capped; it keeps its own glyph
             m = re.match(r'^[^\w\s]+', pr)
-            hl.append(dict(x, g=m.group(0) if m and not title.startswith(m.group(0)) else '', kind='named'))
+            hl.append(dict(x, g=m.group(0) if m and not title.startswith(m.group(0)) else '', kind='meaningful'))
         elif pr.startswith('⚡'):
             if st == '✅ done' and low(pr) == 'action':
                 (sys_ if rh in (hidden or ()) else acts).append(dict(x, kind='system' if rh in (hidden or ()) else 'action'))
