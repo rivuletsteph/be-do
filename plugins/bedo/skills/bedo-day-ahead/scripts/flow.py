@@ -1255,9 +1255,36 @@ def build(D, rows, rhythms_read, L, behind_dir):
     data['three_more'] = [dict(t=p.get('title'), why=p.get('why'), drive=p.get('drive'), g=p.get('emoji'), st=(p.get('st') or '').strip(),
                                nx=((p.get('move') or {}).get('step')), links=(p.get('move') or {}).get('links') or [])
                           for p in (D.get('pareto_more') or [])]
+    data['groups'] = groups_of(rows, F, L)
     data['baseflow'] = dict(week=week, parts=[dict(name=k, value=t[k]) for k in keys if t[k] is not None],
                             missing=[k for k in keys if t[k] is None])
     return data
+
+
+def groups_of(rows, F, L):
+    """What could go together among her open actions (24 Nov 2026, her words: keep track of these open intentions
+    and potential actions and proactively scan how these things can be grouped): the core's groups check, on the
+    rows this page already read. Offers only; the page folds them under the three."""
+    try:
+        import bedo_groups
+    except ImportError:          # a page built without the core beside it still builds
+        return None
+    names = dict(title='title', status='status', details='details', datetime='when', rhythm='rhythm', person='person',
+                 mentioned='mentioned', key='key', practice='practice', target='target')
+    flat = []
+    for r in rows:
+        c = r['cellValuesByFieldId']
+        row = {k: c.get(F.get(v) or '') for k, v in names.items()}
+        for k, v in row.items():
+            if isinstance(v, dict):
+                row[k] = v.get('name')
+            elif isinstance(v, list):
+                row[k] = ', '.join(x.get('name', '') if isinstance(x, dict) else str(x) for x in v)
+        row['id'] = r['id']
+        flat.append(row)
+    # the household is with her by default and never a grouping: her, and the people her calendars are for
+    house = [L.get('self_person')] + list((L.get('calendar_people') or {}).values()) + list(L.get('household') or [])
+    return bedo_groups.groups(flat, house, (L.get('groups') or {}).get('places') or [], set(L.get('hide_drives') or []))
 
 
 def plan_items(specs, rows, L):
