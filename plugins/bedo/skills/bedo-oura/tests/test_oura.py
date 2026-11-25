@@ -101,6 +101,14 @@ def main():
     new_ev = made['🪐 evening oura']
     assert new_ev['fS'] == '● log' and new_ev['fW'] == '2026-10-01T02:00:00.000Z', new_ev
     assert new_ev['fT'] == 'evening oura · activity 91', new_ev
+    # 😶 wake at each night's bedtime end, ◉ done (24 Nov 2026: the pull wrote sleep and no wake)
+    wakes = sorted(c['fW'] for c in P['create'] if c['fP'] == '😶 wake')
+    assert wakes == ['2026-09-29T11:48:00.000Z', '2026-09-30T11:54:00.000Z'], wakes
+    assert all(c['fS'] == '◉ done' and c['fT'] == '😶 wake' for c in P['create'] if c['fP'] == '😶 wake')
+    # a wake row of hers that morning is kept, and no second one is planned
+    hers = STREAM + [{'id': 'recWake1', 'cellValuesByFieldId': {'fP': {'name': '😶 wake'}, 'fW': '2026-09-29T11:40:00.000Z'}}]
+    assert [c['fW'] for c in oura.plan(O, hers, DAYS, F, -5, now=NOW)['create'] if c['fP'] == '😶 wake'] \
+        == ['2026-09-30T11:54:00.000Z']
     assert P['notes'][0] == 'vO2_max: Oura said 404, left out', P['notes']
 
     # applied, then planned again on the same numbers: nothing new

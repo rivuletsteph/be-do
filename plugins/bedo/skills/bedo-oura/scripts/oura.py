@@ -22,6 +22,7 @@ morning, per day
   sleep    the main sleep period (type long_sleep) ending that morning becomes a
            😴 sleep row, bedtime_start to bedtime_end. A sleep row already covering
            that night is kept; one with no end gets its end.
+  wake     😶 wake at that bedtime_end, ◉ done, unless that morning already has one.
   scores   readiness and its contributors (recovery index, HRV balance, resting heart
            rate, body temperature, sleep balance, previous night, previous day, activity
            balance), the sleep score with its stages, latency, HRV, resting heart rate,
@@ -55,7 +56,7 @@ CORE = ('sleep', 'daily_sleep', 'daily_readiness', 'daily_activity', 'daily_stre
 EXTRA = ('workout', 'session', 'daily_spo2', 'daily_resilience', 'daily_cardiovascular_age', 'vO2_max')
 DIVIDER = '———'
 MARK = '[be•do] From the Oura API'
-SLEEP, MORNING, EVENING = '😴 sleep', '🪐 morning oura', '🪐 evening oura'
+SLEEP, MORNING, EVENING, WAKE = '😴 sleep', '🪐 morning oura', '🪐 evening oura', '😶 wake'
 LOG, DONE = '● log', '◉ done'
 READINESS = (('recovery_index', 'recovery index'), ('hrv_balance', 'HRV balance'), ('resting_heart_rate', 'resting HR'),
              ('body_temperature', 'body temp'), ('sleep_balance', 'sleep balance'), ('previous_night', 'previous night'),
@@ -325,6 +326,17 @@ def plan(O, stream_rows, days, F, off, mode='both', now=None, dusk=None):
             patch.append({'id': have[0]['id'], 'fields': {F['end']: zulu(b)}})
             notes.append(f"{p['day']}: sleep row {have[0]['id']} had no end; Oura gives {clock(b)}")
 
+    def wake_row(p, day):
+        """😶 wake at the night's bedtime end (24 Nov 2026: the pull wrote the sleep row, 12:36 to
+        6:10 AM, and no wake row). A wake row of hers that morning is kept as it is."""
+        b = iso(p['bedtime_end']).astimezone(tz)
+        if any(r['practice'] == WAKE and r['when'] and iso(r['when']).astimezone(tz).date() == day for r in rows):
+            return
+        new = {F['title']: WAKE, F['when']: zulu(b), F['status']: DONE, F['practice']: WAKE,
+               F['details']: f"{DIVIDER}\n{MARK}: out of bed {clock(b)}, the night's bedtime end."}
+        create.append(new)
+        rows.append(dict(id=None, practice=WAKE, when=new[F['when']], end=None, details='', title=WAKE, status=DONE))
+
     def onto(practice, day, lines, label, make):
         """The block onto that day's row of this practice, or a new row from make()."""
         block = f"{MARK}{label}:\n" + '\n'.join(lines)
@@ -368,6 +380,7 @@ def plan(O, stream_rows, days, F, off, mode='both', now=None, dusk=None):
             main = night(O, ds)
             if main:
                 sleep_row(main, f"😴 sleep, night before {day:%a %d %b}", dt.timedelta(hours=3))
+                wake_row(main, day)
                 if dusk:
                     close_evening(main)
             ml = morning_lines(O, ds)

@@ -32,6 +32,8 @@ choose.
 - **sleep**: the main sleep period ending that morning (Oura's `long_sleep`)
   becomes a 😴 sleep row, in bed to out of bed. A sleep row already there for
   that night is kept, and one with no end gets its end.
+- **wake**: a 😶 wake row, ◉ done, at that night's out-of-bed time, unless that
+  morning already has one (24 Nov 2026: the pull wrote the sleep row and no wake).
 - **recovery**: readiness and each of its contributors (recovery index, HRV
   balance, resting HR, body temp, sleep balance, previous night, previous day,
   activity balance) and the temperature deviation.
