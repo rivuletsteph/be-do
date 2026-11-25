@@ -26,6 +26,9 @@
 #                                # what be•do writes in place, and what needs a call (24 Nov 2026)
 #   bash run_checks.sh asks [--rows rows.json] [--json]   # what Duet handed to Code: open ⚡ rows whose details
 #                                # carry `for code:` (23 Nov 2026); preflight prints them too
+#   bash run_checks.sh groups [--rows rows.json] [--mail threads.json] [--json]   # her open actions read together:
+#                                # what could go in one sitting, with one person, at one place, on one drive; and asks
+#                                # by email that never reached the stream (24 Nov 2026). Offers only, nothing written
 #   bash run_checks.sh apply ops.json [--base "w48 be•do"] [--chat MMDD] [--dry]   # write rows in code: a change names
 #                                # only what changes, a line is added to the details code reads (24 Nov 2026)
 #   bash run_checks.sh fold [--date YYYY-MM-DD] [--amendments amendments.json] [--json]   # the daily fold: what main
@@ -158,6 +161,10 @@ case "$CMD" in
     [ -d "$W/core" ] || fetch_core; find_local
     if live_or_files "--rows rows.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_asks.py" "$@" ;;
+  groups)     # 24 Nov 2026: her open actions read together, and email asks that never landed; offers only
+    [ -d "$W/core" ] || fetch_core; find_local
+    if live_or_files "--rows rows.json" "$@"; then set -- --live "$@"; fi
+    "$PY" "$W/core/bedo_groups.py" "$@" ;;
   fold)       # 23 Nov 2026: the daily fold, one day's share of the amendments
     [ -d "$W/core" ] || fetch_core; find_local
     if live_or_files "--amendments amendments.json" "$@"; then set -- --live "$@"; fi

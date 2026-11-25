@@ -26,7 +26,7 @@ In the morning: see **The morning** below, three sessions in her order. The 3:23
 2. **🗺️ map check.** *Look* at the Timeline screenshots among the day's photos, write `stays.json`, then `places --stays stays.json --json`: its rows go to `apply`, and each drive between stays is a 🚗 row with the Timeline's own times. No screenshot: say so on her list and write no stays.
 3. **📱 screen time.** *Look* at the screen-time screenshots: one row, the total in its title, split focused and partial (`entry` asks for the split).
 4. **🪐 the evening ring read.** The ring skill's runner, `evening DAY`: the day's stress, recovery and activity from the API, so her screenshot only adds what the app shows. Its plan's `create` and `patch` go to `apply`.
-5. **📧 clear gmail inbox.** `how inbox`. Read, pull out what is hers in a few lines, and archive only on her go.
+5. **📧 clear gmail inbox.** `how inbox`. Read, pull out what is hers in a few lines, and archive only on her go. Then `groups --mail threads.json` on the same read: each ask by email with no row goes on her list, with its link, to add on her yes.
 6. **🗂 daily fold.** `how fold`, and its procedure as written: one pull request, never merged here.
 
 Then one line to Duet: what was filled in (counts), and anything from the inbox that is hers.
