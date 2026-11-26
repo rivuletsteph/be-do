@@ -272,6 +272,8 @@ def due(now_local, local=None):
     out = []
     if t < dt.time(*map(int, F['backup_close']['dawn'].split(':'))):
         out += S['dawn']
+    elif 'dawn' in F.get('close_at_noon', []):       # 25 Nov 2026, her words: the dawn flow closes at noon
+        out.append(S.get('dawn_close', 'the dawn close, unasked (remaining --flow dawn --close, then apply)'))
     if t.hour * 60 + t.minute >= bedo_remaining.dusk_opens(now_local.date(), (), local):
         out += S['dusk']
     if now_local.weekday() == 6:

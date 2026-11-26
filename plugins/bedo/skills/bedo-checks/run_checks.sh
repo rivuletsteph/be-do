@@ -4,7 +4,7 @@
 #
 #   bash run_checks.sh judgment   # the judgment file, read in full at the first reply
 #   bash run_checks.sh preflight [--kind week --week N] [--part B] [--handoff FILE]
-#   bash run_checks.sh remaining [--flow dawn|dusk] [--voice]
+#   bash run_checks.sh remaining [--flow dawn|dusk] [--voice] [--close]   # --close: the dawn close row as an apply op, past noon
 #   bash run_checks.sh dusk      [--date YYYY-MM-DD] [--chats chats.json] [--photos folder.json [--links week.json]] [--write]
 #   bash run_checks.sh meals     [--date YYYY-MM-DD] [--json]   # each meal's prep and eating, placed from context
 #   bash run_checks.sh places    --stays stays.json [--json]   # the map check: her Timeline screenshot's stays as 📍 rows, new places to ask
