@@ -287,6 +287,7 @@ C13 = {c['title']: c['new'] for c in calls(R13, settings=L13) if c['field'] == '
 assert C13['the report'] == f'{PA}, {KID}', C13                         # at home before work: with them by default
 assert C13['the model run'] == ME and C13['🍽️ lunch'] == ME and C13['the afternoon runs'] == ME, C13   # away
 assert C13['🍽️ dinner'] == f'{PA}, {KID}', C13                          # home again
+assert C13['🚗 drove to work'] == ME and C13['🚗 drove home from work'] == ME, C13   # her drives to and from work
 assert BC.away_spans([(1, 2, 'drove to work'), (5, 6, 'lunch out'), (8, 9, 'drove home from work')]) == [(2, 9)]
 assert BC.away_spans([(1, 2, 'school run')]) == []                     # a drive that names no work keeps her home
 R13b = BC.apply(R13, calls(R13, settings=L13))

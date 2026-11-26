@@ -80,7 +80,22 @@ def match(stay, places):
         if hit:
             return hit
     name = (stay.get('place') or '').strip().casefold()
-    return next((p for p in places if (p.get('place') or '').strip().casefold() == name), None) if name else None
+    if not name:
+        return None
+    hit = next((p for p in places if (p.get('place') or '').strip().casefold() == name), None)
+    if hit:
+        return hit
+    # her Timeline often shows a street address with no name (25 Nov 2026: work at its address read as new):
+    # the same street address as a place's `where`, whole, matches it
+    street = _street(name)
+    return next((p for p in places if street and _street(p.get('where')) == street), None) if street else None
+
+
+def _street(s):
+    """The street part of an address, normalised: '100 Main St, Springfield' → '100 main st'.
+    Only a part that starts with a house number counts, so a bare name never matches an address."""
+    first = re.sub(r'\s+', ' ', (s or '').split(',')[0]).strip().casefold().rstrip('.')
+    return first if re.match(r'^\d+\s+\S', first) else ''
 
 
 def is_home(stay, L=None):

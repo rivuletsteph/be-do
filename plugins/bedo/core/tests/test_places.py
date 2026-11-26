@@ -16,7 +16,7 @@ OFF = -5
 PLACES = P.places_from([
     {'id': 'recOffice', 'createdTime': '', 'fields': {
         'place': 'the office', 'standing': 'been', 'google place id': 'ChIJabcdefghijk1234567',
-        'coordinates': '30.10, -97.20'}},
+        'coordinates': '30.10, -97.20', 'where': '100 Main St, Springfield, TX'}},
     {'id': 'recPark', 'createdTime': '', 'fields': {'place': 'Fern Park', 'standing': 'want to go'}},
 ])
 
@@ -41,6 +41,14 @@ class Stays(unittest.TestCase):
         p = P.propose([near], PLACES, [], DAY, OFF)
         self.assertIn('place: new', p['write'][0]['details'])
         self.assertEqual([x['place'] for x in p['ask']], ['the furniture shop'])
+
+    def test_a_street_address_matches_its_place(self):
+        # 25 Nov 2026: her Timeline showed only the address of work, and the run called it new
+        p = P.propose([dict(place='100 Main St., Springfield', arrive='10:00', leave='16:00')], PLACES, [], DAY, OFF)
+        self.assertEqual(p['write'][0]['title'], '📍 the office')
+        self.assertEqual(p['ask'], [])
+        other = P.propose([dict(place='102 Main St, Springfield', arrive='10:00', leave='11:00')], PLACES, [], DAY, OFF)
+        self.assertIn('place: new', other['write'][0]['details'])       # a neighbour never matches
 
     def test_home_gets_no_row(self):
         p = P.propose([dict(place='Home', arrive='07:00', leave='10:20')], PLACES, [], DAY, OFF)

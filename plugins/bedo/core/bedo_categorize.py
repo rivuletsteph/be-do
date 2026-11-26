@@ -323,6 +323,7 @@ def company(rows, L, ctx):
             and word(r.get('practice')) not in C['sleep_practices']]
     out, decided = [], {}
     away = away_spans(drives_of(rows))               # her day away: the household default doesn't hold there
+    car = {word(C['driving_practice']), word(C['travel_practice'])}
     for r in cand:                                   # what each row says of itself first
         ps = people(r.get('person'))
         if ps:
@@ -346,6 +347,8 @@ def company(rows, L, ctx):
             got, why = decided[id(o)], f'inside “{(o.get("title") or "?")[:40]}”, which names its company'
         elif me and inside(away, a):
             got, why = [me], 'away from home (after a drive to work, before the drive home): on her own unless a row says who'
+        elif me and word(r.get('practice')) in car and re.search(C['away_pattern'], (r.get('title') or '').lower()):
+            got, why = [me], 'a drive to or from work is hers: on her own unless a row says who'
         else:
             got, why = house, 'at home with the household by default: alone only when a row says so'
         decided[id(r)] = got
