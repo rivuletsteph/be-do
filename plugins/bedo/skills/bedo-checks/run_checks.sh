@@ -4,7 +4,7 @@
 #
 #   bash run_checks.sh judgment   # the judgment file, read in full at the first reply
 #   bash run_checks.sh preflight [--kind week --week N] [--part B] [--handoff FILE]
-#   bash run_checks.sh remaining [--flow dawn|dusk] [--voice]
+#   bash run_checks.sh remaining [--flow dawn|dusk] [--voice] [--close]   # --close: the dawn close row as an apply op, past noon
 #   bash run_checks.sh dusk      [--date YYYY-MM-DD] [--chats chats.json] [--photos folder.json [--links week.json]] [--write]
 #   bash run_checks.sh meals     [--date YYYY-MM-DD] [--json]   # each meal's prep and eating, placed from context
 #   bash run_checks.sh places    --stays stays.json [--json]   # the map check: her Timeline screenshot's stays as 📍 rows, new places to ask
@@ -26,6 +26,7 @@
 #                                # what be•do writes in place, and what needs a call (24 Nov 2026)
 #   bash run_checks.sh asks [--rows rows.json] [--json]   # what Duet handed to Code: open ⚡ rows whose details
 #                                # carry `for code:` (23 Nov 2026); preflight prints them too
+#   bash run_checks.sh prs prs.json [--json]          # open pull requests, each with its age and one recommendation
 #   bash run_checks.sh groups [--rows rows.json] [--mail threads.json] [--json]   # her open actions read together:
 #                                # what could go in one sitting, with one person, at one place, on one drive; and asks
 #                                # by email that never reached the stream (24 Nov 2026). Offers only, nothing written
@@ -151,7 +152,12 @@ case "$CMD" in
     if live_or_files "--bases names.json --stream recent.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_preflight.py" "$@" || exit $?
     # what Duet handed to Code, read from the stream at the first reply (23 Nov 2026): never a pasted prompt
-    case " $* " in *" --live "*) "$PY" "$W/core/bedo_asks.py" --live || true;; esac ;;
+    case " $* " in *" --live "*) "$PY" "$W/core/bedo_asks.py" --live || true;; esac
+    # open pull requests come back to her (27 Nov 2026): none waits on a question asked once in a finished chat
+    echo "prs    read the open pull requests (the GitHub connector's list_pull_requests, state open), save them, run: prs FILE" ;;
+  prs)        # 27 Nov 2026: open pull requests, each with its age and one recommendation; she says yes or no
+    [ -d "$W/core" ] || fetch_core
+    "$PY" "$W/core/bedo_prs.py" "$@" ;;
   sweep)      # 24 Nov 2026: a day's rows through the entry check, after the fact, whoever wrote them
     [ -d "$W/core" ] || fetch_core; find_local
     case "${1:-}" in 20??-??-??) set -- --date "$@";; esac

@@ -67,7 +67,7 @@ python3 close.py plan   --week W     # the carry set and the delete set, by reco
    that goes through the Airtable connector. A row that hasn't landed stays
    active and rolls on. The quest's data row is never folded. There is no master
    version to approve.
-7. **The chat sweep:** `run_checks.sh chats` (J11).
+7. **The chat sweep:** `run_checks.sh chats` (J11). Then **the open pull requests:** `run_checks.sh prs` on the connector's open list; each goes on her list as a yes or no, bring it in by default (27 Nov 2026).
 8. **Her university's events calendar** for the next two weeks (a trial, 27 Oct
    2026; the link is `events_calendar` in her settings). Offer only what fits her
    drives or her interests (talks, theatre, family events), one line each she can

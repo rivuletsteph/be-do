@@ -173,6 +173,33 @@ def day_holds(day_page, L):
                 full=booked >= L.get('full_day_hours', 4) or n >= L.get('full_day_events', 4), share=SHARE)
 
 
+HOLIDAY_WORDS = re.compile(r'(?i)\b(holiday|thanksgiving|christmas|new year|independence day|memorial day|labor day|'
+                           r'day off|vacation|no school|campus closed|office closed)\b')
+
+
+def fixed_holidays(year):
+    """The days most places close, by rule: New Year's, Memorial Day, the Fourth, Labor Day, Thanksgiving and the day
+    after, Christmas. Her settings' `holidays` add the rest (a school break, a closure)."""
+    d = lambda m, n: dt.date(year, m, n)
+    nth = lambda m, wd, k: d(m, 1) + dt.timedelta(days=(wd - d(m, 1).weekday()) % 7 + 7 * (k - 1))
+    last_mon_may = d(5, 31) - dt.timedelta(days=d(5, 31).weekday())
+    tg = nth(11, 3, 4)
+    return {d(1, 1), last_mon_may, d(7, 4), nth(9, 0, 1), tg, tg + dt.timedelta(days=1), d(12, 25)}
+
+
+def light_day(today, day_page, holds, L, forced=False):
+    """A holiday or a full day (26 Nov 2026, her words: I'm seeing a lot of unresolved tasks that I really don't need to see
+    today … it seems totally disconnected from the fact that today is a full holiday). Such a day's page leads with the
+    plan and leaves off every open step that isn't due that day. Returns why, or None."""
+    if forced or today.isoformat() in set(L.get('holidays') or []) or today in fixed_holidays(today.year):
+        return 'holiday'
+    for e in (day_page or {}).get('events') or []:
+        # an all-day event of hers (no end time drawn, including a holiday's last day: "ends today")
+        if e.get('who') == 'you' and not e.get('end') and HOLIDAY_WORDS.search(e.get('title') or ''):
+            return 'holiday'
+    return 'full' if holds and holds.get('full') else None
+
+
 # a target be•do made up is not a deadline (261112_f20, her words 12 Nov 2026: the made up times, that's uncool):
 # the row's latest word on its target calls it a placeholder, or puts it in a block of time (the money day)
 PLACEHOLDER = re.compile(r'placeholder|money (?:block|day|batch)|batch\b', re.I)
@@ -815,7 +842,7 @@ def did_of(rows, F, off, today, hidden=(), me='', flows=frozenset()):
         her = (c.get(F['details']) or '').split('———')[0].strip().split('\n')[0]
         her = '' if her.startswith('[be•do]') else her     # be•do's note is not her words
         rh = g(c, 'rhythm') or ''
-        x = dict(t=t, g='', drive=rh, st='✅', why=her[:160], at=when)
+        x = dict(t=t, g='', drive=rh, st='✅', why=her[:160], at=when, who=_names(g(c, 'person'), me))
         if pr.startswith('⭐'):
             hl.append(dict(x, g='⭐', kind='highlight'))
         elif st[:1] in ('●', '◉', '✅') and marked_meaningful(c, F):
@@ -855,6 +882,42 @@ def did_of(rows, F, off, today, hidden=(), me='', flows=frozenset()):
         out.append(dict(t=head, g='', drive=sys_[0]['drive'], st='✅', why=f'{n} piece{"" if n == 1 else "s"} of upkeep',
                         at=sys_[0]['at'], kind='system', covers=[x['t'] for x in sys_]))
     return out
+
+
+SUMMARY_CAP = 4                                # the summary line names at most four things, then counts the rest
+
+
+def summary_of(did):
+    """A finished day's top, as one line (24 Nov 2026, her words, through Duet: one line summarizing the day's important,
+    meaningful things; the moments themselves are on the timeline). Three parts, the J17 order, each only when there is
+    one: her ⭐ highlights and the moments be•do marked meaningful, in her words (two moments with her people stand in
+    when there are none); then who she spent the day with, by name; then her finished work, named when it is all
+    there is and otherwise a count. Never a list of every moment, and the system's own upkeep is never in it."""
+    clean = lambda t: re.sub(r'\s+', ' ', str(t or '')).strip().rstrip('.')
+    join = lambda xs: xs[0] if len(xs) == 1 else ', '.join(xs[:-1]) + ' and ' + xs[-1]
+
+    def uniq(xs):
+        out = []
+        for t in xs:
+            if t and t.lower() not in [u.lower() for u in out]:
+                out.append(t)
+        return out
+    lead = uniq([clean(x['t']) for x in did if x.get('kind') in ('highlight', 'meaningful')])[:SUMMARY_CAP]
+    heart = [x for x in did if x.get('kind') == 'heart']
+    acts = uniq([clean(x['t']) for x in did if x.get('kind') == 'action'])
+    parts = []
+    if lead:
+        parts.append(join(lead))
+    elif heart:
+        parts.append(join(uniq([clean(x['t']) for x in heart])[:2]))
+    people = uniq([n for x in did if x.get('kind') in ('highlight', 'meaningful', 'heart') for n in (x.get('who') or [])])
+    if people:
+        parts.append('time with ' + join(people[:SUMMARY_CAP]))
+    if acts:
+        parts.append(join(acts[:SUMMARY_CAP]) if not parts and len(acts) <= 2
+                     else f'{len(acts)} thing{"" if len(acts) == 1 else "s"} done')
+    line = ' · '.join(p for p in parts if p)
+    return line[:1].upper() + line[1:]
 
 
 def links_of(c, F):
@@ -1016,7 +1079,10 @@ def photos_onto(items, today, rows, F, off, folder, me=''):
     placed = [p for p in placed if p['row'] and (not bedo_photos.linked(p['row']) or p['file'] in bedo_photos.linked(p['row']))]
     # one photo a card, as the day behind keeps it (never two of one moment), so six reach six moments
     seen, one = set(), []
-    for p in sorted([p for p in placed if p['keeper'] and p['row']], key=lambda p: (not p.get('linked'), p['t'])):
+    # her own order wins (27 Nov 2026, her words: the picture I took at the end right before everybody left was the best
+    # picture of the gathering): the photo she put first in a row's links is that card's photo, else the earliest
+    first = lambda p: (bedo_photos.linked(p['row']).index(p['file']) if p.get('file') in bedo_photos.linked(p['row']) else 99)
+    for p in sorted([p for p in placed if p['keeper'] and p['row']], key=lambda p: (not p.get('linked'), first(p), p['t'])):
         k = p['row']['id']
         if k not in seen or (p['row'].get('felt') and not p.get('file') and sum(x['row']['id'] == k for x in one) < 2):
             seen.add(k); one.append(p)
@@ -1142,6 +1208,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
                 secure=(D.get('secure') or {}).get('state'))
     today_page = next((x for x in D.get('days') or [] if x.get('date') == W['day']), None)
     data['holds'] = day_holds(today_page, L) if today_page else None
+    data['light'] = light_day(today, today_page, data['holds'], L, L.get('_holiday'))
     data['timegoals'] = L.get('time_goals') or {}
     data['screen_measured'] = screen_measured(rows, F, off, today)
     # stories and media live on her Morning Gate; the page links there (7 Nov 2026, her words: I'd prefer to see all of the
@@ -1251,6 +1318,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
     data['picked'] = bool(L.get('_picks'))
     data['did'] = did_of(rows, F, off, today, hidden=set(L.get('hide_drives') or []), me=L.get('self_person') or '',
                          flows=L.get('_flows') or frozenset())
+    data['summary'] = summary_of(data['did'])
     data['three_next'] = [dict(t=x.get('title'), kind=x.get('kind')) for x in (D.get('next') or [])]
     data['three_more'] = [dict(t=p.get('title'), why=p.get('why'), drive=p.get('drive'), g=p.get('emoji'), st=(p.get('st') or '').strip(),
                                nx=((p.get('move') or {}).get('step')), links=(p.get('move') or {}).get('links') or [])
@@ -1359,8 +1427,11 @@ def main():
                     help='"<row key or record id>[::<label>]" — the rest of today in order, one thing at a time: NOW and NEXT')
     ap.add_argument('--later', action='append', default=[],
                     help='"<row key or record id>[::<label>]" — what waits quietly under NOW and NEXT')
+    ap.add_argument('--holiday', action='store_true',
+                    help='today is a holiday: lead with the plan, leave off open steps not due today')
     a = ap.parse_args()
     L = json.load(open(a.local, encoding='utf-8'))
+    L['_holiday'] = a.holiday
     h, D = page_data(a.day_ahead)
     dd = os.path.join(os.path.dirname(os.path.abspath(a.local)), 'data')
     rows, seen = [], set()
