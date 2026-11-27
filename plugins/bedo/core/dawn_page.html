@@ -1,0 +1,308 @@
+<title>Dawn flow</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* one phone column: the count, the next three to tap, the four lanes, then what's done in the order done */
+:root {
+  --bg: #F6F7F4; --surface: #FFFFFF; --fg: #1F2623; --muted: #5E6A65; --line: #DCE1DD; --warn: #9A4B1E;
+  --heart: #3E7C7D; --body: #5D8A66; --mind: #7A6191; --spirit: #B7832F;
+  --heart-ink: #2A5A5B; --body-ink: #41644A; --mind-ink: #564369; --spirit-ink: #87601F;
+  --font: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141917; --surface: #1D2421; --fg: #E8ECE9; --muted: #9DA9A3; --line: #2E3833; --warn: #E0A07A;
+  --heart-ink: #8CC2C2; --body-ink: #9CC6A4; --mind-ink: #C3AFD3; --spirit-ink: #E6BE78; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #141917; --surface: #1D2421; --fg: #E8ECE9; --muted: #9DA9A3; --line: #2E3833; --warn: #E0A07A;
+  --heart-ink: #8CC2C2; --body-ink: #9CC6A4; --mind-ink: #C3AFD3; --spirit-ink: #E6BE78; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 15px/1.45 var(--font); }
+.wrap { max-width: 520px; margin: 0 auto; padding-block: 20px 96px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 22px; }
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+h1 small { font-weight: 500; color: var(--muted); font-size: 15px; margin-left: 6px; }
+.count { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.count span { color: var(--muted); font-weight: 500; font-size: 15px; }
+.status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; margin-top: -14px; flex-wrap: wrap; }
+.status button { font: inherit; color: var(--fg); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; cursor: pointer; }
+.note { color: var(--warn); font-size: 13px; }
+h2 { margin: 0 0 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.next { display: grid; gap: 8px; }
+.next button { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; font: inherit; font-size: 17px; font-weight: 500;
+  color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; cursor: pointer; }
+.next button:disabled { opacity: .55; cursor: default; }
+.next .g { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 50%; font-size: 18px;
+  border: 2px solid var(--lane); }
+.next .by { margin-left: auto; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.closed { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; font-size: 16px; }
+.lanes { display: grid; gap: 10px; }
+.lane { display: grid; grid-template-columns: 52px 1fr; align-items: center; gap: 10px; }
+.lane b { font-size: 13px; font-weight: 600; color: var(--ink); }
+.dots { display: flex; flex-wrap: wrap; gap: 6px; }
+.dot { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 18px; padding: 0;
+  border: 2px solid var(--lane); background: transparent; cursor: pointer; }
+.dot.done { background: var(--lane); }
+.dot.code { border-style: dashed; cursor: default; }
+.dot:disabled { cursor: default; }
+.done-list { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.done-list li { display: grid; grid-template-columns: 62px 1fr; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); }
+.done-list time { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 14px; }
+.done-list .what { font-weight: 500; min-width: 0; }
+.done-list .line { display: block; color: var(--muted); font-weight: 400; font-size: 14px; }
+.empty { color: var(--muted); }
+.toast { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: center;
+  padding: 0 max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.toast div { display: flex; align-items: center; gap: 14px; background: var(--fg); color: var(--bg); border-radius: 12px; padding: 10px 14px; font-size: 14px; max-width: 520px; }
+.toast button { font: inherit; font-weight: 600; color: var(--bg); background: none; border: 0; text-decoration: underline; cursor: pointer; padding: 0; }
+[hidden] { display: none !important; }
+button:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+.heart { --lane: var(--heart); --ink: var(--heart-ink); }
+.body { --lane: var(--body); --ink: var(--body-ink); }
+.mind { --lane: var(--mind); --ink: var(--mind-ink); }
+.spirit { --lane: var(--spirit); --ink: var(--spirit-ink); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Dawn <small id="date"></small></h1>
+    <div class="count" id="count"></div>
+  </header>
+  <div class="status"><span id="read"></span><button id="reread" type="button">Read again</button><span class="note" id="note"></span></div>
+  <section id="next-box"><h2>Next</h2><div class="next" id="next"></div></section>
+  <section><h2>Lanes</h2><div class="lanes" id="lanes"></div></section>
+  <section><h2>Done</h2><ol class="done-list" id="done"></ol></section>
+</div>
+<div class="toast" id="toast" hidden><div><span id="toast-text"></span><button id="undo" type="button">Undo</button></div></div>
+
+<script>
+const D = /*DATA*/null;
+
+/*LOGIC*/
+// Pure: what is done, what is next. Mirrors bedo_remaining (logged, split, sun_by); tested against it.
+const norm = s => (s || "").replace(/[️\u{1F3FB}-\u{1F3FF}]/gu, "").split(/\s+/).filter(Boolean).join(" ").toLowerCase();
+function localParts(iso, tz) {
+  const p = {};
+  for (const x of new Intl.DateTimeFormat("en-CA", {timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23"}).formatToParts(new Date(iso))) p[x.type] = x.value;
+  return {date: `${p.year}-${p.month}-${p.day}`, min: (+p.hour % 24) * 60 + +p.minute};
+}
+const hhmm = s => { const [h, m] = s.split(":"); return +h * 60 + +m; };
+function lineOf(D, r) {
+  const p = r.p || "", t = (r.title || "").trim(), glyph = p.split(" ")[0];
+  const bare = glyph && t.startsWith(glyph) ? t.slice(glyph.length).trim() : t;
+  const name = p.includes(" ") ? p.slice(p.indexOf(" ") + 1) : p;
+  if (bare && norm(bare) !== norm(name) && norm(t) !== norm(p)) return bare;
+  const text = (r.d || "").split(D.divider)[0].split(/\s+/).filter(Boolean).join(" ");
+  if (!text || text.startsWith(D.be_do)) return "";
+  const m = text.match(/^(.+?[.!?])(\s|$)/), s = m ? m[1] : text;
+  return s.length <= 90 ? s : s.slice(0, 87).trimEnd() + "…";
+}
+function dawnState(D, rows, nowIso) {
+  const now = localParts(nowIso, D.tz), noon = hhmm(D.noon);
+  const today = rows.map(r => ({...r, at: localParts(r.t, D.tz)})).filter(r => r.at.date === now.date);
+  const open = new Set(D.open_status.map(norm)), closeN = norm(D.close);
+  const counted = today.filter(r => !(norm(r.p) === closeN && open.has(norm(r.s))));
+  const by = {};                                   // step → the row that shows it, earliest first
+  const put = (step, r) => { const k = norm(step); if (!by[k] || r.t < by[k].t) by[k] = r; };
+  counted.forEach(r => put(r.p, r));
+  for (const [step, kinds] of Object.entries(D.same_kind || {}))
+    counted.filter(r => kinds.map(norm).includes(norm(r.p)) && r.at.min < noon).forEach(r => put(step, r));
+  for (const [cover, covered] of Object.entries(D.covers || {}))
+    if (by[norm(cover)]) covered.forEach(c => by[norm(c)] = by[norm(c)] || by[norm(cover)]);
+  for (const pair of D.either_or || []) {
+    const hit = pair.map(norm).find(k => by[k]);
+    if (hit) pair.forEach(p => by[norm(p)] = by[norm(p)] || by[hit]);
+  }
+  const steps = D.steps.map(s => ({...s, row: by[norm(s.p)] || null}));
+  const wake = today.filter(r => norm(r.p) === norm(D.wake)).sort((a, b) => a.t < b.t ? -1 : 1)[0];
+  let rise = D.sunrise[now.date];
+  if (rise == null) for (const r of today) {
+    const m = (r.d || "").match(/sunrise\D{0,3}(\d{1,2}):(\d{2})\s*([ap])/i);
+    if (m) { rise = (+m[1] % 12 + (m[3].toLowerCase() === "p" ? 12 : 0)) * 60 + +m[2]; break; }
+  }
+  const sunBy = rise != null && wake ? Math.max(rise, wake.at.min) + D.sun_by_minutes : null;
+  const left = steps.filter(s => !s.row && !s.code && !(s.sun && sunBy != null && now.min > sunBy));
+  const loud = left.filter(s => !s.quiet);
+  const next = (loud.length ? loud : left).slice(0, D.next);
+  const closeRow = by[closeN] || null;
+  return {
+    date: now.date, now: now.min, steps, next, sunBy, close: closeRow, past_noon: now.min >= noon,
+    done: steps.filter(s => s.row).length, total: steps.length,
+    list: steps.filter(s => s.row).sort((a, b) => a.row.t < b.row.t ? -1 : 1)
+      .map(s => ({p: s.p, lane: s.lane, at: s.row.at.min, line: lineOf(D, s.row)})),
+  };
+}
+/*END LOGIC*/
+
+const $ = id => document.getElementById(id);
+const clock = m => `${(Math.floor(m / 60) % 12) || 12}:${String(m % 60).padStart(2, "0")}`;
+const ampm = m => `${clock(m)} ${m < 720 ? "AM" : "PM"}`;
+const S = {rows: [], readAt: null, mcp: null, busy: false, undo: null, base: D.base};
+const F = D.fields;
+const tzDate = iso => localParts(iso, D.tz).date;
+S.rows = tzDate(new Date().toISOString()) === D.day ? D.rows.slice() : [];
+
+function el(tag, props = {}, kids = []) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) k === "class" ? e.className = v : k === "text" ? e.textContent = v : e[k] = v;
+  kids.forEach(k => e.append(k));
+  return e;
+}
+function glyph(p) { return p.split(" ")[0]; }
+function name(p) { return p.includes(" ") ? p.slice(p.indexOf(" ") + 1) : p; }
+
+function render() {
+  const st = dawnState(D, S.rows, new Date().toISOString());
+  const d = new Date(st.date + "T12:00:00Z");
+  $("date").textContent = d.toLocaleDateString("en-US", {weekday: "short", day: "numeric", month: "short", timeZone: "UTC"});
+  $("count").replaceChildren(document.createTextNode(String(st.done)), el("span", {text: ` of ${st.total}`}));
+  $("read").textContent = S.readAt ? `read ${ampm(localParts(S.readAt, D.tz).min)}` : (S.rows.length ? "as built" : "");
+  const box = $("next");
+  box.replaceChildren();
+  if (st.close) {
+    box.append(el("div", {class: "closed", text: `Dawn closed at ${ampm(localParts(st.close.t, D.tz).min)}.`}));
+  } else if (st.past_noon) {
+    box.append(el("div", {class: "closed", text: "Dawn is past noon: the noon close names what's left."}));
+  } else if (!st.next.length) {
+    box.append(el("div", {class: "closed", text: "Your steps are all in. The flow closes itself."}));
+  } else for (const s of st.next) {
+    const b = el("button", {type: "button", class: s.lane, disabled: !S.mcp || S.busy},
+      [el("span", {class: "g", text: glyph(s.p)}), el("span", {text: name(s.p)})]);
+    if (s.sun && st.sunBy != null) b.append(el("span", {class: "by", text: `by ${clock(st.sunBy)}`}));
+    b.addEventListener("click", () => tap(s.p));
+    box.append(b);
+  }
+  const lanes = $("lanes");
+  lanes.replaceChildren();
+  for (const [k, L] of Object.entries(D.lanes)) {
+    const mine = st.steps.filter(s => s.lane === k);
+    if (!mine.length) continue;
+    const dots = el("div", {class: "dots"});
+    for (const s of mine) {
+      const done = !!s.row, label = `${name(s.p)}${done ? ", done" : s.code ? ", Code logs it" : ", tap to log"}`;
+      const b = el("button", {type: "button", class: `dot${done ? " done" : ""}${s.code ? " code" : ""}`, text: glyph(s.p),
+        title: label, disabled: done || s.code || !S.mcp || S.busy});
+      b.setAttribute("aria-label", label);
+      if (!done && !s.code) b.addEventListener("click", () => tap(s.p));
+      dots.append(b);
+    }
+    lanes.append(el("div", {class: `lane ${k}`}, [el("b", {text: L.name}), dots]));
+  }
+  const list = $("done");
+  list.replaceChildren();
+  if (!st.list.length) list.append(el("li", {class: "empty", text: "Nothing logged yet this morning."}));
+  for (const x of st.list) {
+    const what = el("span", {class: "what", text: x.p});
+    if (x.line) what.append(el("span", {class: "line", text: x.line}));
+    list.append(el("li", {}, [el("time", {text: clock(x.at)}), what]));
+  }
+}
+
+function note(t) { $("note").textContent = t || ""; }
+function why(e) {
+  const c = e && e.code;
+  if (c === "needs_reauth") return "Reconnect Airtable in claude.ai Settings → Connectors.";
+  if (c === "server_not_connected" || c === "selection_required") return "Add Airtable in claude.ai Settings → Connectors.";
+  if (c === "not_in_manifest" || c === "approval_required" || c === "consent_required") return "Airtable isn't allowed for this page yet: tap Read again to allow it.";
+  if (c === "server_unavailable" || c === "upstream_error") return "Airtable didn't answer; this is the last read.";
+  return `Couldn't reach Airtable (${c || "unknown"}).`;
+}
+const cell = (r, f) => { const v = (r.cellValuesByFieldId || r.fields || {})[f]; return v && typeof v === "object" ? (v.name || "") : (v || ""); };
+function weekName(day) {
+  const n = D.week.anchor_number + Math.floor((Date.parse(day + "T12:00:00Z") - Date.parse(D.week.anchor_sunday + "T12:00:00Z")) / 864e5 / 7);
+  return D.weekly_name.replace("{n}", n);
+}
+function findBase(x, want) {
+  if (!x || typeof x !== "object") return null;
+  if (x.name === want && typeof x.id === "string" && x.id.startsWith("app")) return x.id;
+  for (const v of Object.values(x)) { const f = findBase(v, want); if (f) return f; }
+  return null;
+}
+async function baseToday() {
+  const want = weekName(tzDate(new Date().toISOString()));
+  if (S.base.name === want) return S.base.id;
+  const res = await S.mcp.callTool("Airtable", "search_bases", {searchQuery: want}, {cache: false});
+  const id = findBase(res.payload, want);
+  if (!id) throw {code: "tool_error", message: `no base named ${want}`};
+  S.base = {id, name: want};
+  return id;
+}
+async function read() {
+  if (!S.mcp || S.busy) return;
+  S.busy = true; note("");
+  try {
+    const baseId = await baseToday(), day = tzDate(new Date().toISOString()), rows = [];
+    let cursor;
+    for (let i = 0; i < 4; i++) {
+      const input = {baseId, tableId: D.table, pageSize: 500,
+        fieldIds: [F.title, F.practice, F.status, F.datetime, F.details],
+        filters: {operands: [{operator: "=", operands: [F.datetime, {mode: "exactDate", exactDate: day, timeZone: D.tz}]}]}};
+      if (cursor) input.cursor = cursor;
+      const res = await S.mcp.callTool("Airtable", "list_records_for_table", input, {cache: false});
+      const pl = res.payload || {};
+      for (const r of pl.records || []) {
+        const p = cell(r, F.practice), t = cell(r, F.datetime);
+        if (p && t) rows.push({id: r.id, p, t, s: cell(r, F.status), title: cell(r, F.title), d: String(cell(r, F.details)).slice(0, 600)});
+      }
+      cursor = pl.nextCursor || pl.cursor || null;
+      if (!cursor) break;
+    }
+    S.rows = rows; S.readAt = new Date().toISOString();
+  } catch (e) { note(why(e)); }
+  S.busy = false; render();
+}
+async function tap(step) {
+  if (!S.mcp || S.busy) return;
+  S.busy = true; render();
+  const t = new Date(); t.setSeconds(0, 0);
+  const iso = t.toISOString();
+  try {
+    const baseId = await baseToday();
+    const res = await S.mcp.callTool("Airtable", "create_records_for_table", {baseId, tableId: D.table, typecast: false,
+      records: [{fields: {[F.title]: step, [F.practice]: step, [F.status]: D.tap_status, [F.datetime]: iso, [F.details]: D.tap_details}}]});
+    const id = ((res.payload || {}).records || [])[0]?.id || findRec(res.payload);
+    S.rows.push({id, p: step, t: iso, s: D.tap_status, title: step, d: D.tap_details});
+    offerUndo(step, id, baseId, localParts(iso, D.tz).min);
+  } catch (e) {
+    note(e && (e.code === "server_unavailable" || e.code === "upstream_error")
+      ? "Airtable didn't confirm that tap. Tap Read again to see whether it landed before tapping again." : why(e));
+  }
+  S.busy = false; render();
+}
+function findRec(x) {
+  if (!x || typeof x !== "object") return null;
+  if (typeof x.id === "string" && x.id.startsWith("rec")) return x.id;
+  for (const v of Object.values(x)) { const f = findRec(v); if (f) return f; }
+  return null;
+}
+function offerUndo(step, id, baseId, at) {
+  clearTimeout(S.undo && S.undo.timer);
+  $("toast-text").textContent = `${step} logged ${clock(at)}`;
+  $("toast").hidden = !id;
+  S.undo = id ? {id, baseId, timer: setTimeout(() => { $("toast").hidden = true; S.undo = null; }, D.undo_seconds * 1000)} : null;
+}
+$("undo").addEventListener("click", async () => {
+  const u = S.undo;
+  if (!u || S.busy) return;
+  clearTimeout(u.timer); $("toast").hidden = true; S.undo = null; S.busy = true;
+  try {
+    await S.mcp.callTool("Airtable", "delete_records_for_table", {baseId: u.baseId, tableId: D.table, recordIds: [u.id]});
+    S.rows = S.rows.filter(r => r.id !== u.id);
+  } catch (e) { note("The undo didn't go through: " + why(e)); }
+  S.busy = false; render();
+});
+$("reread").addEventListener("click", read);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible") return;
+  if (!S.readAt || Date.now() - Date.parse(S.readAt) > D.reread_after_seconds * 1000) read(); else render();
+});
+
+render();
+if (window.claude && claude.use) claude.use("mcp").then(m => {
+  S.mcp = m;
+  if (m) read(); else { note("Open this page in Claude to tap a step."); render(); }
+});
+else note("Open this page in Claude to tap a step.");
+</script>
