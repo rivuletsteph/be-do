@@ -74,3 +74,31 @@ h1{font-family:var(--display);font-weight:400;font-size:clamp(28px,8vw,40px);lin
   document.getElementById('page').innerHTML = h;
 })();
 </script>
+
+<script>
+/* download HTML, as the my day page does (her words, 18 Nov 2026: a quest HTML that I can download and save to
+   Drive): the page saves itself as one .html, photos and all, at her click. In claude.ai the viewer's own save prompt (the
+   `downloads` capability, declared at publish); anywhere else, a plain Blob download. The drawn quest is left out of the
+   copy, so it draws itself fresh from its data when opened. */
+(function(){
+  function src(){ var h=document.documentElement.cloneNode(true);
+    var pg=h.querySelector('#page'); if(pg) pg.innerHTML='';
+    h.querySelectorAll('#bedo-dl').forEach(function(n){ n.remove(); });
+    return '<!doctype html>\n'+h.outerHTML; }
+  /* named for the day, so a week of them sorts in a Drive folder: "<Name>'s Quest - Monday 16 November.html" */
+  function name(){ var d={}; try{ d=JSON.parse(document.getElementById('quest').textContent); }catch(e){}
+    var t=((d.name?d.name+"'s Quest":document.title||'quest')+(d.day?' - '+d.day:'')).replace(/[^A-Za-z0-9 ._'-]+/g,' ').replace(/\s+/g,' ').trim(); return t+'.html'; }
+  function blob(){ var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([src()],{type:'text/html'})); a.download=name();
+    document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500); }
+  var b=document.createElement('button'); b.id='bedo-dl'; b.type='button'; b.textContent='\u2913 download this page'; b.title='save this page as one .html file';
+  b.style.cssText='display:block;margin:20px auto 8px;font:700 13px var(--body);color:var(--muted);background:none;border:1px solid currentColor;border-radius:999px;padding:6px 16px;cursor:pointer';
+  b.onclick=function(){
+    var c=window.claude; if(!c||!c.use){ blob(); return; }
+    c.use('downloads').then(function(d){
+      if(!d){ blob(); return; }
+      return d.save({filename:name(), data:new Blob([src()],{type:'text/html'})}).catch(function(e){
+        if(e&&/^(unavailable|not_granted|capability_disabled|capability_removed)$/.test(e.code)) blob(); });
+    }, blob); };
+  document.querySelector('.wrap').appendChild(b);
+})();
+</script>

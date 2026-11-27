@@ -49,6 +49,7 @@ DONE = ST['closed'][0]                                   # ✅ done
 OPEN = set(ST['open'])                                   # ▫️ ⬜ ▶️
 NOT_LIVED = set(ST['plans']) | {ST['actions'][4], ST['logs'][2]}   # ▫️ ⬜ ✖️ ⨂: never happened
 QA_MARK = bedo_reader.FACTS['dayqa']['marker']
+QA_MARKS = (QA_MARK,) + tuple(bedo_reader.FACTS['dayqa'].get('old_markers') or ())   # dayqa shown before 20 Nov
 MAX_SPAN = dt.timedelta(hours=bedo_reader.FACTS['entry_rules']['max_span_hours'])
 DAY3 = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 MARK = chr(0x1684E)                                      # be•do's mark, by codepoint
@@ -96,7 +97,7 @@ def unqad(rows, sun, ndays=7):
     covers, so a travel day QA'd the next morning still counts."""
     text = '\n'.join(r.get('details') or '' for r in rows)
     days = [sun + dt.timedelta(days=i) for i in range(ndays)]
-    return [d for d in days if f'{QA_MARK} {d.isoformat()}' not in text]
+    return [d for d in days if not any(f'{m} {d.isoformat()}' in text for m in QA_MARKS)]
 
 
 def sv(v):

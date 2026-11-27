@@ -53,7 +53,7 @@
 
  "day_emoji": {"Sun": "☀️", "Mon": "🌕", "Tue": "🔥", "Wed": "💧", "Thu": "🌳", "Fri": "🏆", "Sat": "⏳"},
  "week": {"opens": "Sunday", "anchor_sunday": "2026-05-03", "anchor_number": 19},
- "fold": {"keep_active_words": ["ten mini-quests"], "recheck_per_week": 5, "about": "The weekly fold (close.py fold): a row whose decision holds a keep word stays active, because the scorer reads it (9 Nov 2026)."},
+ "fold": {"keep_active_words": ["ten mini-quests"], "recheck_per_week": 5, "daily": {"new_days": 7, "backlog": 5, "mark": 10}, "about": "The fold (bedo_fold.py daily, close.py fold weekly): a row whose decision holds a keep word stays active, because the scorer reads it (9 Nov 2026). daily: how far back a row counts as new, how many of the oldest unlanded rows a day takes, and how many landed rows a day marks (23 Nov 2026)."},
  "clock": {"store": "UTC", "about": "Every stream datetime is stored UTC with a Z; the local offset comes from facts_local, checked against the time zone on the day (I12)."},
 
  "glyph_codepoints": {
@@ -79,6 +79,8 @@
  "flows": {
   "order_source": "the practices catalog's order field, filtered to active; never recited",
   "dusk_opens_after": "19:00",
+  "dusk_opens_at_sunset": true,
+  "about_dusk_opens": "24 Nov 2026, her yes: dusk opens at sunset, worked out for the day from her home in her settings row (home: lat, lon), or as soon as 🔅 evening sun is logged; dusk_opens_after is the fallback when no home is set.",
   "backup_close": {"dawn": "12:00", "dusk": "23:59"},
   "phase": {"dawn": "🌅 dawn", "dusk": "🌄 dusk"},
   "close": {"dawn": "🌅 dawn flow close", "dusk": "🌄 dusk flow close"},
@@ -90,12 +92,28 @@
   "either_or": [["🌬️ evening breaths", "🌙 evening meditation"]],
   "about_either_or": "8 Oct 2026, her words: evening breaths are an either-or on the meditation. One logged closes both; the other is never asked for.",
   "sequences": {
-   "dawn": [["☕ coffee", "🥤 morning water"], ["🔅 morning sun", "🧎‍♀️ hip exercises"], ["🔅 morning sun", "💪 strength training"], ["🔅 morning sun", "🌬️ morning breaths"]],
-   "dusk": []
+   "dawn": [["🪐", "🗞️ morning gate"], ["🗞️ morning gate", "👁️ look ahead"], ["👁️ look ahead", "⚡ intention check"], ["☕ coffee", "🥤 morning water"], ["🔅 morning sun", "🧎‍♀️ hip exercises"], ["🔅 morning sun", "💪 strength training"], ["🔅 morning sun", "🌬️ morning breaths"]],
+   "dusk": [["🔅 evening sun", "🗺️ map check"], ["🔅 evening sun", "📱 screen time"], ["🔅 evening sun", "🪐"], ["🔅 evening sun", "⏺️ recorder check"], ["🗺️ map check", "📧 clear gmail inbox"], ["📱 screen time", "📧 clear gmail inbox"], ["🪐", "📧 clear gmail inbox"], ["⏺️ recorder check", "📧 clear gmail inbox"], ["📧 clear gmail inbox", "💊 bp meds"], ["💊 bp meds", "🌈 supplements"], ["🌈 supplements", "🫖 evening tea"], ["🫖 evening tea", "⚔️"], ["⚔️", "🌟"], ["🌟", "⭐ highlight"], ["⭐ highlight", "🔀 braid"], ["🔀 braid", "🌬️ evening breaths"], ["🌬️ evening breaths", "🌌 evening blessing"]]
   },
-  "leads": {"dawn": ["🗞️ morning gate"], "dusk": []},
+  "leads": {"dawn": ["💭 dream record", "🪐", "🗞️ morning gate", "👁️ look ahead"], "dusk": []},
+  "about_dream_first": "20 Nov 2026, her words: I'd always like to be asked about the dream first. 💭 dream record leads the dawn list, named. Then the 🪐 sleep readout, then the gate: her call the same morning. A lead given as a glyph alone is the flow's step that starts with it. A lead is always named, core or not.",
+  "ask_if_missing": {"dawn": ["🚽 bm"], "dusk": []},
+  "about_ask_if_missing": "20 Nov 2026, her words: I only want to be asked about the BM if I don't log it. It stays off the line while the flow runs, and is named once, just before the close, only if she hasn't logged it.",
+  "covers": {"🗞️ morning gate": ["🌦️ weather check"]},
+  "about_covers": "20 Nov 2026, her words: ideally the weather is covered by the morning gate. Once the gate is logged, the weather check counts as done and is never asked for on its own.",
+  "same_kind": {"dawn": {"📗 morning book": ["📗 book"]}, "dusk": {}},
+  "about_same_kind": "21 Nov 2026 amendment (a flow closes right after its last logged step, without waiting for her): a step is done when a row of the same kind shows it. Per flow, step → the practices whose rows count as it, inside the flow's hours (dawn: before its backup close; dusk: from when it opens). A 📗 book row that morning is the 📗 morning book step (20 Nov: she read on her phone and logged it as its own book row, and the flow never counted as complete).",
+  "closes_itself": {"at_sleep": "{glyph} {flow} is in: it closes when you fall asleep. The 🪐 morning ring read writes {close} at the ring's bedtime, with {pattern}.", "line": "{glyph} {flow} flow complete: last step {step} at {time}. Write {close} now, at {time}, without asking her.",
+                    "backup": "{glyph} past the {backup} backup: write the backup {close} now, at {backup}, without waiting for a reply{missed}."},
+  "about_closes_itself": "21 Nov 2026 amendment: when the last required step is in (holds_open is empty), the remaining list says the flow is complete and names the close's time, the last step's; after the backup hour (backup_close) it says to write the backup close, naming what it couldn't capture.",
   "about_leads": "Steps that come next once the flow has begun, whatever the observed times say. 10 Nov 2026, her words: this is when I expect to see my morning gate, please make sure that gets slotted correctly. The Morning Gate follows her first entry (its amendment, 7 Nov 2026), so it leads the remaining list until it is logged; a step she names as next still goes ahead of it.",
-  "about_sequences": "Her stated orders, which beat any observed median. 4 Oct 2026: morning movement is early, with the coffee (easy waking-up movements); morning sun comes before the exercise block (hips, strength, breaths); water after the first coffee. Within the block the observed times decide. Dusk is ordered by clock time.",
+  "about_sequences": "Her stated orders, which beat any observed median. 4 Oct 2026: morning movement is early, with the coffee (easy waking-up movements); morning sun comes before the exercise block (hips, strength, breaths); water after the first coffee. Within the block the observed times decide. 24 Nov 2026, her order for dusk: 🔅 evening sun, then the batch (🗺️ Timeline, 📱 screen time, 🪐 ring stress, ⏺️ recorder check, then the day's photos uploaded last; her words: I want to do all the batch checks then upload the photos and have the system fill in everything based on that info), whose upload starts the dusk Code run (its 📧 inbox read comes next), then 💊 evening pills, 🫖 evening tea, ⚔️ his quest, 🌟 his highlight, ⭐ highlight (her words: my highlight after his highlight), then 🔀 braid, where it sees the whole evening (her words: move the braid to where it makes the most sense), and last 🌬️ evening breaths and 🌌 evening blessing, with her son, after the phone is down. Within the batch the observed times decide. 24 Nov 2026, her order for dawn, in order and never by the clock (her words: I want it to be in the correct order … I want to see the look behind then the morning gate then the look ahead): 🪐 the ring read, whose run makes yesterday's my day page final (the look behind: it needs the night's sleep), then 🗞️ morning gate, then 👁️ look ahead, then ⚡ intention check.",
+  "together": {"dawn": {}, "dusk": {"💊 evening pills": ["💊 bp meds", "🌈 supplements"]}},
+  "about_together": "24 Nov 2026, her words: maybe it's evening BP med / supplements all at once. Steps taken together are one step on the line, under the group's name, done once every member is logged. The record keeps a row per practice, so the blood-pressure med is still tracked on its own. What she takes by default is hers and lives in her settings row (evening_pills), never here.",
+  "from_pattern": {"dawn": [], "dusk": ["🌬️ evening breaths", "🌌 evening blessing"]},
+  "about_from_pattern": "24 Nov 2026, her words: [her son] and I do the evening breaths and evening blessing right before falling asleep, generally after I set my phone down. They stay on the line, last before the close (her words: I still like to see evening breaths and evening blessing before the close, just assume they were done and I'll tell you if they were skipped the next morning), but nobody asks for them and they never hold the flow open: the next morning the 🪐 morning ring read writes them from her pattern, at the ring's bedtime, when no row has them. She says if one was skipped.",
+  "close_at_sleep": ["dusk"],
+  "about_close_at_sleep": "24 Nov 2026, her words: I want the evening to close when I fall asleep. The dusk close is written the next morning by the 🪐 morning ring read, at the ring's bedtime start. No backup close is written at night; once the rest is in, the line says so.",
   "widget": {"bar": {"dawn": "#EFA038", "dusk": "#7B6FD6"}},
   "core": {
    "dawn": ["🗞️ morning gate", "🥤 morning water", "🤸🏻‍♀️ morning movement", "☕ coffee", "🪐 morning oura", "🌦️ weather check", "👁️ look ahead", "⚡ intention check", "🙏 gratitude", "📿 morning mantra", "📗 morning book", "🪞 mirror check", "🌅 dawn flow close"],
@@ -118,7 +136,7 @@
  },
 
  "self_check": {
-  "flag_if_under_of_7": {"⚡ action check": 5, "📧 clear gmail inbox": 5, "🗺️ map check": 5},
+  "flag_if_under_of_7": {"📧 clear gmail inbox": 5, "🗺️ map check": 5},
   "flag_if_under_pct": {"attention": 95, "people": 80},
   "shrink_at_flags": 3,
   "attention_pool": "✅ done and ▶️ in motion ⚡ action chains with a real span in the window",
@@ -168,11 +186,18 @@
  "skills_schedule": {
   "_about": "20 Oct 2026, her words: I have a lot of skills and I just need to standardize when they get run, so I don't have to remember them. Every skill has a set time, kept here, the one place a skill's timing lives; preflight reads it at each chat's first reply and names what is due.",
   "dawn": ["👁️ look ahead (bedo-day-ahead)", "remaining, every reply"],
-  "dusk": ["📧 clear gmail inbox (clear-inbox, then inbox)", "photos (dusk --photos)", "dayqa", "dusk audit", "the quest page, linked on my day (bedo-day-ahead, The day done)", "remaining, every reply"],
+  "dusk": ["📧 clear gmail inbox (clear-inbox, then inbox)", "photos (dusk --photos)", "sweep (the day's rows through the entry check)", "dayqa", "calsync (the calendar's done marks)", "dusk audit", "the quest page, linked on my day (bedo-day-ahead, The day done)", "remaining, every reply"],
   "sunday": ["the weekly close (bedo-weekly-close)", "the events calendar for the next two weeks, at the close (facts_local events_calendar)"],
   "monthly": ["the ahead review, by the 5th (bedo-ahead-review)"],
   "when_it_comes_up": ["provisions (meals)", "shopping-watch (something to buy)", "session-entry (a chat's close)"],
   "monthly_by_day": 5
+ },
+ "capture": {
+  "_about": "24 Nov 2026, her yes to six capture rules: a row told in passing gets its practice by rule, and she is asked only when no rule fits. A passing remark is a log; a longer reflection in her own words is a journal; a talk with someone is face-to-face (her words: the talk with her son was a talk); a note on something she is watching, reading or listening to goes on that thing's own row with its link; a gratitude is one bullet a thing; when she says she did something its action is closed, not logged again.",
+  "log": "📝 log", "journal": "📒 journal", "talk": "🗣️ face-to-face", "journal_words": 60,
+  "talk_openers": ["talked with", "talked to", "talk with", "a talk with", "conversation with", "a conversation with", "chatted with", "spoke with"],
+  "link_practice": {"youtu": "📼 video", "/watch?v=": "📼 video", "/episode/": "🎙️ podcast", "podcasts.": "🎙️ podcast"},
+  "taking_in": ["listening to", "watching", "reading", "this episode", "this podcast", "this video", "this article"]
  },
  "calendar": {
   "_about": "6 Oct 2026: every calendar write names its calendar and is read back before it's called done. 9 Oct 2026: every work event is purple, Google Calendar colorId 3 (Grape), her employer's colour. Her calendar ids, work parents and work words live in facts_local under calendar.",
@@ -218,6 +243,10 @@
   "overnight_practices": ["sleep"],
   "not_activities": ["location"]
  },
+ "calsync": {
+  "_about": "19 Nov 2026, her words: a lot of the items on my calendar have not been checked off even though they were things that I did. calsync was a line in the checks' table that nothing ran, so the 16 and 17 Nov dusk closes passed without it. Its run prints this marker with the day; the dusk close row carries it in its [be•do] block, once the changes are made, and a my day chat's close waits for it, as it waits for dayqa's.",
+  "marker": "calsync done"
+ },
  "dayqa": {
   "_about": "run_checks.sh dayqa DATE: meals, gaps, movement, people and device in one list. Every fill is ESTIMATED FROM CONTEXT and names its source; the dusk close shows it, writes only what she accepts, and carries the marker line in its [be•do] block. The look behind will not build a day whose rows don't carry the marker.",
   "sources": {"photo": "photo time", "oura": "Oura", "timeline": "Timeline", "message": "message time", "rule": "your stated rule", "usual": "your usual, from your past weeks", "words": "your words about it", "calendar": "your calendar", "stream": "the stream"},
@@ -226,7 +255,12 @@
   "reconcile_stop": ["with", "from", "that", "this", "today", "tonight", "tomorrow", "about", "into", "your", "their", "them", "just", "some", "something", "thing", "send", "sent", "make", "made", "back", "over", "more", "next", "week", "after", "before", "what", "when", "then", "also", "have", "still", "done", "finish", "finished"],
   "calendar_done_marks": ["✔️", "✔", "✅"],
   "journal_read_mark": "Pulled out",
-  "marker": "dayqa shown",
+  "marker": "braid shown",
+  "old_markers": ["dayqa shown"],
+  "_marker_about": "20 Nov 2026: the dusk step is 🔀 braid, so its line in the dusk close row reads braid shown; the days before carry dayqa shown, read the same way.",
+  "together_heading": "🔀 braid",
+  "_together_about": "20 Nov 2026, her pick: 🔀 braid, the day's loose threads braided into her drives and goals, the way braided channels run together (her words: braid is a wonderful word … whatever it is it needs to be blue … let's go with the two arrows together). The heading over the actions reconciled, the steps due today, the calendar and the drives, leading her list.",
+  "milestone_after_days": 30,
   "movement_words": ["walk", "walked", "walking", "bike", "biked", "biking", "bicycle", "cycled", "cycling", "rode my bike", "yoga", "hike", "hiked", "swim", "swam", "barre"],
   "about_movement_words": "Only words that mean movement whatever the sentence: 'run' and 'running' read as running the checks on 6 Oct.",
   "note_practices": ["log", "journal", "highlight", "glimmer", "capture", "dream record", "text", "email"],
@@ -242,11 +276,25 @@
   "_about": "Her rule, 24 Aug 2026, and her words 9 Oct: when two things run at once, are they synergizing or competing? Four answers — synergizing (one plus one makes four), competing (one plus one makes one), both, neutral — and declining is always fine. The answer is a note, not a field: one line at the end of her words, 'overlap — synergizing with <key or title>'. be•do helps her notice: synergy, do more of that; competing, try them apart. Read from what she says about it first (27 Oct 2026, her words: I want the system to deduce synergy or competition from what I say about the event or action; it doesn't work to ask me about it after the fact), her own word, then the cues below. When her words don't say, it is asked in the moment, once, as she logs it — never a day late (her words: not that I never want to be asked, but when it's a day late I will have forgotten).",
   "answers": ["synergizing", "competing", "both", "neutral"],
   "note": "overlap — {answer} with {partner}",
+  "always": [
+   {"since": "4 Nov 2026", "why": "a journal or voice capture while moving or travelling is always synergy",
+    "pair": [["journal", "voice", "voice journal", "voice capture"], ["walking", "driving", "travel", "cycling", "workout", "strength training", "other movement"]]},
+   {"since": "21 Nov 2026", "why": "the morning movement and the morning sun together are always synergy",
+    "pair": [["morning movement"], ["morning sun"]]}
+  ],
+  "about_always": "Pairs that are synergy every time they share minutes: written 'synergizing' with no question asked, and her words cannot overturn it. Each pair is two lists of practice words; one practice from each list.",
   "her_words": {"synergizing": ["synergy", "synergiz", "synergis", "multiply", "complement"], "competing": ["competing", "compete", "competitive", "conflict", "fractured", "detract"]},
   "cues": {"synergizing": ["helped me", "made it better", "made it more", "even better", "even more", "better with", "went well with", "perfect for", "loved doing", "enjoyed doing", "so relaxing", "kept me going", "got through it", "made the time fly", "worked well"],
            "competing": ["distracted", "couldn't focus", "hard to focus", "couldn't concentrate", "half-listening", "half listening", "interrupted", "frustrat", "annoy", "rushed", "overwhelm", "pulled in", "too much at once", "got in the way", "neither well", "split my attention"]},
   "about_cues": "Phrases that say how two things went together without her naming synergy or competition. Her own word wins; both kinds of cue in one row read as both.",
   "say": {"synergizing": "synergy — do more of that", "competing": "competing — next time, try them apart", "both": "some of each — notice which part helped", "neutral": "they just sat side by side"}
+ },
+ "screen_time": {
+  "_about": "Her words, 21 Nov 2026: a maps app on a drive is very partial attention, glancing at it, eyes on the road. The daily screen time row keeps the phone's total in its title and splits it in her words into focused and partial; the partial is navigation while driving or riding.",
+  "practice": "screen time",
+  "navigation": "\\b(?:maps?|navigation|navigating|directions)\\b",
+  "split": "\\bpartial\\b",
+  "format": "focused <h m> · partial <h m>"
  },
  "needs": {
   "_about": "Her build note, Sun 18 Oct 2026: the week look behind shows Maslow's deficiency vs. growth needs, tied to the secure base. The eight wellness areas pair (heart and water, mind and air, body and earth, spirit and fire); two pairs are the deficiency needs Maslow names first, two are the growth needs, and from a secure base the deficiency side is met so the growth side can open. A settings key 'needs' with the same shape overrides this.",
@@ -315,6 +363,11 @@
   "drive_host": "drive.google.com",
   "drive_path": "/file/d/{id}/view",
   "screen_name": "^Screenshot_(\\d{8})-(\\d{6}).*\\.(jpe?g|png)$",
+ "screen_clips": {
+  "_about": "24 Nov 2026, her words: reread my screen clips from yesterday, assuming I took each of those for a good reason; they relate to an action; and: I have this to run every evening as part of the photos import, so there are photos and then screen clips and they serve different purposes. A screen clip has found its action when a row it is linked to is an action, an event, a batch check, or the thing she is watching, reading or listening to. A clip linked only to a log, a text or a capture, or to nothing, still points to an action.",
+  "home_practices": ["action", "calendar event", "screen time", "recorder check", "clear gmail inbox", "morning gate", "video", "podcast", "book", "morning book", "reading", "news", "shopping"],
+  "_home_practices": "With these, every check in garden.photo_skip_practices (the map check, the ring reads, the weather check …): a clip on one of them was the record of that check."
+ },
   "phone_name": "^PXL_(\\d{8})_(\\d{6})\\d*.*\\.(jpe?g|png)$"
  },
  "categorize": {

@@ -37,6 +37,22 @@ for _p in (_os.path.join(_HERE, '..', '..', '..', 'core'), _HERE):   # the core:
     sys.path.insert(0, _os.path.normpath(_p))
 import bedo_clock  # noqa: E402  the one clock: the offset from time_zone
 
+
+def live_names(summ, by_name):
+    """The settings' calendar names as Google has them now: a renamed calendar is found by its id and read under
+    its new name, with one line saying so (24 Nov 2026). Without the core beside it, the names stand as given."""
+    try:
+        import bedo_reader
+    except Exception:
+        return summ
+    out = {}
+    for x, name in summ.items():
+        now, note = bedo_reader.live_calendar(name, by_name)
+        if note:
+            print(note, file=sys.stderr)
+        out[x] = now or name
+    return out
+
 MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 DAY3 = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 # the event keys the builder reads, and what a saved result may be trimmed to
@@ -127,6 +143,7 @@ def plan(a, L):
     labs, summ = labels(L)
     start, end, off = window(L, dt.date.fromisoformat(a.today), a.days)
     ids = calendars_file(a.dir) or {}
+    summ = live_names(summ, ids) if ids else summ
     tz = L.get('time_zone')
     args = dict(startTime=start.isoformat() + off[0], endTime=end.isoformat() + off[1],
                 pageSize=250, orderBy='startTime')
@@ -170,6 +187,7 @@ def build(a, L):
     by_name = calendars_file(a.dir)
     if by_name is None:
         die(f'{a.dir}/calendars.json is missing — save list_calendars there; the ids are read from it every run, never from memory')
+    summ = live_names(summ, by_name)
     out_cals, lines = [], []
     read = {'window': f'{fmt_day(start)} – {fmt_day(end - dt.timedelta(days=1))}'}
     for x in labs:

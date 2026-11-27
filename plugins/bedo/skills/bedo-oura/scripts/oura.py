@@ -22,6 +22,7 @@ morning, per day
   sleep    the main sleep period (type long_sleep) ending that morning becomes a
            😴 sleep row, bedtime_start to bedtime_end. A sleep row already covering
            that night is kept; one with no end gets its end.
+  wake     😶 wake at that bedtime_end, ◉ done, unless that morning already has one.
   scores   readiness and its contributors (recovery index, HRV balance, resting heart
            rate, body temperature, sleep balance, previous night, previous day, activity
            balance), the sleep score with its stages, latency, HRV, resting heart rate,
@@ -33,6 +34,11 @@ evening, per day
            resilience; breathing and meditation moments; cardio age and VO2 max. On
            that day's 🪐 evening oura row, or a new ● log row when there is none.
   naps     a nap becomes a 😴 sleep row.
+the evening's close, with --dusk (24 Nov 2026, her words: I want the evening to close when I
+           fall asleep): the dusk close row, still ▶️ from the dusk Code run, takes the ring's
+           bedtime and is closed; with no close row, one is written there. The evening breaths
+           and blessing, done after her phone is down, are written from her pattern at the same
+           time when no row has them. She corrects.
 Every block it writes begins [be•do] From the Oura API. Run again, it replaces its own
 block when Oura's numbers have moved (an evening read at dusk is filled out next
 morning) and plans nothing when they have not.
@@ -50,7 +56,7 @@ CORE = ('sleep', 'daily_sleep', 'daily_readiness', 'daily_activity', 'daily_stre
 EXTRA = ('workout', 'session', 'daily_spo2', 'daily_resilience', 'daily_cardiovascular_age', 'vO2_max')
 DIVIDER = '———'
 MARK = '[be•do] From the Oura API'
-SLEEP, MORNING, EVENING = '😴 sleep', '🪐 morning oura', '🪐 evening oura'
+SLEEP, MORNING, EVENING, WAKE = '😴 sleep', '🪐 morning oura', '🪐 evening oura', '😶 wake'
 LOG, DONE = '● log', '◉ done'
 READINESS = (('recovery_index', 'recovery index'), ('hrv_balance', 'HRV balance'), ('resting_heart_rate', 'resting HR'),
              ('body_temperature', 'body temp'), ('sleep_balance', 'sleep balance'), ('previous_night', 'previous night'),
@@ -275,7 +281,7 @@ def merge(d, block):
     return d[:i] + block + (d[j:] if j >= 0 else '')
 
 
-def plan(O, stream_rows, days, F, off, mode='both', now=None):
+def plan(O, stream_rows, days, F, off, mode='both', now=None, dusk=None):
     """Rows to create and patches to make, in the stream's field ids. `off` is
     the settings (their time_zone gives each instant its own offset, so the
     night of the 1 Nov change reads bed and wake on their own clocks), or a
@@ -287,7 +293,7 @@ def plan(O, stream_rows, days, F, off, mode='both', now=None):
         c = r.get('cellValuesByFieldId') or r.get('fields') or {}
         v = lambda k: (c.get(F[k]) or {}).get('name') if isinstance(c.get(F[k]), dict) else c.get(F[k])  # noqa: E731
         rows.append(dict(id=r['id'], practice=v('practice') or '', when=v('when'), end=v('end'), details=v('details') or '',
-                         title=v('title') or ''))
+                         title=v('title') or '', status=v('status') or ''))
     create, patch, notes = [], [], list(O.get('_notes') or [])
 
     def nap(p):
@@ -320,6 +326,17 @@ def plan(O, stream_rows, days, F, off, mode='both', now=None):
             patch.append({'id': have[0]['id'], 'fields': {F['end']: zulu(b)}})
             notes.append(f"{p['day']}: sleep row {have[0]['id']} had no end; Oura gives {clock(b)}")
 
+    def wake_row(p, day):
+        """😶 wake at the night's bedtime end (24 Nov 2026: the pull wrote the sleep row, 12:36 to
+        6:10 AM, and no wake row). A wake row of hers that morning is kept as it is."""
+        b = iso(p['bedtime_end']).astimezone(tz)
+        if any(r['practice'] == WAKE and r['when'] and iso(r['when']).astimezone(tz).date() == day for r in rows):
+            return
+        new = {F['title']: WAKE, F['when']: zulu(b), F['status']: DONE, F['practice']: WAKE,
+               F['details']: f"{DIVIDER}\n{MARK}: out of bed {clock(b)}, the night's bedtime end."}
+        create.append(new)
+        rows.append(dict(id=None, practice=WAKE, when=new[F['when']], end=None, details='', title=WAKE, status=DONE))
+
     def onto(practice, day, lines, label, make):
         """The block onto that day's row of this practice, or a new row from make()."""
         block = f"{MARK}{label}:\n" + '\n'.join(lines)
@@ -334,12 +351,38 @@ def plan(O, stream_rows, days, F, off, mode='both', now=None):
             if new:
                 create.append(new)
 
+    def close_evening(p):
+        """The evening before this night closes when she fell asleep (24 Nov 2026)."""
+        a = iso(p['bedtime_start']).astimezone(tz)
+        near = lambda r, before: r['when'] and a - before <= iso(r['when']).astimezone(tz) <= a + dt.timedelta(hours=1)  # noqa: E731
+        when = f"asleep {clock(a)}"
+        mine = [r for r in rows if r['practice'] == dusk['close'] and near(r, dt.timedelta(hours=14))]
+        line = f"[be•do] closed at the ring's bedtime, {clock(a)}: the evening closes when she falls asleep."
+        if not mine:
+            create.append({F['title']: f"dusk flow close · {when}", F['when']: zulu(a), F['status']: DONE,
+                           F['practice']: dusk['close'], F['details']: f"{DIVIDER}\n{line}"})
+        elif mine[0]['status'] in dusk['open']:
+            r = mine[0]
+            d = r['details'] if line in r['details'] else (r['details'] + '\n' + line if DIVIDER in r['details']
+                                                          else (r['details'] + '\n' if r['details'] else '') + f"{DIVIDER}\n{line}")
+            patch.append({'id': r['id'], 'fields': {F['when']: zulu(a), F['status']: DONE, F['details']: d}})
+        for practice in dusk['pattern']:
+            if any(r['practice'] == practice and near(r, dt.timedelta(hours=6)) for r in rows):
+                continue
+            create.append({F['title']: practice.split(' ', 1)[-1], F['when']: zulu(a), F['status']: DONE,
+                           F['practice']: practice,
+                           F['details']: f"{DIVIDER}\n[be•do] written from her pattern: with her son, after the phone "
+                                         f"was down, just before she fell asleep ({clock(a)}, the ring's bedtime). She corrects."})
+
     for day in days:
         ds = day.isoformat()
         if mode in ('morning', 'both'):
             main = night(O, ds)
             if main:
                 sleep_row(main, f"😴 sleep, night before {day:%a %d %b}", dt.timedelta(hours=3))
+                wake_row(main, day)
+                if dusk:
+                    close_evening(main)
             ml = morning_lines(O, ds)
             if not ml:
                 notes.append(f'{ds} morning: Oura holds nothing yet — open the Oura app so the ring syncs')
@@ -363,6 +406,17 @@ def plan(O, stream_rows, days, F, off, mode='both', now=None):
     return dict(create=create, patch=patch, notes=notes)
 
 
+def dusk_spec():
+    """The dusk close, its open statuses and the pattern steps, from facts.json beside
+    this script or in the core (facts flows.close_at_sleep, flows.from_pattern)."""
+    for p in (os.path.join(_HERE, 'facts.json'), os.path.join(_HERE, '..', '..', '..', 'core', 'facts.json')):
+        if os.path.exists(p):
+            fl = json.load(open(p, encoding='utf-8'))['flows']
+            return dict(close=fl['close']['dusk'], open=('▶️ in motion', '⬜ intention'),
+                        pattern=fl.get('from_pattern', {}).get('dusk', []))
+    raise SystemExit('facts.json not found beside oura.py or in the core')
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--mode', choices=('morning', 'evening', 'both'), default='both')
@@ -372,6 +426,7 @@ def main():
     ap.add_argument('--stream', action='append', required=True, help='live base first')
     ap.add_argument('--oura', help='a saved fetch; without it, the API is read')
     ap.add_argument('--out', default='oura-plan.json')
+    ap.add_argument('--dusk', action='store_true', help="morning: close the evening before at the ring's bedtime")
     a = ap.parse_args()
     L = json.load(open(a.local, encoding='utf-8'))
     S = L['fields']['stream']
@@ -388,7 +443,7 @@ def main():
                 seen.add(r['id'])
                 recs.append(r)
     days = [start + dt.timedelta(days=i) for i in range((end - start).days + 1)]
-    P = plan(O, recs, days, F, L, a.mode)
+    P = plan(O, recs, days, F, L, a.mode, dusk=dusk_spec() if a.dusk else None)
     json.dump(P, open(a.out, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print(json.dumps({'create': len(P['create']), 'patch': len(P['patch']), 'notes': P['notes'], 'out': a.out},
                      ensure_ascii=False, indent=1))

@@ -25,8 +25,9 @@ def entry(status='✅ done', chat=URL, created='2026-10-25T17:12:10.000Z', detai
             'details': details + '\n\nstill open\n· none\n———\n[be•do] written by session-entry'}
 
 
-def close_row(marker=True):
-    d = '———\n[be•do] closed.\n' + ('dayqa shown 2026-10-24 22:49 · 3 proposed' if marker else '')
+def close_row(marker=True, calsync=True):
+    d = '———\n[be•do] closed.\n' + ('dayqa shown 2026-10-24 22:49 · 3 proposed\n' if marker else '') + \
+        ('calsync done 2026-10-24 · 2 changed' if calsync else '')
     return {'id': 'recC', 'created': '2026-10-25T14:56:33.000Z', 'practice': '🌄 dusk flow close',
             'status': '◉ done', 'datetime': '2026-10-25T04:59:00.000Z', 'details': d}
 
@@ -74,6 +75,21 @@ class MyDay(unittest.TestCase):
         self.assertFalse(ok)
         self.assertIn('dayqa 2026-10-24', why)
 
+    def test_no_calsync_marker_holds_the_close(self):
+        # 19 Nov 2026: the 16 and 17 Nov dusk closes passed without calsync, and her calendar fell behind
+        ok, what, why = C.findings([close_row(calsync=False), entry()], URL, self.TITLE, DAY, LOCAL)[0]
+        self.assertFalse(ok)
+        self.assertIn('calsync 2026-10-24', why)
+        self.assertNotIn('dayqa 2026-10-24', why)
+
+    def test_both_markers_missing_names_both_in_order(self):
+        why = C.findings([close_row(marker=False, calsync=False), entry()], URL, self.TITLE, DAY, LOCAL)[0][2]
+        self.assertLess(why.index('dayqa'), why.index('calsync'))
+
+    def test_a_calsync_marker_for_another_day_is_not_this_days(self):
+        r = close_row(); r['details'] = r['details'].replace('calsync done 2026-10-24', 'calsync done 2026-10-23')
+        self.assertFalse(C.findings([r, entry()], URL, self.TITLE, DAY, LOCAL)[0][0])
+
     def test_a_marker_for_another_day_is_not_this_days_qa(self):
         r = close_row(); r['details'] = r['details'].replace('2026-10-24', '2026-10-23')
         self.assertFalse(C.findings([r, entry()], URL, self.TITLE, DAY, LOCAL)[0][0])
@@ -119,6 +135,14 @@ class DriveChat(unittest.TestCase):
         old = entry(status='▶️ in motion', created='2026-10-24T12:00:00.000Z')
         found = C.findings([old, entry()], URL, '☑️ x', None, LOCAL)
         self.assertIn('✅ done', found[1][2])
+
+    def test_a_branch_or_a_drive_code_is_not_a_window_whatever_its_words(self):
+        # 21 Nov 2026: a branch of the my day was told “a window chat wants ✔️”; 9 Nov, a drive chat the same
+        for t in ('☑️↳1120.1 🏆 Fri 👁️ my day page', '☑️𖡎 My week page · be•do D6.79'):
+            self.assertFalse(C.is_window(t), t)
+            self.assertEqual(C.wanted_glyphs(t, '✅ done'), ['☑️'], t)
+        for t in ('✔️🔆1024 ⏳ Sat W43 my day', '▶️ my week w47'):
+            self.assertTrue(C.is_window(t), t)
 
     def test_render_names_what_is_left_in_order(self):
         text = C.render('t', C.findings([], URL, '▶️ t', None, LOCAL))
@@ -183,6 +207,33 @@ class Objective(unittest.TestCase):
         self.assertIn('objective', why)
 
 
+class PageFixes(unittest.TestCase):
+    """A fix lands in the stream or the build, never only on the page (23 Nov 2026)."""
+    PG = 'https://claude.ai/' + 'artifact/' + 'X' * 9          # an obvious invention, built here so no link is in the file
+    REC = 'rec' + 'X' * 14
+
+    def test_a_session_with_no_page_owes_nothing(self):
+        self.assertIsNone(C.page_qa(entry()))
+
+    def test_a_page_without_the_line_is_owed(self):
+        e = entry(); e['deliverable'] = self.PG
+        ok, _, why = C.findings([e], URL, '☑️ x', None, LOCAL)[0]
+        self.assertFalse(ok)
+        self.assertIn('published a page', why)
+
+    def test_built_as_is_settles_it(self):
+        e = entry(details=MET + '\n· page: built from the stream and main'); e['deliverable'] = self.PG
+        self.assertTrue(C.findings([e], URL, '☑️ x', None, LOCAL)[0][0])
+
+    def test_a_fix_names_where_it_lives(self):
+        for line in ('· page: fix in the stream, ' + self.REC, '· page: fix in the build, 36f7fa48',
+                     '· page: fix in the build, https://github.com/someone/somerepo/commit/36f7fa4'):
+            e = entry(details=MET + '\n' + line); e['deliverable'] = self.PG
+            self.assertIsNone(C.page_qa(e), line)
+        e = entry(details=MET + '\n· page: fixed the hour by hand'); e['deliverable'] = self.PG
+        self.assertIsNotNone(C.page_qa(e))
+
+
 class PullRequestPrivacy(unittest.TestCase):
     """A session with a pull request says its text passed the privacy check (12 Nov 2026)."""
     PR = 'https://github.com/someone/somerepo/pull/7'
@@ -231,6 +282,33 @@ class Stretches(unittest.TestCase):
         self.assertFalse(ok)
         self.assertIn('not the sum of her stretches, 25m', why)
 
+
+
+class Branches(unittest.TestCase):
+    """A my day chat's day closes only when every branch of it wrote its entry and closed (18 Nov 2026)."""
+    TITLE = '✔️🔆1024 ⏳ Sat W43 my day'
+    MORNING = dt.datetime(2026, 10, 25, 8, 0)
+
+    def sessions(self, *pairs):
+        return C.session_list([{'ccr': {'data': [{'id': i, 'title': t} for i, t in pairs]}}])
+
+    def test_a_branch_left_open_with_no_entry_holds_the_close(self):
+        s = self.sessions(('session_01B1', '☑️↳1024.1 ⏳ Sat 🗞️ morning gate'), ('session_01B2', '▶️↳1024.2 ⏳ Sat 🗺️ a map'))
+        rows = [close_row(), entry(), entry(chat='https://claude.ai/code/session_01B1')]
+        found = C.findings(rows, URL, self.TITLE, DAY, LOCAL, self.MORNING, s)
+        br = [f for f in found if f[1] == 'branches'][0]
+        self.assertFalse(br[0]); self.assertIn('1024.2', br[2]); self.assertIn('session entry', br[2])
+        self.assertNotIn('1024.1', br[2])
+
+    def test_every_branch_closed_with_its_entry_passes(self):
+        s = self.sessions(('session_01B1', '☑️↳1024.1 ⏳ Sat 🗞️ morning gate'), ('session_01B3', '⏯️↳1024.3 ⏳ Sat 📅 a close carried on'), ('session_01X', '▶️↳1025.1 ⏳ Sun another day'))
+        rows = [close_row(), entry(), entry(chat='https://claude.ai/code/session_01B1'), entry(chat='https://claude.ai/code/session_01B3')]
+        found = C.findings(rows, URL, self.TITLE, DAY, LOCAL, self.MORNING, s)
+        self.assertTrue(all(ok for ok, _, _ in found), found)
+
+    def test_without_the_list_it_says_so(self):
+        found = C.findings([close_row(), entry()], URL, self.TITLE, DAY, LOCAL, self.MORNING, 'missing')
+        self.assertFalse([f for f in found if f[1] == 'branches'][0][0])
 
 if __name__ == '__main__':
     unittest.main()

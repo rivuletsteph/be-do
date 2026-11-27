@@ -124,6 +124,7 @@ what I did
 · [3–6 bullets, first person, past tense, her voice not yours]
 · [each one a thing that actually got finished or moved]
 · privacy: outgoing ok                                          ← only when the session opened or edited a PR
+· page: built from the stream and main                         ← only when the session published a page
 
 still open
 · [one line each, or: none]
@@ -149,6 +150,15 @@ prompt, or the one the chat worked toward when none was set — is the first lin
 of `what I did`, outside a window chat: met, partly met, or not, and why, in
 one line (`close` checks it). Work not met names its next step under
 `still open`.
+
+**A session that published a page** says where the page stands (23 Nov 2026,
+her words: fixes land in the stream and the stable build, not only on the page
+I'm looking at). A page is the stream drawn by the build on `main`, nothing
+else. Built as is: `· page: built from the stream and main`. Something on it
+was fixed: the fix went into the row (`· page: fix in the stream, rec…`) or the
+build (`· page: fix in the build, <pull request or commit>`), the page was
+rebuilt from them, and the line names where. `close` won't pass a page session
+without one of these. A page is never edited by hand.
 
 **A session that opened or edited a pull request** ran `outgoing` (bedo-checks)
 on the PR's exact title and description, its commits and its branch before it

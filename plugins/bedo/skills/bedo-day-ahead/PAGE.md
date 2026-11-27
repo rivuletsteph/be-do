@@ -143,7 +143,7 @@ the most of the other; and *choose for me, based on my readiness and how caught 
 `scripts/flow.py` builds it from the built day-ahead page, the reads beside the settings,
 and the week's day behinds (`--behind`, a folder; the runner passes `behind/` in the
 working folder when it exists). **It is the day's my day page** (since 2 Nov 2026), titled
-with the day's my day name, built by every `build` and published to `page.url`.
+with the day's my day name, built by every `build` and published to `page.standing` (to `page.url` once, at the dusk close's last rebuild).
 
 1. **Base flow** — the morning card, drawn as water through the last seven mornings. Three
    parts, 0–100, in equal shares: **body** (that morning's readiness, the
@@ -228,6 +228,16 @@ A tap on a line drops to its card on the timeline. The timeline opens on those l
 folded to a sliver, and *show the whole day* expands it to every row; a day still going folds only the routine, as
 before. These are the day's progressive summary, the candidates for the week's own.
 
+**be•do works out which moments were meaningful** (23 Nov 2026, her words: I would rather just be able to verbally
+say what was meaningful as kind of a closing out my day. Or, maybe the following day actually is when I'm more likely to
+say what was really salient; and that night: I didn't want to actually have to say a moment was meaningful, I want the
+system to figure that out). A finished day's top list leads with her ⭐ highlights and, beside them in the order they
+happened, any other moment marked meaningful, whatever its kind: an insight, a journal, an action. The mark is one line
+in the row's `[be•do]` block, `meaningful: <the reason>`, written by be•do from her own words (J17), never asked of her
+(`marked_meaningful` in `flow.py`). A marked moment is never capped off the list, is gold on the timeline, and counts
+with her highlights among the day's lines. A row's kind alone never puts it there: an insight is not meaningful because
+it is an insight. A day already final is rebuilt when a moment is marked the next day.
+
 **A highlight lands when it happened, not when it was told** (11 Nov 2026, her words: the highlights should get tagged
 like when they actually happened in the day, not necessarily when I specified what they were at the end of the day). A
 ⭐ or 🌟 row told at night is matched to the earlier card it names by its rarest words (a name on half the day's cards
@@ -249,6 +259,18 @@ its drive and the rhythm above it; a tap goes to that node in *How things flow* 
 whatever `LB_LOCAL` says; `LB_LOCAL` and the skill's own file are only the fallback when Airtable can't be read. A run
 that pointed `LB_LOCAL` at the installed file skipped the row and built a whole day without its wellness, device, photo
 and calendar settings, all of which the row had.
+
+**A holiday or a full day is a light day** (26 Nov 2026, her words: *I'm seeing a lot of unresolved tasks that I really
+don't need to see today … it seems totally disconnected from the fact that today is a full holiday*). The build marks
+the day `light` when it is a holiday (`--holiday`, a date in her settings' `holidays`, the days most places close by
+rule: New Year's, Memorial Day, the Fourth, Labor Day, Thanksgiving and the day after, Christmas; or an all-day event of
+hers named for one) or a full day by `full_day_hours` / `full_day_events`. A light day leaves off every open step not
+due that day: *every step, by rhythm*, the flow, the easiest next steps under *not on today's calendar*, and be•do's
+three unless she picked them. What is set for a time today stays.
+
+**NOW and NEXT lead whenever there is a `--plan`**, at any hour and on any day not yet over. **Could go together closes
+the page** (her words: *it needs to go down at the bottom*), below everything but the download button, on the phone and
+the computer alike.
 
 ## Saturday and Sunday have their own shape
 

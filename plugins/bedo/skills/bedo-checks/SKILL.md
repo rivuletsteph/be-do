@@ -28,11 +28,17 @@ it runs one, so nothing has to be remembered.
 
 | when | command | what it is for |
 |---|---|---|
+| a Code session's first reply (`preflight` prints it) | `asks` | Duet's asks for Code, read from the stream; take each, oldest first |
+| look ahead; inbox | `groups` | open actions grouped |
+| every day, scheduled | `fold` | the daily amendment fold |
+| every write where code runs | `apply ops.json` | code writes the rows |
+| `run dusk`, `run braid`, `run morning` | `daysteps` | the day's Code steps |
 | before any stream write | `entry row.json --chat MMDD` | write only rows that print `ok`; fix every `FIX` first |
 | before every push, and before a pull request is opened or its text edited | `outgoing --title "TITLE" --text pr.md` | open or push only on `0 hit(s)`, with exactly the text it checked; a hit is rewritten, never pasted anywhere public |
 | before the dusk close row | `dusk [--photos folder.json]` | the one-pass dusk list, and the day's photos |
-| the dusk close, before its close row | `dayqa YYYY-MM-DD` | be•do's own calls on the day first, then one list for her to accept |
-| the dusk close, once the day's rows are written | `calsync YYYY-MM-DD` | the calendar mirrors the stream: the done marks |
+| the dusk close, before `dayqa` | `sweep YYYY-MM-DD` | the day's rows through `entry` |
+| the dusk close, before its close row: the 🔀 braid | `dayqa YYYY-MM-DD` | be•do's own calls first, then one list for her to accept |
+| the dusk close, once the day's rows are written | `calsync YYYY-MM-DD` | the calendar mirrors the stream: the done marks. Its marker line goes in the dusk close row, and a my day chat's `close` waits for it |
 | the dusk close after `dayqa`, the weekly close, and on call | `chats --sessions mine.json` | the chat sweep: every open chat against its objective and its row |
 | the meals alone | `meals --json` | each meal's prep and eating, placed from context |
 | a session entry | `stretches FILE --day YYYY-MM-DD --json` | the session's time, from her own stretches |
@@ -42,25 +48,24 @@ it runs one, so nothing has to be remembered.
 | the weekly close | `order --json` | her predicted flow order, written to the catalog |
 | every calendar write, before calling it done | `calendar event.json`, then again with `--readback` | the calendar named, the write read back, work in purple |
 | the 📧 clear gmail inbox, before anything is archived | `inbox threads.json --archive planned.json` | her automatic keeps are never archived |
-| the end of every chat: she says *let's end the session*, or plainly that she's done | `close --chat URL --title "TITLE"` | QA, then the session entry, then the rename; the chat is done when it prints `closed` |
-| only if she asks for a Day Behind by name | `daygate YYYY-MM-DD` | the day behind is retired (8 Nov 2026); nothing routine runs this |
+| the end of every chat: she says *let's end the session*, or plainly that she's done | `close --chat URL --title "TITLE"` (a my day chat: `--date` and `--sessions`) | QA, then the session entry, then the rename; a my day chat also waits for every branch of its day to write its entry and close; the chat is done when it prints `closed` |
+| only if she asks for a Day Behind | `daygate YYYY-MM-DD` | retired 8 Nov 2026 |
 
 ## Running it
 
 ```
-bash run_checks.sh judgment                  # the judgment file, every chat's first reply
-bash run_checks.sh how dayqa                 # a command's notes, before its first run in a chat
-bash run_checks.sh preflight                 # my day; --part B when the day already has a chat
-bash run_checks.sh preflight --kind week --week 40
+bash run_checks.sh judgment                  # every chat's first reply
+bash run_checks.sh how dayqa                 # a command's notes
+bash run_checks.sh preflight                 # my day
 bash run_checks.sh preflight --kind branch --n 4 --what "👁️ my day page"   # a branch chat: its numbered title, the clock, the base
-bash run_checks.sh remaining                 # the open flow as one code line; --flow dawn|dusk to name one
-bash run_checks.sh dusk                      # today; --date YYYY-MM-DD for another day
-bash run_checks.sh meals                     # the day's meals: prep and eating, placed from context
-bash run_checks.sh dayqa 2026-10-09          # the day's QA: one list to accept, at the dusk close
+bash run_checks.sh remaining                 # --flow dawn|dusk to name one
+bash run_checks.sh dusk                      # --date for another day
+bash run_checks.sh meals                     # the day's meals, placed from context
+bash run_checks.sh dayqa 2026-10-09          # the day's QA, at the dusk close
 bash run_checks.sh entry row.json --base "w41 be•do" --chat 1008
 bash run_checks.sh stretches transcript.jsonl --day 2026-10-24 --json
 bash run_checks.sh outgoing --title "The my week page opens quiet" --text pr.md   # before the push and the PR
-bash run_checks.sh cleanup                   # the weekly drive cleanup, after the split
+bash run_checks.sh cleanup                   # after the split
 bash run_checks.sh close --chat https://claude.ai/code/session_… --title "▶️1024 … my day" --date 2026-10-24   # at its dusk close a my day chat keeps ▶️; ✔️ is the next morning's
 ```
 

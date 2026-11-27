@@ -140,6 +140,23 @@ class Stretches(unittest.TestCase):
         # the old count, every turn: one 3:20–5:00 block
         self.assertEqual(ST.minutes(ST.stretches([l['timestamp'] for l in lines])), 100)
 
+    def test_a_message_sent_while_claude_works_is_hers(self):
+        # 23 Nov 2026: she wrote at 10:45, 10:58 and 11:01 PM; the last two arrived while Claude was
+        # mid-turn, so the transcript kept them as queued commands, and the session read as 0 minutes
+        lines = [
+            {'type': 'user', 'timestamp': z('2026-11-23 22:45'), 'origin': {'kind': 'human'},
+             'message': {'role': 'user', 'content': 'a message'}},
+            {'type': 'attachment', 'timestamp': z('2026-11-23 22:58'),
+             'attachment': {'type': 'queued_command', 'prompt': 'again', 'origin': {'kind': 'human'}, 'humanTurn': True}},
+            {'type': 'attachment', 'timestamp': z('2026-11-23 23:01'),
+             'attachment': {'type': 'queued_command', 'prompt': 'one more', 'origin': {'kind': 'human'}, 'humanTurn': True}},
+            {'type': 'attachment', 'timestamp': z('2026-11-23 23:20'),       # an agent's notice, queued the same way
+             'attachment': {'type': 'queued_command', 'prompt': '<task-notification>', 'origin': {'kind': 'task-notification'}}},
+            {'type': 'attachment', 'timestamp': z('2026-11-23 23:30'), 'attachment': {'type': 'file', 'name': 'a.png'}},
+            {'type': 'assistant', 'timestamp': z('2026-11-23 23:40')},
+        ]
+        self.assertEqual(ST.named(ST.stretches(ST.times_from(lines)), -5), '10:45–11:01 = 16m')
+
     def test_a_cloud_sessions_event_read_counts_her_turns(self):
         # list_events, saved as the tool gave it: wrapper text around {"ccr": {"data": […]}}
         ev = {'ccr': {'data': [
@@ -423,6 +440,61 @@ class Remaining(unittest.TestCase):
         self.assertEqual(got['🫖 evening tea'], '20:40')
         self.assertEqual(got['😶 wake'], 'wake+0')
 
+    def test_the_order_is_which_came_first_not_one_slow_morning(self):
+        # 20 Nov: her mornings, not a median. Movement before coffee on most
+        # mornings; one slow morning with coffee hours late must not flip it.
+        cat = [step('😶 wake', 'dawn', None), step('☕ coffee', 'dawn', 6),
+               step('🤸🏻‍♀️ morning movement', 'dawn', 4), step('📗 morning book', 'dawn', 12)]
+        rows = []
+        for d, mv, cf, bk in (('2026-11-16', '06:10', '06:20', '07:00'), ('2026-11-17', '06:10', '06:20', '07:00'),
+                              ('2026-11-18', '06:05', '09:30', '09:00')):
+            rows += [row('😶 wake', f'{d} 06:00', status=DONE_LOG), row('🤸🏻‍♀️ morning movement', f'{d} {mv}', status=DONE_LOG),
+                     row('☕ coffee', f'{d} {cf}', status=DONE_LOG), row('📗 morning book', f'{d} {bk}', status=DONE_LOG)]
+        got = {s['practice']: RL.typical_minutes(v) for s, v, _ in O.typical(rows, cat, LOCAL)}
+        self.assertLess(got['🤸🏻‍♀️ morning movement'], got['☕ coffee'])
+        self.assertLess(got['☕ coffee'], got['📗 morning book'])     # two mornings to one: book after coffee
+        self.assertEqual(got['😶 wake'], 0)
+
+    def test_a_catch_up_never_counts_as_later(self):
+        # 18 Nov: six rows logged at 11:52 at once. They were done by then, not then.
+        m = {'a': 10, 'b': 300, 'c': 301, 'd': 301, 'e': 120}
+        self.assertEqual(O.catch_up(m), {'b', 'c', 'd'})
+        w = O.before({dt.date(2026, 11, 18): m})
+        self.assertNotIn(('e', 'b'), w)                               # e at 120 says nothing about b
+        self.assertNotIn(('b', 'e'), w)                               # nor b before e: b's 300 is after
+        self.assertEqual(w[('a', 'e')], 1)
+        self.assertIn(('e', 'b'), O.before({dt.date(2026, 11, 18): {'a': 10, 'b': 300, 'e': 120}}))
+
+    def test_the_latest_mornings_count_most(self):
+        old = {dt.date(2026, 11, 1) + dt.timedelta(days=i): {'x': 10, 'y': 20} for i in range(3)}
+        new = {dt.date(2026, 11, 19) + dt.timedelta(days=i): {'x': 30, 'y': 20} for i in range(2)}
+        self.assertEqual(O.rank(['x', 'y'], O.before({**old, **new})), ['y', 'x'])
+        self.assertEqual(O.rank(['x', 'y'], O.before({**old, **new}, half_life=1000)), ['x', 'y'])
+
+    def test_the_minutes_follow_the_order(self):
+        self.assertEqual(O.fit([10, 40, 30, 50]), [10, 35, 36, 50])
+        self.assertEqual(O.fit([5, 5, 5]), [5, 6, 7])
+
+    def test_dream_first_bm_only_if_missing_gate_covers_weather(self):
+        # 20 Nov 2026, her words: asked about the dream first; the BM only if I
+        # don't log it; ideally the weather is covered by the morning gate.
+        cat = [step(n, 'dawn', o) for n, o in (('🗞️ morning gate', 1.5), ('💭 dream record', 1), ('🚽 bm', 14),
+                                                ('🪐 sleep readout', 7),
+                                                ('🌦️ weather check', 9), ('☕ coffee', 6), ('🌅 dawn flow close', 16))]
+        steps = RL.flow_steps(cat, 'dawn')
+        self.assertEqual([s['practice'] for s in steps][:3], ['💭 dream record', '🪐 sleep readout', '🗞️ morning gate'])
+        wake = [row('😶 wake', '2026-11-21 05:00', status=DONE_LOG)]
+        line = RL.render('dawn', steps, wake)
+        self.assertIn('0 of 7 · 💭 dream record · 🪐 sleep readout · 🗞️ morning gate', line)
+        self.assertNotIn('🚽', line)                                   # not asked while the flow runs
+        day = wake + [row(p, '2026-11-21 06:00', status=DONE_LOG) for p in ('💭 dream record', '🪐 sleep readout', '🗞️ morning gate', '☕ coffee')]
+        line = RL.render('dawn', steps, day)
+        self.assertNotIn('weather', line)                              # the gate covered it
+        self.assertIn('🚽 bm · 🌅 dawn flow close', line)              # all else done: asked, once, before the close
+        self.assertIn('5 of 7', line)
+        day.append(row('🚽 bm', '2026-11-21 06:30', status=DONE_LOG))
+        self.assertNotIn('🚽', RL.render('dawn', steps, day))
+
     def test_the_catalog_read_must_be_complete(self):
         src = {'records': [{'id': 'r1', 'createdTime': 'x', 'fields': {'practice': '☕ coffee'}}],
                'metadata': {'totalRecordCount': 2}}
@@ -617,7 +689,7 @@ class DuskAudit(unittest.TestCase):
         steps = RL.flow_steps(CAT, 'dusk')
         rows = [row('🫖 evening tea', '2026-10-02 20:00', status=DONE_LOG, person='x')]
         f = audit(rows, steps=steps)['findings']
-        self.assertEqual(f['gate'], ['🌬️ evening breaths', 'a quest day'])
+        self.assertEqual(f['gate'], ['a quest day'])      # breaths: written next morning from her pattern (24 Nov 2026)
 
     def test_for_my_day_lists_are_read_from_the_rows(self):
         d = 'her words\n———\n[be•do] did a thing.\nfor my day: attention · drive'

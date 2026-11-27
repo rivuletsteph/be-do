@@ -17,7 +17,7 @@ Airtable connector in one call each.
 
 ## When
 
-- **🪐 morning oura**, in the dawn flow: `run_oura.sh morning <today>`.
+- **🪐 morning oura**, in the dawn flow: `run_oura.sh morning <today>`. It also closes the evening before at the ring's bedtime (24 Nov 2026, her words: I want the evening to close when I fall asleep), and writes 🌬️ evening breaths and 🌌 evening blessing from her pattern there when no row has them.
 - **🪐 evening oura**, in the dusk flow: `run_oura.sh evening <today>`.
 - **Catch-up**: a day whose flow step was missed, or was run from the phone,
   where the script can't run: `run_oura.sh both <day> [<last day>]`. The morning
@@ -32,6 +32,8 @@ choose.
 - **sleep**: the main sleep period ending that morning (Oura's `long_sleep`)
   becomes a 😴 sleep row, in bed to out of bed. A sleep row already there for
   that night is kept, and one with no end gets its end.
+- **wake**: a 😶 wake row, ◉ done, at that night's out-of-bed time, unless that
+  morning already has one (24 Nov 2026: the pull wrote the sleep row and no wake).
 - **recovery**: readiness and each of its contributors (recovery index, HRV
   balance, resting HR, body temp, sleep balance, previous night, previous day,
   activity balance) and the temperature deviation.
@@ -107,9 +109,20 @@ before anything else happens. A 401 means the sign-in has ended: run
 2026). The Default environment carries a Bearer network secret for `api.ouraring.com`,
 and the proxy attaches it, so the script sends no sign-in there. That key doesn't
 renew. About monthly, on the laptop, run `python scripts/oura_auth.py --cloud`. It
-renews now, puts the key on the clipboard (never the screen), and says the date the
-next paste is due. Then paste it over the secret's Value in the environment settings.
-A cloud run that gets a 401 says to do this.
+renews now and says the date the next paste is due. Then, in the Claude app: the ⌄ by
+the chat title → the settings icon by Default → Network secrets → api.ouraring.com →
+Replace secret, with Header `Authorization`, **Prefix `Bearer`**, and the key as the
+Value. Without the prefix Oura answers 401. The form a chat opens can only add a secret,
+not replace one, so the renewal always goes through these settings. A cloud run that
+gets a 401 says to do this.
+
+**How the key is handed over.** On Windows and macOS it goes on the clipboard, never
+the screen. On a Chromebook (Linux, also called Crostini) the Linux clipboard never
+reaches Chrome, so the script shows the key on screen, waits for Enter, then wipes the
+screen and its scrollback (23 Nov 2026). Oura's own Copy button for the Client Secret
+can copy nothing. If the sign-in says `invalid_client`, press Reset Secret, select the
+new secret with the mouse, and sign in again. The script now says how many characters
+it got.
 
 An unreachable host or a refusal on a core endpoint aborts. It never plans from a
 partial read. A refusal on an extra (workouts, sessions, SpO2, resilience, cardio

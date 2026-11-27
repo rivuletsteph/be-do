@@ -3,7 +3,7 @@ name: "bedo-week-look-behind"
 description: "Build the be•do WEEK look behind — Sunday to Saturday, by drive: time, what closed, what is still open, drives nested through feeds. Use when the user asks for the week look behind or the weekly review page."
 ---
 
-**Retired 8 Nov 2026** (her words: all I want to see moving forward is my day). Kept, like the Day Behind, for a later pass. Build it only when she asks for it by name; the weekly close does not build it.
+**Retired 8 Nov 2026** (her words: all I want to see moving forward is my day). Kept, like the Day Behind, for a later pass. **Back in the weekly close, 22 Nov 2026** (her amendment: every weekly close builds the week look behind page and posts its link before asking for the reflection, so I can reflect from the page). The close builds it at its step 4, and she can ask for it by name any time.
 
 
 # The week look behind — first cut: by drive

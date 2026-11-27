@@ -251,3 +251,12 @@ def today_link(rows, today, local, living=''):
         if u and u != living:
             url = u
     return dict(url=url, row=row)
+
+
+def page_links(rows, today, local, living=''):
+    """Where the day's page is published: the day's own link and its look ahead
+    row (`today_link`), and `standing`, the link that never changes (the old
+    living page, which her browser opens at start). Every build publishes only to
+    the standing link (her words, 20 Nov 2026: I only want to check one page); the
+    day's own link is published once, at the dusk close's last rebuild. None when the settings name no standing link."""
+    return dict(today_link(rows, today, local, living), standing=living or None)
