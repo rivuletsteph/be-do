@@ -134,6 +134,64 @@ class DueToday(unittest.TestCase):
         self.assertEqual(items[0]['patch']['fields']['end'], z(18))
 
 
+EV = '———\n[be•do] From the calendar at the look ahead, two weeks out: Weekly Meeting, Tue 10:00am.'
+
+
+class AlreadyHappened(unittest.TestCase):
+    """26 Nov 2026, her words: there's a lot of things on my list that already happened, like the microwave install
+    and the weekly meeting. A row saying a thing was put in closes it, and a calendared step whose day passed
+    with no braid is closed, written then told. Names invented."""
+    def test_installed_on_a_log_closes_the_install_step(self):
+        step = row('recInst', title='⚡ Dishwasher install, Tue — pay the installer', status='⬜ intention',
+                   practice='⚡ action', datetime=z(9, 0, dt.date(2026, 11, 12)), target=z(12, 0, dt.date(2026, 11, 18)))
+        did = row('recDid', title='new dishwasher installed (the shop)', datetime=z(14, 10))
+        echo = row('recEcho', title='📝 up and down, unlogged — new dishwasher installed (estimated)', datetime=z(18))
+        glim = row('recHi', title='getting outside, and the dishwasher installed', practice='⭐ highlight', datetime=z(19))
+        more = [row(f'recD{i}', title=f'dishwasher note {i}', practice='⚡ action', status='⬜ intention') for i in range(1)]
+        items = Q.reconcile([did, echo, glim], [step] + more, OFF)
+        self.assertEqual([i['patch']['id'] for i in items], ['recInst'])
+
+    def test_many_open_steps_about_one_thing_still_close(self):
+        did = row('recDid', title='new dishwasher installed (the shop)', datetime=z(14, 10))
+        steps = [row(f'recS{i}', title=t, status='⬜ intention', practice='⚡ action', datetime=z(9, 0, dt.date(2026, 11, 12)))
+                 for i, t in enumerate(['⚡ Dishwasher install, Tue', '⚡ Get the dishwasher installed at home',
+                                        '⚡ Dishwasher installed', '⚡ the dishwasher: install day'])]
+        self.assertEqual(len(Q.reconcile([did], steps, OFF)), 4)
+
+    def test_an_estimate_is_never_evidence_and_an_older_step_is_asked(self):
+        echo = row('recEcho', title='📝 up and down — new dishwasher installed (estimated)', datetime=z(18))
+        step = row('recS', title='⚡ Get the dishwasher installed', status='⬜ intention', practice='⚡ action',
+                   datetime=z(9, 0, dt.date(2026, 11, 12)))
+        self.assertEqual(Q.reconcile([echo], [step], OFF), [])
+        car = row('recCar', title='⚡ the car: get it running again, the check engine light', status='⬜ intention',
+                  practice='⚡ action', datetime=z(9, 0, dt.date(2026, 11, 10)))
+        ok = row('recOk', title='car at the shop: approve the cheapest fix for the check engine light', status='✅ done',
+                 practice='⚡ action', datetime=z(14))
+        items = Q.reconcile([ok], [car], OFF)
+        self.assertEqual(len(items), 1)
+        self.assertFalse(items[0].get('tell'))       # proposed, not written: approving isn't running again
+
+    def test_a_calendared_step_from_an_earlier_day_is_closed_and_told(self):
+        link = 'https://calendar.example.invalid/event?eid=wkMtg'
+        mtg = dict(LEAVE, id='recMtg', rhythm=None, title='Weekly Meeting', calendar_event=link,
+                   target=z(10, 0, dt.date(2026, 11, 17)), details=EV)
+        items = Q.due([], [mtg], OFF, DAY)
+        self.assertEqual(len(items), 1)
+        self.assertTrue(items[0]['tell'])
+        self.assertEqual(items[0]['patch']['fields']['status'], '✅ done')
+
+    def test_dropped_old_or_unscheduled_ones_are_left(self):
+        link = 'https://calendar.example.invalid/event?eid=wkMtg'
+        mtg = dict(LEAVE, id='recMtg', rhythm=None, title='Weekly Meeting', calendar_event=link,
+                   target=z(10, 0, dt.date(2026, 11, 17)), details=EV)
+        dropped = {'summary': '✖️ Weekly Meeting', 'id': 'wkMtg', 'htmlLink': link,
+                   'start': {'dateTime': '2026-11-17T10:00:00-06:00'}, 'end': {'dateTime': '2026-11-17T11:00:00-06:00'}}
+        self.assertEqual(Q.due([], [mtg], OFF, DAY, events=[dropped]), [])
+        self.assertEqual(Q.due([], [dict(mtg, target=z(10, 0, dt.date(2026, 11, 2)))], OFF, DAY), [])
+        self.assertEqual(Q.due([], [dict(mtg, calendar_event=None)], OFF, DAY), [])
+        self.assertEqual(Q.due([], [dict(mtg, details='a task worked in a calendar block')], OFF, DAY), [])
+
+
 class Thursday(unittest.TestCase):
     def test_the_whole_day_closes_one_and_asks_two_near_the_top(self):
         rows = CROWD + [ANSWERED, TAXES, TEXT, row('recLunch', title='🍽️ lunch at the potluck', practice='🍽️ lunch',
