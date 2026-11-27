@@ -3,9 +3,11 @@
 **When:** at dusk, for today, in order, not at a set time (24 Nov 2026, her words: I'd rather not do this stuff at a certain time but generally in a certain order … I'd like to run the daily fold as part of the dusk flow). Two short sessions, each started by Duet, unasked:
 
 - **`run dusk`**, the moment her photos are up. She does the batch checks first (🗺️ Timeline, 📱 screen time and 🪐 ring stress screenshots, ⏺️ recorder check), then uploads the day's photos last (her words: I want to do all the batch checks then upload the photos and have the system fill in everything based on that info). It fills in the day from them: steps 1 to 6.
-- **`run braid`**, once her ⭐ highlight is logged, so the braid sees the whole evening (her words: move the braid to where it makes the most sense): steps 7 to 10, then her short list, before her phone goes down.
+- **`run braid`**, once her ⭐ highlight is logged, so the braid sees the whole evening (her words: move the braid to where it makes the most sense): steps 7 to 11, then her short list, before her phone goes down.
 
-In the morning: see **The morning** below, three sessions in her order. The 3:23a fold and 4:41a Code steps are the backup for a night the dusk runs didn't happen, and do only what is still missing.
+In the morning: see **The morning** below, three sessions in her order.
+
+**Nothing runs on a clock** (27 Nov 2026, her words: I don't want anything to run on the clock, but I do want to make sure that the things that were running on the clock are still getting done, which means they need to be part of the flow). The 3:23a fold, the 4:41a Code steps and the evening chat sweep were paused that day. A night the dusk runs didn't happen is caught by the next `run morning`: it runs whatever of steps 1 to 11 for DAY is still missing, first. The only clocks left are the flows' own backstops: dawn closes at noon, dusk at 11:59 PM.
 
 **Command:** `daysteps` prints this page; the steps are the commands it names.
 
@@ -38,12 +40,14 @@ Then one line to Duet: what was filled in (counts), and anything from the inbox 
 8. **Calendar.** `calsync DAY`, its two runs, the changes made and read back.
 9. **The my day page, drafted.** The `bedo-day-ahead` skill rebuilds today's page to the day as lived so far and republishes it at the same link. It is not final: the morning makes it so.
 10. **The markers.** The 🌄 dusk flow close row carries `braid shown …` and `calsync done …`. Nobody has written it yet at this hour: write it now, status ▶️ in motion, with the two lines. It stays open until she falls asleep; an open close row does not close the flow.
+11. **🧹 chat sweep.** `how chats`, then the `chat-sweep` skill's steps 1 and 2 only: every page of `list_sessions` (mine), `chats --no-rename`, and what it does on its own. Her `ask` chats go on her list; the drive cleanup waits for her. This session needs the chat tools (`list_sessions`, `archive_session`): a session started on a schedule has none, so this step never moves to one.
 
 Then one line to Duet: her list, in plain words, so she has it before her phone goes down.
 
 **The morning** runs in her order, never by the clock (24 Nov 2026, her words: I don't want to do any kind of timed run on a time … I want it to be in the correct order … I want to see the look behind then the morning gate then the look ahead). Three short sessions, each its own, each started by Duet when the step before it is in. DAY is yesterday.
 
 1. **`run morning`, once she's up** (her first entry, or her 💭 dream record): the look behind.
+   - **First, last night's catch-up.** If yesterday's 🌄 dusk close row lacks `braid shown` or `calsync done`, or no chat sweep ran, run the missing steps of 1 to 11 for DAY before anything else, and say so in its line to Duet.
    - **🪐 the morning ring read.** `run_oura.sh morning TODAY`: the night's 😴 sleep and her 🪐 morning row, and with it last night's close (her words: I want the evening to close when I fall asleep). The dusk close row takes the ring's bedtime and is closed; with none, one is written there. 🌬️ evening breaths and 🌌 evening blessing, done with her son after her phone is down, are written from her pattern at the same time when no row has them. She corrects. The ring not synced yet: say so to Duet and stop; Duet starts it again once she has opened the ring's app.
    - **Yesterday's my day page, final.** Rebuilt to the whole day as lived, the sleep included, then `run_day_ahead.sh final DAY` and its line on the 👁️ look ahead row. It goes to its own link (`page.url`, else a new artifact, with the link on DAY's 👁️ look ahead row; a day with none gets one). That is what she opens first.
    - One line to Duet: the page's link.

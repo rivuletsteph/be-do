@@ -4,6 +4,7 @@
 #
 #   bash run_checks.sh judgment   # the judgment file, read in full at the first reply
 #   bash run_checks.sh preflight [--kind week --week N] [--part B] [--handoff FILE]
+#   bash run_checks.sh dawn [--out dawn.html]          # the dawn page: lanes, the next three to tap, what's done (27 Nov 2026)
 #   bash run_checks.sh remaining [--flow dawn|dusk] [--voice] [--close]   # --close: the dawn close row as an apply op, past noon
 #   bash run_checks.sh dusk      [--date YYYY-MM-DD] [--chats chats.json] [--photos folder.json [--links week.json]] [--write]
 #   bash run_checks.sh meals     [--date YYYY-MM-DD] [--json]   # each meal's prep and eating, placed from context
@@ -180,6 +181,10 @@ case "$CMD" in
   apply)      # 24 Nov 2026: rows written by code from a short file of changes, never retyped by a model
     [ -d "$W/core" ] || fetch_core; find_local
     "$PY" "$W/core/bedo_apply.py" "$@" ;;
+  dawn)       # 27 Nov 2026: the dawn page, built when the order changes; it reads and taps through her own connector
+    [ -d "$W/core" ] || fetch_core; find_local
+    if live_or_files "--catalog practices.json --day today.json --base-id BASE" "$@"; then set -- --live "$@"; fi
+    "$PY" "$W/core/bedo_dawn_page.py" "$@" ;;
   remaining)
     [ -d "$W/core" ] || fetch_core; find_local
     if live_or_files "--catalog practices.json --day today.json" "$@"; then set -- --live "$@"; fi
