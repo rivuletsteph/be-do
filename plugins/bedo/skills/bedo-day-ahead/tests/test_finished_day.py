@@ -151,10 +151,41 @@ def test_highlight_keeps_its_time():
     assert night['a'] != '21:00' and night.get('told') == '21:00', night
 
 
+def test_summary_line():
+    """A finished day's top is one line (24 Nov 2026, her words through Duet: one line summarizing the day's important,
+    meaningful things): her highlights in her words, then who she was with, then her work as a count, upkeep never."""
+    did = [dict(t='soup night', kind='highlight', who=['Pip']), dict(t='Trampoline with Pip', kind='heart', who=['Pip']),
+           dict(t='A quiet film', kind='heart', who=['Ada']), dict(t='Post the form', kind='action'),
+           dict(t='be•do work, Claude handled the details', kind='system')]
+    # her highlight in her words, then who she was with by name, then her work as a count; a moment is never "done"
+    assert flow.summary_of(did) == 'Soup night · time with Pip and Ada · 1 thing done', flow.summary_of(did)
+    # no highlight: two moments with her people stand in for it
+    few = [dict(t='the pond walk', kind='heart'), dict(t='a call home.', kind='heart', who=['Ada']),
+           dict(t='lunch out', kind='heart'), dict(t='Post the form', kind='action'), dict(t='Paint the door', kind='action')]
+    assert flow.summary_of(few) == 'The pond walk and a call home · time with Ada · 2 things done', flow.summary_of(few)
+    # only work: named when it is a thing or two
+    work = [dict(t='Post the form', kind='action'), dict(t='Paint the door.', kind='action')]
+    assert flow.summary_of(work) == 'Post the form and Paint the door', flow.summary_of(work)
+    many = [dict(t=f'moment {i}', kind='heart', who=['Pip']) for i in range(6)]
+    assert flow.summary_of(many) == 'Moment 0 and moment 1 · time with Pip', flow.summary_of(many)
+    assert flow.summary_of([dict(t='be•do work', kind='system')]) == ''
+    assert flow.summary_of([]) == ''
+
+
 def test_engine():
     page = open(os.path.join(os.path.dirname(HERE), 'assets', 'flow_engine.html'), encoding='utf-8').read()
-    assert 'what you did' in page and "over3&&!D.picked?(D.did||[])" in page
-    assert ".three li.did:before" in page and "class=\"${over3?'did'" in page   # checked, fully bright
+    # a finished day opens on one line, never a list (24 Nov 2026)
+    assert "if(over3&&!D.picked){ el.innerHTML=D.summary?" in page and 'class="sumline"' in page
+    # its meaningful moments are drawn on the timeline, larger, with her words and photos, never folded (24 Nov 2026)
+    assert "const MOM=window.__mom=new Set(gone?[...sixOf(pastAll)" in page
+    assert "const big=x=>(window.__mom&&window.__mom.has(x))||" in page
+    assert "need=x=>MOM.has(x)?((x.photos||[]).length?170:92)" in page
+    # every photo, named feeling, glimmer or highlight is a moment too, not only what the ranking keeps (Mon 23 Nov's lunch)
+    assert "&&(x.star||x.meant||x.mom||x.felt||x.keeper||(x.photos||[]).length||" in page
+    assert "[...sixOf(pastAll),...pastAll.filter(momOwn)]" in page
+    # a moment inside a combined card keeps its whole title and her words
+    assert "mom:MOM.has(o),her:o.her" in page and "class=\"ln${m.mom?' mln':''}\"" in page
+    assert page.count('${momBody(x)}') == 2 and '.cal .ev.meantc .mph img' in page
     assert 'const SIX=[];' in page     # the day in six is retired
     assert "const ids=over?['three','today'" in page   # a finished day leads with what she did
 
@@ -166,8 +197,9 @@ def main():
     test_system_work_is_one_line()
     test_the_day_links_its_own_quest()
     test_highlight_keeps_its_time()
+    test_summary_line()
     test_engine()
-    print('ok — a finished day: what she did, moments in the stream at their own time')
+    print('ok — a finished day: one summary line, moments in the stream at their own time')
 
 
 if __name__ == '__main__':
