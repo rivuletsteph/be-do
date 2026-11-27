@@ -449,5 +449,22 @@
   "states": ["draft", "final"],
   "bedtime_from": "18:00",
   "bedtime_until": "12:00"
+ },
+ "dawn_page": {
+  "about": "The dawn page (27 Nov 2026): the dawn flow as four lanes in the wellness wheel colors, the next three steps to tap, and the steps done in the order done. It reads the stream through her own Airtable connector only when opened or returned to, and a tap writes one row and fills its own dot, so the morning costs a read per look and a write per tap. During dawn it takes the place of the remaining line in Duet.",
+  "lanes": {
+   "heart": {"name": "heart", "color": "#3E7C7D", "deep": "#2A5A5B"},
+   "body": {"name": "body", "color": "#5D8A66", "deep": "#41644A"},
+   "mind": {"name": "mind", "color": "#7A6191", "deep": "#564369"},
+   "spirit": {"name": "spirit", "color": "#B7832F", "deep": "#87601F"}
+  },
+  "lane_of": {"🩷 heart": "heart", "🌊 water": "heart", "🤸‍♀️ body": "body", "🌎 earth": "body", "🧠 mind": "mind", "💨 air": "mind", "💖 spirit": "spirit", "🔥 fire": "spirit"},
+  "leave_off": ["😶 wake", "🪐", "🌦️ weather check"],
+  "next": 3,
+  "tap_status": "◉ done",
+  "tap_line": "[be•do] tapped on the dawn page.",
+  "undo_seconds": 10,
+  "reread_after_seconds": 60,
+  "sunrise_days": 14
  }
 }

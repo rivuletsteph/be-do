@@ -28,6 +28,7 @@ it runs one, so nothing has to be remembered.
 
 | when | command | what it is for |
 |---|---|---|
+| the weekly close, after `order` | `dawn` | the dawn page |
 | a Code session's first reply (`preflight` prints both) | `asks`, `prs FILE` | Duet's asks, one per chat; open pull requests, yes or no |
 | look ahead; inbox | `groups` | open actions grouped |
 | every day, scheduled | `fold` | the daily amendment fold |
@@ -49,7 +50,6 @@ it runs one, so nothing has to be remembered.
 | every calendar write, before calling it done | `calendar event.json`, then again with `--readback` | the calendar named, the write read back, work in purple |
 | the 📧 clear gmail inbox, before anything is archived | `inbox threads.json --archive planned.json` | her automatic keeps are never archived |
 | the end of every chat: she says *let's end the session*, or plainly that she's done | `close --chat URL --title "TITLE"` (a my day chat: `--date` and `--sessions`) | QA, then the session entry, then the rename; a my day chat also waits for every branch of its day to write its entry and close; the chat is done when it prints `closed` |
-| only if she asks for a Day Behind | `daygate YYYY-MM-DD` | retired 8 Nov 2026 |
 
 ## Running it
 

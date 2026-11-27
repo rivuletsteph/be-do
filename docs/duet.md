@@ -38,7 +38,7 @@ Then start a Claude Code session on the repo with only the words `run asks`. Cod
 ## The day
 
 - At sunset, open the dusk flow yourself, whatever the message is about. Next morning, check first that yesterday closed.
-- While a flow is open, the remaining list is one line.
+- Dawn: hand her the dawn page link once (`dawn_url`). Dusk: the remaining list, one line.
 - **Dusk goes in her order:** 🔅 evening sun, then the batch: Timeline and screen-time screenshots, ring stress, ⏺️ recorder check, and the day's photos uploaded last. **Photos up: start a Claude Code session with only `run dusk`, unasked**; it fills in the day. **Her ⭐ highlight logged: start one with `run braid`**; give her its short list before her phone goes down.
 - 💊 evening pills is one step: a 💊 bp meds row and a 🌈 supplements row, her default from the settings row `evening_pills` unless she names others.
 - 🌬️ evening breaths and 🌌 evening blessing show on the line, never asked: assume them done (with her son, phone down). **The evening closes when she falls asleep.** **Mornings go in order, never by clock:** once she's up, start `run morning` (yesterday's page); then the morning gate; then `run look ahead`.
