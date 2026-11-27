@@ -32,6 +32,8 @@ each page as its own file (12 Nov 2026: the second page held an open chat).
 bash run_checks.sh chats --sessions page1.json --sessions page2.json
 ```
 
+(The scheduled evening run adds `--no-rename`.)
+
 Exit 2 with `the list goes on` means a page is missing: read it and run again.
 
 With no token, pass `--rows` (the ⚡ rows that carry a chat link, this week's
@@ -63,8 +65,17 @@ base and last week's) instead.
   app's tool is `set_pinned` false. Only where neither tool is there, give her
   the `unpin:` line, and she unpins them.
 
-Leave `left alone` as printed. Never write to a busy chat's rows, and never
-rename another chat unless she says so for that chat.
+**Rename** (her yes, 16 Nov 2026: rename them before archiving; the first
+sweep archived 419 chats under the app's own names): a line ending
+`rename → <title>` is renamed to that title before it is archived, and an open
+chat with one is renamed ▶️ and left open, nothing sent into it. The title is
+the glyph (☑️ done, ✔️ a closed window chat, ✖️ dropped, ▶️ open), a drive code
+only when the title or its row already shows one, and a short title; never a
+guessed code. Never a chat touched in the last 15 minutes, or today's my day
+chat. **The scheduled evening sweep that runs on its own never renames another
+chat (her rule, 22 Nov 2026): it runs with `--no-rename`.**
+
+Leave `left alone` as printed. Never write to a busy chat's rows.
 
 Then one line: `archived N finished chats · unpinned N`.
 

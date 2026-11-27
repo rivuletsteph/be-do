@@ -54,10 +54,12 @@ for c in "${BEDO_SECRETS:-}" bedo_secrets.json ../bedo_secrets.json; do
 done
 # the live week first (I15), then the asked week's own bases when they are older
 rm -rf data && mkdir -p data/live data/week
-"$PY" scripts/bedo_fetch.py --day "$TODAY" --local look_behind_local.json "${SECARGS[@]}" --out data/live
+# before the clone (the weekly close builds this page first) today's base does not exist yet: the asked week stands alone
+"$PY" scripts/bedo_fetch.py --day "$TODAY" --local look_behind_local.json "${SECARGS[@]}" --out data/live \
+  || { echo "live: no base for $TODAY yet — building from the asked week alone"; rm -rf data/live; mkdir -p data/live; }
 "$PY" scripts/bedo_fetch.py --day "$SAT" --local look_behind_local.json "${SECARGS[@]}" --out data/week
 for f in data/week/w*.json; do if [ -f "data/live/$(basename "$f")" ]; then rm "$f"; fi; done   # a base read twice is read once
-STREAMS=$( { ls -r data/live/w*.json; ls -r data/week/w*.json 2>/dev/null || true; } | sed 's/^/--stream /' | tr '\n' ' ')
+STREAMS=$( { ls -r data/live/w*.json 2>/dev/null || true; ls -r data/week/w*.json 2>/dev/null || true; } | sed 's/^/--stream /' | tr '\n' ' ')
 
 # the week's photos from its W## photos folder, when a Drive key is here (BEDO_DRIVE_SA or
 # BEDO_DRIVE_SA_FILE); without one the page builds without them, and says so
@@ -69,9 +71,11 @@ for i in 6 5 4 3 2 1 0; do
 done
 ls photos/*.jpg >/dev/null 2>&1 && PHOTOS=(--photos photos)
 
+RH=data/live/rhythms.json; [ -f "$RH" ] || RH=data/week/rhythms.json
+PR=data/live/practices.json; [ -f "$PR" ] || PR=data/week/practices.json
 OUTF="$SAT-week-behind.html"
 "$PY" scripts/week_look_behind.py --week "$DAY" --local look_behind_local.json $STREAMS \
-  --rhythms data/live/rhythms.json --practices data/live/practices.json --template week_look_behind_engine.html \
+  --rhythms "$RH" --practices "$PR" --template week_look_behind_engine.html \
   "${PHOTOS[@]}" --out "$OUTF"
 OUT=${LB_OUT:-/mnt/user-data/outputs}
 if mkdir -p "$OUT" 2>/dev/null; then cp "$OUTF" "$OUT/"; echo "also copied to $OUT/"; fi

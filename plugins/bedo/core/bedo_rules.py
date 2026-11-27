@@ -95,12 +95,26 @@ CHECKS = {
     'quiet_topics': 'bedo_dayqa + bedo_dayaudit — a quiet topic in her settings is never raised',
     'remaining.week_turn': "bedo_remaining — on Sunday, once the dawn flow is through, the turn to the week",
     'quest_page': "quest_page — the child's quest page (assets/quest-day), built with every look behind (4 Nov 2026)",
+    'sweep': "bedo_sweep — a day's rows through the entry check after the fact, whoever wrote them, at the dusk close",
+    'asks': "bedo_asks — an ask for Code is a row, read at a Code session's first reply; she never relays a prompt",
+    'apply': "bedo_apply — rows are written by code from a short file of changes: existing text carried forward verbatim, a new row through the entry check",
+    'fold.daily': "bedo_fold — the daily fold: the week's new amendments, the oldest of the backlog, and what main already holds, every day without being asked",
+    'page.meaningful': "flow — marked_meaningful: a moment be•do marked as meaningful, from her words, leads a finished day's list with her highlights; a kind alone never does",
+    'close.page': 'bedo_close — a session that published a page says where its fix lives: the stream or the build, never the page alone',
+    'calendar.renamed': 'bedo_reader — live_calendar: a renamed calendar is read by its id, and the settings are named to update',
+    'page.did': 'flow — did_of: a finished day leads with her highlights and time with her people; the system is one line, last',
     'chats': 'bedo_chats — the chat sweep: every open chat against its objective and its row, at the dusk close and the weekly close',
     'chats.kept': "bedo_chats — her keep sticks: a row's `chat sweep: kept` line holds the chat off her list for a week",
     'chats.unpin': "bedo_chats — pinned is what she's on today: a pinned chat not touched today (her time zone) is unpinned on its own; a my day chat never is (her amendment, 12 Nov 2026)",
     'preflight.quest': "bedo_preflight — the quest line: his quest page's link beside the look behind, every morning",
 }
 NOT_CODE = 'judgment'
+PENDING = 'pr:'      # `pr:41` beside the names: built in pull request 41, not on main until she accepts it (23 Nov 2026)
+
+
+def pending(names):
+    """The pull request an amendment's landing waits on, or None."""
+    return next((n[len(PENDING):] for n in names or [] if n.startswith(PENDING)), None)
 
 
 def active(recs, local):
@@ -125,6 +139,9 @@ def on_paper(amendments, mapping):
         if not names:
             out.append((rid, date, decision, 'no check named'))
             continue
+        if pending(names):
+            out.append((rid, date, decision, f'built, waiting on pull request {pending(names)}'))
+            continue
         unknown = [n for n in names if n != NOT_CODE and n not in CHECKS]
         if unknown:
             out.append((rid, date, decision, 'names a check the code lacks: ' + ', '.join(unknown)))
@@ -144,6 +161,8 @@ def landed(rid, mapping):
     names = (mapping or {}).get(rid) or []
     if not names:
         return 'not landed yet: stays active'
+    if pending(names):
+        return f'built, waiting on pull request {pending(names)}'
     unknown = [n for n in names if n != NOT_CODE and n not in CHECKS]
     if unknown:
         return 'not landed yet: names a check the code lacks, ' + ', '.join(unknown)
@@ -164,6 +183,64 @@ def fold_list(amendments, mapping, first, last, week, keep_words=(), recheck=5):
     start = (week * n) % len(older) if older else 0
     again = [line(a) for a in (older + older)[start:start + n]]
     return {'this_week': this, 'recheck': again, 'rolling': len(older) - n}
+
+
+def daily_fold(amendments, mapping, today, keep_words=(), new_days=7, backlog=5, mark=10):
+    """The daily fold's list (23 Nov 2026, her words: it would be nice if we could
+    get into a daily amendment fold). Three short lists, so a run is small and the
+    pile still goes down every day:
+
+      mark     what the mapping says has landed: the session opens the evidence
+               on main and marks the row folded
+      pending  what an earlier run built (`pr:N` in the mapping): marked once
+               that pull request is merged, never built twice
+      new      the last few days' rows that haven't landed: built today
+      backlog  the oldest rows that haven't landed, a few a day
+
+    `waiting` is the rest of the backlog, a count. A row carrying a keep word
+    (the quest's data row) is never listed and never folded."""
+    import datetime as dt
+    rows = [a for a in amendments if not any(w in a[2] for w in keep_words)]
+    line = lambda a: {'id': a[0], 'date': a[1][:10], 'decision': a[2], 'landed': landed(a[0], mapping)}
+    waits = lambda a: pending((mapping or {}).get(a[0]))
+    is_in = lambda a: not waits(a) and not landed(a[0], mapping).startswith('not landed')
+    since = (dt.date.fromisoformat(today) - dt.timedelta(days=new_days)).isoformat()
+    done = [a for a in rows if is_in(a)]
+    todo = [a for a in rows if not is_in(a) and not waits(a)]
+    new = [a for a in todo if a[1][:10] >= since]
+    older = [a for a in todo if a[1][:10] < since]
+    return {'date': today, 'active': len(rows), 'kept': len(amendments) - len(rows),
+            'mark': [line(a) for a in done[:mark]], 'mark_later': max(0, len(done) - mark),
+            'pending': [dict(line(a), pr=waits(a)) for a in rows if waits(a)],
+            'new': [line(a) for a in new], 'backlog': [line(a) for a in older[:backlog]],
+            'waiting': max(0, len(older) - backlog)}
+
+
+def daily_fold_lines(fold):
+    """The daily list as the session reads it: the count first, so each run's
+    record can say how far the pile went down."""
+    show = lambda r: f"{r['id']} · {r['date'][5:]} · {r['decision'][:90] or '(no decision written)'}"
+    n_mark, n_build = len(fold['mark']) + fold['mark_later'], len(fold['new']) + len(fold['backlog']) + fold['waiting']
+    n_pend = len(fold.get('pending') or [])
+    out = [f"fold   {fold['active']} active: {n_mark} landed and not yet marked, "
+           + (f"{n_pend} built and waiting on a pull request, " if n_pend else '') + f"{n_build} still to build"
+           + (f" · {fold['kept']} kept active by rule" if fold['kept'] else '')]
+    if not fold['active']:
+        return ['fold   nothing active: the backlog is empty']
+    if fold['mark']:
+        out += [f"mark folded, once the evidence is on main ({len(fold['mark'])}"
+                + (f", {fold['mark_later']} more tomorrow" if fold['mark_later'] else '') + '):']
+        out += [f"  {show(r)} → {r['landed']}" for r in fold['mark']]
+    if n_pend:
+        out += [f"built, mark folded once its pull request is merged ({n_pend}):"]
+        out += [f"  {show(r)} → pull request {r['pr']}" for r in fold['pending']]
+    if fold['new']:
+        out += [f"new, build today ({len(fold['new'])}):"] + ['  ' + show(r) for r in fold['new']]
+    if fold['backlog']:
+        out += [f"the oldest of the backlog, build today ({len(fold['backlog'])}"
+                + (f", {fold['waiting']} wait their turn" if fold['waiting'] else '') + '):']
+        out += ['  ' + show(r) for r in fold['backlog']]
+    return out
 
 
 def fold_lines(fold):
