@@ -351,7 +351,8 @@ class Schedule(unittest.TestCase):
         self.assertIn('dusk --photos', P.due(tue.replace(hour=20)))
         self.assertIn('weekly close', P.due(dt.datetime(2026, 11, 1, 9)))       # Sunday
         self.assertIn('ahead review', P.due(dt.datetime(2026, 11, 3, 9)))       # by the 5th
-        self.assertIsNone(P.due(tue.replace(hour=14)))
+        self.assertEqual(P.due(tue.replace(hour=14)),                             # 25 Nov: only the dawn close, when missing
+                         'due    the dawn close, unasked (remaining --flow dawn --close, then apply)')
 
 
 if __name__ == '__main__':

@@ -485,7 +485,7 @@ class Remaining(unittest.TestCase):
         self.assertEqual([s['practice'] for s in steps][:3], ['💭 dream record', '🪐 sleep readout', '🗞️ morning gate'])
         wake = [row('😶 wake', '2026-11-21 05:00', status=DONE_LOG)]
         line = RL.render('dawn', steps, wake)
-        self.assertIn('0 of 7 · 💭 dream record · 🪐 sleep readout · 🗞️ morning gate', line)
+        self.assertIn('0 of 7 · 💭 dream record · ☕ coffee', line)   # Code's 🪐 and 🗞️ are off her line (25 Nov)
         self.assertNotIn('🚽', line)                                   # not asked while the flow runs
         day = wake + [row(p, '2026-11-21 06:00', status=DONE_LOG) for p in ('💭 dream record', '🪐 sleep readout', '🗞️ morning gate', '☕ coffee')]
         line = RL.render('dawn', steps, day)
@@ -494,6 +494,38 @@ class Remaining(unittest.TestCase):
         self.assertIn('5 of 7', line)
         day.append(row('🚽 bm', '2026-11-21 06:30', status=DONE_LOG))
         self.assertNotIn('🚽', RL.render('dawn', steps, day))
+
+    def test_dawn_line_shows_only_her_steps(self):
+        # 25 Nov 2026, her words: the dawn flow list shows only my own steps.
+        names = ('💭 dream record', '🪐 sleep readout', '🗞️ morning gate', '🌦️ weather check',
+                 '👁️ look ahead', '⚡ intention check', '☕ coffee', '🌅 dawn flow close')
+        steps = RL.flow_steps([step(n, 'dawn', i) for i, n in enumerate(names)], 'dawn')
+        line = RL.render('dawn', steps, [])
+        for code in ('🪐', '🗞️', '🌦️', '👁️'):
+            self.assertNotIn(code, line)
+        self.assertIn('🌅 0 of 8 · 💭 dream record', line)                  # still counted in N
+        day = [row(p, '2026-11-26 06:00', status=DONE_LOG) for p in ('🪐 sleep readout', '🗞️ morning gate', '👁️ look ahead')]
+        self.assertIn('🌅 4 of 8', RL.render('dawn', steps, day))            # the gate covers the weather: Code's four count
+        mine = [row(p, '2026-11-26 07:00', status=DONE_LOG) for p in ('💭 dream record', '⚡ intention check', '☕ coffee')]
+        self.assertIn('🌅 3 of 8 · 🌅 dawn flow close', RL.render('dawn', steps, mine))   # only the close is hers to see
+
+    def test_dawn_closes_itself_at_noon(self):
+        # 25 Nov 2026, her words: the dawn flow closes at noon, without her.
+        names = ('🗞️ morning gate', '☕ coffee', '⚡ intention check', '🌅 dawn flow close')
+        steps = RL.flow_steps([step(n, 'dawn', i) for i, n in enumerate(names)], 'dawn')
+        day = dt.date(2026, 11, 26)
+        rows = [row('☕ coffee', '2026-11-26 07:00', status=DONE_LOG)]
+        self.assertIsNone(RL.close_op('dawn', steps, rows, day, dt.datetime(2026, 11, 26, 11, 59), LOCAL))
+        op = RL.close_op('dawn', steps, rows, day, dt.datetime(2026, 11, 26, 12, 5), LOCAL)
+        self.assertEqual(op['practice'], '🌅 dawn flow close')
+        self.assertEqual(op['datetime'], '2026-11-26T18:00:00.000Z')        # at noon, Central standard time, in UTC
+        self.assertIn('Not captured: 🗞️ morning gate · ⚡ intention check', op['details'])
+        rows += [row(p, '2026-11-26 09:10', status=DONE_LOG) for p in ('🗞️ morning gate', '⚡ intention check')]
+        op = RL.close_op('dawn', steps, rows, day, dt.datetime(2026, 11, 26, 10, 0), LOCAL)
+        self.assertEqual(op['datetime'], '2026-11-26T14:10:00.000Z')        # complete: at its last step (z is a day of UTC-5)
+        rows.append(row('🌅 dawn flow close', '2026-11-26 09:10', status=DONE_LOG))
+        self.assertIsNone(RL.close_op('dawn', steps, rows, day, dt.datetime(2026, 11, 26, 12, 5), LOCAL))
+        self.assertIsNone(RL.close_op('dusk', steps, [], day, dt.datetime(2026, 11, 26, 23, 59), LOCAL))
 
     def test_the_catalog_read_must_be_complete(self):
         src = {'records': [{'id': 'r1', 'createdTime': 'x', 'fields': {'practice': '☕ coffee'}}],
