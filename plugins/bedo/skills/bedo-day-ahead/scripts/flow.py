@@ -1079,7 +1079,10 @@ def photos_onto(items, today, rows, F, off, folder, me=''):
     placed = [p for p in placed if p['row'] and (not bedo_photos.linked(p['row']) or p['file'] in bedo_photos.linked(p['row']))]
     # one photo a card, as the day behind keeps it (never two of one moment), so six reach six moments
     seen, one = set(), []
-    for p in sorted([p for p in placed if p['keeper'] and p['row']], key=lambda p: (not p.get('linked'), p['t'])):
+    # her own order wins (27 Nov 2026, her words: the picture I took at the end right before everybody left was the best
+    # picture of the gathering): the photo she put first in a row's links is that card's photo, else the earliest
+    first = lambda p: (bedo_photos.linked(p['row']).index(p['file']) if p.get('file') in bedo_photos.linked(p['row']) else 99)
+    for p in sorted([p for p in placed if p['keeper'] and p['row']], key=lambda p: (not p.get('linked'), first(p), p['t'])):
         k = p['row']['id']
         if k not in seen or (p['row'].get('felt') and not p.get('file') and sum(x['row']['id'] == k for x in one) < 2):
             seen.add(k); one.append(p)
