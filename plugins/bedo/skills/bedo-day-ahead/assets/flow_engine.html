@@ -824,7 +824,8 @@ function today(){
   const thumb=x=>(x.photos||[]).length?`<img class="th" alt="" src="${x.photos[0].src}">`:'';
   /* a meaningful moment's card carries her words and its photos on the card itself, no tap needed (24 Nov 2026) */
   const momBody=x=>{ if(!MOM.has(x)) return ''; const w=takeHome(x), P=(x.photos||[]).slice(0,3);
-    return (w?`<span class="mw">${esc(w)}</span>`:'')+(P.length?`<span class="mph">${P.map(p=>`<img alt="" src="${p.src}">`).join('')}</span>`:''); };
+    /* the photo first, then her words (27 Nov 2026: a long quote pushed the hosting photo under the card beside it) */
+    return (P.length?`<span class="mph">${P.map(p=>`<img alt="" src="${p.src}">`).join('')}</span>`:'')+(w?`<span class="mw">${esc(w)}</span>`:''); };
   /* an event that happened is ✅ here, whether her calendar says ✔️ or still ⬜ while its own row closed (7 Nov 2026) */
   const dn=(t,done)=>String(t||'').replace(done?/^\s*(✔️|✔|⬜)\uFE0F?/:/^\s*(✔️|✔)\uFE0F?/,'✅');
   /* one shade per kind, the same meaning every day (6 Nov 2026, her words: the coloring's not
