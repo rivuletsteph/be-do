@@ -815,7 +815,7 @@ def did_of(rows, F, off, today, hidden=(), me='', flows=frozenset()):
         her = (c.get(F['details']) or '').split('———')[0].strip().split('\n')[0]
         her = '' if her.startswith('[be•do]') else her     # be•do's note is not her words
         rh = g(c, 'rhythm') or ''
-        x = dict(t=t, g='', drive=rh, st='✅', why=her[:160], at=when)
+        x = dict(t=t, g='', drive=rh, st='✅', why=her[:160], at=when, who=_names(g(c, 'person'), me))
         if pr.startswith('⭐'):
             hl.append(dict(x, g='⭐', kind='highlight'))
         elif st[:1] in ('●', '◉', '✅') and marked_meaningful(c, F):
@@ -855,6 +855,42 @@ def did_of(rows, F, off, today, hidden=(), me='', flows=frozenset()):
         out.append(dict(t=head, g='', drive=sys_[0]['drive'], st='✅', why=f'{n} piece{"" if n == 1 else "s"} of upkeep',
                         at=sys_[0]['at'], kind='system', covers=[x['t'] for x in sys_]))
     return out
+
+
+SUMMARY_CAP = 4                                # the summary line names at most four things, then counts the rest
+
+
+def summary_of(did):
+    """A finished day's top, as one line (24 Nov 2026, her words, through Duet: one line summarizing the day's important,
+    meaningful things; the moments themselves are on the timeline). Three parts, the J17 order, each only when there is
+    one: her ⭐ highlights and the moments be•do marked meaningful, in her words (two moments with her people stand in
+    when there are none); then who she spent the day with, by name; then her finished work, named when it is all
+    there is and otherwise a count. Never a list of every moment, and the system's own upkeep is never in it."""
+    clean = lambda t: re.sub(r'\s+', ' ', str(t or '')).strip().rstrip('.')
+    join = lambda xs: xs[0] if len(xs) == 1 else ', '.join(xs[:-1]) + ' and ' + xs[-1]
+
+    def uniq(xs):
+        out = []
+        for t in xs:
+            if t and t.lower() not in [u.lower() for u in out]:
+                out.append(t)
+        return out
+    lead = uniq([clean(x['t']) for x in did if x.get('kind') in ('highlight', 'meaningful')])[:SUMMARY_CAP]
+    heart = [x for x in did if x.get('kind') == 'heart']
+    acts = uniq([clean(x['t']) for x in did if x.get('kind') == 'action'])
+    parts = []
+    if lead:
+        parts.append(join(lead))
+    elif heart:
+        parts.append(join(uniq([clean(x['t']) for x in heart])[:2]))
+    people = uniq([n for x in did if x.get('kind') in ('highlight', 'meaningful', 'heart') for n in (x.get('who') or [])])
+    if people:
+        parts.append('time with ' + join(people[:SUMMARY_CAP]))
+    if acts:
+        parts.append(join(acts[:SUMMARY_CAP]) if not parts and len(acts) <= 2
+                     else f'{len(acts)} thing{"" if len(acts) == 1 else "s"} done')
+    line = ' · '.join(p for p in parts if p)
+    return line[:1].upper() + line[1:]
 
 
 def links_of(c, F):
@@ -1251,6 +1287,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
     data['picked'] = bool(L.get('_picks'))
     data['did'] = did_of(rows, F, off, today, hidden=set(L.get('hide_drives') or []), me=L.get('self_person') or '',
                          flows=L.get('_flows') or frozenset())
+    data['summary'] = summary_of(data['did'])
     data['three_next'] = [dict(t=x.get('title'), kind=x.get('kind')) for x in (D.get('next') or [])]
     data['three_more'] = [dict(t=p.get('title'), why=p.get('why'), drive=p.get('drive'), g=p.get('emoji'), st=(p.get('st') or '').strip(),
                                nx=((p.get('move') or {}).get('step')), links=(p.get('move') or {}).get('links') or [])

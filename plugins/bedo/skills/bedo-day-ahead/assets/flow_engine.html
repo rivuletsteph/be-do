@@ -172,6 +172,9 @@ html[data-bedo="night"] .cal .ev:not(.gcal), html[data-bedo="night"] .cal .ev:no
 .cal .ev.combo .ths{display:flex;gap:3px;margin-top:4px}
 .cal .ev.combo .ths img{width:40px;height:40px;object-fit:cover;border-radius:4px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
 .cal .ev.combo{padding-right:8px}
+/* a meaningful moment inside a combined card keeps its whole title and her words (24 Nov 2026) */
+.cal .ev.combo .ln.mln{white-space:normal;font-weight:600}
+.cal .ev.combo .mw{display:block;font-size:12px;line-height:1.3;font-style:italic;margin:1px 0 3px}
 .sheet .inside{margin:8px 0 0;padding-left:18px}
 /* the list of what a combined card holds spans the panel's text column, never the narrow time column (7 Nov 2026) */
 .sheet .sc .inside,.sheet .sc>.ph,.sheet .sc>a{grid-column:2}
@@ -179,6 +182,13 @@ html[data-bedo="night"] .cal .ev:not(.gcal), html[data-bedo="night"] .cal .ev:no
 .sheet .inside small{color:var(--muted)}
 .cal .ev .th{position:absolute;right:3px;top:3px;bottom:3px;width:44px;max-height:48px;object-fit:cover;border-radius:4px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
 .cal .ev.hasph{padding-right:52px}
+/* a meaningful moment on a finished day: larger, its words and photos on the card (24 Nov 2026) */
+.cal .ev.meantc{z-index:3;padding-right:34px!important;box-shadow:0 0 0 2px var(--edge,#B8860B),0 2px 6px rgba(0,0,0,.12);overflow:hidden}
+.cal .ev.meantc b{white-space:normal;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cal .ev.meantc .mw{display:block;font-size:12px;line-height:1.3;margin-top:2px;white-space:normal;font-style:italic}
+.cal .ev.meantc .mph{display:flex;gap:4px;margin-top:4px}
+.cal .ev.meantc .mph img{height:84px;max-width:48%;flex:0 1 auto;object-fit:cover;border-radius:6px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+#three .sumline{font-size:17px;line-height:1.45;margin:4px 0 0}
 .sheet .ph{display:block;width:100%;max-height:60vh;object-fit:contain;border-radius:8px;margin:8px 0 0}
 .cal .ev .cov{display:block;font-size:11.5px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cal .ev.session{border:2px solid var(--edge);border-left-width:5px;overflow:hidden}
@@ -574,7 +584,11 @@ function three(){
      to do this … I like this list and could be listed at the top as complete): her picks when she named them, else the
      actions closed that day and her highlight */
   const over3=new Date().toLocaleDateString('en-CA')>D.day;
-  const el=document.getElementById('three'); const T=over3&&!D.picked?(D.did||[]):(D.three||[]); if(!T.length){ el.innerHTML=''; return; }
+  const el=document.getElementById('three');
+  /* a finished day opens on one line, never a list (24 Nov 2026, her words through Duet: one line summarizing the day's
+     important, meaningful things; the moments themselves are on the timeline, with their photos) */
+  if(over3&&!D.picked){ el.innerHTML=D.summary?`<h2>the day</h2><p class="sumline">${esc(D.summary)}</p>`:''; return; }
+  const T=D.three||[]; if(!T.length){ el.innerHTML=''; return; }
   const nt=t=>String(t||'').replace(/^⚡\s*/,'').trim();
   const doneSet=new Set((D.done||[]).map(x=>nt(x.t)));
   const nxt=(D.three_next||[]).filter(x=>x&&x.t); const M=D.three_more||[];
@@ -665,8 +679,17 @@ function today(){
      gratitude) stays; the routine folds behind 'show everything'. Anything that took ten minutes or more stays too
      (3 Nov 2026, her words: the goal is to show how I spent my time, and there's a lot of gaps, especially at the
      end of the day): only the instant blips fold */
-  const big=x=>x.act||x.felt||x.keeper||(!x.pt&&x.e-x.s>=10)||x.k==='event'||x.cat==='moment'||/^(⭐|✨|🌟|👁|💭|📒|🙏|🪨|📗)/.test(x.t||'');
+  const bgev0=x=>x.k==='event'&&x.who&&x.who!=='you';
+  const big=x=>(window.__mom&&window.__mom.has(x))||x.act||x.felt||x.keeper||(!x.pt&&x.e-x.s>=10)||x.k==='event'||x.cat==='moment'||/^(⭐|✨|🌟|👁|💭|📒|🙏|🪨|📗)/.test(x.t||'');
   const pastAll=all.filter(x=>(x.k==='lived'||over(x))&&!bands.includes(x)).sort((x,y)=>x.s-y.s);
+  /* a finished day's meaningful moments are drawn on the timeline itself, never folded: a larger card with its photo and
+     her words, seen while scrolling (24 Nov 2026, her words through Duet: show every meaningful moment on the timeline
+     itself, with its photo and more of its information). The ranking the day in six used picks them, and every row
+     that carries a photo, a feeling she named, a glimmer or her highlight is one too: a photo moment the ranking left
+     out sat in a narrow lane with its title cut (Mon 23 Nov's lunch with her son) */
+  const momOwn=x=>x.cat!=='sleep'&&!x.flowcard&&x.cat!=='flow'&&x.cat!=='system'&&!(D.hidden||[]).includes(x.drive)
+    &&(x.star||x.meant||x.mom||x.felt||x.keeper||(x.photos||[]).length||/^⭐/.test(x.t||''));
+  const MOM=window.__mom=new Set(gone?[...sixOf(pastAll),...pastAll.filter(momOwn)].filter(x=>!bgev0(x)):[]);
   /* a day already over shows every row it holds (11 Nov 2026: her evening — tea, meds, the quest, the inbox, the QA, the dusk
      close — sat behind "show everything", and the evening read as missing); a day still going folds the routine away */
   /* the day in six (11 Nov 2026, her words: when the my day is done, when I'm looking behind, I really want the timeline to
@@ -720,7 +743,7 @@ function today(){
   /* a stretched clock (2 Nov 2026, her words: lengthen the calendar so all these things fit on it, and make
      things not overlap, cuz that is confusing): an hour is at least 72px, and a stretch of time grows until
      every card in it has room for its words, so a five-minute step never sits on the one after it */
-  const PX=72, MINH=26, minOf=px=>px*60/PX, need=x=>(x.photos&&x.photos.length)?56:past.includes(x)?MINH+4:(x.pick&&x.why?64:48);
+  const PX=72, MINH=26, minOf=px=>px*60/PX, need=x=>MOM.has(x)?((x.photos||[]).length?170:92):(x.photos&&x.photos.length)?56:past.includes(x)?MINH+4:(x.pick&&x.why?64:48);
   /* the past as it was: two things at once sit side by side, as the calendar does */
   const isCol=x=>x.cat==='stretch'||x.column;
   const cols=[]; past.forEach(x=>{ x.de=x.e; if(isCol(x)){ x.col=0; return; } let c=0; while(cols[c]&&cols[c]>x.s) c++; cols[c]=x.de; x.col=c; });
@@ -734,7 +757,7 @@ function today(){
            (a ten-minute text never names a two-hour walk, 7 Nov 2026); then the longest of what she did */
         const host=st.m.slice().sort((a,b)=>((b.k==='event'?1:0)-(a.k==='event'?1:0))||((b.act&&!b.pt?1:0)-(a.act&&!a.pt?1:0))||((b.de-b.s)-(a.de-a.s)))[0];
         st.card=Object.assign({},host,{s:st.s,e:st.e,n:1,col:0,combo:true,
-          members:st.m.filter(o=>o!==host).map(o=>({t:o.t,s:o.s,e:o.de,photos:o.photos,act:o.act,links:o.links})),
+          members:st.m.filter(o=>o!==host).map(o=>({t:o.t,s:o.s,e:o.de,photos:o.photos,act:o.act,links:o.links,mom:MOM.has(o),her:o.her})),
           photos:st.m.flatMap(o=>o.photos||[]),links:host.links||[]});   /* each deliverable stays with its own line */
         st.m.forEach((o,i)=>{ o.n=1; o.col=0; o.stk=st; o.si=i; }); STACKS.push(st); }
       else run.forEach(o=>o.n=n); run=[]; };
@@ -766,7 +789,7 @@ function today(){
   const span=(s,e)=>cuts.slice(1).reduce((t,m,i)=>t+(cuts[i]>=s&&m<=e?segH[i]:0),0);
   for(let pass=0;pass<3;pass++) past.concat(its.filter(x=>!bands.includes(x))).sort((a,b)=>(a.e-a.s)-(b.e-b.s)).forEach(x=>{
     const have=span(x.s,x.e), want=need(x); if(have>0&&have<want){ const f=want/have; cuts.slice(1).forEach((m,i)=>{ if(cuts[i]>=x.s&&m<=x.e) segH[i]*=f; }); } });
-  STACKS.forEach(st=>{ const have=span(st.s,st.e), want=40+16*st.card.members.length+(st.card.photos.length?48:0);
+  STACKS.forEach(st=>{ const have=span(st.s,st.e), want=40+16*st.card.members.length+(st.card.photos.length?48:0)+60*st.card.members.filter(m=>m.mom).length;
     if(have>0&&have<want){ const f=want/have; cuts.slice(1).forEach((m,i)=>{ if(cuts[i]>=st.s&&m<=st.e) segH[i]*=f; }); } });
   /* sleep is a short band, not hours of it (6 Nov 2026, her words: show it starting at midnight, but just condense it) */
   past.filter(x=>x.cat==='sleep').forEach(x=>{ const idx=cuts.slice(1).map((m,i)=>i).filter(i=>cuts[i]>=x.s&&cuts[i+1]<=x.e); const tot=idx.reduce((t,i)=>t+segH[i],0); if(tot>0) idx.forEach(i=>segH[i]*=30/tot); });
@@ -788,6 +811,9 @@ function today(){
   /* an event drawn once names what it covered, and shows it carries a link (4 Nov 2026) */
   const cov=x=>(x.covers&&x.covers.length?`<span class="cov">covered ${x.covers.map(esc).join(' · ')}</span>`:'')+((x.links||[]).length?`<span class="cov">🔗 ${esc(x.links[0].l)}</span>`:'');
   const thumb=x=>(x.photos||[]).length?`<img class="th" alt="" src="${x.photos[0].src}">`:'';
+  /* a meaningful moment's card carries her words and its photos on the card itself, no tap needed (24 Nov 2026) */
+  const momBody=x=>{ if(!MOM.has(x)) return ''; const w=takeHome(x), P=(x.photos||[]).slice(0,3);
+    return (w?`<span class="mw">${esc(w)}</span>`:'')+(P.length?`<span class="mph">${P.map(p=>`<img alt="" src="${p.src}">`).join('')}</span>`:''); };
   /* an event that happened is ✅ here, whether her calendar says ✔️ or still ⬜ while its own row closed (7 Nov 2026) */
   const dn=(t,done)=>String(t||'').replace(done?/^\s*(✔️|✔|⬜)\uFE0F?/:/^\s*(✔️|✔)\uFE0F?/,'✅');
   /* one shade per kind, the same meaning every day (6 Nov 2026, her words: the coloring's not
@@ -829,13 +855,13 @@ function today(){
   past.forEach(x=>{ const w=100/x.n; let top=y(x.s), h=Math.max(MINH,y(x.e)-y(x.s)-1);
     if(x.stk){ if(x.si) return; const c=x.stk.card; h=Math.max(MINH,y(c.e)-y(c.s)-1);
       const ths=(c.photos||[]).slice(0,4).map(p=>`<img alt="" src="${p.src}">`).join('');
-      g+=`<div data-c="${ci(c)}" class="ev lived combo tall${c.k==='event'?' gcal past':''}" title="${esc(c.t)} · ${tm(c.s)}" style="${bgev(c)?bgs(c):c.k==='event'?`--gc:${pcol(c)};--gi:${gink(gcol(c))}`:kvx(c)};top:${top}px;height:${h}px;left:calc(${(c.col||0)*100/(c.n||1)}% + 2px);width:calc(${100/(c.n||1)}% - 4px)"><b>${bgev(c)?esc(bgt(c)):c.k==='event'?esc(dn(c.summary||c.t,c.done)):(c.act?'✅ ':'')+esc(c.t)}</b><i>${tm(c.s)}–${tm(c.e)}${c.drive?' · '+esc(c.drive):''}</i>${bgev(c)?'':c.members.map(m=>`<span class="ln">${m.act?'✅ ':''}${esc(m.t)}</span>`).join('')}${ths?`<span class="ths">${ths}</span>`:''}</div>`; return; }
+      g+=`<div data-c="${ci(c)}" class="ev lived combo tall${c.k==='event'?' gcal past':''}" title="${esc(c.t)} · ${tm(c.s)}" style="${bgev(c)?bgs(c):c.k==='event'?`--gc:${pcol(c)};--gi:${gink(gcol(c))}`:kvx(c)};top:${top}px;height:${h}px;left:calc(${(c.col||0)*100/(c.n||1)}% + 2px);width:calc(${100/(c.n||1)}% - 4px)"><b>${bgev(c)?esc(bgt(c)):c.k==='event'?esc(dn(c.summary||c.t,c.done)):(c.act?'✅ ':'')+esc(c.t)}</b><i>${tm(c.s)}–${tm(c.e)}${c.drive?' · '+esc(c.drive):''}</i>${bgev(c)?'':c.members.map(m=>`<span class="ln${m.mom?' mln':''}">${m.act?'✅ ':''}${esc(m.t)}</span>${m.mom&&takeHome(m)?`<span class="mw">${esc(takeHome(m))}</span>`:''}`).join('')}${ths?`<span class="ths">${ths}</span>`:''}</div>`; return; }
     if(bgev(x)){ g+=`<div data-c="${ci(x)}" class="ev event gcal past bg" style="${bgs(x)};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(bgt(x))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i></div>`; return; }
-    if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past${(x.photos||[]).length?' hasph':''}${x.star?' star':''}" style="--gc:${pcol(x)};--gi:${gink(gcol(x))};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${esc(dn(x.summary||x.t,x.done))}</b><i>${x.star?'the highlight · ':''}${tm(x.s)}–${tm(x.e)}${x.lastmin?' · last-minute':''}${x.covers&&x.covers.length?` · covers ${x.covers.length}`:''}${(x.links||[]).length?' · 🔗':''}${x.where?', '+esc(x.where):''}</i><span class="rt">${thumb(x)}${dots(x)}</span></div>`; return; }
-    g+=`<div data-c="${ci(x)}" class="ev lived${x.runner?' runner':''}${h>=40?' tall':''}${x.est?' est':''}${(x.photos||[]).length?' hasph':''}${x.mom?' mom':''}${x.star?' star':''}${x.cat==='sleep'?' slp':''}" title="${esc(x.hl||x.t)} · ${tm(x.s)}" style="${kvx(x)};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${x.act||(x.closes||[]).length?'✅ ':''}${esc(x.t)}</b>${x.hl?`<span class="why">the highlight: ${esc(String(x.hl).replace(/^\W*⭐\s*/,''))}</span>`:''}<i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${(()=>{ const dl=delivOf(x)[0], mv=movedBy(x);
+    if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past${(x.photos||[]).length&&!MOM.has(x)?' hasph':''}${x.star?' star':''}${MOM.has(x)?' meantc':''}" style="--gc:${pcol(x)};--gi:${gink(gcol(x))};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${esc(dn(x.summary||x.t,x.done))}</b><i>${x.star?'the highlight · ':''}${tm(x.s)}–${tm(x.e)}${x.lastmin?' · last-minute':''}${x.covers&&x.covers.length?` · covers ${x.covers.length}`:''}${(x.links||[]).length?' · 🔗':''}${x.where?', '+esc(x.where):''}</i>${momBody(x)}<span class="rt">${MOM.has(x)?'':thumb(x)}${dots(x)}</span></div>`; return; }
+    g+=`<div data-c="${ci(x)}" class="ev lived${x.runner?' runner':''}${h>=40?' tall':''}${x.est?' est':''}${(x.photos||[]).length&&!MOM.has(x)?' hasph':''}${x.mom?' mom':''}${x.star?' star':''}${MOM.has(x)?' meantc':''}${x.cat==='sleep'?' slp':''}" title="${esc(x.hl||x.t)} · ${tm(x.s)}" style="${kvx(x)};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${x.act||(x.closes||[]).length?'✅ ':''}${esc(x.t)}</b>${x.hl?`<span class="why">the highlight: ${esc(String(x.hl).replace(/^\W*⭐\s*/,''))}</span>`:''}<i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${(()=>{ const dl=delivOf(x)[0], mv=movedBy(x);
       /* on the box itself (7 Nov 2026, her words: when there's a deliverable I would really like for that to show up on the
          little calendar box; as much of what was meaningful as possible on the entry itself) */
-      return dl||mv?`<span class="cx">${dl?`<a class="dlk" href="${esc(dl.u)}" target="_blank" rel="noopener">📎 ${esc(dl.l==='deliverable'?'deliverable':dl.l)}</a>`:''}${mv?`<span class="mvt">+${mv}%</span>`:''}</span>`:''; })()}${more(x)}<span class="rt">${thumb(x)}${dots(x)}</span></div>`; });
+      return dl||mv?`<span class="cx">${dl?`<a class="dlk" href="${esc(dl.u)}" target="_blank" rel="noopener">📎 ${esc(dl.l==='deliverable'?'deliverable':dl.l)}</a>`:''}${mv?`<span class="mvt">+${mv}%</span>`:''}</span>`:''; })()}${more(x)}${momBody(x)}<span class="rt">${MOM.has(x)?'':thumb(x)}${dots(x)}</span></div>`; });
   its.forEach(x=>{ if(bgev(x)){ g+=`<div data-c="${ci(x)}" class="ev event gcal bg" style="${bgs(x)};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:${x.half?'calc(50% - 5px)':'calc(100% - 6px)'}"><b>${esc(bgt(x))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i></div>`; return; }
     if(x.k==='event'){ const inner=`<b>${esc(dn(x.summary||x.t,x.done))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i>${cov(x)}`;
     g+=`<div data-c="${ci(x)}" class="ev event gcal" style="--gc:${gcol(x)};--gi:${gink(gcol(x))};top:${y(x.s)+1}px;height:${Math.max(4,y(x.e)-y(x.s)-2)}px;left:3px;width:${x.half?'calc(50% - 5px)':'calc(100% - 6px)'}">${inner}</div>`; return; }
