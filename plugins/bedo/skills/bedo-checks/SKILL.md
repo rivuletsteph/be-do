@@ -28,7 +28,7 @@ it runs one, so nothing has to be remembered.
 
 | when | command | what it is for |
 |---|---|---|
-| a Code session's first reply (`preflight` prints it) | `asks` | Duet's asks for Code, read from the stream; take each, oldest first |
+| a Code session's first reply (`preflight` prints both) | `asks`, `prs FILE` | Duet's asks, one per chat; open pull requests, yes or no |
 | look ahead; inbox | `groups` | open actions grouped |
 | every day, scheduled | `fold` | the daily amendment fold |
 | every write where code runs | `apply ops.json` | code writes the rows |
