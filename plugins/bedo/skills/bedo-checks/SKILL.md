@@ -30,7 +30,7 @@ it runs one, so nothing has to be remembered.
 |---|---|---|
 | a Code session's first reply (`preflight` prints it) | `asks` | Duet's asks for Code, read from the stream; take each, oldest first |
 | look ahead; inbox | `groups` | open actions grouped |
-| every day, scheduled | `fold` | the daily amendment fold |
+| `run dusk`, step 6 | `fold` | the daily amendment fold |
 | every write where code runs | `apply ops.json` | code writes the rows |
 | `run dusk`, `run braid`, `run morning` | `daysteps` | the day's Code steps |
 | before any stream write | `entry row.json --chat MMDD` | write only rows that print `ok`; fix every `FIX` first |
@@ -39,7 +39,7 @@ it runs one, so nothing has to be remembered.
 | the dusk close, before `dayqa` | `sweep YYYY-MM-DD` | the day's rows through `entry` |
 | the dusk close, before its close row: the 🔀 braid | `dayqa YYYY-MM-DD` | be•do's own calls first, then one list for her to accept |
 | the dusk close, once the day's rows are written | `calsync YYYY-MM-DD` | the calendar mirrors the stream: the done marks. Its marker line goes in the dusk close row, and a my day chat's `close` waits for it |
-| the dusk close after `dayqa`, the weekly close, and on call | `chats --sessions mine.json` | the chat sweep: every open chat against its objective and its row |
+| `run braid`, step 11; the weekly close; on call | `chats --sessions mine.json` | the chat sweep: every open chat against its objective and its row |
 | the meals alone | `meals --json` | each meal's prep and eating, placed from context |
 | a session entry | `stretches FILE --day YYYY-MM-DD --json` | the session's time, from her own stretches |
 | the weekly close, right after the split | `cleanup` | the weekly drive cleanup, one drive at a time |
