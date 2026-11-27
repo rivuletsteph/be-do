@@ -593,7 +593,9 @@ function three(){
   const el=document.getElementById('three');
   /* a finished day opens on one line, never a list (24 Nov 2026, her words through Duet: one line summarizing the day's
      important, meaningful things; the moments themselves are on the timeline, with their photos) */
-  if(over3&&!D.picked){ el.innerHTML=D.summary?`<h2>the day</h2><p class="sumline">${esc(D.summary)}</p>`:''; return; }
+  /* be•do's picks never stand in for what happened (18 Nov 2026, her words: number two and three did not happen on the what
+     you did): a finished day opens on its summary line whether or not the build was given picks */
+  if(over3){ el.innerHTML=D.summary?`<h2>the day</h2><p class="sumline">${esc(D.summary)}</p>`:''; return; }
   const nt=t=>String(t||'').replace(/^⚡\s*/,'').trim();
   /* a holiday or a full day recommends nothing that isn't due that day; her own picks still show */
   const lite=D.light&&!over3&&!D.picked, due=lite?dueTitles():null;

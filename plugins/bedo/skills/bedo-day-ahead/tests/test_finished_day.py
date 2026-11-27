@@ -172,10 +172,25 @@ def test_summary_line():
     assert flow.summary_of([]) == ''
 
 
+def test_picks_are_not_done():
+    """A recommended pick never counts as done on its own (18 Nov 2026, her words: number two and three did not happen on
+    the what you did, so there needs to be a better check there). What a finished day shows is only what the record
+    shows closed that day."""
+    rows = [
+        rec('a', '2026-03-13T16:00:00.000Z', '⚡ action', '⚡ Lead the pond walk', '✅ done'),
+        rec('p', '2026-03-01T16:00:00.000Z', '⚡ action', '⚡ Ask the clinic about the form', '⬜ intention'),   # a pick, still open
+        rec('q', '2026-03-13T15:00:00.000Z', '⚡ action', '⚡ Send the grant list', '⬜ intention'),             # a pick, today, open
+    ]
+    did = flow.did_of(rows, F, Off(), dt.date(2026, 3, 13))
+    assert [x['t'] for x in did] == ['Lead the pond walk'], did
+
+
 def test_engine():
     page = open(os.path.join(os.path.dirname(HERE), 'assets', 'flow_engine.html'), encoding='utf-8').read()
     # a finished day opens on one line, never a list (24 Nov 2026)
-    assert "if(over3&&!D.picked){ el.innerHTML=D.summary?" in page and 'class="sumline"' in page
+    assert "if(over3){ el.innerHTML=D.summary?" in page and 'class="sumline"' in page
+    # be•do's picks never reach a finished day as done (18 Nov 2026)
+    assert 'if(over3&&!D.picked)' not in page
     # its meaningful moments are drawn on the timeline, larger, with her words and photos, never folded (24 Nov 2026)
     assert "const MOM=window.__mom=new Set(gone?[...sixOf(pastAll)" in page
     assert "const big=x=>(window.__mom&&window.__mom.has(x))||" in page
@@ -191,6 +206,7 @@ def test_engine():
 
 
 def main():
+    test_picks_are_not_done()
     test_did_of()
     test_a_moment_marked_meaningful_leads()
     test_meaning_leads()
