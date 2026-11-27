@@ -260,6 +260,18 @@ whatever `LB_LOCAL` says; `LB_LOCAL` and the skill's own file are only the fallb
 that pointed `LB_LOCAL` at the installed file skipped the row and built a whole day without its wellness, device, photo
 and calendar settings, all of which the row had.
 
+**A holiday or a full day is a light day** (26 Nov 2026, her words: *I'm seeing a lot of unresolved tasks that I really
+don't need to see today … it seems totally disconnected from the fact that today is a full holiday*). The build marks
+the day `light` when it is a holiday (`--holiday`, a date in her settings' `holidays`, the days most places close by
+rule: New Year's, Memorial Day, the Fourth, Labor Day, Thanksgiving and the day after, Christmas; or an all-day event of
+hers named for one) or a full day by `full_day_hours` / `full_day_events`. A light day leaves off every open step not
+due that day: *every step, by rhythm*, the flow, the easiest next steps under *not on today's calendar*, and be•do's
+three unless she picked them. What is set for a time today stays.
+
+**NOW and NEXT lead whenever there is a `--plan`**, at any hour and on any day not yet over. **Could go together closes
+the page** (her words: *it needs to go down at the bottom*), below everything but the download button, on the phone and
+the computer alike.
+
 ## Saturday and Sunday have their own shape
 
 25 Oct 2026, the user's words: *a Sunday look ahead is fundamentally different

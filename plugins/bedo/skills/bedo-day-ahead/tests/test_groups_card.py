@@ -3,7 +3,7 @@
 these open intentions and potential actions and proactively scan how these
 things can be grouped). The page runs the core's groups check on the rows it
 already read, so it runs every look ahead with no one asking, and the engine
-draws it under the three, never on a finished day.
+draws it at the bottom of the page (26 Nov 2026), never on a finished day.
 
 Every name below is an obvious invention.
 
@@ -38,7 +38,7 @@ class Card(unittest.TestCase):
         self.assertEqual(sorted(r['id'] for r in calls['rows']), ['r1', 'r2', 'r4'])
         self.assertEqual(g['lenses']['person'], [])     # the household is never a group
 
-    def test_the_engine_draws_it_under_the_three_and_not_on_a_finished_day(self):
+    def test_the_engine_draws_it_and_not_on_a_finished_day(self):
         h = open(os.path.join(HERE, '..', 'assets', 'flow_engine.html'), encoding='utf-8').read()
         self.assertIn('<section class="three" id="three"></section>\n<section class="sat grp" id="grp"></section>', h)
         self.assertIn('groupsCard();', h[h.index('function draw()'):])
