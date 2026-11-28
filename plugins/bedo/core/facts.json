@@ -465,6 +465,20 @@
   "tap_line": "[be•do] tapped on the dawn page.",
   "undo_seconds": 10,
   "reread_after_seconds": 60,
-  "sunrise_days": 14
+  "sunrise_days": 14,
+  "title": "Dawn flow", "label": "Dawn", "url_key": "dawn_url", "icon": "sunrise",
+  "code": [], "words": [], "status_of": {}, "day_starts": "00:00",
+  "all_in": "Your steps are all in. The flow closes itself."
+ },
+ "dusk_page": {
+  "about": "The dusk page (27 Nov 2026, her ask the same evening): the dawn page's twin for the dusk flow. Anything not named here comes from dawn_page. Code's steps fill when a run writes them and are never buttons; a step that needs her words opens a box to write them; 💊 evening pills is one button that writes both rows; evening breaths and blessing show last and are never offered as next. Rows before day_starts belong to the evening before.",
+  "title": "Dusk flow", "label": "Dusk", "url_key": "dusk_url", "icon": "sunset",
+  "leave_off": [],
+  "code": ["🪐", "🗺️ map check", "📱 screen time", "📧 clear gmail inbox", "🔀 braid", "⚔️"],
+  "words": ["⭐ highlight", "🌟"],
+  "status_of": {"⭐ highlight": "● log"},
+  "day_starts": "05:00",
+  "tap_line": "[be•do] tapped on the dusk page.",
+  "all_in": "Your steps are all in. The evening closes when you fall asleep."
  }
 }

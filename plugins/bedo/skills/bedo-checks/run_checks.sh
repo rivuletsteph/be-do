@@ -4,7 +4,7 @@
 #
 #   bash run_checks.sh judgment   # the judgment file, read in full at the first reply
 #   bash run_checks.sh preflight [--kind week --week N] [--part B] [--handoff FILE]
-#   bash run_checks.sh dawn [--out dawn.html]          # the dawn page: lanes, the next three to tap, what's done (27 Nov 2026)
+#   bash run_checks.sh dawn [--flow dusk] [--out FILE] # the dawn or dusk page: lanes, the next three to tap, what's done (27 Nov 2026)
 #   bash run_checks.sh remaining [--flow dawn|dusk] [--voice] [--close]   # --close: the dawn close row as an apply op, past noon
 #   bash run_checks.sh dusk      [--date YYYY-MM-DD] [--chats chats.json] [--photos folder.json [--links week.json]] [--write]
 #   bash run_checks.sh meals     [--date YYYY-MM-DD] [--json]   # each meal's prep and eating, placed from context

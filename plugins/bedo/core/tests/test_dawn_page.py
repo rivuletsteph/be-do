@@ -126,5 +126,67 @@ class Page(unittest.TestCase):
         self.assertEqual([s['p'] for s in run('2026-11-28T13:10:00.000Z')['next']], ['🚽 bm'])
 
 
+DUSK = '🌄 dusk'
+
+
+def dstep(p, w, t, group='flow'):
+    return {'practice': p, 'active': True, 'phase': DUSK, 'group': group, 'typical_time': t, 'order': None, 'wellness': w}
+
+
+DCAT = [
+    dstep('🔅 evening sun', '🤸‍♀️ body', '17:14'),
+    dstep('🪐 evening ring', '🤸‍♀️ body', '21:39'),
+    dstep('🗺️ map check', '🧠 mind', '21:42'),
+    dstep('💊 bp meds', '🤸‍♀️ body', '20:44'),
+    dstep('🌈 supplements', '🤸‍♀️ body', '20:49'),
+    dstep('🫖 evening tea', '🤸‍♀️ body', '21:02'),
+    dstep('⭐ highlight', '💖 spirit', '17:30'),
+    dstep('🔀 braid', '🧠 mind', '22:28'),
+    dstep('🌬️ evening breaths', '🤸‍♀️ body', '22:20'),
+    dstep('🌌 evening blessing', '💖 spirit', '22:28'),
+    dstep('🌄 dusk flow close', '💖 spirit', '23:50'),
+]
+
+
+class Dusk(unittest.TestCase):
+    def setUp(self):
+        import datetime as dt
+        self.local = {**LOCAL, 'evening_pills': {'default': {'💊 bp meds': ['a pill'], '🌈 supplements': ['a mineral']}}}
+        rows = [row('🔅 evening sun', '2026-11-28T23:30:00.000Z'),
+                row('💊 bp meds', '2026-11-29T03:00:00.000Z'),
+                row('🫖 evening tea', '2026-11-29T06:20:00.000Z'),          # 12:20 AM: still that evening
+                row('🌄 dusk flow close', '2026-11-29T03:10:00.000Z', s='▶️ in motion')]
+        self.data = P.plan(DCAT, rows, self.local, dt.date(2026, 11, 28), 'base-under-test', 'w49 be•do', 'dusk')
+
+    def test_pills_are_one_step_and_code_steps_are_marked(self):
+        by = {s['p']: s for s in self.data['steps']}
+        self.assertEqual(by['💊 evening pills']['members'], ['💊 bp meds', '🌈 supplements'])
+        self.assertNotIn('💊 bp meds', by)
+        self.assertTrue(by['🔀 braid']['code'] and by['🗺️ map check']['code'] and by['🪐 evening ring']['code'])
+        self.assertTrue(by['⭐ highlight']['words'])
+        self.assertTrue(by['🌌 evening blessing']['pattern'])
+        self.assertNotIn('🌄 dusk flow close', by)
+        self.assertIn('a pill', self.data['member_lines']['💊 bp meds'])
+        self.assertEqual(self.data['title'], 'Dusk flow')
+        self.assertIn('<title>Dusk flow</title>', P.render(self.data))
+
+    @unittest.skipUnless(shutil.which('node'), 'node not installed')
+    def test_the_evening_runs_past_midnight_and_pills_wait_for_both(self):
+        src = open(P.TEMPLATE, encoding='utf-8').read()
+        logic = src.split('/*LOGIC*/')[1].split('/*END LOGIC*/')[0]
+        self.data['rows'].append({'id': 'x', 'p': '🫖 evening tea', 't': '2026-11-29T06:20:00.000Z', 's': '◉ done', 'title': '', 'd': ''})
+        js = logic + f'\nconst D = {json.dumps(self.data)};\n' + \
+            'console.log(JSON.stringify(dawnState(D, D.rows, process.argv[1])));'
+        st = json.loads(subprocess.run(['node', '-e', js, '2026-11-29T06:30:00.000Z'],
+                                       capture_output=True, text=True, check=True).stdout)
+        self.assertEqual(st['date'], '2026-11-28')
+        done = {s['p'] for s in st['steps'] if s['row']}
+        self.assertEqual(done, {'🔅 evening sun', '🫖 evening tea'})      # pills wait for both; an open close closes nothing
+        pills = next(s for s in st['steps'] if s['p'] == '💊 evening pills')
+        self.assertEqual(pills['todo'], ['🌈 supplements'])
+        self.assertNotIn('🌬️ evening breaths', [s['p'] for s in st['next']])
+        self.assertNotIn('🔀 braid', [s['p'] for s in st['next']])
+
+
 if __name__ == '__main__':
     unittest.main()

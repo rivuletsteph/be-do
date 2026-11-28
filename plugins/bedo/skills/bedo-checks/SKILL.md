@@ -28,7 +28,7 @@ it runs one, so nothing has to be remembered.
 
 | when | command | what it is for |
 |---|---|---|
-| the weekly close, after `order` | `dawn` | the dawn page |
+| the weekly close, after `order` | `dawn`, `dawn --flow dusk` | the flow pages |
 | a Code session's first reply (`preflight` prints both) | `asks`, `prs FILE` | Duet's asks, one per chat; open pull requests, yes or no |
 | look ahead; inbox | `groups` | open actions grouped |
 | `run dusk`, step 6 | `fold` | the daily amendment fold |
