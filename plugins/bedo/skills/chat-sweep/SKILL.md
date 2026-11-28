@@ -34,8 +34,14 @@ Look at the tools this chat has, then:
 
 - **A Code-tab chat on the laptop** (it has `list_sessions` from the desktop
   app): read that list (step 1), and ask once to read claude.ai too (step 1b).
-- **A cloud session** (claude-code-remote's `list_sessions`): read that list,
-  and ask once for claude.ai's plain chats (step 1b).
+- **A cloud session** (claude-code-remote's `list_sessions`), the one she can
+  always start from her phone (her goal, 27 Nov 2026: *always be able to run
+  this on my phone for the cloud sessions*): read that list and sweep the cloud
+  sessions with claude-code-remote's own tools (`archive_session`,
+  `set_session_title`, `set_session_tags`), needing nothing on the laptop. Ask
+  for claude.ai's plain chats (step 1b) only when this session has a browser
+  tool. Without one, don't ask and don't stop: the sweep's `not in this sweep:`
+  lines name the rest, and that is the whole report on them.
 - **A Chat-tab or Cowork chat linked to her computer** (no session list, but a
   browser: Claude in Chrome's `javascript_tool`, or the built-in browser's,
   `mcp__remote-devices__Claude_Browser__javascript_tool`, turned on with
