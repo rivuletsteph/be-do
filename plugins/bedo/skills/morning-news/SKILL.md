@@ -105,6 +105,13 @@ label or mark read.** Clearing the inbox is the `clear-inbox` skill's job.
 If a newsletter sender shows up that isn't in the list, mention it once and ask
 whether to add it.
 
+**Paywalled local papers.** A small paper's site can lock its stories even for
+a subscriber who isn't signed in on that device (she hit this 16 Nov 2026). When
+the paper sends its e-edition by email, link that email (its Gmail link, without
+the account in the address) beside the web story, and say the full story is in
+the e-edition. Never paste the e-edition's own link: it carries her subscriber
+token.
+
 **The newsletter shelf.** Beside the day's briefings, the reader keeps
 newsletters they read at leisure (essays, health, a writer they follow). Show
 the **latest issue of each** as an inviting card, not a history of every issue:
@@ -193,8 +200,11 @@ and always one for the lead.
 
 ## 5. Report: the paper
 
-Build the page from `reference/paper-template.html`. Keep its palette, type and
-layout, and fill in the slots. Read the `artifact-design` guidance (or run the
+Build the page from `reference/paper-template.html`: the card layout the paper
+has used since 10 Nov (sticky bar, News, Reading and Stories tabs, the weather
+card, the lead and side cards, a card per topic, Skim with photos, the
+newsletter shelf, the inbox, Stories). Keep its palette, type and layout, and
+fill in the slots. Read the `artifact-design` guidance (or run the
 Artifact quickstart) before the first publish of a session.
 
 - **Weather:** the band from step 3b, right under the dateline, as printed.
@@ -210,7 +220,13 @@ Artifact quickstart) before the first publish of a session.
 - **In your inbox:** one line per newsletter, its sender, then the one to three
   headlines that matter.
 - **Skim:** after the sections, the explore band from step 1b: 10 to 14
-  one-liners, each headline a link with its source.
+  one-liners, each headline a link with its source, and **a small photo beside
+  each** when the story has a real one (her word, 16 Nov 2026: more photos in
+  Skim). Take its `og:image` the same way as step 4, look at it on the contact
+  sheet, label an artist's illustration as one, and ship it at about 640px wide
+  as `img/skim-<name>.jpg`. A story with no usable photo keeps the template's
+  tinted square, so the column stays even. Some outlets block image downloads;
+  that story just runs without one.
 - **Your newsletters:** the shelf from step 2, at the top of Reading.
 - **Stories:** three things and nothing more. (1) The weekday card: today's
   day and its moods (on a weekday, morning to learn something, lunch a
