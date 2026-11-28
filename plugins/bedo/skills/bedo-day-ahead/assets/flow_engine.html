@@ -329,6 +329,26 @@ html[data-bedo="night"] .td{--k-logged:#4A4540;--k-logged-d:#D9CCBC;--k-stretch:
 .cal .now{position:absolute;left:-5px;right:0;border-top:2px solid var(--c-clay,#c0392b);z-index:3}
 .cal .now:before{content:"";position:absolute;left:-1px;top:-6px;width:10px;height:10px;border-radius:50%;background:var(--c-clay,#c0392b)}
 .wh{margin-top:34px}
+/* who and where (28 Nov 2026): the sociogram, grouped by first circle and sized by the rows shared, and the day's places */
+.whoc{padding:12px 14px;display:grid;gap:12px}
+.whoc .circ{border-left:4px solid var(--cc);padding:2px 0 2px 10px}
+.whoc .circl{margin:0 0 6px;font:500 11.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--cc)}
+.whoc .circp{display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.whoc .pchip{display:inline-flex;align-items:baseline;gap:6px;border:1.5px solid var(--cc);border-radius:999px;padding:3px 11px;font-weight:600;line-height:1.25}
+.whoc .pchip small{font:500 11px var(--mono);color:var(--muted)}
+.whoc .pchip.ah{border-style:dashed;font-weight:500;color:var(--muted)}
+.whoc .via{font-size:12.5px;color:var(--muted)}
+.whoc .note{font-size:12.5px;color:var(--muted);margin:0}
+.whr{padding:12px 14px;display:grid;gap:10px}
+.whr ul{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.whr li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px}
+.whr .pn{font-weight:600;font-size:14.5px}
+.whr .ph{font:500 12px var(--mono);color:var(--accent);text-align:right;white-space:nowrap}
+.whr .pd{grid-column:1/-1;font-size:12.5px;color:var(--muted);line-height:1.45}
+.whr .bar{grid-column:1/-1;height:5px;border-radius:3px;background:var(--rule)}.whr .bar i{display:block;height:100%;border-radius:3px;background:var(--c-water)}
+.whr h3{font:500 12px var(--mono);color:var(--muted);margin:4px 0 0;letter-spacing:.04em}
+.whr .note{font-size:12.5px;color:var(--muted);margin:0}
+.whr svg{width:100%;max-width:420px;height:auto;display:block;margin:0 auto}
 .wh .wrap{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:18px;align-items:start}
 .wh svg{width:100%;height:auto;display:block}
 .wh .wk{cursor:pointer}.wh .dim{opacity:.18}
@@ -397,6 +417,8 @@ main{max-width:1720px;padding:22px 28px 60px}
 <section class="sp" id="spent"></section>
 <section class="mv" id="moved"></section>
 <section class="wh" id="wheel"></section>
+<section class="who" id="who"></section>
+<section class="where" id="where"></section>
 <p id="questlink" style="text-align:center;margin:28px 0 0" hidden></p>
 </main>
 <script>/*BFJS*/</script>
@@ -1282,7 +1304,7 @@ function groupsCard(){
    and base flow closes the page. */
 /* the computer's three columns (18 Nov 2026): wrap() lays the placed sections into them, unwrap() puts them back in
    one column first, so the phone and the computer read the same order of the day */
-const WIDE=window.matchMedia?matchMedia('(min-width:1100px)'):null, DASH={dL:['now','rv','three','int','sat','leannote'],dM:['today'],dR:['spent','wheel','moved','questlink']}; let QNEXT=null;
+const WIDE=window.matchMedia?matchMedia('(min-width:1100px)'):null, DASH={dL:['now','rv','three','int','sat','leannote'],dM:['today'],dR:['spent','wheel','who','where','moved','questlink']}; let QNEXT=null;
 function unwrap(){ const d=document.querySelector('main>.dash'); if(!d) return;
   d.querySelectorAll(':scope>div>*').forEach(n=>{ if(n.id==='questlink'&&QNEXT&&QNEXT.parentNode) QNEXT.before(n); else if(n.id==='questlink') d.parentNode.appendChild(n); else d.before(n); }); d.remove(); }
 function wrap(order){ if(!(WIDE&&WIDE.matches)) return; const m=document.getElementById('h1'); if(!m) return;
@@ -1290,10 +1312,54 @@ function wrap(order){ if(!(WIDE&&WIDE.matches)) return; const m=document.getElem
   Object.keys(DASH).forEach(k=>{ const c=document.createElement('div'); c.className=k; d.appendChild(c);
     const ids=order.filter(id=>DASH[k].includes(id)).concat(DASH[k].filter(id=>!order.includes(id)));
     ids.forEach(id=>{ const n=document.getElementById(id); if(n){ if(id==='questlink'&&!QNEXT) QNEXT=n.nextSibling; c.appendChild(n); } }); }); }
+/* who was in your day, ahead and behind (28 Nov 2026, her words: I haven't seen a sociogram on the my day in a long time;
+   and 12 Nov: I'd also like to see the sociogram, ahead and behind). The day behind's circles: everyone she was with or in
+   touch with, grouped by their first circle and sized by how many of the day's rows they shared; who came up hangs off
+   them; who is still ahead today is dashed. Each circle takes a colour by its place in the order, so no circle name lives here */
+function who(){
+  const el=document.getElementById('who'); if(!el) return; const W=D.who;
+  if(!W||!(W.people||[]).length){ el.innerHTML=''; return; }
+  const over=new Date().toLocaleDateString('en-CA')>D.day, PAL=['moss','rose','ochre','water','teal','plum','terra','clay'];
+  const order=[...(W.order||[])], groups={};
+  W.people.forEach(p=>(groups[p.circle||'']=groups[p.circle||'']||[]).push(p));
+  const keys=[...order.filter(k=>groups[k]), ...Object.keys(groups).filter(k=>k&&!order.includes(k)), ...(groups['']?['']:[])];
+  const max=Math.max(1,...W.people.map(p=>p.n||0));
+  const body=keys.map(k=>{ const i=order.indexOf(k), cc=k?`var(--c-${PAL[(i<0?order.length+keys.indexOf(k):i)%PAL.length]})`:'var(--faint)', ps=groups[k];
+    return `<div class="circ" style="--cc:${cc}"><p class="circl">${esc(k||'no circle yet')} · ${ps.length}</p><div class="circp">`
+      +ps.map(p=>`<span class="pchip${p.ahead?' ah':''}" style="font-size:${p.ahead?13:(13+5*(p.n||1)/max).toFixed(1)}px" title="${esc(p.name)} · ${esc(p.when||'')}">${esc(p.name)}<small>${p.ahead?'ahead · '+esc(p.when||''):esc(p.when||'')}</small></span>`
+        +(p.via||[]).map(m=>`<span class="via">↳ ${esc(m)}</span>`).join('')).join('')+`</div></div>`; }).join('');
+  const n=W.people.filter(p=>!p.ahead).length, a=W.people.length-n;
+  el.innerHTML=`<h2 class="ftitle">${over?'who was in your day':'who is in your day'}</h2><div class="card whoc">${body}`
+    +`<p class="note">${n} ${n===1?'person':'people'} with you or in touch${a?`, ${a} still ahead (dashed)`:''} · sized by how much of the day you shared</p></div>`;
+}
+/* where you were, and where you're going (28 Nov 2026, her words: after that, add geography to the my day too; and 12 Nov:
+   for location I think I just want to see the location … and then maybe a map). The day's 📍 stays, longest first, each
+   with its time, who with and what she did there; a place new to her is starred. Today's calendar places still ahead are
+   listed after. The map draws once the places base holds coordinates for two places or more, each dot sized by the time there */
+function where(){
+  const el=document.getElementById('where'); if(!el) return; const P=D.where;
+  if(!P||!((P.stays||[]).length||(P.going||[]).length||P.home)){ el.innerHTML=''; return; }
+  const over=new Date().toLocaleDateString('en-CA')>D.day, hrs=h=>h>=1?`${Math.floor(h)} h ${String(Math.round((h%1)*60)).padStart(2,'0')}`:h>0?`${Math.max(1,Math.round(h*60))} min`:'';
+  const max=Math.max(.01,...(P.stays||[]).map(s=>s.hours||0));
+  let map='';
+  if((P.map||[]).length>=2){ const w=420,h=240;
+    map=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="The day's places, each sized by the time there"><rect x="0" y="0" width="${w}" height="${h}" rx="12" fill="var(--card2)"/>`
+      +P.map.map(d=>{ const s=P.stays[d.i], r=5+12*Math.sqrt((s.hours||0)/max), x=(d.x*w).toFixed(1), y=(d.y*h).toFixed(1);
+        return `<circle cx="${x}" cy="${y}" r="${r.toFixed(1)}" fill="var(--c-water)" fill-opacity=".55" stroke="var(--c-water)"><title>${esc(s.name)} · ${esc(s.at)}</title></circle>`
+          +`<text x="${x}" y="${(+y+r+12).toFixed(1)}" text-anchor="middle" font-size="11" fill="var(--ink)">${esc(cut(s.name,26))}</text>`; }).join('')+`</svg>`; }
+  const li=(P.stays||[]).map(s=>`<li><span class="pn">${s.new?'<span title="a new place">★</span> ':''}${esc(s.name)}</span><span class="ph">${esc(hrs(s.hours))}</span>`
+    +`<span class="pd">${esc(s.at)}${s.who?` · with ${esc(s.who)}`:''}${s.did?`<br>${esc(s.did)}`:''}</span>`
+    +(s.hours?`<span class="bar"><i style="width:${Math.round(100*s.hours/max)}%"></i></span>`:'')+`</li>`).join('');
+  const go=(P.going||[]).map(g=>`<li><span class="pn">${esc(g.where)}</span><span class="ph">${g.a?esc(wt(g.a)):''}</span><span class="pd">${esc(g.t)}</span></li>`).join('');
+  const notes=[P.home?'home all day, by the record: no 📍 stays on the day’s rows':'', P.road?`on the road ${hrs(P.road/60)}`:'', (P.stays||[]).length&&!(P.map||[]).length?`the map draws once your places have their coordinates (${P.placed||0} of ${(P.stays||[]).length} do)`:''].filter(Boolean);
+  el.innerHTML=`<h2 class="ftitle">${over?'where you were':li&&go?'where you’ve been, and where you’re going':li?'where you’ve been today':'where you’re going today'}</h2><div class="card whr">${map}`
+    +(li?`<ul>${li}</ul>`:'')+(go?`<h3>${li?'still ahead today':'on your calendar today'}</h3><ul>${go}</ul>`:'')
+    +(notes.length?`<p class="note">${esc(notes.join(' · '))}</p>`:'')+`</div>`;
+}
 function arrange(){
   const $=id=>document.getElementById(id), m=$('h1'); if(!m) return;
   const now=new Date(), day=now.toLocaleDateString('en-CA'), am=day<D.day||(day===D.day&&now.getHours()<12);
-  const after=['spent','wheel','today','sat','int','flowwrap','moved'], base=['rv','leannote'];
+  const after=['spent','wheel','who','where','today','sat','int','flowwrap','moved'], base=['rv','leannote'];
   /* the three sit right under base flow in the morning, and right under the day's time from noon (12 Nov 2026). Before
      10 the calendar comes straight after the three and how the time is going waits at the bottom (12 Nov 2026, her words:
      how the time is going is pretty irrelevant at this stage in the day … till after my work day has started … after 10
@@ -1302,8 +1368,8 @@ function arrange(){
   /* once the workday starts, base flow goes to the bottom (12 Nov 2026, her words: once I start my workday, the
      baseflow needs to move to the bottom) */
   const over=day>D.day;   /* a finished day: what she did first, as complete, then her stream (14 Nov 2026) */
-  const ids=over?['three','today','spent','wheel','sat','int','flowwrap','moved'].concat(base):early?['rv','three','grp','leannote','today','sat','int','flowwrap','moved','spent','wheel']
-    :['today','three','grp','spent','wheel','sat','int','flowwrap','moved'].concat(base);   /* the workday: my stream first, then the three (12 Nov 2026, her words: during the day the thing that is really helpful is seeing my stream and where I am in it … I don't want to have to scroll down) */
+  const ids=over?['three','today','spent','wheel','who','where','sat','int','flowwrap','moved'].concat(base):early?['rv','three','grp','leannote','today','who','where','sat','int','flowwrap','moved','spent','wheel']
+    :['today','three','grp','spent','wheel','who','where','sat','int','flowwrap','moved'].concat(base);   /* the workday: my stream first, then the three (12 Nov 2026, her words: during the day the thing that is really helpful is seeing my stream and where I am in it … I don't want to have to scroll down) */
   /* before 10, base flow leads (12 Nov 2026, her words: before 10am I just want to see the base flow at the top). NOW
      and NEXT lead whenever she gave a plan for today, at any hour (26 Nov 2026: a holiday's page leads with the day's plan); a
      finished day has no NOW. Could go together closes the page, whatever the hour (26 Nov 2026, her words: the could go
@@ -1317,7 +1383,7 @@ function arrange(){
   if(grpEl){ const dl=$('bedo-dl'); if(dl) dl.before(grpEl); else m.parentNode.appendChild(grpEl); }
   wrap(L_);
 }
-function draw(){ nowNext(); sat(); today(); card(); three(); groupsCard(); const b=shape(); lists(b); intention(b); flow(b); spent(); moved(); wheel(); markTimeline(); arrange(); }
+function draw(){ nowNext(); sat(); today(); card(); three(); groupsCard(); const b=shape(); lists(b); intention(b); flow(b); spent(); moved(); wheel(); who(); where(); markTimeline(); arrange(); }
 document.addEventListener('bedo-theme',draw);
 if(WIDE) (WIDE.addEventListener?WIDE.addEventListener('change',draw):WIDE.addListener(draw));
 draw();

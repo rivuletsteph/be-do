@@ -161,6 +161,9 @@ zip; the installed loader fetches the change by itself.
 - `tests/test_three.py` — how be•do's three are chosen (J9).
 - `tests/test_myday.py` — the two cards, the ledger, and the day's own link.
 - `scripts/saturday.py` — a Saturday's things she might want to do, for the my day page.
+- `scripts/who_where.py` — who was in the day (the sociogram, ahead and behind) and where she was and is going, for
+  the my day page; the fetch reads the connections and places tables by name for it.
+- `tests/test_who_where.py` — the sociogram's circles, the stays, the places ahead and the map.
 - `tests/test_saturday.py` — the Saturday list, and a weekend's steps off the clock.
 - `tests/test_flow.py` — base flow's balance and buffer, a drive's goal in her words, the hours the day holds and a step's guessed size.
 - `tests/test_journal.py` — a 📒 journal's highlights (`· ` lines in its [be•do] part), her whole words, and the `moment: rec…` line that ties it to the moment it is the download of.
