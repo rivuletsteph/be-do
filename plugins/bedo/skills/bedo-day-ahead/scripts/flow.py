@@ -173,6 +173,33 @@ def day_holds(day_page, L):
                 full=booked >= L.get('full_day_hours', 4) or n >= L.get('full_day_events', 4), share=SHARE)
 
 
+HOLIDAY_WORDS = re.compile(r'(?i)\b(holiday|thanksgiving|christmas|new year|independence day|memorial day|labor day|'
+                           r'day off|vacation|no school|campus closed|office closed)\b')
+
+
+def fixed_holidays(year):
+    """The days most places close, by rule: New Year's, Memorial Day, the Fourth, Labor Day, Thanksgiving and the day
+    after, Christmas. Her settings' `holidays` add the rest (a school break, a closure)."""
+    d = lambda m, n: dt.date(year, m, n)
+    nth = lambda m, wd, k: d(m, 1) + dt.timedelta(days=(wd - d(m, 1).weekday()) % 7 + 7 * (k - 1))
+    last_mon_may = d(5, 31) - dt.timedelta(days=d(5, 31).weekday())
+    tg = nth(11, 3, 4)
+    return {d(1, 1), last_mon_may, d(7, 4), nth(9, 0, 1), tg, tg + dt.timedelta(days=1), d(12, 25)}
+
+
+def light_day(today, day_page, holds, L, forced=False):
+    """A holiday or a full day (26 Nov 2026, her words: I'm seeing a lot of unresolved tasks that I really don't need to see
+    today … it seems totally disconnected from the fact that today is a full holiday). Such a day's page leads with the
+    plan and leaves off every open step that isn't due that day. Returns why, or None."""
+    if forced or today.isoformat() in set(L.get('holidays') or []) or today in fixed_holidays(today.year):
+        return 'holiday'
+    for e in (day_page or {}).get('events') or []:
+        # an all-day event of hers (no end time drawn, including a holiday's last day: "ends today")
+        if e.get('who') == 'you' and not e.get('end') and HOLIDAY_WORDS.search(e.get('title') or ''):
+            return 'holiday'
+    return 'full' if holds and holds.get('full') else None
+
+
 # a target be•do made up is not a deadline (261112_f20, her words 12 Nov 2026: the made up times, that's uncool):
 # the row's latest word on its target calls it a placeholder, or puts it in a block of time (the money day)
 PLACEHOLDER = re.compile(r'placeholder|money (?:block|day|batch)|batch\b', re.I)
@@ -1052,7 +1079,10 @@ def photos_onto(items, today, rows, F, off, folder, me=''):
     placed = [p for p in placed if p['row'] and (not bedo_photos.linked(p['row']) or p['file'] in bedo_photos.linked(p['row']))]
     # one photo a card, as the day behind keeps it (never two of one moment), so six reach six moments
     seen, one = set(), []
-    for p in sorted([p for p in placed if p['keeper'] and p['row']], key=lambda p: (not p.get('linked'), p['t'])):
+    # her own order wins (27 Nov 2026, her words: the picture I took at the end right before everybody left was the best
+    # picture of the gathering): the photo she put first in a row's links is that card's photo, else the earliest
+    first = lambda p: (bedo_photos.linked(p['row']).index(p['file']) if p.get('file') in bedo_photos.linked(p['row']) else 99)
+    for p in sorted([p for p in placed if p['keeper'] and p['row']], key=lambda p: (not p.get('linked'), first(p), p['t'])):
         k = p['row']['id']
         if k not in seen or (p['row'].get('felt') and not p.get('file') and sum(x['row']['id'] == k for x in one) < 2):
             seen.add(k); one.append(p)
@@ -1178,6 +1208,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
                 secure=(D.get('secure') or {}).get('state'))
     today_page = next((x for x in D.get('days') or [] if x.get('date') == W['day']), None)
     data['holds'] = day_holds(today_page, L) if today_page else None
+    data['light'] = light_day(today, today_page, data['holds'], L, L.get('_holiday'))
     data['timegoals'] = L.get('time_goals') or {}
     data['screen_measured'] = screen_measured(rows, F, off, today)
     # stories and media live on her Morning Gate; the page links there (7 Nov 2026, her words: I'd prefer to see all of the
@@ -1396,8 +1427,11 @@ def main():
                     help='"<row key or record id>[::<label>]" — the rest of today in order, one thing at a time: NOW and NEXT')
     ap.add_argument('--later', action='append', default=[],
                     help='"<row key or record id>[::<label>]" — what waits quietly under NOW and NEXT')
+    ap.add_argument('--holiday', action='store_true',
+                    help='today is a holiday: lead with the plan, leave off open steps not due today')
     a = ap.parse_args()
     L = json.load(open(a.local, encoding='utf-8'))
+    L['_holiday'] = a.holiday
     h, D = page_data(a.day_ahead)
     dd = os.path.join(os.path.dirname(os.path.abspath(a.local)), 'data')
     rows, seen = [], set()

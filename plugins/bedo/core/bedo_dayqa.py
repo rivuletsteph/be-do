@@ -143,6 +143,7 @@ def todo(check, line, rows=()):
 
 # ── what the day's own records hold (30 Oct 2026) ───────────────────────
 DONE_MARKS = tuple(Q.get('calendar_done_marks') or ('✔️', '✔', '✅'))
+DROP_MARKS = tuple(Q.get('calendar_drop_marks') or ('✖️', '✖'))   # an event she moved to dropped, or titled it so
 READ_MARK = Q.get('journal_read_mark') or 'Pulled out'
 JOURNAL = 'journal'
 EID = re.compile(r'[?&]eid=([\w-]+)')
@@ -259,7 +260,12 @@ def photos(rows, files, off, day, me=''):
 OPEN_ST = tuple(FACTS['status']['actions'][1:3])                            # ⬜ intention, ▶️ in motion: not a potential
 DONE_ST = (FACTS['status']['actions'][3], FACTS['status']['logs'][1])          # ✅ done, ◉ done
 DONE_WORDS = re.compile(Q.get('done_words') or r'\b(finished|done|sent|posted|shared|submitted|completed|closed|filed|'
-                        r'booked|paid|cancel+ed|checked|verified|replied|emailed|built)\b', re.I)
+                        r'booked|paid|cancel+ed|checked|verified|replied|emailed|built|'
+                        # 26 Nov 2026 (her words: there's a lot of things on my list that already happened, like
+                        # the microwave install): a row saying a thing arrived or was put in is a doing too
+                        r'installed|delivered|arrived|fixed|repaired|attended|returned|registered|picked up)\b', re.I)
+PASSED_DAYS = Q.get('due_passed_event_days') or 7
+EVENT_ROW = Q.get('event_row_words') or '[be•do] From the calendar at the look ahead'   # day_ahead.py's own words on an event's row   # how far back a calendared step that passed is still closed
 STOP = set(Q.get('reconcile_stop') or ())
 NOT_EVIDENCE = {FL.word(p) for p in Q.get('reconcile_not_evidence') or ()}
 COMMON = Q.get('reconcile_common') or 4      # a word in this many titles names nothing in particular (a name)
@@ -340,10 +346,16 @@ def reconcile(rows, opens, off, system=None, broad=()):
         if r.get('status') == DONE_ST[0]:
             return True
         return r.get('status') in (DONE_ST[1], FACTS['status']['ad_hoc']) and bool(DONE_WORDS.search(r.get('title') or ''))
-    lived = [r for r in rows if evidence(r)]
+    # an estimated fill only echoes other rows' titles: never evidence (26 Nov 2026)
+    lived = [r for r in rows if evidence(r) and not (r.get('title') or '').endswith('(estimated)')]
     open_keys = {o.get('key') for o in opens if o.get('key') and o.get('status') in OPEN_ST}
     day_of = lambda r: (_key_day(r.get('key')) or (_local_day(utc(r['datetime']), off) if r.get('datetime') else None))
-    df = collections.Counter(w for r in list(opens) + list(rows) for w in _sig(r.get('title')))
+    # a word's commonness counts real rows only: an estimated fill and a highlight or glimmer echo other rows'
+    # titles, so on Wed 25 Nov “microwave” read as common and the install never closed (26 Nov 2026)
+    echo = lambda r: (r.get('title') or '').endswith('(estimated)') or FL.word(r.get('practice')) in NOT_EVIDENCE
+    # and over the day's own rows, each once: open steps pile up around one subject (four microwave rows were open
+    # on 25 Nov), and the more there were, the less any could close. A name is common in the day's rows (I11 holds)
+    df = collections.Counter(w for r in {r.get('id'): r for r in rows if not echo(r)}.values() for w in _sig(r.get('title')))
     rare = lambda ws: {w for w in ws if df[w] < COMMON}
     out, seen = [], set()
     for o in opens:
@@ -391,10 +403,19 @@ def reconcile(rows, opens, off, system=None, broad=()):
             r, t, _, why = best
             key = f' ({r["key"]})' if r.get('key') else ''
             line = (f'close “{_t(o)}” ✅ at {_clock(t, off)} — “{_t(r)}”{key}, {why}')
-            out.append(fill('reconcile', line, SRC['stream'],
-                            patch={'id': o['id'], 'fields': {'status': DONE_ST[0], 'end': _z(t)},
-                                   'week': o.get('_week')},
-                            note=f'[be•do] Closed from the stream: “{_t(r)}”{key}, {_clock(t, off)} — {why}.'))
+            f = fill('reconcile', line, SRC['stream'],
+                     patch={'id': o['id'], 'fields': {'status': DONE_ST[0], 'end': _z(t)},
+                            'week': o.get('_week')},
+                     note=f'[be•do] Closed from the stream: “{_t(r)}”{key}, {_clock(t, off)} — {why}.')
+            # settled by the record (26 Nov 2026, her words: too damn many decisions for a busy day): the same key,
+            # or three uncommon words in common, is written, then told, never asked
+            # only for a step meant for that same day: approving a repair shares three words with getting the car
+            # running again and is not it (26 Nov 2026)
+            meant = _meant(o, off)[0]
+            if best[2] == 0 or (why.count(',') >= 2 and _local_day(t, off) == (
+                    _local_day(meant, off) if meant else (_local_day(made, off) if made else None))):
+                f['tell'] = True
+            out.append(f)
     return out
 
 
@@ -444,6 +465,25 @@ def due(rows, opens, off, day, closed=(), events=(), broad=()):
                     or not (E.is_action(o) or o.get('key'))):
                 continue
         elif _local_day(tgt, off) != day:
+            # 26 Nov 2026 (her words: a lot of things on my list already happened, like … the TIAER meeting): a
+            # step tied to her calendar whose day passed with no braid to close it. Still on her calendar and not
+            # moved to dropped, it happened: written, then told, never asked
+            gone = (day - _local_day(tgt, off)).days
+            # only a row that stands for the event itself (the look ahead writes one per event); a step linked
+            # to a work block is still a step: the block passing doesn't do it
+            if (0 < gone <= PASSED_DAYS and o.get('calendar_event') and o.get('status') == OPEN_ST[0]
+                    and EVENT_ROW in (o.get('details') or '')
+                    and not any(_same_event(o['calendar_event'], e) and (e.get('summary') or '').startswith(DROP_MARKS)
+                                for e in events or ())):
+                seen.add(o.get('id'))
+                end = next((_event_at(e.get('end')) for e in events or () if _same_event(o['calendar_event'], e)), None) or tgt
+                f = fill('due', f'“{_t(o)}” was on your calendar {_local_day(tgt, off):%a} {_local_day(tgt, off).day} {_local_day(tgt, off):%b}: done — it passed and '
+                         'nothing says it didn’t happen. Written, then told', SRC['calendar'],
+                         patch={'id': o['id'], 'fields': {'status': DONE_ST[0], 'end': _z(end)}, 'week': o.get('_week')},
+                         note='[be•do] Done: its calendar event passed and nothing said it didn’t happen. '
+                              'Written and told at a later braid (26 Nov 2026).')
+                f['tell'] = True
+                out.append(f)
             continue
         seen.add(o.get('id'))
         at = f' at {_clock(tgt, off)}' if timed else ''
@@ -1266,7 +1306,15 @@ def main(argv=None):
         this = L.get('weekly_name', 'w{n} be•do').format(n=week_number(day))
         opens = [dict(r, _week=this) for r in as_rows(complete(air.dump(names_[this], L['stream_table'], formula=cond,
                                                                           by_id=True), this), fields)]
-        opens += [dict(r, _week=prev) for r in hist if r.get('status') in OPEN_ST]
+        # last week's open copies, only where this week's base doesn't hold the row (I15: the live copy wins).
+        # 26 Nov 2026: twelve steps moved to Wed 2 Dec in w48 were asked again as due Wed 25 Nov, from w47's copies
+        old = [r for r in hist if r.get('status') in OPEN_ST and r.get('id') not in {o.get('id') for o in opens}]
+        here = set()
+        for i in range(0, len(old), 40):
+            ids = [r['id'] for r in old[i:i + 40]]
+            f = 'OR(' + ', '.join(f"RECORD_ID()='{x}'" for x in ids) + ')'
+            here |= {r.get('id') for r in air.records(names_[this], L['stream_table'], formula=f, by_id=True)}
+        opens += [dict(r, _week=prev) for r in old if r.get('id') not in here]
     elif a.day:
         src = a.day
         cat = complete(a.catalog, 'catalog') if a.catalog else None

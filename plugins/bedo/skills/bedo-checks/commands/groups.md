@@ -1,6 +1,6 @@
 # `groups`
 
-**When:** every 👁️ look ahead, with no one asking: the my day page's builder runs it on the rows it already read and draws *could go together* under the three. With `--mail`, at the 📧 clear gmail inbox, on the threads that step read. And on call.
+**When:** every 👁️ look ahead, with no one asking: the my day page's builder runs it on the rows it already read and draws *could go together* at the bottom of the page (26 Nov 2026). With `--mail`, at the 📧 clear gmail inbox, on the threads that step read. And on call.
 
 **Command:** `groups [--rows rows.json] [--mail threads.json] [--json]`
 

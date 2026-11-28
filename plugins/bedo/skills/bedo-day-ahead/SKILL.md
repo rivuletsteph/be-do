@@ -449,9 +449,12 @@ first, else `quest_url`), whenever the day has a scored ⚔️ row.
 
 **Saving to Drive from the cloud** is the Drive connector's `create_file`,
 `contentMimeType` `text/html`, conversion off, into the week's folder found by
-name (created by the same rule if missing, and said so). The page passes
-through the chat, about 15k tokens for this page. A surface with no Drive tool
-skips it and says so in one line.
+name (created by the same rule if missing, and said so). Pass the page as a file
+reference, never typed: `base64Content` set to `sha256:<its sha256>:<absolute
+path>` (27 Nov 2026: a finished day with its keeper photos is about 700 KB, far
+too big to pass through the chat). Name it date-first, no emoji
+(`2026-11-26 my day Thursday Thanksgiving.html`), and read the size back. A
+surface with no Drive tool skips it and says so in one line.
 
 ## Clock and drive names
 

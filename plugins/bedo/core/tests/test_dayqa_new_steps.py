@@ -145,7 +145,7 @@ class TheBraid(unittest.TestCase):
         self.assertFalse(any('Friends from the co-op' in i.get('line', '') for i in items if i['check'] == 'due'))
         text = Q.render(items, FRI, rows, OFF)
         self.assertIn('written, then told — 1', text)
-        self.assertIn('✓ due · “⚡ Bring the spare microscope', text)
+        self.assertIn('✓ reconcile · close “⚡ Bring the spare microscope', text)   # 26 Nov: its own row closes it
         top = text.split('written, then told')[0]
         self.assertNotIn('microscope', top)
 

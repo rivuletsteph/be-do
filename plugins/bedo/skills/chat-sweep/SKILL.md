@@ -81,19 +81,32 @@ Then one line: `archived N finished chats · unpinned N`.
 
 ## 3. Hers, one short list
 
-Each `ask` chat as close, park or keep, with **what it is waiting on, in one
-line**: the last question it asked her, or its row's `still open`. Read the
-chat's last few turns (`list_events`, a small `limit`) for that line; never
-ask her to go and look.
+**be•do makes the call; she says go** (her words, 27 Nov 2026: *I feel like
+you're still putting a lot on me to make these decisions. Can you please make a
+clear recommendation … keeping the responses relatively concise*). Every `ask`
+chat and every kept chat gets be•do's pick, close or keep, never a question.
+Close when its wait is already answered elsewhere (a pull request merged, a day
+gone by, a question its row now carries). Keep only what needs her own answer
+or her own hands. Park is hers alone, so never pick it.
+
+The list is one line per chat, `pick · chat · why`, with the closes first, and
+then a single question: *go?* She answers once, or names the ones to change.
+Don't restate the sweep's output, and don't ask for anything she has already
+answered.
+
+Each line says **what the chat is waiting on**: the last question it asked her,
+or its row's `still open`. Read the chat's last few turns (`list_events`, a
+small `limit`) for that line, and check a waited-on pull request's state before
+calling it open. Never ask her to go and look.
 
 - close → its entry with the objective line, then archive
 - park → ⏸️, her word
 - keep → `chat sweep: kept YYYY-MM-DD` in its row's `[be•do]` block (a chat
   with no row gets its ▶️ entry first, carrying the line)
 
-Then the in-motion chats the sweep kept, one line each with the decision
-waiting on her. A newly written ▶️ entry names it. She asked for that line for
-every open chat, not only the quiet ones.
+The in-motion chats the sweep kept go on the same list with be•do's pick. A
+newly written ▶️ entry names what the chat is waiting on. She asked for that
+line for every open chat, not only the quiet ones.
 
 ## 4. Then the drive cleanup
 

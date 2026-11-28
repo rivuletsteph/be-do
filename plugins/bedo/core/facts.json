@@ -101,6 +101,10 @@
   "about_ask_if_missing": "20 Nov 2026, her words: I only want to be asked about the BM if I don't log it. It stays off the line while the flow runs, and is named once, just before the close, only if she hasn't logged it.",
   "covers": {"🗞️ morning gate": ["🌦️ weather check"]},
   "about_covers": "20 Nov 2026, her words: ideally the weather is covered by the morning gate. Once the gate is logged, the weather check counts as done and is never asked for on its own.",
+  "by_code": {"dawn": ["🪐", "🗞️ morning gate", "🌦️ weather check", "👁️ look ahead"], "dusk": []},
+  "about_by_code": "25 Nov 2026, her words: the dawn flow list shows only my own steps. The steps a Claude Code session runs (🪐 the morning ring read, 🗞️ morning gate, 🌦️ weather check, 👁️ look ahead) leave the remaining line but stay in the flow: each still counts toward n of N once Code logs it, and a backup close names any it never logged. A step given as a bare glyph is the flow's step that starts with it.",
+  "close_at_noon": ["dawn"],
+  "about_close_at_noon": "25 Nov 2026, her words: the dawn flow closes at noon. A dawn flow still open at its backup hour gets its 🌅 dawn flow close row without her: `remaining --flow dawn --close` prints the row as an apply op, and the first Code session past noon writes it unasked (preflight names it; `run dusk` makes sure of it). Once every step that holds it open is in, the same op is written at the last step's time instead.",
   "same_kind": {"dawn": {"📗 morning book": ["📗 book"], "🤸🏻‍♀️ morning mobility": ["🤸🏻‍♀️ morning movement", "🧎‍♀️ hip exercises", "💪 strength training", "🏋️ squat"]}, "dusk": {}},
   "about_same_kind": "21 Nov 2026 amendment (a flow closes right after its last logged step, without waiting for her): a step is done when a row of the same kind shows it. Per flow, step → the practices whose rows count as it, inside the flow's hours (dawn: before its backup close; dusk: from when it opens). A 📗 book row that morning is the 📗 morning book step (20 Nov: she read on her phone and logged it as its own book row, and the flow never counted as complete).",
   "closes_itself": {"at_sleep": "{glyph} {flow} is in: it closes when you fall asleep. The 🪐 morning ring read writes {close} at the ring's bedtime, with {pattern}.", "line": "{glyph} {flow} flow complete: last step {step} at {time}. Write {close} now, at {time}, without asking her.",
@@ -445,5 +449,22 @@
   "states": ["draft", "final"],
   "bedtime_from": "18:00",
   "bedtime_until": "12:00"
+ },
+ "dawn_page": {
+  "about": "The dawn page (27 Nov 2026): the dawn flow as four lanes in the wellness wheel colors, the next three steps to tap, and the steps done in the order done. It reads the stream through her own Airtable connector only when opened or returned to, and a tap writes one row and fills its own dot, so the morning costs a read per look and a write per tap. During dawn it takes the place of the remaining line in Duet.",
+  "lanes": {
+   "heart": {"name": "heart", "color": "#3E7C7D", "deep": "#2A5A5B"},
+   "body": {"name": "body", "color": "#5D8A66", "deep": "#41644A"},
+   "mind": {"name": "mind", "color": "#7A6191", "deep": "#564369"},
+   "spirit": {"name": "spirit", "color": "#B7832F", "deep": "#87601F"}
+  },
+  "lane_of": {"🩷 heart": "heart", "🌊 water": "heart", "🤸‍♀️ body": "body", "🌎 earth": "body", "🧠 mind": "mind", "💨 air": "mind", "💖 spirit": "spirit", "🔥 fire": "spirit"},
+  "leave_off": ["😶 wake", "🪐", "🌦️ weather check"],
+  "next": 3,
+  "tap_status": "◉ done",
+  "tap_line": "[be•do] tapped on the dawn page.",
+  "undo_seconds": 10,
+  "reread_after_seconds": 60,
+  "sunrise_days": 14
  }
 }

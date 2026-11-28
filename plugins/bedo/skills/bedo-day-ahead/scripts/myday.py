@@ -235,10 +235,16 @@ def today_link(rows, today, local, living=''):
     `deliverable` — the link the day ahead republishes to, and the pieces after
     it (the day's rows and photos, the close). The old living page is not a day's
     own. `row` is today's look ahead row, where a new link is written; None
-    before the row exists."""
+    before the row exists.
+
+    A row belongs to the day its datetime says, not the day it was written
+    (14 Nov 2026): Friday's look ahead row, written Saturday morning for a page
+    built as lived, was read as Saturday's, and the build would have republished
+    Saturday over Friday's page. `created` only orders the rows, and stands in
+    for a row with no datetime."""
     url = row = None
     for r in sorted(rows, key=lambda r: r['created']):
-        if not (r['practice'] or '').startswith(LOOK_AHEAD) or local(r['created']).date() != today:
+        if not (r['practice'] or '').startswith(LOOK_AHEAD) or local(r['when'] or r['created']).date() != today:
             continue
         row = r['id']
         u = (r.get('deliverable') or '').strip()
