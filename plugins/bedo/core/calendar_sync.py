@@ -24,6 +24,11 @@ It never writes the calendar itself. Two steps, both printing JSON:
      python3 calendar_sync.py --plan --day 2026-09-23 --local look_behind_local.json \
          --stream w39.json [--stream w38.json] --events events.json --calendars calendars.json
 
+  Each run ends with `marker`, the line the dusk close row carries once the
+  changes are made (19 Nov 2026: the step was a line nothing ran, and her
+  calendar fell behind the stream). A day with no linked event gets its marker
+  from --list; any other day from --plan. A my day chat's close waits for it.
+
   --live     in place of --local and --stream: the settings row and the rows are
              read from Airtable here (the day's rows and the week's rows that
              carry an event link: two or three calls, never the whole week).
@@ -38,6 +43,8 @@ Rules it keeps (V51 + the 23 Sep calendar amendment):
   · an all-day event keeps its dates; only its prefix follows the row
   · times follow the row only when the row carries a real span (an end, or a
     time spent); a row with a start and nothing else leaves the times alone
+  · an event that runs across days keeps its times, like an all-day one: a
+    row inside a stay is a moment of it, not its span (20 Nov 2026)
   · streams are read live base first and deduped by record id (I15), then the
     latest row per key wins (I5); every read must be complete (I11)
 Nothing personal lives in this file.
@@ -58,6 +65,7 @@ PREFIX = {'✅ done': '✔️', '◉ done': '✔️', '● log': '✔️',
           '⬜ intention': '⬜', '▶️ in motion': '⬜', '▫️potential': '▫️'}
 # every prefix the calendar already carries, so one is replaced, never stacked
 KNOWN = ('❔', '▫️', '▫', '⬜', '◻️', '◻', '✔️', '✔', '✅', '✖️', '✖', '▶️', '▶')
+MARKER = bedo_reader.FACTS['calsync']['marker']
 SHORT = {'m': 'gmail.com', 'g': 'group.calendar.google.com',
          'v': 'group.v.calendar.google.com', 'i': 'import.calendar.google.com'}
 
@@ -172,6 +180,11 @@ def span(r):
     return None
 
 
+def local_day(t, offset):
+    """The user's calendar day of an aware datetime, by the one clock."""
+    return (t.astimezone(dt.timezone.utc) + offset).date()
+
+
 def reprefix(summary, glyph):
     """Swap the status prefix, keeping the drive glyph and any spacing as it was.
     An event already carrying the right prefix comes back untouched."""
@@ -241,7 +254,10 @@ def main():
         for r in rows:
             d = decode_link(r['event'])
             (fetch if d else bad).append(dict(key=r['key'], title=r['title'], **(d or {'link': r['event']})))
-        print(json.dumps(dict(day=a.day, fetch=fetch, unreadable_links=bad), ensure_ascii=False, indent=1))
+        out = dict(day=a.day, fetch=fetch, unreadable_links=bad)
+        if not fetch and not bad:   # nothing linked: the day is synced as it stands
+            out['marker'] = f'{MARKER} {a.day} · nothing linked'
+        print(json.dumps(out, ensure_ascii=False, indent=1))
         return
 
     if not (a.events and a.calendars):
@@ -251,7 +267,9 @@ def main():
     by_summary = {c['summary']: c['id'] for c in cals}
     allowed = {}
     for label in L['sync_calendars']:
-        s = L['calendar_summaries'].get(label)
+        s, note = bedo_reader.live_calendar(L['calendar_summaries'].get(label), by_summary)
+        if note:
+            print(note, file=sys.stderr)
         if s not in by_summary:
             die(f'calendar "{label}" ({s}) is not in the calendar list — read it from list_calendars, never from memory')
         allowed[by_summary[s]] = label
@@ -259,6 +277,8 @@ def main():
     # has already been moved, and a dropped one still on a synced calendar is listed
     # for the user to move (the connector can't move an event between calendars)
     dropped_name = L.get('dropped_calendar')
+    if dropped_name:
+        dropped_name = bedo_reader.live_calendar(dropped_name, by_summary)[0]
     dropped_id = by_summary.get(dropped_name) if dropped_name else None
     evs = read_dump(a.events)
     evs = evs.get('events', evs) if isinstance(evs, dict) else evs
@@ -308,6 +328,11 @@ def main():
             want['summary'] = new_summary; why.append(f"prefix → {glyph}")
         sp = span(r) if glyph == '✔️' else None
         ea, eb = ev_time(e['start']), ev_time(e['end'])
+        # an event across days (a stay, a trip) keeps its times, as an all-day one keeps its dates:
+        # its rows are moments inside it, and the first of them would shrink it to that moment
+        # (20 Nov 2026: a 15-minute pickup row planned a three-day stay down to its first 15 minutes)
+        if sp and ea and eb and local_day(ea, offset) != local_day(eb - dt.timedelta(seconds=1), offset):
+            sp = None; why.append('times kept: the event runs across days')
         if sp and ea and eb:
             ra, rb = sp
             if abs((ra - ea).total_seconds()) > 60 or abs((rb - eb).total_seconds()) > 60:
@@ -324,7 +349,8 @@ def main():
         if glyph == '✖️' and dropped_id:
             to_move.append(dict(row=name, key=r['key'], event=new_summary, calendar=allowed[cal],
                                 link=e.get('htmlLink') or r['event']))
-    out = dict(day=a.day, changes=changes, unchanged=left, to_move=to_move)
+    out = dict(day=a.day, changes=changes, unchanged=left, to_move=to_move,
+               marker=f'{MARKER} {a.day} · {len(changes)} changed')
     if a.out:
         open(a.out, 'w', encoding='utf-8').write(json.dumps(out, ensure_ascii=False, indent=1))
     print(json.dumps(out, ensure_ascii=False, indent=1))

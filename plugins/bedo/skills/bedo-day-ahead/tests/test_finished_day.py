@@ -40,9 +40,68 @@ def test_did_of():
         rec('e', '2026-03-13T19:00:00.000Z', '☕ coffee', '☕ coffee'),                                   # a flow step
     ]
     did = flow.did_of(rows, F, Off(), dt.date(2026, 3, 13))
-    assert [x['t'] for x in did] == ['Lead the pond walk', 'the kids on the hay bales'], did
-    assert did[0]['why'] == 'We found frogs.' and did[0]['drive'] == 'Home'
-    assert did[1]['g'] == '⭐' and all(x['st'] == '✅' for x in did)
+    assert [x['t'] for x in did] == ['the kids on the hay bales', 'Lead the pond walk'], did   # her highlight leads
+    assert did[1]['why'] == 'We found frogs.' and did[1]['drive'] == 'Home'
+    assert did[0]['g'] == '⭐' and all(x['st'] == '✅' for x in did)
+
+
+def test_meaning_leads():
+    """The list is ranked by what was meaningful (23 Nov 2026, her words: the memorable things are, where was I with
+    my family): her highlights, then time with her people, then her work, then the system's line."""
+    FP = dict(F, person='who', emotion='e', photo='ph')
+    def row(rid, when, practice, title, status='● log', rhythm='', who='', e='', ph='', details=''):
+        return dict(id=rid, cellValuesByFieldId=dict(w=when, p=practice, t=title, s=status, d=details, r=rhythm, who=who, e=e, ph=ph))
+    rows = [
+        row('a', '2026-03-13T14:00:00.000Z', '⚡ action', '⚡ Rebuilt the page', '✅ done', 'Sysdrive'),
+        row('b', '2026-03-13T15:00:00.000Z', '⚡ action', '⚡ Post the form', '✅ done', 'Home'),
+        row('c', '2026-03-13T16:00:00.000Z', '🌿 fresh air', 'Trampoline with Pip', who='♑Pip Plum, Me', details='[be•do] From 2 photos.'),
+        row('d', '2026-03-13T17:00:00.000Z', '📝 log', '📝 sitting, unlogged (estimated)', who='Pip Plum'),      # a filler
+        row('e', '2026-03-13T18:00:00.000Z', '☕ coffee', 'Coffee with Pip', '◉ done', who='Pip Plum'),          # a flow step
+        row('f', '2026-03-13T19:00:00.000Z', '🍽️ dinner', 'Soup', who='Pip Plum'),                               # names no one
+        row('g', '2026-03-13T20:00:00.000Z', '⭐ highlight', '⭐ soup night', '◉ done'),
+        row('h', '2026-03-13T20:02:00.000Z', '🍽️ dinner', 'Family dinner', who='Pip Plum'),                      # the highlight's own
+        row('i', '2026-03-13T21:00:00.000Z', '🎥 movie', 'A quiet film', who='Me', ph='keeper'),                 # kept a photo
+    ]
+    did = flow.did_of(rows, FP, Off(), dt.date(2026, 3, 13), hidden={'Sysdrive'}, me='Me', flows=frozenset({'coffee'}))
+    assert [x['kind'] for x in did] == ['highlight', 'heart', 'heart', 'action', 'system'], did
+    assert [x['t'] for x in did][:4] == ['soup night', 'Trampoline with Pip', 'A quiet film', 'Post the form'], did
+    assert did[1]['why'] == '' and did[-1]['why'] == '1 piece of upkeep', did
+    many = rows + [row(f'm{i}', f'2026-03-13T2{i % 3}:1{i}:00.000Z', '🌿 fresh air', f'Outside with Pip {i}', who='Pip Plum') for i in range(9)]
+    many += [row(f'k{i}', f'2026-03-13T13:0{i}:00.000Z', '⚡ action', f'⚡ Errand {i}', '✅ done', 'Home') for i in range(6)]
+    did = flow.did_of(many, FP, Off(), dt.date(2026, 3, 13), hidden={'Sysdrive'}, me='Me', flows=frozenset({'coffee'}))
+    kinds = [x['kind'] for x in did]
+    assert kinds.count('highlight') + kinds.count('heart') == flow.DID_HEART_CAP and len(did) == flow.DID_CAP + 1, kinds
+
+
+def test_a_moment_marked_meaningful_leads():
+    """A moment be•do marked as meaningful, from her own words, leads with her highlights, whatever its kind; a kind
+    alone never does, and she never has to say so (23 Nov 2026, her words: I didn't want to actually have to say a moment
+    was meaningful, I want the system to figure that out)."""
+    said = 'I got it wrong, and we talked it through.\n\nWhat I took home.\n———\n[be•do] Said the next morning.\n[be•do] meaningful: her take-home, what I took home'
+    rows = [
+        rec('a', '2026-03-13T15:00:00.000Z', '⭐ highlight', '⭐ soup night', '◉ done'),
+        rec('b', '2026-03-13T16:00:00.000Z', '⚡ action', '⚡ Post the form', '✅ done', '', 'Home'),
+        rec('c', '2026-03-13T17:00:00.000Z', '💡 insight', '💡 insight · a quiet thought', '● log', 'Just a thought.\n———\n[be•do] logged.'),
+        rec('d', '2026-03-13T23:00:00.000Z', '💡 insight', '💡 insight · a miss to learn from', '● log', said),
+        rec('e', '2026-03-13T23:30:00.000Z', '📒 journal', 'What mattered', '● log', 'meaningful: my own word, not the mark'),   # her words, no block
+        rec('f', '2026-03-13T23:40:00.000Z', '⚡ action', '⚡ Call the school', '⬜ intention', '———\nmeaningful: named'),       # never happened
+    ]
+    did = flow.did_of(rows, F, Off(), dt.date(2026, 3, 13))
+    assert [(x['kind'], x['t']) for x in did] == [('highlight', 'soup night'), ('meaningful', '💡 insight · a miss to learn from'),
+                                                  ('action', 'Post the form')], did
+    assert did[1]['g'] == '' and did[1]['why'] == 'I got it wrong, and we talked it through.', did[1]   # its own glyph, her words
+    c = lambda i: rows[i]['cellValuesByFieldId']
+    assert flow.marked_meaningful(c(3), F) and not flow.marked_meaningful(c(2), F) and not flow.marked_meaningful(c(4), F)
+    # it is never crowded out: marked moments sit above the cap, like her highlights
+    FP = dict(F, person='who')
+    many = [dict(id=f'm{i}', cellValuesByFieldId=dict(w=f'2026-03-13T1{i}:10:00.000Z', p='🌿 fresh air', t=f'Outside with Pip {i}',
+                                                      s='● log', d='', r='', who='Pip Plum')) for i in range(9)]
+    did = flow.did_of(many + rows, FP, Off(), dt.date(2026, 3, 13))
+    assert [x['kind'] for x in did][:2] == ['highlight', 'meaningful'], did
+    assert sum(x['kind'] in ('highlight', 'meaningful', 'heart') for x in did) == flow.DID_HEART_CAP, did
+    # on the timeline it is gold, and the engine scores it with her highlights
+    eng = open(os.path.join(os.path.dirname(HERE), 'assets', 'flow_engine.html'), encoding='utf-8').read()
+    assert 'x.star||x.meant' in eng
 
 
 def test_system_work_is_one_line():
@@ -53,8 +112,9 @@ def test_system_work_is_one_line():
         rec('c', '2026-03-13T16:00:00.000Z', '⚡ action', '⚡ Lead the pond walk', '✅ done', '', 'Home'),
     ]
     did = flow.did_of(rows, F, Off(), dt.date(2026, 3, 13), hidden={'Sysdrive'})
-    assert [x['t'] for x in did] == ['the weekly close, Claude handled the details', 'Lead the pond walk'], did
-    assert 'Swept 40 chats' in did[0]['why'], did[0]
+    # last, and a count: its little things are not the day (23 Nov 2026)
+    assert [x['t'] for x in did] == ['Lead the pond walk', 'the weekly close, Claude handled the details'], did
+    assert did[1]['why'] == '2 pieces of upkeep' and 'Swept 40 chats; w11 cloned' in did[1]['covers'], did[1]
     assert len(flow.did_of(rows, F, Off(), dt.date(2026, 3, 13))) == 3   # no hidden drives, nothing folds
 
 
@@ -91,21 +151,71 @@ def test_highlight_keeps_its_time():
     assert night['a'] != '21:00' and night.get('told') == '21:00', night
 
 
+def test_summary_line():
+    """A finished day's top is one line (24 Nov 2026, her words through Duet: one line summarizing the day's important,
+    meaningful things): her highlights in her words, then who she was with, then her work as a count, upkeep never."""
+    did = [dict(t='soup night', kind='highlight', who=['Pip']), dict(t='Trampoline with Pip', kind='heart', who=['Pip']),
+           dict(t='A quiet film', kind='heart', who=['Ada']), dict(t='Post the form', kind='action'),
+           dict(t='be•do work, Claude handled the details', kind='system')]
+    # her highlight in her words, then who she was with by name, then her work as a count; a moment is never "done"
+    assert flow.summary_of(did) == 'Soup night · time with Pip and Ada · 1 thing done', flow.summary_of(did)
+    # no highlight: two moments with her people stand in for it
+    few = [dict(t='the pond walk', kind='heart'), dict(t='a call home.', kind='heart', who=['Ada']),
+           dict(t='lunch out', kind='heart'), dict(t='Post the form', kind='action'), dict(t='Paint the door', kind='action')]
+    assert flow.summary_of(few) == 'The pond walk and a call home · time with Ada · 2 things done', flow.summary_of(few)
+    # only work: named when it is a thing or two
+    work = [dict(t='Post the form', kind='action'), dict(t='Paint the door.', kind='action')]
+    assert flow.summary_of(work) == 'Post the form and Paint the door', flow.summary_of(work)
+    many = [dict(t=f'moment {i}', kind='heart', who=['Pip']) for i in range(6)]
+    assert flow.summary_of(many) == 'Moment 0 and moment 1 · time with Pip', flow.summary_of(many)
+    assert flow.summary_of([dict(t='be•do work', kind='system')]) == ''
+    assert flow.summary_of([]) == ''
+
+
+def test_picks_are_not_done():
+    """A recommended pick never counts as done on its own (18 Nov 2026, her words: number two and three did not happen on
+    the what you did, so there needs to be a better check there). What a finished day shows is only what the record
+    shows closed that day."""
+    rows = [
+        rec('a', '2026-03-13T16:00:00.000Z', '⚡ action', '⚡ Lead the pond walk', '✅ done'),
+        rec('p', '2026-03-01T16:00:00.000Z', '⚡ action', '⚡ Ask the clinic about the form', '⬜ intention'),   # a pick, still open
+        rec('q', '2026-03-13T15:00:00.000Z', '⚡ action', '⚡ Send the grant list', '⬜ intention'),             # a pick, today, open
+    ]
+    did = flow.did_of(rows, F, Off(), dt.date(2026, 3, 13))
+    assert [x['t'] for x in did] == ['Lead the pond walk'], did
+
+
 def test_engine():
     page = open(os.path.join(os.path.dirname(HERE), 'assets', 'flow_engine.html'), encoding='utf-8').read()
-    assert 'what you did' in page and "over3&&!D.picked?(D.did||[])" in page
-    assert ".three li.did:before" in page and "class=\"${over3?'did'" in page   # checked, fully bright
+    # a finished day opens on one line, never a list (24 Nov 2026)
+    assert "if(over3){ el.innerHTML=D.summary?" in page and 'class="sumline"' in page
+    # be•do's picks never reach a finished day as done (18 Nov 2026)
+    assert 'if(over3&&!D.picked)' not in page
+    # its meaningful moments are drawn on the timeline, larger, with her words and photos, never folded (24 Nov 2026)
+    assert "const MOM=window.__mom=new Set(gone?[...sixOf(pastAll)" in page
+    assert "const big=x=>(window.__mom&&window.__mom.has(x))||" in page
+    assert "need=x=>MOM.has(x)?((x.photos||[]).length?170:92)" in page
+    # every photo, named feeling, glimmer or highlight is a moment too, not only what the ranking keeps (Mon 23 Nov's lunch)
+    assert "&&(x.star||x.meant||x.mom||x.felt||x.keeper||(x.photos||[]).length||" in page
+    assert "[...sixOf(pastAll),...pastAll.filter(momOwn)]" in page
+    # a moment inside a combined card keeps its whole title and her words
+    assert "mom:MOM.has(o),her:o.her" in page and "class=\"ln${m.mom?' mln':''}\"" in page
+    assert page.count('${momBody(x)}') == 2 and '.cal .ev.meantc .mph img' in page
     assert 'const SIX=[];' in page     # the day in six is retired
     assert "const ids=over?['three','today'" in page   # a finished day leads with what she did
 
 
 def main():
+    test_picks_are_not_done()
     test_did_of()
+    test_a_moment_marked_meaningful_leads()
+    test_meaning_leads()
     test_system_work_is_one_line()
     test_the_day_links_its_own_quest()
     test_highlight_keeps_its_time()
+    test_summary_line()
     test_engine()
-    print('ok — a finished day: what she did, moments in the stream at their own time')
+    print('ok — a finished day: one summary line, moments in the stream at their own time')
 
 
 if __name__ == '__main__':

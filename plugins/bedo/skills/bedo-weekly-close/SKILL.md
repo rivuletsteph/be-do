@@ -44,27 +44,35 @@ python3 close.py plan   --week W     # the carry set and the delete set, by reco
    ⚡ intention check. Steps come from the latest Google Health mail; none is
    *not yet received*, never zero.
 3. **The quest tally,** one line: points by day, the total, the dollars (a point is
-   50¢, at most $5 a day). A day at his grandparents' or away overnight is a flat
-   only. A day she wasn't with him gets no score and no invented one. be•do totals;
+   50¢, at most $5 a day). A day at his grandparents', even a half day (her
+   words, 22 Nov 2026), or away overnight is a flat only. A day she wasn't with him gets no score and no invented one. be•do totals;
    she pays.
-4. **Reflection, word, focus practice:** hers. be•do listens and writes.
+4. **Reflection, word, focus practice:** hers. be•do listens and writes. **Before
+   asking for the reflection, build the week look behind page**
+   (`bedo-week-look-behind`) and post its link, so she reflects from the page (her
+   words, 22 Nov 2026).
 5. **The order and the review.** `run_checks.sh order --json`, written to the
    catalog's `typical time`. One backlog bucket a week. Drives and rhythms as one
    compact diff, only the few that need her word; an empty destination is never
    raised.
-6. **The fold,** about five minutes, and it never holds up the close. `close.py fold`
-   lists the week's amendments and a few older active ones, one line each saying
-   where it landed. Before she sees it, open each line's evidence: the check it
-   names, or the words in `docs/v53-judgment.md`. A mapping can be wrong. She says
-   yes or fixes a line. Mark the rows she confirmed folded, by the ids in
-   `fold_list.json`; in a cloud chat that goes through the Airtable connector.
-   A row that hasn't landed stays active and rolls to next week. The quest's data
-   row is never folded. There is no master version to approve.
-7. **The chat sweep:** `run_checks.sh chats` (J11).
+6. **The fold,** about five minutes, and it never holds up the close. The fold
+   itself runs every day on its own (23 Nov 2026; `run_checks.sh how fold`), so
+   the close reads it back: `close.py fold` lists the week's amendments and a
+   few older active ones, one line each saying where it landed, and
+   `run_checks.sh fold` gives the count still active. Before she sees it, open
+   each line's evidence: the check it names, or the words in
+   `docs/v53-judgment.md`. A mapping can be wrong. She says yes or fixes a line;
+   a line she fixes on a row the daily fold marked goes back to active. Mark the
+   rows she confirmed folded, by the ids in `fold_list.json`; in a cloud chat
+   that goes through the Airtable connector. A row that hasn't landed stays
+   active and rolls on. The quest's data row is never folded. There is no master
+   version to approve.
+7. **The chat sweep:** `run_checks.sh chats` (J11). Then **the open pull requests:** `run_checks.sh prs` on the connector's open list; each goes on her list as a yes or no, bring it in by default (27 Nov 2026).
 8. **Her university's events calendar** for the next two weeks (a trial, 27 Oct
    2026; the link is `events_calendar` in her settings). Offer only what fits her
    drives or her interests (talks, theatre, family events), one line each she can
-   say yes to. A yes goes on her calendar (purple for work) and in as a ⬜ row.
+   say yes to. Never sports: games, meets and matches are left out (her words,
+   22 Nov 2026: I don't follow it). A yes goes on her calendar (purple for work) and in as a ⬜ row.
 9. **The split.** Her clone, then `plan`. Rows written after the clone make the
    record-id diff unclean, and `plan` stops: a closed row left behind in the old base
    stays there, an open one is patched across, and a row dated in the new week is
@@ -93,8 +101,8 @@ python3 close.py plan   --week W     # the carry set and the delete set, by reco
    read back into the stories base first, then the new page. A branch chat can
    run it; it asks her nothing, and the link goes in the close's last reply.
 
-**Not in the close:** a week look behind, a review page, a handoff, three-and-three
-priorities. All retired.
+**Not in the close:** a review page, a handoff, three-and-three priorities. All
+retired. The week look behind came back on 22 Nov 2026 (step 4).
 
 ## Monday: decide the week
 

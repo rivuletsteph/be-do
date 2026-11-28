@@ -19,4 +19,11 @@ const cut=(s,n)=>s.length>n?s.slice(0,n-1).replace(/\s\S*$/,'')+'…':s;
   const b=c.querySelector('.theme1');
   b.onclick=()=>window.bedoThemeFlip();
   document.addEventListener('bedo-theme',()=>{ b.innerHTML=THEMEICON[window.bedoThemeNow()==='night'?'light':'dark']; b.setAttribute('aria-label',lbl()); b.title=lbl(); }); }
-document.getElementById('h1').innerHTML=esc(D.label)+(D.word?` <span class="w">— ${esc(D.word)}</span>`:'');
+/* on a day page the day's intention sits under the date in plain words, her own first
+   (19 Nov 2026, her words: I think it's weird how it has a dash and then the intention in italics; below the
+   date you can write the words, and then get into the day). No intention yet: the line stays blank, never the
+   week's word in its place (20 Nov 2026, her words: it's my job to say what my intention is today).
+   A page with no intentions at all (the week page) keeps the dash and word. */
+{ const h=document.getElementById('h1'), day=Array.isArray(D.intentions);
+  const say=day?(D.intentions.filter(Boolean)[0]||null):null;
+  h.innerHTML=esc(D.label)+(day?(say?`<span class="say1">${esc(say)}</span>`:''):(D.word?` <span class="w">— ${esc(D.word)}</span>`:'')); }

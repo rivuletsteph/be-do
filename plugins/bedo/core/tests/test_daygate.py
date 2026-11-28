@@ -53,7 +53,7 @@ class TheGate(unittest.TestCase):
         rows = [look_ahead(), close(qa=False)]
         self.assertFalse(G.is_open(rows, DAY))
         why = G.refusal(rows, DAY)
-        self.assertIn('no `dayqa shown 2026-11-05` line in the dusk close row', why)
+        self.assertIn('no `braid shown 2026-11-05` line in the dusk close row', why)
         self.assertNotIn('no final day ahead', why)
 
     def test_the_dayqa_line_counts_only_in_the_close_row(self):

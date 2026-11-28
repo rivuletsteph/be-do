@@ -383,7 +383,8 @@ def gate(day_rows, L, day, all_rows=None):
             out.append(f'{r["_title"][:40]} spans {(b - a).total_seconds() / 3600:.0f} h '
                        f'({a:%d %b %H:%M} to {b:%d %b %H:%M}), over {hours} h')
     # the marker names the day it covers, so a dusk close written after midnight still counts (as in the week's)
-    if not any(f"{GATE['marker']} {day.isoformat()}" in (r.get('details') or '') for r in (all_rows or day_rows)):
+    marks = (GATE['marker'],) + tuple(GATE.get('old_markers') or ())        # dayqa shown before 20 Nov 2026
+    if not any(f"{m} {day.isoformat()}" in (r.get('details') or '') for m in marks for r in (all_rows or day_rows)):
         out.append(f'dayqa has not been shown for {day}: run_checks.sh dayqa {day}, show her the list, '
                    f'write what she accepts, and put its marker line ({GATE["marker"]} …) in the dusk close row')
     return out
@@ -876,16 +877,21 @@ def main():
     # (25 Sep 2026). Each one's outcome is read from the day's ⚡ action check
     # row, whose title carries a status glyph per intention in the same order;
     # with no action check, an intention shows no glyph rather than a guess.
-    acp = {norm(x) for x in (L.get('action_check_practices') or ['action check'])}
+    # The action check was retired on 20 Nov 2026: since then the dusk close row
+    # carries her answer on the day's intention, read the same way.
+    acp = {norm(x) for x in (L.get('action_check_practices') or ['action check', 'dusk flow close'])}
     OUTCOME = ('\u2705', '\u25b6\ufe0f', '\u2716\ufe0f', '\u2b1c')   # ✅ ▶️ ✖️ ⬜
     checks, happened = [], []
     for r in day_rows:
         if r['_pr'] in acp:
             tail = r['_title'].split('\u2014', 1)[-1]
             # the glyph leads each part, or closes it ('show up fully at work ✅')
-            checks = [next((g for g in OUTCOME if part.strip().startswith(g)
-                            or part.strip().endswith(g)), '')
-                      for part in tail.split('\u00b7')]
+            got = [next((g for g in OUTCOME if part.strip().startswith(g)
+                         or part.strip().endswith(g)), '')
+                   for part in tail.split('\u00b7')]
+            if not any(got) and checks:
+                continue                 # a close row with no answer leaves an earlier one standing
+            checks = got
             # a line per intention in the details, glyph first or after an arrow:
             #   ✅ Show up at the meeting — the check-in ran 10:30 to 11:30 …
             #   ⚡ movement and the dogs → ✅ met — barre 9:06–9:48 …

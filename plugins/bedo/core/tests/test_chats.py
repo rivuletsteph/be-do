@@ -154,6 +154,12 @@ class Render(unittest.TestCase):
         self.assertIn('hers, one short list', text)
         self.assertIn('archived 1 finished chat', text)
 
+    def test_duet_tasks_are_named_as_duets_once(self):
+        # 23 Nov 2026: no session list the sweep reads shows Duet's tasks; it says so, and counts none
+        text = CH.render(CH.sweep(CH.chats_of([[]]), [], NOW), NOW)
+        self.assertEqual(text.count("Duet's tasks"), 1)
+        self.assertTrue(text.rstrip().endswith('(J17)'))
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -5,3 +5,5 @@
 **Command:** `inbox threads.json --archive planned.json`
 
 `threads.json` is the sweep's search_threads result as it came; `planned.json` the thread ids it means to archive. Every automatic keep (anything from her husband) gets a line on the one list and is never archived; a sender she archives by default (the club mail) stays only when it's about what she keeps it for. Fix every `FIX`, then say the printed nudge line to her and archive only on her go (22, 25 and 26 Oct 2026)
+
+**Asks with no row** (24 Nov 2026): on the same threads, `groups --mail threads.json` names each ask of her that came by email and never reached the stream. Each goes on her list with its link, and a row is written only on her yes.

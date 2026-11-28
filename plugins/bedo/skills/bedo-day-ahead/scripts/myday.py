@@ -235,10 +235,16 @@ def today_link(rows, today, local, living=''):
     `deliverable` — the link the day ahead republishes to, and the pieces after
     it (the day's rows and photos, the close). The old living page is not a day's
     own. `row` is today's look ahead row, where a new link is written; None
-    before the row exists."""
+    before the row exists.
+
+    A row belongs to the day its datetime says, not the day it was written
+    (14 Nov 2026): Friday's look ahead row, written Saturday morning for a page
+    built as lived, was read as Saturday's, and the build would have republished
+    Saturday over Friday's page. `created` only orders the rows, and stands in
+    for a row with no datetime."""
     url = row = None
     for r in sorted(rows, key=lambda r: r['created']):
-        if not (r['practice'] or '').startswith(LOOK_AHEAD) or local(r['created']).date() != today:
+        if not (r['practice'] or '').startswith(LOOK_AHEAD) or local(r['when'] or r['created']).date() != today:
             continue
         row = r['id']
         u = (r.get('deliverable') or '').strip()
@@ -250,7 +256,7 @@ def today_link(rows, today, local, living=''):
 def page_links(rows, today, local, living=''):
     """Where the day's page is published: the day's own link and its look ahead
     row (`today_link`), and `standing`, the link that never changes (the old
-    living page, which her browser opens at start; her yes, 18 Nov 2026). Every
-    publish to the day's own page goes to the standing link too, so the browser
-    always shows today. None when the settings name no standing link."""
+    living page, which her browser opens at start). Every build publishes only to
+    the standing link (her words, 20 Nov 2026: I only want to check one page); the
+    day's own link is published once, at the dusk close's last rebuild. None when the settings name no standing link."""
     return dict(today_link(rows, today, local, living), standing=living or None)

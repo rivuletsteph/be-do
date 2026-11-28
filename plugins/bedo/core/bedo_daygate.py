@@ -48,7 +48,8 @@ from bedo_reader import FACTS, cells, complete, offset_hours, read_dump, sv
 
 # an older facts.json beside the core (an overlay copies only the .py files) still gets the gate
 G = {'head': '[be\u2022do] day ahead', 'bedtime_from': '18:00', 'bedtime_until': '12:00', **(FACTS.get('day_ahead_first') or {})}
-QA_MARK = FACTS['dayqa']['marker']                     # dayqa shown
+QA_MARK = FACTS['dayqa']['marker']                     # braid shown (dayqa shown before 20 Nov 2026)
+QA_MARKS = (QA_MARK,) + tuple(FACTS['dayqa'].get('old_markers') or ())
 DUSK_CLOSE = FACTS['flows']['close']['dusk']           # 🌄 dusk flow close
 SLEEP = FACTS['practice']['sleep']                     # 😴 sleep
 NOT_LIVED = set(FACTS['status']['plans']) | {FACTS['status']['actions'][4], FACTS['status']['logs'][2]}
@@ -78,7 +79,7 @@ def day_ahead_final(rows, day):
 
 
 def _qa_lines(r, day):
-    want = f'{QA_MARK} {day.isoformat()}'
+    want = tuple(f'{m} {day.isoformat()}' for m in QA_MARKS)
     out = []
     for ln in (r.get('details') or '').splitlines():
         s = re.sub(r'^\[be•do\]\s*', '', ln.strip())

@@ -32,6 +32,9 @@ One pass, in this order (A250, then the gate and the flag):
      (28 Oct 2026) — then each
      gets the link to its file, a keeper not in the folder yet is named, and a
      photo no row explains is a clue for the day's QA. Never in the flag.
+  ·  screen clips (24 Nov 2026): a screenshot is not a photo of the day; each
+     one points to an action, so a clip no action, event or batch check links
+     is listed for its step on an open action, or a new ⚡ action.
 
 An observation, never a score. Nothing here writes unless --write is given,
 and then only the derived attention.
@@ -96,11 +99,14 @@ def derive_attention(r, rows=()):
     return None
 
 
-def audit(rows, now, off, steps=None, chats=(), day=None, people=(), photo_files=None, me='', week_links=None):
+def audit(rows, now, off, steps=None, chats=(), day=None, people=(), photo_files=None, me='', week_links=None,
+          link_rows=()):
     """The one pass. `rows` are the day's rows under logical names; `steps` the
     dusk flow's catalog steps; `chats` [{title, url|id, times}]; `photo_files`
     the week's photo folder listing, or None when it wasn't read; `week_links`
-    the Drive ids every row of the week links, or None when they weren't read.
+    the Drive ids every row of the week links, or None when they weren't read;
+    `link_rows` those rows themselves, so a screen clip linked to an older
+    action carried into the week has found it.
     Returns a dict of findings, the attention writes, the photo writes, the
     extra photo copies to trash, and the flag line."""
     every = rows                 # a show that happened overlaps like anything else
@@ -113,7 +119,7 @@ def audit(rows, now, off, steps=None, chats=(), day=None, people=(), photo_files
     f = {k: [] for k in ('open_past', 'end_before_start', 'attention', 'no_attention', 'chat_no_entry',
                          'uncaptured', 'action_row', 'gate', 'for_my_day', 'no_rhythm', 'no_duration',
                          'no_person', 'target_today', 'meals', 'photo_kinds', 'photo_links', 'photo_missing',
-                         'photo_unlogged', 'photo_import', 'photo_dupes', 'photo_dupes_held')}
+                         'photo_unlogged', 'screen_clips', 'photo_import', 'photo_dupes', 'photo_dupes_held')}
 
     for r in rows:                                                    # 1
         if (r.get('status') == INTENTION and r.get('calendar_event') and r.get('datetime')
@@ -169,12 +175,12 @@ def audit(rows, now, off, steps=None, chats=(), day=None, people=(), photo_files
             f['target_today'].append(_name(r))
     meals = ML.propose(rows, off, people)
     f['meals'] = [m['line'] for m in meals]
-    photo_writes, photo_trash = photos(every, off, day, photo_files, me, f, week_links)
+    photo_writes, photo_trash = photos(every, off, day, photo_files, me, f, week_links, link_rows)
     return {'findings': f, 'writes': writes, 'photo_writes': photo_writes, 'photo_trash': photo_trash,
             'flag': flag(f), 'meals': meals}
 
 
-def photos(rows, off, day, files, me, f, week_links=None):
+def photos(rows, off, day, files, me, f, week_links=None, link_rows=()):
     """The photo pass: kinds for rows sorted by rule, and — with the folder's
     listing — first the extra copies of a photo shared twice, then links,
     keepers not in the folder yet, and photos no row explains. The extras are
@@ -212,7 +218,12 @@ def photos(rows, off, day, files, me, f, week_links=None):
     for x in m['missing']:
         f['photo_missing'].append(f"{x['title'] or x['id']} ({_clock_local(x['at'])})")
     for x in m['unlogged']:
-        f['photo_unlogged'].append(f"{_clock_local(x['taken'])} · {x['name']}")
+        if not PH.is_screenshot(x['name']):          # a screen clip is listed below, with its action
+            f['photo_unlogged'].append(f"{_clock_local(x['taken'])} · {x['name']}")
+    ids = {r['id'] for r in rows}
+    for x in PH.screen_clips(list(rows) + [r for r in link_rows if r['id'] not in ids], listing, off, m['links']):
+        where = '; '.join(f'{p} {t} ({i})'.strip() for i, p, t in x['rows']) or 'no row'
+        f['screen_clips'].append(f"{_clock_local(x['taken'])} · {x['name']} ({x['file']}) — on {where}")
     return list(out.values()), trash
 
 
@@ -271,6 +282,10 @@ TITLES = [('photo_dupes', 'photos, first — the same photo in the W## photos fo
           ('photo_links', 'photos — each row linked to its file in the W## photos folder; written with --write'),
           ('photo_missing', 'keepers not in the W## photos folder yet — say once: share them there tonight'),
           ('photo_unlogged', 'photos in the folder no row explains — clues for the day\'s QA, never chased'),
+          ('screen_clips', 'screen clips — each one points to an action (her words, 24 Nov 2026): look at it, find the '
+                           'open ⚡ action it belongs to (search two or three names for it) and add it as a step there, '
+                           'else write a new ⚡ action, ⬜ intention, at the clip\'s time; either way the clip\'s link '
+                           'goes on that action\'s photo links, info'),
           ('photo_import', 'photos — imported at the dusk close')]
 
 
@@ -353,14 +368,16 @@ def main(argv=None):
                 ch['times'] = ST.times_from(ch.pop('transcript'))
             chats.append(ch)
     pf = links = None
+    link_rows = []
     if a.photos:
         from bedo_reader import read_dump
         pf = read_dump(a.photos)
         if a.links or a.live:
             src = a.links or read_week_links(air, L, day, names_by)
-            links = {i for r in as_rows(complete(src, 'links'), fields) for i in PH.linked(r)}
+            link_rows = as_rows(complete(src, 'links'), fields)
+            links = {i for r in link_rows for i in PH.linked(r)}
     res = audit(rows, now, off, steps, chats, day, (L.get('people') or {}).values(), pf,
-                (L.get('people') or {}).get('self') or '', links)
+                (L.get('people') or {}).get('self') or '', links, link_rows)
     if a.json:
         print(json.dumps(res, ensure_ascii=False, indent=1))
     else:

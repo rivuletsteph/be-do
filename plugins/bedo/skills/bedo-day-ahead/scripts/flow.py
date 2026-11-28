@@ -173,6 +173,33 @@ def day_holds(day_page, L):
                 full=booked >= L.get('full_day_hours', 4) or n >= L.get('full_day_events', 4), share=SHARE)
 
 
+HOLIDAY_WORDS = re.compile(r'(?i)\b(holiday|thanksgiving|christmas|new year|independence day|memorial day|labor day|'
+                           r'day off|vacation|no school|campus closed|office closed)\b')
+
+
+def fixed_holidays(year):
+    """The days most places close, by rule: New Year's, Memorial Day, the Fourth, Labor Day, Thanksgiving and the day
+    after, Christmas. Her settings' `holidays` add the rest (a school break, a closure)."""
+    d = lambda m, n: dt.date(year, m, n)
+    nth = lambda m, wd, k: d(m, 1) + dt.timedelta(days=(wd - d(m, 1).weekday()) % 7 + 7 * (k - 1))
+    last_mon_may = d(5, 31) - dt.timedelta(days=d(5, 31).weekday())
+    tg = nth(11, 3, 4)
+    return {d(1, 1), last_mon_may, d(7, 4), nth(9, 0, 1), tg, tg + dt.timedelta(days=1), d(12, 25)}
+
+
+def light_day(today, day_page, holds, L, forced=False):
+    """A holiday or a full day (26 Nov 2026, her words: I'm seeing a lot of unresolved tasks that I really don't need to see
+    today … it seems totally disconnected from the fact that today is a full holiday). Such a day's page leads with the
+    plan and leaves off every open step that isn't due that day. Returns why, or None."""
+    if forced or today.isoformat() in set(L.get('holidays') or []) or today in fixed_holidays(today.year):
+        return 'holiday'
+    for e in (day_page or {}).get('events') or []:
+        # an all-day event of hers (no end time drawn, including a holiday's last day: "ends today")
+        if e.get('who') == 'you' and not e.get('end') and HOLIDAY_WORDS.search(e.get('title') or ''):
+            return 'holiday'
+    return 'full' if holds and holds.get('full') else None
+
+
 # a target be•do made up is not a deadline (261112_f20, her words 12 Nov 2026: the made up times, that's uncool):
 # the row's latest word on its target calls it a placeholder, or puts it in a block of time (the money day)
 PLACEHOLDER = re.compile(r'placeholder|money (?:block|day|batch)|batch\b', re.I)
@@ -249,7 +276,7 @@ except Exception as _e:                             # a copy without the day beh
           'with the short list built into flow.py. Run prep again so the runner copies it.', file=sys.stderr)
     SLEEP = {'sleep', 'nap'}
     EAT = {'breakfast', 'lunch', 'dinner', 'snack', 'coffee', 'smoothie', 'tea', 'morning water', 'water', 'drink'}
-    MOVE = {'morning movement', 'walking', 'strength training', 'barre', 'cycling', 'yoga', 'morning sun', 'evening sun'}
+    MOVE = {'morning movement', 'morning mobility', 'walking', 'strength training', 'barre', 'cycling', 'yoga', 'morning sun', 'evening sun'}
     PERSONAL = {'shower', 'bath', 'evening hygiene', 'getting ready', 'skincare'}
     RECREATION = {'book', 'podcast', 'show', 'movie', 'video', 'game', 'glimmer', 'social', 'song', 'puzzle'}
     TV = {'show', 'movie', 'video'}
@@ -558,14 +585,14 @@ def schedule_of(today, rows, day_page, F, off, hidden, flows=frozenset(), C=None
                                   cat='stretch', sk=kind_of(c, F, flows, C),   # its kind of time: a be•do chat is be•do, not work (7 Nov 2026)
                                   rid=r['id'] if sa == first else None, links=links_of(c, F) or None,
                                   act=False, pt=False,
-                                  felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD))
+                                  felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD or marked_meaningful(c, F), meant=marked_meaningful(c, F)))
                 prev = sb
             continue
         items.append(dict(**opens_to(c, F), phase=(C.get('_phase') or {}).get(low(c.get(F['practice']))), k='lived', t=t, a=hm(a), b=hm(b), drive=rh, done=True, cat=kind_of(c, F, flows, C), rid=r['id'],
                           links=links_of(c, F) or None,
                           act=st == '✅ done', pt=not real,
                           # a feeling or a keeper photo marks what mattered (2 Nov 2026): it stays when the hour folds
-                          felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD,
+                          felt=bool(F.get('emotion') and c.get(F['emotion'])), el=wellness_of(c, F), el2=second_element(c, F), hot=bool(re.search(r'🟡|🔴|high energy', str(c.get(F['emotion']) or '') if F.get('emotion') else '')), mom=low(c.get(F['practice'])) in GOLD or marked_meaningful(c, F), meant=marked_meaningful(c, F),
                           keeper=is_keeper(c, F, me),
                           # a time be•do placed from context is drawn as an estimate (8 Nov 2026, the gap-filling pass)
                           est='ESTIMATED FROM CONTEXT' in (c.get(F['details']) or '')))   # an action she finished, drawn with its green check (2 Nov 2026)
@@ -818,37 +845,140 @@ def star_the_highlight(items):
     return sorted(out, key=lambda x: (x['a'], x['k'] != 'event'))
 
 
-def did_of(rows, F, off, today, hidden=()):
-    """What she did that day, for a finished day's top list: each ⚡ action closed ✅ that day and each ⭐ highlight, in
-    time order, as the three's items (title, glyph, drive, why from her words)."""
+_MEANT = re.compile(r'(?im)^\W*(?:\[be•do\]\W*)?meaningful\s*:')
+
+
+def marked_meaningful(c, F):
+    """One of the day's meaningful moments, marked on its row (23 Nov 2026, her words: I would rather just be able to
+    verbally say what was meaningful as kind of a closing out my day. Or, maybe the following day; and that night: I
+    didn't want to actually have to say a moment was meaningful, I want the system to figure that out). She talks about
+    her day and be•do works out what mattered from her words, the way it deduces a feeling: it writes one `meaningful:`
+    line, with its reason, in the row's [be•do] block (J17). The builder only reads that line. Telling a take-home from
+    a passing thought needs a model, so it is never decided here, and never from the row's kind: an insight is not one
+    of the day's meaningful moments because it is an insight."""
+    d = (c.get(F['details']) or '') if F.get('details') else ''
+    return bool('———' in d and _MEANT.search(d.split('———', 1)[1]))
+
+
+DID_CAP = 10                                   # the top list is a summary: about ten lines, never the whole day
+DID_HEART_CAP = 8                              # highlights and time with her people together, before her work
+_HEART_WORDS = ('with them', 'together', 'my guys', 'family', 'the kids', 'snuggl', 'hug')
+_FILLER = re.compile(r'(?i)\bunlogged\b|\(estimated\)')
+
+
+def _names(who, me=''):
+    """The first names in a person cell, glyphs and her own name set aside."""
     out = []
+    for n in re.split(r'[,;]', who or ''):
+        n = re.sub(r'^[^\w]+', '', n).strip()
+        if n and n != re.sub(r'^[^\w]+', '', me or '').strip():
+            out.append(n.split()[0])
+    return out
+
+
+def did_of(rows, F, off, today, hidden=(), me='', flows=frozenset()):
+    """What she did that day, for a finished day's top list: a summary, ranked by what was meaningful, never by the
+    clock alone (23 Nov 2026, her words: the memorable things are, where was I with my family … making sure that the
+    meaningful things stay up at the top). In this order, each in time order within itself:
+      1. her ⭐ highlights, and any other moment be•do marked as meaningful from her words (`marked_meaningful`),
+         whatever its kind
+      2. time with her people: a lived row that is not a flow step or an action, whose words name someone on it or
+         say together, or that she named a feeling for, or that keeps a photo
+      3. each ⚡ action closed ✅ that day
+      4. the system's own work, one line, last, as a count
+    About DID_CAP lines: the highlights always, then her people up to DID_HEART_CAP, then her work. The rest stays on
+    the day's timeline below."""
+    g = lambda c, k: (c.get(F[k]) if F.get(k) else None)
+    name = lambda v: v.get('name') if isinstance(v, dict) else v
+    hl, heart, acts, sys_ = [], [], [], []
     for r in rows:
         c = r['cellValuesByFieldId']
-        st = c.get(F['status']) or ''
-        st = st.get('name') if isinstance(st, dict) else st
-        pr = (c.get(F['practice']) or '').strip()
+        st = name(c.get(F['status']) or '') or ''
+        pr = (name(c.get(F['practice'])) or '').strip()
         when = c.get(F['when'])
         if not when or (dt.datetime.fromisoformat(when.replace('Z', '+00:00')) + off).date() != today:
             continue
-        if not ((st == '✅ done' and pr.startswith('⚡')) or pr.startswith('⭐')):
-            continue
-        t = re.sub(r'^\s*(⚡|⭐)\s*', '', c.get(F['title']) or '')
+        title = c.get(F['title']) or ''
+        t = re.sub(r'^\s*(⚡|⭐)\s*', '', title)
         her = (c.get(F['details']) or '').split('———')[0].strip().split('\n')[0]
-        rh = c.get(F['rhythm']) if F.get('rhythm') else ''
-        out.append(dict(t=t, g='⭐' if pr.startswith('⭐') else '', drive=rh or '', st='✅', why=her[:160], at=when))
-    out = sorted(out, key=lambda x: x['at'])
+        her = '' if her.startswith('[be•do]') else her     # be•do's note is not her words
+        rh = g(c, 'rhythm') or ''
+        x = dict(t=t, g='', drive=rh, st='✅', why=her[:160], at=when, who=_names(g(c, 'person'), me))
+        if pr.startswith('⭐'):
+            hl.append(dict(x, g='⭐', kind='highlight'))
+        elif st[:1] in ('●', '◉', '✅') and marked_meaningful(c, F):
+            # read from her own words, so it leads with her highlights and is never capped; it keeps its own glyph
+            m = re.match(r'^[^\w\s]+', pr)
+            hl.append(dict(x, g=m.group(0) if m and not title.startswith(m.group(0)) else '', kind='meaningful'))
+        elif pr.startswith('⚡'):
+            if st == '✅ done' and low(pr) == 'action':
+                (sys_ if rh in (hidden or ()) else acts).append(dict(x, kind='system' if rh in (hidden or ()) else 'action'))
+        elif (st[:1] in ('●', '◉') and rh not in (hidden or ()) and low(pr) not in flows and not _FILLER.search(title)):
+            who = _names(g(c, 'person'), me)
+            tl = title.lower()
+            named = any(re.search(r'\b%s\b' % re.escape(n.lower()), tl) for n in who) or any(w in tl for w in _HEART_WORDS)
+            felt = bool(g(c, 'emotion'))
+            kept = str(name(g(c, 'photo')) or '').lower().startswith('keeper')
+            if named or felt or kept or low(pr) in ('glimmer', 'milestone'):
+                m = re.match(r'^[^\w\s]+', pr)
+                heart.append(dict(x, g=m.group(0) if m and m.group(0) != '📝' and not title.startswith(m.group(0)) else '', kind='heart',
+                                  _w=(not (felt or kept), when)))
+    ts = lambda s: dt.datetime.fromisoformat(s.replace('Z', '+00:00'))
+    hl.sort(key=lambda x: x['at'])
+    # a row that is the highlight's own moment (the dinner beside its ⭐) is not listed twice
+    heart = [x for x in heart if not any(abs((ts(x['at']) - ts(h['at'])).total_seconds()) <= 300 for h in hl)]
+    heart = sorted(sorted(heart, key=lambda x: x['_w'])[:max(0, DID_HEART_CAP - len(hl))], key=lambda x: x['at'])
+    for x in heart:
+        x.pop('_w', None)
+    acts = sorted(acts, key=lambda x: x['at'])[:max(0, DID_CAP - len(hl) - len(heart))]
+    out = hl + heart + acts
     # the system's own work is one line, never one per session (18 Nov 2026, her words: I did the weekly close, Claude
-    # handled the details): every action on a hidden drive (hide_drives, be•do) folds into one item at its first time,
-    # its sessions named underneath; a weekly close among them names the line
-    sys_ = [x for x in out if x['drive'] in (hidden or ())]
+    # handled the details), and it is last and a count, not a list of its little things (23 Nov 2026, her words: those
+    # aren't memorable); a weekly close among them names the line
     if sys_:
-        rest = [x for x in out if x not in sys_]
+        sys_.sort(key=lambda x: x['at'])
         close = any(re.search(r'(?i)weekly close|w\d+ cloned|the split', x['t']) for x in sys_)
         head = ('the weekly close' if close else 'be•do work') + ', Claude handled the details'
-        why = ' · '.join(x['t'] for x in sys_)
-        rest.append(dict(t=head, g='', drive=sys_[0]['drive'], st='✅', why=why[:240], at=sys_[0]['at']))
-        out = sorted(rest, key=lambda x: x['at'])
+        n = len(sys_)
+        out.append(dict(t=head, g='', drive=sys_[0]['drive'], st='✅', why=f'{n} piece{"" if n == 1 else "s"} of upkeep',
+                        at=sys_[0]['at'], kind='system', covers=[x['t'] for x in sys_]))
     return out
+
+
+SUMMARY_CAP = 4                                # the summary line names at most four things, then counts the rest
+
+
+def summary_of(did):
+    """A finished day's top, as one line (24 Nov 2026, her words, through Duet: one line summarizing the day's important,
+    meaningful things; the moments themselves are on the timeline). Three parts, the J17 order, each only when there is
+    one: her ⭐ highlights and the moments be•do marked meaningful, in her words (two moments with her people stand in
+    when there are none); then who she spent the day with, by name; then her finished work, named when it is all
+    there is and otherwise a count. Never a list of every moment, and the system's own upkeep is never in it."""
+    clean = lambda t: re.sub(r'\s+', ' ', str(t or '')).strip().rstrip('.')
+    join = lambda xs: xs[0] if len(xs) == 1 else ', '.join(xs[:-1]) + ' and ' + xs[-1]
+
+    def uniq(xs):
+        out = []
+        for t in xs:
+            if t and t.lower() not in [u.lower() for u in out]:
+                out.append(t)
+        return out
+    lead = uniq([clean(x['t']) for x in did if x.get('kind') in ('highlight', 'meaningful')])[:SUMMARY_CAP]
+    heart = [x for x in did if x.get('kind') == 'heart']
+    acts = uniq([clean(x['t']) for x in did if x.get('kind') == 'action'])
+    parts = []
+    if lead:
+        parts.append(join(lead))
+    elif heart:
+        parts.append(join(uniq([clean(x['t']) for x in heart])[:2]))
+    people = uniq([n for x in did if x.get('kind') in ('highlight', 'meaningful', 'heart') for n in (x.get('who') or [])])
+    if people:
+        parts.append('time with ' + join(people[:SUMMARY_CAP]))
+    if acts:
+        parts.append(join(acts[:SUMMARY_CAP]) if not parts and len(acts) <= 2
+                     else f'{len(acts)} thing{"" if len(acts) == 1 else "s"} done')
+    line = ' · '.join(p for p in parts if p)
+    return line[:1].upper() + line[1:]
 
 
 def links_of(c, F):
@@ -1010,7 +1140,10 @@ def photos_onto(items, today, rows, F, off, folder, me=''):
     placed = [p for p in placed if p['row'] and (not bedo_photos.linked(p['row']) or p['file'] in bedo_photos.linked(p['row']))]
     # one photo a card, as the day behind keeps it (never two of one moment), so six reach six moments
     seen, one = set(), []
-    for p in sorted([p for p in placed if p['keeper'] and p['row']], key=lambda p: (not p.get('linked'), p['t'])):
+    # her own order wins (27 Nov 2026, her words: the picture I took at the end right before everybody left was the best
+    # picture of the gathering): the photo she put first in a row's links is that card's photo, else the earliest
+    first = lambda p: (bedo_photos.linked(p['row']).index(p['file']) if p.get('file') in bedo_photos.linked(p['row']) else 99)
+    for p in sorted([p for p in placed if p['keeper'] and p['row']], key=lambda p: (not p.get('linked'), first(p), p['t'])):
         k = p['row']['id']
         if k not in seen or (p['row'].get('felt') and not p.get('file') and sum(x['row']['id'] == k for x in one) < 2):
             seen.add(k); one.append(p)
@@ -1136,6 +1269,7 @@ def build(D, rows, rhythms_read, L, behind_dir):
                 secure=(D.get('secure') or {}).get('state'))
     today_page = next((x for x in D.get('days') or [] if x.get('date') == W['day']), None)
     data['holds'] = day_holds(today_page, L) if today_page else None
+    data['light'] = light_day(today, today_page, data['holds'], L, L.get('_holiday'))
     data['timegoals'] = L.get('time_goals') or {}
     data['screen_measured'] = screen_measured(rows, F, off, today)
     # stories and media live on her Morning Gate; the page links there (7 Nov 2026, her words: I'd prefer to see all of the
@@ -1243,14 +1377,43 @@ def build(D, rows, rhythms_read, L, behind_dir):
     # accomplished was teaching and starting the trip): the actions closed that day and her ⭐ highlight; her
     # own picks (--pick) take their place when she names them
     data['picked'] = bool(L.get('_picks'))
-    data['did'] = did_of(rows, F, off, today, hidden=set(L.get('hide_drives') or []))
+    data['did'] = did_of(rows, F, off, today, hidden=set(L.get('hide_drives') or []), me=L.get('self_person') or '',
+                         flows=L.get('_flows') or frozenset())
+    data['summary'] = summary_of(data['did'])
     data['three_next'] = [dict(t=x.get('title'), kind=x.get('kind')) for x in (D.get('next') or [])]
     data['three_more'] = [dict(t=p.get('title'), why=p.get('why'), drive=p.get('drive'), g=p.get('emoji'), st=(p.get('st') or '').strip(),
                                nx=((p.get('move') or {}).get('step')), links=(p.get('move') or {}).get('links') or [])
                           for p in (D.get('pareto_more') or [])]
+    data['groups'] = groups_of(rows, F, L)
     data['baseflow'] = dict(week=week, parts=[dict(name=k, value=t[k]) for k in keys if t[k] is not None],
                             missing=[k for k in keys if t[k] is None])
     return data
+
+
+def groups_of(rows, F, L):
+    """What could go together among her open actions (24 Nov 2026, her words: keep track of these open intentions
+    and potential actions and proactively scan how these things can be grouped): the core's groups check, on the
+    rows this page already read. Offers only; the page folds them under the three."""
+    try:
+        import bedo_groups
+    except ImportError:          # a page built without the core beside it still builds
+        return None
+    names = dict(title='title', status='status', details='details', datetime='when', rhythm='rhythm', person='person',
+                 mentioned='mentioned', key='key', practice='practice', target='target')
+    flat = []
+    for r in rows:
+        c = r['cellValuesByFieldId']
+        row = {k: c.get(F.get(v) or '') for k, v in names.items()}
+        for k, v in row.items():
+            if isinstance(v, dict):
+                row[k] = v.get('name')
+            elif isinstance(v, list):
+                row[k] = ', '.join(x.get('name', '') if isinstance(x, dict) else str(x) for x in v)
+        row['id'] = r['id']
+        flat.append(row)
+    # the household is with her by default and never a grouping: her, and the people her calendars are for
+    house = [L.get('self_person')] + list((L.get('calendar_people') or {}).values()) + list(L.get('household') or [])
+    return bedo_groups.groups(flat, house, (L.get('groups') or {}).get('places') or [], set(L.get('hide_drives') or []))
 
 
 def plan_items(specs, rows, L):
@@ -1325,8 +1488,11 @@ def main():
                     help='"<row key or record id>[::<label>]" — the rest of today in order, one thing at a time: NOW and NEXT')
     ap.add_argument('--later', action='append', default=[],
                     help='"<row key or record id>[::<label>]" — what waits quietly under NOW and NEXT')
+    ap.add_argument('--holiday', action='store_true',
+                    help='today is a holiday: lead with the plan, leave off open steps not due today')
     a = ap.parse_args()
     L = json.load(open(a.local, encoding='utf-8'))
+    L['_holiday'] = a.holiday
     h, D = page_data(a.day_ahead)
     dd = os.path.join(os.path.dirname(os.path.abspath(a.local)), 'data')
     rows, seen = [], set()

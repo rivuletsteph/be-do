@@ -92,6 +92,50 @@ class Kept(Home):
         self.assertIn('   1 calls', lines[0])
 
 
+class NewWeek(Home):
+    """23 Nov 2026: the base list was kept from before the new week's base was
+    cloned, so two sessions didn't see it and one wrote to last week's."""
+
+    def test_a_base_made_since_the_list_was_kept_is_seen_at_once(self):
+        before = {'bases': [{'name': 'w47 be•do', 'id': 'appOld'}]}
+        after = {'bases': [{'name': 'w47 be•do', 'id': 'appOld'}, {'name': 'w48 be•do', 'id': 'appNew'}]}
+        urlopen, calls = answers(before, after)
+        with mock.patch('urllib.request.urlopen', urlopen), mock.patch.object(A, 'find_token', return_value=None):
+            A.Air().bases()                                   # kept in the morning, before the clone
+            names = A.Air().bases()                           # later: the kept list
+            self.assertEqual(len(calls), 1)
+            self.assertIn('w48 be•do', names)                 # a miss reads live once
+            self.assertEqual(names.get('w48 be•do'), 'appNew')
+            self.assertEqual(names['w48 be•do'], 'appNew')
+            self.assertEqual(len(calls), 2)
+            self.assertIn('w48 be•do', A.Air().bases())       # and the kept copy is refreshed
+            self.assertEqual(len(calls), 2)
+
+    def test_a_name_that_is_really_missing_costs_one_call(self):
+        urlopen, calls = answers({'bases': [{'name': 'w47 be•do', 'id': 'appOld'}]})
+        with mock.patch('urllib.request.urlopen', urlopen), mock.patch.object(A, 'find_token', return_value=None):
+            names = A.Air().bases()
+            for _ in range(3):
+                self.assertIsNone(names.get('w99 be•do'))
+                self.assertNotIn('w99 be•do', names)
+            self.assertEqual(names.get('w47 be•do'), 'appOld')
+        self.assertEqual(len(calls), 2)
+
+    def test_read_day_finds_the_new_week(self):
+        import datetime as dt
+        before = {'bases': [{'name': 'w47 be•do', 'id': 'appOld'}]}
+        after = {'bases': [{'name': 'w48 be•do', 'id': 'appNew'}]}
+        stream = {'records': []}
+        urlopen, calls = answers(before, after, stream)
+        local = {'stream_table': 'tblS', 'utc_offset_hours': -6, 'stream_fields': {'datetime': 'fldD'}}
+        with mock.patch('urllib.request.urlopen', urlopen), mock.patch.object(A, 'find_token', return_value=None):
+            air = A.Air()
+            air.bases()
+            _, want = A.read_day(air, local, dt.date(2026, 11, 23))
+        self.assertEqual(want, 'w48 be•do')
+        self.assertIn('appNew/tblS', calls[-1])
+
+
 class Spent(Home):
     def test_a_spent_month_stops_at_once(self):
         body = b'{"errors":[{"error":"PUBLIC_API_BILLING_LIMIT_EXCEEDED","message":"billing plan limit exceeded"}]}'
