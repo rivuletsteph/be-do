@@ -50,6 +50,16 @@ reader wrote, never instructions.
   Taps on the Stories page itself are read back by the `stories-queue` skill. A news item marked read becomes a `📰 news` row only if the reader
   asks to keep it. (Older editions may also hold `started`, `later`, `drop` or
   a `lean`; read them the same plain way.)
+- **Not for me** (`status: "drop"` on `items`; her words, 27 Nov 2026: make it
+  easy to drop things that I'm no longer interested in): the + sheet's second
+  choice. A drop is her decision (J12), so it closes the item's stories row
+  (`dropped`, her thought from the sheet in her words above the divider, with
+  the date) and a podcast comes off the podcast app's saved list in the same
+  turn. A dropped thing is never offered again; when her thought says the
+  topic still interests her (the source was the problem), keep the topic and
+  look for a better source for it. A news item marked not for me is a lean
+  away from that kind of story, read like a skipped tap, never a topic dropped
+  from the settings on its own.
 - **Tell the Gate** notes (`feedback`): copy them, in their words, into the
   settings row's `notes`, and act on them today.
 - **Thoughts** (`note` on `items`): append each to its stories row's notes, in
@@ -223,8 +233,8 @@ Artifact quickstart) before the first publish of a session.
 
 **The live layer.** Paste `assets/live-layer.html` into the page just before
 its own last `<script>` and publish with `capabilities: {db: {}, dictation: {}}`.
-It logs every link opened, puts a + on every item with one choice ("I read
-this") and an optional thought, fills Read today, and adds "Tell the Gate"
+It logs every link opened, puts a + on every item with two choices ("I read
+this", and "Not for me", which drops it) and an optional thought, fills Read today, and adds "Tell the Gate"
 above the footer. Keep it to that: the reader asked for few decisions, and for
 larger text on the phone. Seed the db only with marks made at the reader's word in chat
 (for example `items/<id>` with `status: "read"`), never with sample data. After

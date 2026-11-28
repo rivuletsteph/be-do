@@ -5,7 +5,8 @@
   What it does: every link opened is logged, with no decision asked of the
   reader. A + on every queue, reading and news item opens a sheet with one
   choice, "I read this", and an optional thought (typed, or spoken through
-  dictation). "Read today" fills from it. "Tell the Gate" takes notes for the
+  dictation), or "Not for me" to drop it (her words, 27 Nov 2026: make it easy
+  to drop things that I'm no longer interested in). "Read today" fills from it. "Tell the Gate" takes notes for the
   next edition. Text and tap targets run larger on phones.
   Her word, 10 Nov 2026: fewer choices, larger on the phone; "notice the things
   I'm reading every morning and give me more of those."
@@ -37,7 +38,7 @@
 .sheet.on,.sheet-bg.on{display:block}
 .sheet h3{font-size:17px;margin:2px 0 12px;padding-right:30px}
 .sheet .x{position:absolute;top:12px;right:12px;width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:var(--soft);font-size:20px;cursor:pointer}
-.st{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.st{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .st button{font:inherit;font-size:17px;font-weight:700;padding:14px 8px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
 .st button[aria-pressed=true]{background:var(--river);color:#fff;border-color:var(--river)}
 .more2{display:flex;gap:8px;margin-top:10px}.more2 button{flex:1;font:inherit;font-size:13px;font-weight:600;padding:8px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
@@ -71,6 +72,7 @@
   <h3 id="shTitle"></h3>
   <div class="st" id="shSt">
     <button type="button" data-s="read">✓ I read this</button>
+    <button type="button" data-s="drop">✕ Not for me</button>
   </div>
   <label for="shNote">Your thoughts <span style="text-transform:none;letter-spacing:0;font-weight:500">(optional)</span></label>
   <textarea id="shNote" placeholder="What struck you, what you'd tell someone, what it made you want to do…"></textarea>
