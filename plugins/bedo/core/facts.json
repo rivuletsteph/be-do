@@ -105,7 +105,7 @@
   "about_by_code": "25 Nov 2026, her words: the dawn flow list shows only my own steps. The steps a Claude Code session runs (🪐 the morning ring read, 🗞️ morning gate, 🌦️ weather check, 👁️ look ahead) leave the remaining line but stay in the flow: each still counts toward n of N once Code logs it, and a backup close names any it never logged. A step given as a bare glyph is the flow's step that starts with it.",
   "close_at_noon": ["dawn"],
   "about_close_at_noon": "25 Nov 2026, her words: the dawn flow closes at noon. A dawn flow still open at its backup hour gets its 🌅 dawn flow close row without her: `remaining --flow dawn --close` prints the row as an apply op, and the first Code session past noon writes it unasked (preflight names it; `run dusk` makes sure of it). Once every step that holds it open is in, the same op is written at the last step's time instead.",
-  "same_kind": {"dawn": {"📗 morning book": ["📗 book"]}, "dusk": {}},
+  "same_kind": {"dawn": {"📗 morning book": ["📗 book"], "🤸🏻‍♀️ morning mobility": ["🤸🏻‍♀️ morning movement", "🧎‍♀️ hip exercises", "💪 strength training", "🏋️ squat"]}, "dusk": {}},
   "about_same_kind": "21 Nov 2026 amendment (a flow closes right after its last logged step, without waiting for her): a step is done when a row of the same kind shows it. Per flow, step → the practices whose rows count as it, inside the flow's hours (dawn: before its backup close; dusk: from when it opens). A 📗 book row that morning is the 📗 morning book step (20 Nov: she read on her phone and logged it as its own book row, and the flow never counted as complete).",
   "closes_itself": {"at_sleep": "{glyph} {flow} is in: it closes when you fall asleep. The 🪐 morning ring read writes {close} at the ring's bedtime, with {pattern}.", "line": "{glyph} {flow} flow complete: last step {step} at {time}. Write {close} now, at {time}, without asking her.",
                     "backup": "{glyph} past the {backup} backup: write the backup {close} now, at {backup}, without waiting for a reply{missed}."},
@@ -120,7 +120,7 @@
   "about_close_at_sleep": "24 Nov 2026, her words: I want the evening to close when I fall asleep. The dusk close is written the next morning by the 🪐 morning ring read, at the ring's bedtime start. No backup close is written at night; once the rest is in, the line says so.",
   "widget": {"bar": {"dawn": "#EFA038", "dusk": "#7B6FD6"}},
   "core": {
-   "dawn": ["🗞️ morning gate", "🥤 morning water", "🤸🏻‍♀️ morning movement", "☕ coffee", "🪐 morning oura", "🌦️ weather check", "👁️ look ahead", "⚡ intention check", "🙏 gratitude", "📿 morning mantra", "📗 morning book", "🪞 mirror check", "🌅 dawn flow close"],
+   "dawn": ["🗞️ morning gate", "🥤 morning water", "🤸🏻‍♀️ morning mobility", "🤸🏻‍♀️ morning movement", "☕ coffee", "🌦️ weather check", "👁️ look ahead", "⚡ intention check", "🙏 gratitude", "📿 morning mantra", "📗 morning book", "🪞 mirror check", "🌅 dawn flow close"],
    "dusk": null
   },
   "about_core": "A228, 2 Oct 2026, as the one line (20 Oct): the core is named; every other remaining step is its glyph after also:. Nothing leaves the catalog and everything counts toward done. The dusk core is not set yet (null prints every step as core). 7 Nov 2026, her words: I just did my mirror check which was overdue. I really need to do that every day … yeah please make sure mirror check gets every morning — so 🪞 mirror check joins the dawn core. Same morning, 8:20 AM: 🗞️ morning gate is a practice (I think it needs to be a practice), opened on her word after her first entry, so it is named too."
@@ -175,7 +175,7 @@
 
  "fill": {
   "_about": "Rule 1 of the 9 Oct amendment, in code (the fill_gaps rules): every row is written with device and wellness, deduced at write time. Wellness: an ⚡ action on a drive takes the drive's element, else the practice's catalog wellness. Device: body and self-care practices 🚫 none, phone practices 📱 phone, 💻 laptop when the title says so, 🚫 none inside a walking, driving, cycling or location span. What can't be deduced is asked, in the same reply, never left empty. Personal practices extend these lists in facts_local under fill.",
-  "device_none": ["wake", "sleep", "bm", "coffee", "morning movement", "morning sun", "evening sun", "morning mantra", "morning water", "mirror check", "breakfast", "lunch", "dinner", "snack", "evening tea", "evening breaths", "morning breaths", "supplements", "bp meds", "walking", "driving", "cycling", "location", "highlight", "face-to-face", "phone charging", "strength training", "hip exercises", "gratitude", "noticing", "shower", "smoothie", "evening meditation", "neck release"],
+  "device_none": ["wake", "sleep", "bm", "coffee", "morning movement", "morning mobility", "morning sun", "evening sun", "morning mantra", "morning water", "mirror check", "breakfast", "lunch", "dinner", "snack", "evening tea", "evening breaths", "morning breaths", "supplements", "bp meds", "walking", "driving", "cycling", "location", "highlight", "face-to-face", "phone charging", "strength training", "hip exercises", "gratitude", "noticing", "shower", "smoothie", "evening meditation", "neck release"],
   "device_phone": ["morning oura", "evening oura", "weather check", "text", "email", "clear gmail inbox", "capture", "dream record", "morning book", "evening blessing", "look ahead", "look behind", "intention check", "action check", "qa check", "map check", "dawn flow close", "dusk flow close"],
   "laptop_words": ["laptop", "💻"],
   "chromebook_words": ["chromebook", "⌨️"],
@@ -269,7 +269,7 @@
   "about_movement_words": "Only words that mean movement whatever the sentence: 'run' and 'running' read as running the checks on 6 Oct.",
   "note_practices": ["log", "journal", "highlight", "glimmer", "capture", "dream record", "text", "email"],
   "about_note_practices": "A clue inside an unlogged stretch is a note of hers, a photo, a message or Oura. A routine tick logged as a moment (a coffee, phone charging) says nothing about the stretch around it: on 8 Oct a 3 a.m. phone-charging row would have filled four hours.",
-  "movement_practices": ["walking", "cycling", "morning movement", "other movement", "strength training", "stretching", "yoga", "swimming", "hike", "hip exercises", "rowing", "neck release", "neck stretch", "barre", "running"],
+  "movement_practices": ["walking", "cycling", "morning movement", "morning mobility", "other movement", "strength training", "stretching", "yoga", "swimming", "hike", "hip exercises", "rowing", "neck release", "neck stretch", "barre", "running"],
   "oura_practices": ["morning oura", "evening oura"],
   "message_practices": ["text", "email"],
   "gap_minutes": 15,
@@ -284,7 +284,7 @@
    {"since": "4 Nov 2026", "why": "a journal or voice capture while moving or travelling is always synergy",
     "pair": [["journal", "voice", "voice journal", "voice capture"], ["walking", "driving", "travel", "cycling", "workout", "strength training", "other movement"]]},
    {"since": "21 Nov 2026", "why": "the morning movement and the morning sun together are always synergy",
-    "pair": [["morning movement"], ["morning sun"]]}
+    "pair": [["morning movement", "morning mobility"], ["morning sun"]]}
   ],
   "about_always": "Pairs that are synergy every time they share minutes: written 'synergizing' with no question asked, and her words cannot overturn it. Each pair is two lists of practice words; one practice from each list.",
   "her_words": {"synergizing": ["synergy", "synergiz", "synergis", "multiply", "complement"], "competing": ["competing", "compete", "competitive", "conflict", "fractured", "detract"]},
@@ -383,9 +383,9 @@
   "usual_recent_rows": 8,
   "said_minutes_pattern": "(?:\\b(?P<n>\\d{1,3})\\s*(?P<u>min(?:ute)?s?|hours?|hrs?|h)\\b|\\b(?P<hour>an hour)\\b)",
   "_lengths": "2 Nov 2026, her words: those need to be able to be adapted based on what I tell you every day or week, because they can change. A point row's length: her words on it, the length she gave last for that practice, her recent rows (never be•do's estimates), the catalog's typical duration, a first guess.",
-  "usual_length_practices": ["morning movement", "hip exercises", "morning breaths", "evening breaths", "breaths", "evening blessing", "strength training", "neck release", "mirror check", "evening meditation"],
+  "usual_length_practices": ["morning movement", "morning mobility", "hip exercises", "morning breaths", "evening breaths", "breaths", "evening blessing", "strength training", "neck release", "mirror check", "evening meditation"],
   "_usual_length": "Point rows with a usual length get it, so they cover their minutes (2 Nov 2026, her list: movement, hips, breaths, the blessing): the catalog's typical duration first, else her median from other weeks for these.",
-  "usual_minutes": {"morning movement": 10, "hip exercises": 15, "morning breaths": 10, "evening breaths": 5, "breaths": 5, "evening blessing": 4, "mirror check": 3, "strength training": 20, "neck release": 5, "evening meditation": 10},
+  "usual_minutes": {"morning movement": 10, "morning mobility": 10, "hip exercises": 15, "morning breaths": 10, "evening breaths": 5, "breaths": 5, "evening blessing": 4, "mirror check": 3, "strength training": 20, "neck release": 5, "evening meditation": 10},
   "_usual_minutes": "The last fallback, when neither the catalog nor her past weeks give a length: a first guess she corrects in the catalog's typical duration.",
   "never_lengthen": ["action", "log", "capture"],
   "filler_practices": ["log"],
@@ -465,6 +465,31 @@
   "tap_line": "[be•do] tapped on the dawn page.",
   "undo_seconds": 10,
   "reread_after_seconds": 60,
-  "sunrise_days": 14
+  "sunrise_days": 14,
+  "title": "Dawn flow", "label": "Dawn", "url_key": "dawn_url", "icon": "sunrise",
+  "code": [], "words": [], "status_of": {}, "day_starts": "00:00", "batch": null,
+  "all_in": "Your steps are all in. The flow closes itself."
+ },
+ "dusk_page": {
+  "about": "The dusk page (27 Nov 2026, her ask the same evening): the dawn page's twin for the dusk flow. Anything not named here comes from dawn_page. Code's steps fill when a run writes them and are never buttons; a step that needs her words opens a box to write them; 💊 evening pills is one button that writes both rows; evening breaths and blessing show last and are never offered as next. Rows before day_starts belong to the evening before.",
+  "title": "Dusk flow", "label": "Dusk", "url_key": "dusk_url", "icon": "sunset",
+  "leave_off": [],
+  "code": ["🪐", "🗺️ map check", "📱 screen time", "📧 clear gmail inbox", "🔀 braid", "⚔️"],
+  "words": ["⭐ highlight", "🌟"],
+  "status_of": {"⭐ highlight": "● log"},
+  "day_starts": "05:00",
+  "batch": {"name": "📸 the batch", "label": "batch", "steps": ["🗺️ map check", "📱 screen time", "🪐", "⏺️ recorder check"],
+   "note": "Mark each as it goes up to the Drive folder. Photos last: once they're up, tell Duet, and the dusk run fills the rest.",
+   "items": [
+    {"key": "timeline", "glyph": "🗺️", "name": "Timeline", "step": "🗺️ map check", "states": {"up": null, "stayed home": {"practice": "🗺️ map check", "title": "🗺️ map check: stayed home, no Timeline"}}},
+    {"key": "stress", "glyph": "🪐", "name": "ring stress", "step": "🪐", "states": {"up": null}},
+    {"key": "recordings", "glyph": "⏺️", "name": "recordings", "step": "⏺️ recorder check", "states": {"up": {"practice": "⏺️ recorder check", "title": "⏺️ recorder check: recordings uploaded"}, "none": {"practice": "⏺️ recorder check", "title": "⏺️ recorder check: no recordings today"}}},
+    {"key": "wellbeing", "glyph": "📱", "name": "digital wellbeing", "step": "📱 screen time", "states": {"up": null}},
+    {"key": "photos", "glyph": "📸", "name": "photos", "step": null, "states": {"up": null}}
+   ],
+   "items_about": "27 Nov 2026, her words: if I could click on the things that I uploaded to the drive folder … there needs to be a toggle for not uploaded, uploaded, no activity - for recordings, the timeline (some days I don't leave the house). A state with a row writes it (stayed home is the evening's map check; recordings up or none is the recorder check), so the dusk run skips what is settled; an upload alone writes no row: the run reads the folder. The toggles are kept in the page's own store, one document an evening.",
+   "about": "27 Nov 2026, her words: I do want to see the batch items grouped since I normally do those all at once. One card in Next and one row above the lanes."},
+  "tap_line": "[be•do] tapped on the dusk page.",
+  "all_in": "Your steps are all in. The evening closes when you fall asleep."
  }
 }
