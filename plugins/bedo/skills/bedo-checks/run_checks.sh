@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# be•do's checks, run rather than remembered. The core comes fresh from the
-# version store on every preflight; the other commands reuse that copy.
+# be•do's checks, run rather than remembered. Every command runs on main's core:
+# the copy kept here is downloaded again whenever main has moved (27 Nov 2026).
 #
 #   bash run_checks.sh judgment   # the judgment file, read in full at the first reply
 #   bash run_checks.sh preflight [--kind week --week N] [--part B] [--handoff FILE]
@@ -48,6 +48,7 @@
 #                                # before every push and every pull request opened or edited (12 Nov 2026): the
 #                                # privacy check on the files, the new commits, the branch name and the PR's own text
 #   bash run_checks.sh usage [days]          # the Airtable calls made from here, by day and by script
+#   bash run_checks.sh core                  # the core here made main's, and the commit it came from
 #   bash run_checks.sh how NAME              # a command's notes (commands/NAME.md): read before its first run in a chat
 #
 # With an Airtable token (AIRTABLE_PAT, a bedo_secrets.json, or a Claude cloud
@@ -65,7 +66,8 @@
 # Overrides: BC_DIR (where the core is kept, default ~/bedo-checks),
 # BEDO_FACTS_LOCAL (her settings file, used when the Airtable settings row can't be read),
 # BC_LOCAL_FIRST (use BEDO_FACTS_LOCAL even when the row can be read — tests only),
-# BC_CORE_SRC (a local core folder to use instead of the version store — tests only).
+# BC_CORE_SRC (a local core folder to use instead of the version store — tests only),
+# BC_MAIN_SHA, BC_STORE_URL (main's commit, and the tarball to download — tests only).
 set -euo pipefail
 CMD=${1:-}; shift || true
 W=${BC_DIR:-$HOME/bedo-checks}; mkdir -p "$W"
@@ -90,7 +92,7 @@ if [ "$CMD" = how ]; then
   echo "usage: run_checks.sh how NAME — notes for: $(cd "$HERE/commands" 2>/dev/null && ls | sed 's/\.md$//' | tr '\n' ' ')"; exit 1
 fi
 case "$CMD" in
-  judgment|preflight|remaining|usage|"") ;;   # their notes are in the skill file itself, or there are none
+  judgment|preflight|remaining|usage|core|"") ;;   # their notes are in the skill file itself, or there are none
   *) if [ -f "$HERE/commands/$CMD.md" ]; then
        echo "first run of $CMD in this chat? read its notes: bash run_checks.sh how $CMD" >&2
      fi ;;
@@ -99,12 +101,17 @@ esac
 fetch_core() {
   if [ -n "${BC_CORE_SRC:-}" ]; then rm -rf "$W/core"; cp -r "$BC_CORE_SRC" "$W/core"; return 0; fi   # a local copy, for testing a branch
   local T; T=$(mktemp -d)
-  if curl -sSL -o "$T/b.tgz" https://codeload.github.com/rivuletsteph/be-do/tar.gz/refs/heads/main \
+  if curl -sSfL -o "$T/b.tgz" "${BC_STORE_URL:-https://codeload.github.com/rivuletsteph/be-do/tar.gz/refs/heads/main}" \
      && tar -xzf "$T/b.tgz" -C "$T" 2>/dev/null && [ -d "$T/be-do-main/plugins/bedo/core" ]; then :
+  elif [ -n "${BC_STORE_URL:-}" ]; then rm -rf "$T"; return 1   # a test's tarball: never the network
   else   # in Cowork the tarball can come back as a JSON refusal; a clone works there
-    rm -rf "$T/be-do-main"; git clone -q --depth 1 https://github.com/rivuletsteph/be-do "$T/be-do-main"
+    rm -rf "$T/be-do-main"
+    git clone -q --depth 1 https://github.com/rivuletsteph/be-do "$T/be-do-main" \
+      && [ -d "$T/be-do-main/plugins/bedo/core" ] || { rm -rf "$T"; return 1; }
   fi
-  rm -rf "$W/core"; cp -r "$T/be-do-main/plugins/bedo/core" "$W/core"
+  # the old copy goes only once the new one is whole (it is the fallback offline)
+  rm -rf "$W/core.new"; cp -r "$T/be-do-main/plugins/bedo/core" "$W/core.new" || { rm -rf "$T" "$W/core.new"; return 1; }
+  rm -rf "$W/core"; mv "$W/core.new" "$W/core"
   # dayqa's painted check reads the day page's own rules (30 Oct 2026); they import only the core
   cp "$T/be-do-main/plugins/bedo/skills/bedo-week-look-behind/scripts/day_rings.py" "$W/core/" 2>/dev/null || true
   cp "$T/be-do-main/docs/v53-judgment.md" "$W/core/judgment.md" 2>/dev/null || true
@@ -116,6 +123,42 @@ json.dump({n: {'loader': os.path.isfile(os.path.join(d, n, 'loader', 'SKILL.md')
            for n in sorted(os.listdir(d)) if os.path.isfile(os.path.join(d, n, 'SKILL.md'))}, open(sys.argv[2], 'w'))
 S
   rm -rf "$T"
+}
+
+# Which commit main is on now: git ls-remote, else GitHub's API, else nothing (offline).
+# BC_MAIN_SHA stands in for it in tests.
+main_sha() {
+  if [ -n "${BC_MAIN_SHA:-}" ]; then echo "$BC_MAIN_SHA"; return 0; fi
+  local s=""
+  s=$(GIT_TERMINAL_PROMPT=0 git ls-remote https://github.com/rivuletsteph/be-do refs/heads/main 2>/dev/null | cut -f1) || s=""
+  [ -n "$s" ] || s=$(curl -sSf -H 'Accept: application/vnd.github.sha' \
+                       https://api.github.com/repos/rivuletsteph/be-do/commits/main 2>/dev/null) || s=""
+  case "$s" in *[!0-9a-f]*|"") echo "" ;; *) echo "$s" ;; esac
+}
+
+# The core kept in $W is used only while it is main's (27 Nov 2026: the laptop's
+# ~/bedo-checks/core was old, every command but preflight reused it because it
+# existed, and `entry` crashed on a keyword the old core didn't know). Each download
+# records the commit it came from in core/.main_sha; main on another commit, or no
+# record, means download again. Offline, the copy here is used, with a warning.
+ensure_core() {
+  if [ -n "${BC_CORE_SRC:-}" ]; then fetch_core; return 0; fi   # a branch under test: copied every time
+  local want have=""
+  want=$(main_sha)
+  [ -f "$W/core/.main_sha" ] && have=$(cat "$W/core/.main_sha")
+  if [ -d "$W/core" ] && [ -n "$want" ] && [ "$want" = "$have" ]; then return 0; fi
+  if [ -d "$W/core" ] && [ -z "$want" ]; then
+    echo "core: the version store can't be reached to check the copy here (${have:-no record of its commit}); using it as it is" >&2
+    return 0
+  fi
+  if ! (fetch_core); then
+    [ -d "$W/core" ] || { echo "core: the download failed and there is no copy here"; exit 1; }
+    echo "core: the download failed; using the copy here (${have:-no record of its commit}), which may be old" >&2
+    return 0
+  fi
+  [ -n "$want" ] && echo "$want" > "$W/core/.main_sha"
+  if [ -n "$have" ] && [ "$have" != "$want" ]; then echo "core: refreshed ${have:0:7} → ${want:0:7}" >&2; fi
+  return 0
 }
 
 find_local() {
@@ -145,11 +188,11 @@ live_or_files() {   # $1 = what to say is needed; rest = the args
 
 case "$CMD" in
   judgment)   # the project's instructions, fresh from the version store: nothing to paste
-    fetch_core
+    ensure_core
     [ -f "$W/core/judgment.md" ] || { echo "judgment file missing from the download"; exit 1; }
     cat "$W/core/judgment.md" ;;
   preflight)
-    fetch_core; find_local
+    ensure_core; find_local
     if live_or_files "--bases names.json --stream recent.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_preflight.py" "$@" || exit $?
     # what Duet handed to Code, read from the stream at the first reply (23 Nov 2026): never a pasted prompt
@@ -157,87 +200,87 @@ case "$CMD" in
     # open pull requests come back to her (27 Nov 2026): none waits on a question asked once in a finished chat
     echo "prs    read the open pull requests (the GitHub connector's list_pull_requests, state open), save them, run: prs FILE" ;;
   prs)        # 27 Nov 2026: open pull requests, each with its age and one recommendation; she says yes or no
-    [ -d "$W/core" ] || fetch_core
+    ensure_core
     "$PY" "$W/core/bedo_prs.py" "$@" ;;
   sweep)      # 24 Nov 2026: a day's rows through the entry check, after the fact, whoever wrote them
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     case "${1:-}" in 20??-??-??) set -- --date "$@";; esac
     if live_or_files "--day today.json --catalog practices.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_sweep.py" "$@" ;;
   asks)       # 23 Nov 2026: Duet's asks for Code, open ⚡ rows whose details carry `for code:`
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     if live_or_files "--rows rows.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_asks.py" "$@" ;;
   groups)     # 24 Nov 2026: her open actions read together, and email asks that never landed; offers only
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     if live_or_files "--rows rows.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_groups.py" "$@" ;;
   fold)       # 23 Nov 2026: the daily fold, one day's share of the amendments
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     if live_or_files "--amendments amendments.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_fold.py" "$@" ;;
   daysteps)   # 24 Nov 2026: the day's Code steps as one cheap session; its notes are the whole of it
     cat "$(dirname "$0")/commands/daysteps.md" ;;
   apply)      # 24 Nov 2026: rows written by code from a short file of changes, never retyped by a model
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     "$PY" "$W/core/bedo_apply.py" "$@" ;;
   dawn)       # 27 Nov 2026: the dawn page, built when the order changes; it reads and taps through her own connector
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     if live_or_files "--catalog practices.json --day today.json --base-id BASE" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_dawn_page.py" "$@" ;;
   remaining)
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     if live_or_files "--catalog practices.json --day today.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_remaining.py" "$@" ;;
   dusk)
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     if live_or_files "--day today.json --catalog practices.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_dusk_audit.py" "$@" ;;
   meals)
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     if live_or_files "--day today.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_meals.py" "$@" ;;
   places)     # 5 Nov 2026: one 📍 row per stay, coordinates only in the places base
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     if live_or_files "--day today.json --places places.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_places.py" "$@" ;;
   dayqa)
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     D=${1:?usage: run_checks.sh dayqa YYYY-MM-DD [--json] [files]}; shift
     if live_or_files "--day today.json --catalog practices.json --rhythms rhythms.json --connections connections.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_dayqa.py" --date "$D" "$@" ;;
   daygate)    # 6 Nov 2026, her words: finish the day ahead, make sure you QA it, then do the day behind
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     D=${1:?usage: run_checks.sh daygate YYYY-MM-DD [--rows day.json]}; shift
     if live_or_files "--rows day.json" "$@"; then set -- --live "$@"; fi
     "$PY" "$W/core/bedo_daygate.py" check --date "$D" "$@" ;;
   order)
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     if has_files "$@"; then :; elif (cd "$W/core" && "$PY" -c 'import bedo_air, sys; sys.exit(0 if bedo_air.can_read() else 1)'); then set -- --live "$@"
     else echo "NO TOKEN HERE: expected in Cowork or a plain chat, not a failure. Don't run the checks by hand."
          echo "Read through the Airtable connector and run this again with --stream (each weekly base, live first) and --catalog files"; exit 3; fi
     "$PY" "$W/core/bedo_order.py" "$@" ;;
   cleanup)   # 9 Nov 2026, her words: over 300 lines got carried to the new week … it needs to happen on a weekly basis
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     if has_files "$@"; then :; elif (cd "$W/core" && "$PY" -c 'import bedo_air, sys; sys.exit(0 if bedo_air.can_read() else 1)'); then set -- --live "$@"
     else echo "NO TOKEN HERE: expected in Cowork or a plain chat, not a failure. Don't run the checks by hand."
          echo "Read the live weekly base's stream (and last week's) through the connector and run this again with --stream FILE --stream FILE"; exit 3; fi
     "$PY" "$W/core/bedo_cleanup.py" "$@" ;;
   drives)   # 10 Nov 2026, her words: everything I'm putting significant effort into has a drive … what the goal is and what the timeline is
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     "$PY" "$W/core/bedo_drive_check.py" "$@" ;;
   close)   # her rule, 25 Oct 2026: QA, then the session entry, then the rename to done
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     if has_files "$@"; then :
     elif (cd "$W/core" && "$PY" -c 'import bedo_air, sys; sys.exit(0 if bedo_air.can_read() else 1)'); then set -- --live "$@"
     else echo "NO TOKEN HERE: expected in Cowork or a plain chat, not a failure. Don't run the checks by hand."
          echo "Read the chat's ⚡ entry (and, for a my day chat, the day's rows) through the connector and run this again with --rows FILE"; exit 3; fi
     "$PY" "$W/core/bedo_close.py" "$@" ;;
   stretches)
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     "$PY" "$W/core/bedo_stretches.py" "$@" ;;
   calsync)    # her yes, 11 Nov 2026: keep the calendar's done marks; the step left the retired day behind
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     D=${1:?usage: run_checks.sh calsync YYYY-MM-DD [--events events.json --calendars calendars.json] [--local look_behind_local.json --stream week.json]}; shift
     MODE=--list; FILES=""
     for a in "$@"; do case "$a" in --events) MODE=--plan;; --stream) FILES=1;; esac; done
@@ -247,20 +290,20 @@ case "$CMD" in
          echo "Read the week's stream through the connector and run this again with --local look_behind_local.json --stream week.json"; exit 3; fi
     "$PY" "$W/core/calendar_sync.py" $MODE --day "$D" "$@" ;;
   calendar)   # 6 and 9 Oct 2026: the calendar named, the write read back, work in purple
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     "$PY" "$W/core/bedo_calendar.py" "$@" ;;
   inbox)      # 22, 25 and 26 Oct 2026: automatic keeps, archive by rule, the nudge before archiving
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     "$PY" "$W/core/bedo_inbox.py" "$@" ;;
   chats)      # 2 and 5 Nov 2026: the chat sweep — every open chat against its objective and its row
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     if has_files "$@"; then :
     elif (cd "$W/core" && "$PY" -c 'import bedo_air, sys; sys.exit(0 if bedo_air.can_read() else 1)'); then set -- --live "$@"
     else echo "NO TOKEN HERE: expected in Cowork or a plain chat, not a failure. Don't run the checks by hand."
          echo "Read the ⚡ rows with a chat link (this week's base and the one before) through the connector and run this again with --rows FILE"; exit 3; fi
     "$PY" "$W/core/bedo_chats.py" "$@" ;;
   entry)
-    [ -d "$W/core" ] || fetch_core; find_local
+    ensure_core; find_local
     ROW=${1:?usage: run_checks.sh entry row.json [--base NAME] [--chat MMDD] [--catalog FILE] [--rhythms FILE] [--day FILE] [--keys FILE]}; shift
     BASE=""; CHAT=""; CAT=""; RHY=""; DAY=""; KEYS=""
     while [ $# -gt 0 ]; do case "$1" in --base) BASE=${2:-}; shift 2;; --chat) CHAT=${2:-}; shift 2;;
@@ -335,7 +378,7 @@ E
     [ -n "$R" ] && [ -f "$R/tools/privacy_check.py" ] || { echo "outgoing: run this inside the be-do clone, or set BEDO_REPO to it"; exit 2; }
     (cd "$R" && "$PY" tools/privacy_check.py --outgoing "$@") ;;
   skills)     # 12 Nov 2026: installed skills in step with the version store
-    fetch_core
+    ensure_core
     REPO_SKILLS="$W/core/skills.json"
     [ -n "${BC_CORE_SRC:-}" ] && [ -d "$BC_CORE_SRC/../skills" ] && REPO_SKILLS="$BC_CORE_SRC/../skills"   # testing a branch
     [ -e "$REPO_SKILLS" ] || { echo "skills: the list of repo skills is missing from the download"; exit 1; }
@@ -343,8 +386,11 @@ E
     case " $* " in *" --installed "*) ;; *)
       for c in "$HOME/.claude/skills" /root/.claude/skills /mnt/skills/user; do [ -d "$c" ] && set -- "$@" --installed "$c"; done ;; esac
     "$PY" "$W/core/bedo_skills.py" "$@" ;;
+  core)       # 27 Nov 2026: the core here made main's, and the commit it came from
+    ensure_core
+    echo "core: $W/core at $(cat "$W/core/.main_sha" 2>/dev/null || echo 'no recorded commit (a local copy under test, or offline)')" ;;
   usage)      # 4 Nov 2026: what the checks spend, so the plan can be sized from real numbers
-    [ -d "$W/core" ] || fetch_core
+    ensure_core
     "$PY" "$W/core/bedo_air.py" usage "$@" ;;
-  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|daygate|entry|stretches|order|cleanup|drives|close|calendar|calsync|inbox|chats|outgoing|skills|fold|apply|daysteps|usage|how [args]"; exit 2 ;;
+  *) echo "usage: run_checks.sh judgment|preflight|remaining|dusk|meals|dayqa|daygate|entry|stretches|order|cleanup|drives|close|calendar|calsync|inbox|chats|outgoing|skills|fold|apply|daysteps|core|usage|how [args]"; exit 2 ;;
 esac

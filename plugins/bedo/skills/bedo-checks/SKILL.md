@@ -69,8 +69,8 @@ bash run_checks.sh cleanup                   # after the split
 bash run_checks.sh close --chat https://claude.ai/code/session_… --title "▶️1024 … my day" --date 2026-10-24   # at its dusk close a my day chat keeps ▶️; ✔️ is the next morning's
 ```
 
-`preflight` downloads the core fresh from the version store; the other
-commands reuse that copy for the session. Her settings (`facts_local.json`:
+Every command runs on main's core, downloaded again whenever main moves
+(`run_checks.sh core` says which commit). Her settings (`facts_local.json`:
 base and field ids, the time zone, which check enforces which amendment) come
 from the `facts_local` row of the `settings` table in `be•do system`, read live,
 and never from the repo. The loader's own copy is only the fallback, for a chat
