@@ -30,9 +30,9 @@ h1 small { font-weight: 500; color: var(--muted); font-size: 15px; margin-left: 
 .note { color: var(--warn); font-size: 13px; }
 h2 { margin: 0 0 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .next { display: grid; gap: 8px; }
-.next button { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; font: inherit; font-size: 17px; font-weight: 500;
+.next > button { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; font: inherit; font-size: 17px; font-weight: 500;
   color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; cursor: pointer; }
-.next button:disabled { opacity: .55; cursor: default; }
+.next > button:disabled { opacity: .55; cursor: default; }
 .next .g { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 50%; font-size: 18px;
   border: 2px solid var(--lane); }
 .next .by { margin-left: auto; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
@@ -43,6 +43,10 @@ h2 { margin: 0 0 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
 .words button { font: inherit; font-weight: 600; border-radius: 999px; padding: 6px 16px; cursor: pointer; border: 1px solid var(--line); background: none; color: var(--fg); }
 .words .log { background: var(--lane); border-color: var(--lane); color: #fff; }
 .words .log:disabled { opacity: .55; cursor: default; }
+.batchcard { display: grid; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.batchcard .head { display: flex; align-items: center; gap: 12px; font-size: 17px; font-weight: 500; }
+.batchcard .head .g { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; font-size: 18px; border: 2px dashed var(--muted); }
+.batchcard p { margin: 0; color: var(--muted); font-size: 13px; }
 .closed { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; font-size: 16px; }
 .lanes { display: grid; gap: 10px; }
 .lane { display: grid; grid-template-columns: 52px 1fr; align-items: center; gap: 10px; }
@@ -69,6 +73,7 @@ button:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
 .body { --lane: var(--body); --ink: var(--body-ink); }
 .mind { --lane: var(--mind); --ink: var(--mind-ink); }
 .spirit { --lane: var(--spirit); --ink: var(--spirit-ink); }
+.batch { --ink: var(--fg); }
 </style>
 
 <div class="wrap">
@@ -111,8 +116,8 @@ function lineOf(D, r) {
 function dawnState(D, rows, nowIso) {
   const now = localParts(nowIso, D.tz), noon = D.noon ? hhmm(D.noon) : null, day = flowDay(D, nowIso);
   const today = rows.map(r => ({...r, at: localParts(r.t, D.tz)})).filter(r => flowDay(D, r.t) === day);
-  const open = new Set(D.open_status.map(norm)), closeN = norm(D.close);
-  const counted = today.filter(r => !(norm(r.p) === closeN && open.has(norm(r.s))));
+  const openStatus = new Set(D.open_status.map(norm)), closeN = norm(D.close);
+  const counted = today.filter(r => !(norm(r.p) === closeN && openStatus.has(norm(r.s))));
   const by = {};                                   // step → the row that shows it, earliest first
   const put = (step, r) => { const k = norm(step); if (!by[k] || r.t < by[k].t) by[k] = r; };
   counted.forEach(r => put(r.p, r));
@@ -137,7 +142,15 @@ function dawnState(D, rows, nowIso) {
     if (m) { rise = (+m[1] % 12 + (m[3].toLowerCase() === "p" ? 12 : 0)) * 60 + +m[2]; break; }
   }
   const sunBy = rise != null && wake ? Math.max(rise, wake.at.min) + D.sun_by_minutes : null;
-  const left = steps.filter(s => !s.row && !s.code && !s.pattern && !(s.sun && sunBy != null && now.min > sunBy));
+  const open = s => !s.row && !s.pattern && !(s.sun && sunBy != null && now.min > sunBy);
+  const left = [];                                 // the batch is one entry, at its first step's place (her words, 27 Nov 2026)
+  let batch = null;
+  for (const s of steps) {
+    if (!open(s)) continue;
+    if (s.batch) {
+      if (!batch) left.push(batch = {batch: true, p: D.batch.name, lane: "batch", members: steps.filter(x => x.batch)});
+    } else if (!s.code) left.push(s);
+  }
   const loud = left.filter(s => !s.quiet);
   const next = (loud.length ? loud : left).slice(0, D.next);
   const closeRow = by[closeN] || null;
@@ -176,12 +189,13 @@ function render() {
   const box = $("next");
   box.replaceChildren();
   if (st.close) {
-    box.append(el("div", {class: "closed", text: `Dawn closed at ${ampm(localParts(st.close.t, D.tz).min)}.`}));
+    box.append(el("div", {class: "closed", text: `${D.label || "Dawn"} closed at ${ampm(localParts(st.close.t, D.tz).min)}.`}));
   } else if (st.past_noon) {
     box.append(el("div", {class: "closed", text: "Dawn is past noon: the noon close names what's left."}));
   } else if (!st.next.length) {
     box.append(el("div", {class: "closed", text: D.all_in}));
   } else for (const s of st.next) {
+    if (s.batch) { box.append(batchCard(s)); continue; }
     const b = el("button", {type: "button", class: s.lane, disabled: !S.mcp || S.busy},
       [el("span", {class: "g", text: glyph(s.p)}), el("span", {text: name(s.p)})]);
     if (s.sun && st.sunBy != null) b.append(el("span", {class: "by", text: `by ${clock(st.sunBy)}`}));
@@ -191,18 +205,12 @@ function render() {
   if (S.writing) box.append(wordsBox(S.writing));
   const lanes = $("lanes");
   lanes.replaceChildren();
-  for (const [k, L] of Object.entries(D.lanes)) {
-    const mine = st.steps.filter(s => s.lane === k);
+  const rows = (D.batch ? [["batch", {name: D.batch.label}]] : []).concat(Object.entries(D.lanes));
+  for (const [k, L] of rows) {
+    const mine = st.steps.filter(s => k === "batch" ? s.batch : s.lane === k && !s.batch);
     if (!mine.length) continue;
     const dots = el("div", {class: "dots"});
-    for (const s of mine) {
-      const done = !!s.row, label = `${name(s.p)}${done ? ", done" : s.code ? ", Code logs it" : ", tap to log"}`;
-      const b = el("button", {type: "button", class: `dot${done ? " done" : ""}${s.code ? " code" : ""}`, text: glyph(s.p),
-        title: label, disabled: done || s.code || !S.mcp || S.busy});
-      b.setAttribute("aria-label", label);
-      if (!done && !s.code) b.addEventListener("click", () => start(s));
-      dots.append(b);
-    }
+    mine.forEach(s => dots.append(dot(s)));
     lanes.append(el("div", {class: `lane ${k}`}, [el("b", {text: L.name}), dots]));
   }
   const list = $("done");
@@ -215,6 +223,20 @@ function render() {
   }
 }
 
+function dot(s) {
+  const done = !!s.row, label = `${name(s.p)}${done ? ", done" : s.code ? ", Code logs it" : ", tap to log"}`;
+  const b = el("button", {type: "button", class: `dot ${s.lane}${done ? " done" : ""}${s.code ? " code" : ""}`, text: glyph(s.p),
+    title: label, disabled: done || s.code || !S.mcp || S.busy});
+  b.setAttribute("aria-label", label);
+  if (!done && !s.code) b.addEventListener("click", () => start(s));
+  return b;
+}
+function batchCard(s) {
+  const dots = el("div", {class: "dots"});
+  s.members.forEach(m => dots.append(dot(m)));
+  return el("div", {class: "batchcard"}, [el("div", {class: "head"}, [el("span", {class: "g", text: glyph(s.p)}),
+    el("span", {text: name(s.p)})]), dots, el("p", {text: D.batch.note})]);
+}
 function start(s) {                               // a step that needs her words opens a box; any other logs now
   if (s.words) { S.writing = s; render(); const t = $("words"); if (t) t.focus(); return; }
   tap(s);

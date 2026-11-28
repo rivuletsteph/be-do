@@ -62,6 +62,7 @@ def steps(cat, flow='dawn'):
     close = R.norm(FLOWS['close'][flow])
     code = R.code_steps(flow, all_) | names(all_, C['code'])
     words = names(all_, C['words'])
+    batch = names(all_, (C.get('batch') or {}).get('steps', []))
     quiet = {R.norm(p) for p in FLOWS.get('ask_if_missing', {}).get(flow, [])}
     sun = {R.norm(p) for p in FLOWS['after_sunrise']} if flow == 'dawn' else set()
     pattern = R.from_pattern(flow)
@@ -76,7 +77,7 @@ def steps(cat, flow='dawn'):
         if g in seen:
             continue
         s = {'p': g or r['practice'], 'lane': lane(r.get('wellness')), 'code': n in code,
-             'quiet': n in quiet, 'sun': n in sun, 'words': n in words, 'pattern': n in pattern}
+             'quiet': n in quiet, 'sun': n in sun, 'words': n in words, 'pattern': n in pattern, 'batch': n in batch}
         if g:
             seen.add(g)
             s['members'] = groups[g]
@@ -129,6 +130,7 @@ def plan(cat, day_rows, local, day, base_id, base_name, flow='dawn'):
         'flow': flow, 'label': C['label'], 'title': C['title'], 'day_starts': R._hhmm(C['day_starts']).hour * 60
         + R._hhmm(C['day_starts']).minute, 'all_in': C['all_in'], 'status_of': C['status_of'],
         'member_lines': member_lines(flow, local),
+        'batch': {k: v for k, v in C['batch'].items() if k in ('name', 'label', 'note')} if C.get('batch') else None,
         'day': str(day), 'tz': local.get('time_zone') or 'UTC',
         'base': {'id': base_id, 'name': base_name},
         'weekly_name': local.get('weekly_name', 'w{n} be•do'), 'week': FACTS['week'],

@@ -467,7 +467,7 @@
   "reread_after_seconds": 60,
   "sunrise_days": 14,
   "title": "Dawn flow", "label": "Dawn", "url_key": "dawn_url", "icon": "sunrise",
-  "code": [], "words": [], "status_of": {}, "day_starts": "00:00",
+  "code": [], "words": [], "status_of": {}, "day_starts": "00:00", "batch": null,
   "all_in": "Your steps are all in. The flow closes itself."
  },
  "dusk_page": {
@@ -478,6 +478,9 @@
   "words": ["⭐ highlight", "🌟"],
   "status_of": {"⭐ highlight": "● log"},
   "day_starts": "05:00",
+  "batch": {"name": "📸 the batch", "label": "batch", "steps": ["🗺️ map check", "📱 screen time", "🪐", "⏺️ recorder check"],
+   "note": "Timeline, screen time and ring screenshots and the recorder check, then your photos up last: the photos start the dusk run, which fills the rest.",
+   "about": "27 Nov 2026, her words: I do want to see the batch items grouped since I normally do those all at once. One card in Next and one row above the lanes."},
   "tap_line": "[be•do] tapped on the dusk page.",
   "all_in": "Your steps are all in. The evening closes when you fall asleep."
  }

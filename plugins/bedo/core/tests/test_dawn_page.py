@@ -186,6 +186,16 @@ class Dusk(unittest.TestCase):
         self.assertEqual(pills['todo'], ['🌈 supplements'])
         self.assertNotIn('🌬️ evening breaths', [s['p'] for s in st['next']])
         self.assertNotIn('🔀 braid', [s['p'] for s in st['next']])
+        # the batch is one card (her words, 27 Nov 2026: I normally do those all at once)
+        cards = [s for s in st['next'] if s.get('batch')]
+        self.assertEqual(len(cards), 1)
+        self.assertEqual([m['p'] for m in cards[0]['members']], ['🪐 evening ring', '🗺️ map check'])
+
+    def test_batch_steps_are_marked(self):
+        by = {s['p']: s for s in self.data['steps']}
+        self.assertTrue(by['🗺️ map check']['batch'] and by['🪐 evening ring']['batch'])
+        self.assertFalse(by['🫖 evening tea']['batch'])
+        self.assertEqual(self.data['batch']['label'], 'batch')
 
 
 if __name__ == '__main__':
