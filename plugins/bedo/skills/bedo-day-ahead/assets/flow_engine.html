@@ -269,6 +269,22 @@ html[data-bedo="night"] .cal .ev:not(.gcal), html[data-bedo="night"] .cal .ev:no
 .sheet .her{grid-column:1/-1;font:italic 400 15.5px/1.45 var(--serif);color:var(--muted);margin:8px 0 0}
 .sheet .her.full{white-space:pre-line;color:var(--ink);font-size:14.5px}
 .sheet details.more{grid-column:1/-1;margin-top:4px}.sheet details.more summary{cursor:pointer;font:500 12px var(--mono);color:var(--muted)}
+/* a journal: its highlights, then the whole entry, never cut off (18 Nov 2026, her words: a list of highlights from the
+   journal entry … click on it and have the whole entry pop up and be readable) */
+.sheet ul.pts{grid-column:1/-1;margin:10px 0 2px;padding:0 0 0 1.1em;font:500 15px/1.4 var(--sans);color:var(--ink)}
+.sheet ul.pts li{margin:0 0 6px}
+.sheet .whole{grid-column:1/-1;margin-top:12px;padding-top:10px;border-top:1px solid var(--line,rgba(0,0,0,.12))}
+.sheet .whole h3{margin:0 0 4px;font:600 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sheet .whole .her.full{margin:0;font:400 16px/1.6 var(--serif);font-style:normal;color:var(--ink)}
+.sheet.jr{max-height:90vh}
+/* a journal and the moment it is the download of point at each other (18 Nov 2026, her words: it'd be nice if it was
+   clearly linked to the coffee, because it's kind of the download of that) */
+.sheet .tie{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+.tie a,.cal .ev .tie a{font:500 13px var(--sans);color:var(--dest);background:var(--dest-soft);border-radius:999px;padding:3px 10px;text-decoration:none}
+.cal .ev .pts{display:block;white-space:normal;margin:1px 0 0;font:400 11px/1.3 var(--sans);color:var(--ink)}
+.cal .ev .pts span{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cal .ev .tie{display:block;margin:2px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal .ev .tie a{font-size:11px;padding:1px 7px}
 .td{--k-logged:#E6DCCF;--k-logged-d:#9A8B79;--k-stretch:#A9D3D6;--k-stretch-d:#3E7F86;--k-event:#5B6FB5;--k-lastmin:#E07A5F;--k-flow:#DDD5C9;--k-flow-d:#8C8174;--k-eat:#86C2A4;--k-eat-d:#3F8A68;--k-move:#B4C987;--k-move-d:#6E8A35;--k-personal:#C3B6E2;--k-personal-d:#6B5BA0;--k-recreation:#9FC4E2;--k-recreation-d:#4A7FAE;--k-travel:#A8D3C9;--k-travel-d:#3E7F74;--k-work:#C9805F;--k-work-d:#8E4A2C;--k-family:#E3A4A8;--k-family-d:#B05E66;--k-pet:#EBB9CB;--k-pet-d:#A85C7A;--k-home:#DDB4A2;--k-home-d:#96604A;--k-cook:#EEB672;--k-cook-d:#B07A2A;--k-drive:#A9B7C2;--k-drive-d:#56697A;--k-system:#DCC89C;--k-system-d:#9C8455;--k-moment:#F2C14E;--k-moment-d:#B8860B}
 html[data-bedo="night"] .td{--k-logged:#4A4540;--k-logged-d:#D9CCBC;--k-stretch:#2F5458;--k-stretch-d:#BDE3E6;--k-event:#7F8FD0;--k-lastmin:#F09A80;--k-flow-d:#BDB3A6;--k-eat-d:#C4E6D4;--k-move-d:#DCE8BC;--k-personal-d:#DED6F4;--k-recreation-d:#CFE2F2;--k-travel-d:#CDEAE4;--k-work-d:#F0C6B2;--k-family-d:#F5D0D2;--k-pet-d:#F6D3E0;--k-home-d:#F0D6CA;--k-cook-d:#F7D9AE;--k-drive-d:#D3DEE7;--k-system-d:#EEE2C6;--k-moment-d:#F2C14E}
 .cal .band{border:2px solid var(--dc);border-left-width:5px;background:color-mix(in srgb,var(--dc) 16%,transparent)}
@@ -655,7 +671,7 @@ function today(){
      think about what is realistic). A long event (two hours or more, the party) is the ground the steps sit
      on, drawn behind them; every other event and step is laid end to end in time order, nothing open before
      the clock (she can't go back), each at its own time or as soon as the one before it ends. */
-  const all=S.map(x=>({...x,s:min(x.a),e:Math.max(min(x.b),min(x.a)+(x.k==='lived'?(x.pt?10:1):15))}));
+  const all=S.map(x=>({...x,s:min(x.a),e:Math.max(min(x.b),min(x.a)+(x.k==='lived'?(x.pt?10:1):15))})); window.__all=all;
   /* someone else's long event out in town has two moments she can't miss: the drop-off and the pick-up (7 Nov 2026, her
      words: pick up and drop off are important events on my calendar on Fridays, but they're implied — those are things I just can't miss). Each is its own card in the calendar's colour, while it
      is still ahead; once past, her own rows (the drive there, the pick-up) are the record */
@@ -754,7 +770,7 @@ function today(){
   /* a stretched clock (2 Nov 2026, her words: lengthen the calendar so all these things fit on it, and make
      things not overlap, cuz that is confusing): an hour is at least 72px, and a stretch of time grows until
      every card in it has room for its words, so a five-minute step never sits on the one after it */
-  const PX=72, MINH=26, minOf=px=>px*60/PX, need=x=>MOM.has(x)?((x.photos||[]).length?170:92):(x.photos&&x.photos.length)?56:past.includes(x)?MINH+4:(x.pick&&x.why?64:48);
+  const PX=72, MINH=26, minOf=px=>px*60/PX, need=x=>MOM.has(x)?((x.photos||[]).length?170:92):(x.k==='event'&&(x.journals||[]).length)?96:(x.photos&&x.photos.length)?56:past.includes(x)?MINH+4+(x.jr&&x.pts?14*Math.min(3,x.pts.length)+4:0)+(x.moment?18:0):(x.pick&&x.why?64:48);
   /* the past as it was: two things at once sit side by side, as the calendar does */
   const isCol=x=>x.cat==='stretch'||x.column;
   const cols=[]; past.forEach(x=>{ x.de=x.e; if(isCol(x)){ x.col=0; return; } let c=0; while(cols[c]&&cols[c]>x.s) c++; cols[c]=x.de; x.col=c; });
@@ -869,8 +885,8 @@ function today(){
       const ths=(c.photos||[]).slice(0,4).map(p=>`<img alt="" src="${p.src}">`).join('');
       g+=`<div data-c="${ci(c)}" class="ev lived combo tall${c.k==='event'?' gcal past':''}" title="${esc(c.t)} · ${tm(c.s)}" style="${bgev(c)?bgs(c):c.k==='event'?`--gc:${pcol(c)};--gi:${gink(gcol(c))}`:kvx(c)};top:${top}px;height:${h}px;left:calc(${(c.col||0)*100/(c.n||1)}% + 2px);width:calc(${100/(c.n||1)}% - 4px)"><b>${bgev(c)?esc(bgt(c)):c.k==='event'?esc(dn(c.summary||c.t,c.done)):(c.act?'✅ ':'')+esc(c.t)}</b><i>${tm(c.s)}–${tm(c.e)}${c.drive?' · '+esc(c.drive):''}</i>${bgev(c)?'':c.members.map(m=>`<span class="ln${m.mom?' mln':''}">${m.act?'✅ ':''}${esc(m.t)}</span>${m.mom&&takeHome(m)?`<span class="mw">${esc(takeHome(m))}</span>`:''}`).join('')}${ths?`<span class="ths">${ths}</span>`:''}</div>`; return; }
     if(bgev(x)){ g+=`<div data-c="${ci(x)}" class="ev event gcal past bg" style="${bgs(x)};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${esc(bgt(x))}</b><i>${tm(x.s)}–${tm(x.e)}${x.where?', '+esc(x.where):''}</i></div>`; return; }
-    if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past${(x.photos||[]).length&&!MOM.has(x)?' hasph':''}${x.star?' star':''}${MOM.has(x)?' meantc':''}" style="--gc:${pcol(x)};--gi:${gink(gcol(x))};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${esc(dn(x.summary||x.t,x.done))}</b><i>${x.star?'the highlight · ':''}${tm(x.s)}–${tm(x.e)}${x.lastmin?' · last-minute':''}${x.covers&&x.covers.length?` · covers ${x.covers.length}`:''}${(x.links||[]).length?' · 🔗':''}${x.where?', '+esc(x.where):''}</i>${momBody(x)}<span class="rt">${MOM.has(x)?'':thumb(x)}${dots(x)}</span></div>`; return; }
-    g+=`<div data-c="${ci(x)}" class="ev lived${x.runner?' runner':''}${h>=40?' tall':''}${x.est?' est':''}${(x.photos||[]).length&&!MOM.has(x)?' hasph':''}${x.mom?' mom':''}${x.star?' star':''}${MOM.has(x)?' meantc':''}${x.cat==='sleep'?' slp':''}" title="${esc(x.hl||x.t)} · ${tm(x.s)}" style="${kvx(x)};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${x.act||(x.closes||[]).length?'✅ ':''}${esc(x.t)}</b>${x.hl?`<span class="why">the highlight: ${esc(String(x.hl).replace(/^\W*⭐\s*/,''))}</span>`:''}<i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${(()=>{ const dl=delivOf(x)[0], mv=movedBy(x);
+    if(x.k==='event'){ g+=`<div data-c="${ci(x)}" class="ev event gcal past${(x.photos||[]).length&&!MOM.has(x)?' hasph':''}${x.star?' star':''}${MOM.has(x)?' meantc':''}" style="--gc:${pcol(x)};--gi:${gink(gcol(x))};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${esc(dn(x.summary||x.t,x.done))}</b><i>${x.star?'the highlight · ':''}${tm(x.s)}–${tm(x.e)}${x.lastmin?' · last-minute':''}${x.covers&&x.covers.length?` · covers ${x.covers.length}`:''}${(x.links||[]).length?' · 🔗':''}${x.where?', '+esc(x.where):''}</i>${tieOf(x)}${momBody(x)}<span class="rt">${MOM.has(x)?'':thumb(x)}${dots(x)}</span></div>`; return; }
+    g+=`<div data-c="${ci(x)}" class="ev lived${x.runner?' runner':''}${h>=40?' tall':''}${x.est?' est':''}${(x.photos||[]).length&&!MOM.has(x)?' hasph':''}${x.mom?' mom':''}${x.star?' star':''}${MOM.has(x)?' meantc':''}${x.cat==='sleep'?' slp':''}" title="${esc(x.hl||x.t)} · ${tm(x.s)}" style="${kvx(x)};top:${top}px;height:${h}px;left:calc(${x.col*w}% + 2px);width:calc(${w}% - 4px)"><b>${x.star?'⭐ ':''}${x.act||(x.closes||[]).length?'✅ ':''}${esc(x.t)}</b>${x.hl?`<span class="why">the highlight: ${esc(String(x.hl).replace(/^\W*⭐\s*/,''))}</span>`:''}<i>${tm(x.s)}–${tm(x.e)}${x.drive?' · '+esc(x.drive):''}</i>${x.jr&&x.pts?`<span class="pts">${x.pts.slice(0,3).map(p=>`<span>· ${esc(p)}</span>`).join('')}</span>`:''}${tieOf(x)}${(()=>{ const dl=delivOf(x)[0], mv=movedBy(x);
       /* on the box itself (7 Nov 2026, her words: when there's a deliverable I would really like for that to show up on the
          little calendar box; as much of what was meaningful as possible on the entry itself) */
       return dl||mv?`<span class="cx">${dl?`<a class="dlk" href="${esc(dl.u)}" target="_blank" rel="noopener">📎 ${esc(dl.l==='deliverable'?'deliverable':dl.l)}</a>`:''}${mv?`<span class="mvt">+${mv}%</span>`:''}</span>`:''; })()}${more(x)}${momBody(x)}<span class="rt">${MOM.has(x)?'':thumb(x)}${dots(x)}</span></div>`; });
@@ -907,6 +923,22 @@ const movedBy=x=>{ const d=(D.drives||[]).find(r=>r.n===x.drive), p=d&&d.prog, t
 const delivOf=x=>(x.links||[]).filter(l=>l&&l.u&&l.l!=='calendar event');
 const takeHome=x=>{ if(!x.her) return ''; const plain=x.her.replace(/https?:\/\/\S+/g,'').replace(/\s+/g,' ').trim(),
   m=plain.match(/^.{20,140}?[.!?](\s|$)/); return m?m[0].trim():plain.slice(0,140)+(plain.length>140?'…':''); };
+/* a journal and its moment (18 Nov 2026): the card of the row it names, the word for when it was told, and the link */
+const byRid=id=>(window.__all||[]).find(c=>c&&(c.rid===id||(c.rids||[]).includes(id)));
+const plainT=c=>String((c&&(c.k==='event'?c.summary||c.t:c.t))||'').replace(/^\s*(✔️|✔|⬜|✅)\uFE0F?\s*/,'').trim();
+const relOf=(j,m)=>j.s>=m.e-5?'after':j.e<=m.s+5?'before':'during';
+const tieOf=(x,cls)=>{ const out=[], m=x.moment&&byRid(x.moment);
+  if(m) out.push(`<a href="#" data-jump="${esc(x.moment)}">↳ ${relOf(x,m)} ${esc(x.momentT||plainT(m))}</a>`);
+  (x.journals||[]).forEach(id=>{ const j=byRid(id); if(j) out.push(`<a href="#" data-jump="${esc(id)}">📒 the journal ${relOf(j,x)} ↓</a>`); });
+  return out.length?`<span class="${cls||'tie'}">${out.join(' ')}</span>`:''; };
+const herWhole=x=>{ const lk=t=>esc(t).replace(/https?:\/\/[^\s<]+/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]} ↗</a>`);
+  return `<div class="whole"><h3>the whole entry</h3><div class="her full">${lk(x.her)}</div></div>`; };
+document.addEventListener('click',e=>{ const a=e.target.closest('[data-jump]'); if(!a) return; e.preventDefault(); e.stopPropagation();
+  const t=byRid(a.dataset.jump), C=window.__cards||[]; let i=t?C.indexOf(t):-1; if(i<0&&t&&t.stk) i=C.indexOf(t.stk.card);
+  const s=document.getElementById('sheet'); if(s) s.classList.remove('on');
+  let n=i>=0&&document.querySelector(`#today .ev[data-c="${i}"]`);
+  if(!n&&window.__dayview!=='all'){ window.__dayview='all'; if(typeof today==='function') today(); i=t?(window.__cards||[]).indexOf(t):-1; n=i>=0&&document.querySelector(`#today .ev[data-c="${i}"]`); }
+  if(n){ n.scrollIntoView({behavior:'smooth',block:'center'}); n.classList.add('flash'); setTimeout(()=>n.classList.remove('flash'),1600); } },true);
 const photosOf=x=>(x.photos||[]).map(p=>p.url?`<a href="${esc(p.url)}" target="_blank" rel="noopener"><img class="ph" alt="" src="${p.src}"></a>`:`<img class="ph" alt="" src="${p.src}">`).join('');
 /* which few rows were the day (11 Nov 2026, her words: when I'm proud or when I've accomplished something or when I'm
    having a strong feeling or a meaningful moment, or there's a glimmer, all these things are things I want to remember …
@@ -975,7 +1007,7 @@ function sheet(x){
       +`<div class="ttl"><span class="sq" style="background:${c}"></span>${esc(String(x.summary||x.t).replace(/^\s*(✔️|✔)\uFE0F?/,'✅'))}</div>`
       +`<div class="when">${t12(x.s)} – ${t12(x.e)}</div>`
       +(x.where?`<div class="where">📍 ${/^https?:/.test(x.where)?`<a href="${esc(x.where)}" target="_blank" rel="noopener">${esc(x.where)}</a>`:`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(x.where)}" target="_blank" rel="noopener">${esc(x.where)}</a>`}</div>`:'')
-      +`<div class="when">🗓️ ${esc(x.who==='you'?'my events':x.who||'')}${x.drive?` · ${esc(x.drive)}`:''}</div>`+linkChips(x)
+      +`<div class="when">🗓️ ${esc(x.who==='you'?'my events':x.who||'')}${x.drive?` · ${esc(x.drive)}`:''}</div>`+tieOf(x)+linkChips(x)
       +(x.covers&&x.covers.length?`<div class="when">covered: ${x.covers.map(esc).join(' · ')}</div>`:'')
       +(L?`<div class="lks">${L}</div>`:'')
       +(x.link?`<div class="lks"><a href="${esc(x.link)}" target="_blank" rel="noopener">open in Google Calendar ↗</a></div>`:'')+photosOf(x)+`</div>`;
@@ -999,20 +1031,23 @@ function sheet(x){
       +(dl.length?`<div class="dlv">${dl.map(l=>`<a href="${esc(l.u)}" target="_blank" rel="noopener">📎 ${esc(l.l==='deliverable'?'open the deliverable':l.l==='the page'?'open the page':l.l==='notes'?'open the notes':l.l)} ↗</a>`).join('')}</div>`:'')
       +((x.photos||[]).length?`<div class="phs">${photosOf(x)}</div>`:'')
       +(mv?`<div class="ball">moved ${esc(x.drive)} forward <b>+${mv}%</b></div>`:'')
-      +(th?`<div class="her">${esc(th)}</div>`:'')
+      +(x.jr&&x.pts?`<ul class="pts">${x.pts.map(p=>`<li>${esc(p)}</li>`).join('')}</ul>`:th?`<div class="her">${esc(th)}</div>`:'')
+      +tieOf(x)
+      +(x.her&&(x.jr||String(x.her).length>(th||'').length+2)?herWhole(x):'')
       +linkChips(x)+(x.flowcard?'':`<div class="chips">${kind?`<span class="chip"><i style="background:${kind[0]}"></i>${esc(String(kind[2]).split(' · ')[0])}</span>`:''}${x.hr?`<span class="chip" title="her median heart rate over it: it decides relaxing versus energizing">♥ ${x.hr} bpm</span>`:''}${wl.map(k=>`<span class="chip">${wicon(k,15)} ${k}</span>`).join('')}${x.felt_word?`<span class="chip">${esc(x.felt_word)}</span>`:''}${x.drive?`<span class="chip">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</span>`:`<span class="chip none">no drive or rhythm yet</span>`}${who.length?`<span class="chip">👥 ${esc(who.join(', '))}</span>`:''}</div>`)
       +(x.members&&x.members.length?`<ul class="inside">${x.members.map(m=>`<li>${m.act?'✅ ':''}${esc(m.t)} <small>${t12(m.s)}–${t12(m.e)}</small>${delivOf(m).map(l=>` <a class="dlk" href="${esc(l.u)}" target="_blank" rel="noopener">📎 ${esc(l.l)}</a>`).join('')}</li>`).join('')}</ul>`:'')
       +`</div>`;
+    s.classList.toggle('jr',!!x.jr);
     requestAnimationFrame(()=>s.classList.add('on')); s.querySelector('.x').onclick=()=>s.classList.remove('on'); return; }
+  s.classList.remove('jr');
   const kind=x.k==='lived'&&window.__chc?window.__chc(x):null, wl=[x.el,x.el2].filter(k=>k&&WDOM[k]);
   const chips=x.k==='lived'?`<div class="chips">${kind?`<span class="chip"><i style="background:${kind[0]}"></i>${esc(String(kind[2]).split(' · ')[0])}</span>`:''}${wl.map(k=>`<span class="chip">${wicon(k,15)} ${k}</span>`).join('')}${x.felt_word?`<span class="chip">${esc(x.felt_word)}</span>`:''}${x.drive?`<span class="chip">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</span>`:''}</div>`:'';
   s.innerHTML=`<div class="grab"></div><button class="x" aria-label="close">×</button><div class="sc"><div class="at">${x.s?t12(x.s):'later'}${x.k==='lived'&&x.e>x.s+1?`<br>${t12(x.e)}`:''}</div>`
     +`<div class="ttl">${x.k==='event'?'🗓️ ':`<span class="bx${done?' ok':''}"></span>${x.k==='step'||x.act?'<span class="bolt">⚡</span>':''}`}${esc(x.t)}</div>`
-    +chips+(()=>{ const w=String(x.who||'').split(',').map(n=>n.trim()).filter(n=>n&&n!==D.me); return w.length?`<div class="who">👥 with ${esc(w.join(', '))}</div>`:''; })()+((x.closes||[]).length?`<div class="who">✅ ${x.closes.map(esc).join(' · ')}</div>`:'')+(x.her?(()=>{ /* one line of her words; the rest folded (7 Nov 2026, her words: the level of detail on the cards is too great,
-       I'm never going to read all that — shoot for something like the 28 Oct card) */
-      const lk=t=>esc(t).replace(/https?:\/\/[^\s<]+/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0]} ↗</a>`);
+    +chips+(()=>{ const w=String(x.who||'').split(',').map(n=>n.trim()).filter(n=>n&&n!==D.me); return w.length?`<div class="who">👥 with ${esc(w.join(', '))}</div>`:''; })()+((x.closes||[]).length?`<div class="who">✅ ${x.closes.map(esc).join(' · ')}</div>`:'')+(x.her?(()=>{ /* her first line, then the whole of her words, open (18 Nov 2026, her words: have the whole entry pop up
+       and be readable — the fold under a small 'her words' link went unnoticed); before, 7 Nov: one line and the rest folded */
       const plain=x.her.replace(/https?:\/\/\S+/g,'').replace(/\s+/g,' ').trim(), m=plain.match(/^.{20,140}?[.!?](\s|$)/), one=m?m[0].trim():plain.slice(0,140)+(plain.length>140?'…':'');
-      return `<div class="her">${esc(one)}</div>`+(plain.length>one.length+2?`<details class="more"><summary>her words</summary><div class="her full">${lk(x.her)}</div></details>`:''); })():'')
+      return plain.length>one.length+2?herWhole(x):`<div class="her">${esc(one)}</div>`; })():'')+tieOf(x)
     +(x.drive&&x.k!=='lived'?`<div class="dv">${esc(x.emoji||(d&&d.g)||'')} ${esc(x.drive)}</div>`:'')+linkChips(x)
     +(()=>{ /* what one step is worth to its drive, as the 30 Oct page showed it (moves it +50%) */
       const p=d&&d.prog, tot=p?(p.done||0)+(p.open||0):0;
