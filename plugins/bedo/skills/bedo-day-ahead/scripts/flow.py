@@ -276,7 +276,7 @@ except Exception as _e:                             # a copy without the day beh
           'with the short list built into flow.py. Run prep again so the runner copies it.', file=sys.stderr)
     SLEEP = {'sleep', 'nap'}
     EAT = {'breakfast', 'lunch', 'dinner', 'snack', 'coffee', 'smoothie', 'tea', 'morning water', 'water', 'drink'}
-    MOVE = {'morning movement', 'walking', 'strength training', 'barre', 'cycling', 'yoga', 'morning sun', 'evening sun'}
+    MOVE = {'morning movement', 'morning mobility', 'walking', 'strength training', 'barre', 'cycling', 'yoga', 'morning sun', 'evening sun'}
     PERSONAL = {'shower', 'bath', 'evening hygiene', 'getting ready', 'skincare'}
     RECREATION = {'book', 'podcast', 'show', 'movie', 'video', 'game', 'glimmer', 'social', 'song', 'puzzle'}
     TV = {'show', 'movie', 'video'}

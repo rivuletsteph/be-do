@@ -59,7 +59,7 @@ MADE = ('i baked', 'we baked', 'baked bread', 'baked a ', 'baked some', 'recipe'
         'experiment')   # her words: she made something (not 'baked potato', a side dish, 31 Oct)
 EAT = {'alcohol', 'breakfast', 'lunch', 'dinner', 'snack', 'brunch', 'dessert', 'coffee', 'smoothie', 'evening tea',
        'tea', 'morning water', 'water', 'other consumable', 'drink'}
-MOVE = {'morning movement', 'walking', 'hip exercises', 'strength training', 'barre', 'cycling', 'rowing',
+MOVE = {'morning movement', 'morning mobility', 'walking', 'hip exercises', 'strength training', 'barre', 'cycling', 'rowing',
         'yoga', 'squat', 'sun salutations', 'morning sun', 'evening sun', 'exercise', 'stretch'}
 RECREATION = {'book', 'reading', 'audiobook', 'podcast', 'show', 'movie', 'video', 'game', 'glimmer', 'play', 'social',
               'song', 'music', 'puzzle', 'outing', 'fresh air', 'video call'}
