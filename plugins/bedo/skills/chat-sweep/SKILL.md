@@ -34,8 +34,14 @@ Look at the tools this chat has, then:
 
 - **A Code-tab chat on the laptop** (it has `list_sessions` from the desktop
   app): read that list (step 1), and ask once to read claude.ai too (step 1b).
-- **A cloud session** (claude-code-remote's `list_sessions`): read that list,
-  and ask once for claude.ai's plain chats (step 1b).
+- **A cloud session** (claude-code-remote's `list_sessions`), the one she can
+  always start from her phone (her goal, 27 Nov 2026: *always be able to run
+  this on my phone for the cloud sessions*): read that list and sweep the cloud
+  sessions with claude-code-remote's own tools (`archive_session`,
+  `set_session_title`, `set_session_tags`), needing nothing on the laptop. Ask
+  for claude.ai's plain chats (step 1b) only when this session has a browser
+  tool. Without one, don't ask and don't stop: the sweep's `not in this sweep:`
+  lines name the rest, and that is the whole report on them.
 - **A Chat-tab or Cowork chat linked to her computer** (no session list, but a
   browser: Claude in Chrome's `javascript_tool`, or the built-in browser's,
   `mcp__remote-devices__Claude_Browser__javascript_tool`, turned on with
@@ -74,7 +80,7 @@ claude.ai: say so in one line and sweep what the other lists hold.
 bash run_checks.sh chats --sessions page1.json --sessions page2.json --sessions claude_ai.json
 ```
 
-(The scheduled evening run adds `--no-rename`.)
+(The dusk sweep in `run braid` renames, her yes 27 Nov 2026. Only a sweep started on a schedule adds `--no-rename`.)
 
 Exit 2 with `the list goes on` means a page is missing: read it and run again.
 A `not in this sweep:` line names a kind of chat no list given covered, and
@@ -132,8 +138,9 @@ chat with one is renamed ▶️ and left open, nothing sent into it. The title i
 the glyph (☑️ done, ✔️ a closed window chat, ✖️ dropped, ▶️ open), a drive code
 only when the title or its row already shows one, and a short title; never a
 guessed code. Never a chat touched in the last 15 minutes, or today's my day
-chat. **The scheduled evening sweep that runs on its own never renames another
-chat (her rule, 22 Nov 2026): it runs with `--no-rename`.**
+chat. **A sweep started on a schedule never renames another chat (her rule, 22
+Nov 2026): it runs with `--no-rename`.** The dusk sweep in `run braid` is part
+of her flow and renames (her yes, 27 Nov 2026).
 
 Leave `left alone` as printed. Never write to a busy chat's rows.
 

@@ -18,11 +18,11 @@ for code: one sentence, what the session is for
 done when: what finished looks like, something you could check
 ```
 
-Then start a Claude Code session on the repo with only the words `run asks`. Code answers on the row with a `code:` line and marks it ✅ done.
+Then start a Claude Code session with only `run asks`. Code answers on the row with a `code:` line and marks it ✅ done.
 
 ## Writing a row
 
-- **Typecast off, every time.** Copy each select value exactly as the base has it, glyph and spacing included; if a write is refused, fix the value. Never let the base make a new choice.
+- **Typecast off, every time.** Copy each select value exactly, glyph and spacing included; if a write is refused, fix the value. Never let the base make a new choice.
 - **Every row gets a practice, by rule:**
   1. a passing remark about what is happening is a 📝 log
   2. a longer reflection in her own words is a 📒 journal
@@ -30,7 +30,7 @@ Then start a Claude Code session on the repo with only the words `run asks`. Cod
   4. a note on something she is watching, reading or listening to goes on that thing's own row, with its link, not a new row
   5. a gratitude is one bullet a thing, in her words
   6. when she says she did something, find its open action and mark it ✅ done; never log it again
-- **When no rule fits, ask her once.** Her answer becomes the next rule: write it as an ask for Code, so it lands in the judgment file and here.
+- **When no rule fits, ask her once.** Her answer becomes the next rule: an ask for Code, so it lands in the judgment file and here.
 - **A note lands on what it is about.** Before writing a note or a step, look up the open action it belongs to and add to that row.
 - **Her words stay hers.** They go above the divider (three em dashes alone on a line), unchanged. Anything be•do adds goes below it, starting `[be•do]`.
 - Read a day's rows back before calling anything written.
@@ -39,10 +39,10 @@ Then start a Claude Code session on the repo with only the words `run asks`. Cod
 
 - At sunset, open the dusk flow yourself, whatever the message is about. Next morning, check first that yesterday closed.
 - When a flow opens, hand her its page link once (`dawn_url`, `dusk_url`).
-- **Dusk goes in her order:** 🔅 evening sun, then the batch: Timeline and screen-time screenshots, ring stress, ⏺️ recorder check, and the day's photos uploaded last. **Photos up: start a Claude Code session with only `run dusk`, unasked**; it fills in the day. **Her ⭐ highlight logged: start one with `run braid`**; give her its short list before her phone goes down.
+- **Dusk goes in her order:** 🔅 evening sun, then the batch: Timeline and screen-time screenshots, ring stress, ⏺️ recorder check, and the day's photos uploaded last. **Photos up: start a Claude Code session with only `run dusk`, unasked**; it fills in the day. **Her ⭐ highlight logged: start one with `run braid`**, the braid and the 🧹 chat sweep (any other time she asks for one: only `chat sweep`); give her its short list before her phone goes down.
 - 💊 evening pills is one step: a 💊 bp meds row and a 🌈 supplements row, her default from the settings row `evening_pills` unless she names others.
 - 🌬️ evening breaths and 🌌 evening blessing show on the line, never asked: assume them done (with her son, phone down). **The evening closes when she falls asleep.** **Mornings go in order, never by clock:** once she's up, start `run morning` (yesterday's page); then the morning gate; then `run look ahead`.
-- **What you report about a day is what mattered:** her ⭐ highlights first, then time with her people, then the work she closed. The system's own work is one line, last, a count and never a list. About ten lines.
+- **What you report about a day is what mattered:** her ⭐ highlights first, then time with her people, then the work she closed. The system's own work is one line, last: a count, never a list. About ten lines.
 - be•do works out which moments were meaningful. She never has to say so.
 
 ## Her time
