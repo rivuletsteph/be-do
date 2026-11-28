@@ -35,6 +35,12 @@ TOOLS = ['list_records_for_table', 'create_records_for_table', 'delete_records_f
 CAPABILITIES = {'mcp': {'servers': [{'server': 'Airtable', 'tools': TOOLS}]}}
 
 
+def capabilities(flow):
+    """What the page is published with: her connector, and for a page with
+    batch toggles, its own store to keep them in, one document an evening."""
+    return {**CAPABILITIES, 'db': {}} if (cfg(flow).get('batch') or {}).get('items') else CAPABILITIES
+
+
 def cfg(flow):
     """The page's settings for a flow: dusk_page over dawn_page."""
     return {**P, **(FACTS.get(f'{flow}_page') or {})} if flow != 'dawn' else P
@@ -130,7 +136,7 @@ def plan(cat, day_rows, local, day, base_id, base_name, flow='dawn'):
         'flow': flow, 'label': C['label'], 'title': C['title'], 'day_starts': R._hhmm(C['day_starts']).hour * 60
         + R._hhmm(C['day_starts']).minute, 'all_in': C['all_in'], 'status_of': C['status_of'],
         'member_lines': member_lines(flow, local),
-        'batch': {k: v for k, v in C['batch'].items() if k in ('name', 'label', 'note')} if C.get('batch') else None,
+        'batch': {k: v for k, v in C['batch'].items() if k in ('name', 'label', 'note', 'items')} if C.get('batch') else None,
         'day': str(day), 'tz': local.get('time_zone') or 'UTC',
         'base': {'id': base_id, 'name': base_name},
         'weekly_name': local.get('weekly_name', 'w{n} be•do'), 'week': FACTS['week'],
@@ -196,7 +202,7 @@ def main(argv=None):
     print(f'page.file       {os.path.abspath(out)}')
     print(f'page.standing   {L.get(C["url_key"]) or ""}')
     print(f'page.icon       {C["icon"]}')
-    print(f'page.capabilities {json.dumps(CAPABILITIES)}')
+    print(f'page.capabilities {json.dumps(capabilities(a.flow))}')
 
 
 if __name__ == '__main__':

@@ -479,7 +479,15 @@
   "status_of": {"⭐ highlight": "● log"},
   "day_starts": "05:00",
   "batch": {"name": "📸 the batch", "label": "batch", "steps": ["🗺️ map check", "📱 screen time", "🪐", "⏺️ recorder check"],
-   "note": "Timeline, screen time and ring screenshots and the recorder check, then your photos up last: the photos start the dusk run, which fills the rest.",
+   "note": "Mark each as it goes up to the Drive folder. Photos last: once they're up, tell Duet, and the dusk run fills the rest.",
+   "items": [
+    {"key": "timeline", "glyph": "🗺️", "name": "Timeline", "step": "🗺️ map check", "states": {"up": null, "stayed home": {"practice": "🗺️ map check", "title": "🗺️ map check: stayed home, no Timeline"}}},
+    {"key": "stress", "glyph": "🪐", "name": "ring stress", "step": "🪐", "states": {"up": null}},
+    {"key": "recordings", "glyph": "⏺️", "name": "recordings", "step": "⏺️ recorder check", "states": {"up": {"practice": "⏺️ recorder check", "title": "⏺️ recorder check: recordings uploaded"}, "none": {"practice": "⏺️ recorder check", "title": "⏺️ recorder check: no recordings today"}}},
+    {"key": "wellbeing", "glyph": "📱", "name": "digital wellbeing", "step": "📱 screen time", "states": {"up": null}},
+    {"key": "photos", "glyph": "📸", "name": "photos", "step": null, "states": {"up": null}}
+   ],
+   "items_about": "27 Nov 2026, her words: if I could click on the things that I uploaded to the drive folder … there needs to be a toggle for not uploaded, uploaded, no activity - for recordings, the timeline (some days I don't leave the house). A state with a row writes it (stayed home is the evening's map check; recordings up or none is the recorder check), so the dusk run skips what is settled; an upload alone writes no row: the run reads the folder. The toggles are kept in the page's own store, one document an evening.",
    "about": "27 Nov 2026, her words: I do want to see the batch items grouped since I normally do those all at once. One card in Next and one row above the lanes."},
   "tap_line": "[be•do] tapped on the dusk page.",
   "all_in": "Your steps are all in. The evening closes when you fall asleep."

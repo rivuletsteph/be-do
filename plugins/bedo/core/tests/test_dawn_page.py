@@ -191,6 +191,24 @@ class Dusk(unittest.TestCase):
         self.assertEqual(len(cards), 1)
         self.assertEqual([m['p'] for m in cards[0]['members']], ['🪐 evening ring', '🗺️ map check'])
 
+    @unittest.skipUnless(shutil.which('node'), 'node not installed')
+    def test_batch_toggles_decide_the_batch(self):
+        src = open(P.TEMPLATE, encoding='utf-8').read()
+        logic = src.split('/*LOGIC*/')[1].split('/*END LOGIC*/')[0]
+
+        def run(saved):
+            js = logic + f'\nconst D = {json.dumps(self.data)};\n' + \
+                f'console.log(JSON.stringify(dawnState(D, D.rows, "2026-11-29T03:30:00.000Z", {json.dumps(saved)})));'
+            return json.loads(subprocess.run(['node', '-e', js], capture_output=True, text=True, check=True).stdout)
+        st = run({})
+        self.assertEqual([i['key'] for i in st['items']], ['timeline', 'stress', 'recordings', 'wellbeing', 'photos'])
+        self.assertTrue(any(s.get('batch') for s in st['next']))
+        self.assertEqual(next(i for i in st['items'] if i['key'] == 'timeline')['choices'], ['up', 'stayed home'])
+        everything = {k: {'state': 'up'} for k in ('timeline', 'stress', 'recordings', 'wellbeing', 'photos')}
+        self.assertFalse(any(s.get('batch') for s in run(everything)['next']))   # all marked: off the next list
+        self.assertIn('db', P.capabilities('dusk'))
+        self.assertNotIn('db', P.capabilities('dawn'))
+
     def test_batch_steps_are_marked(self):
         by = {s['p']: s for s in self.data['steps']}
         self.assertTrue(by['🗺️ map check']['batch'] and by['🪐 evening ring']['batch'])

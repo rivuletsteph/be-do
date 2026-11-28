@@ -44,6 +44,12 @@ h2 { margin: 0 0 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
 .words .log { background: var(--lane); border-color: var(--lane); color: #fff; }
 .words .log:disabled { opacity: .55; cursor: default; }
 .batchcard { display: grid; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.batchcard .item { display: grid; gap: 6px; }
+.batchcard .what { font-weight: 500; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { font: inherit; font-size: 14px; color: var(--fg); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.seg button.on { background: var(--fg); color: var(--bg); border-color: var(--fg); cursor: default; }
+.seg button:disabled:not(.on) { opacity: .5; cursor: default; }
 .batchcard .head { display: flex; align-items: center; gap: 12px; font-size: 17px; font-weight: 500; }
 .batchcard .head .g { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; font-size: 18px; border: 2px dashed var(--muted); }
 .batchcard p { margin: 0; color: var(--muted); font-size: 13px; }
@@ -73,7 +79,7 @@ button:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
 .body { --lane: var(--body); --ink: var(--body-ink); }
 .mind { --lane: var(--mind); --ink: var(--mind-ink); }
 .spirit { --lane: var(--spirit); --ink: var(--spirit-ink); }
-.batch { --ink: var(--fg); }
+.batch { --ink: var(--fg); --lane: var(--muted); }
 </style>
 
 <div class="wrap">
@@ -83,6 +89,7 @@ button:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
   </header>
   <div class="status"><span id="read"></span><button id="reread" type="button">Read again</button><span class="note" id="note"></span></div>
   <section id="next-box"><h2>Next</h2><div class="next" id="next"></div></section>
+  <section id="batch-box" hidden><h2>Batch</h2><div id="batch"></div></section>
   <section><h2>Lanes</h2><div class="lanes" id="lanes"></div></section>
   <section><h2>Done</h2><ol class="done-list" id="done"></ol></section>
 </div>
@@ -113,7 +120,7 @@ function lineOf(D, r) {
   const m = text.match(/^(.+?[.!?])(\s|$)/), s = m ? m[1] : text;
   return s.length <= 90 ? s : s.slice(0, 87).trimEnd() + "…";
 }
-function dawnState(D, rows, nowIso) {
+function dawnState(D, rows, nowIso, saved) {
   const now = localParts(nowIso, D.tz), noon = D.noon ? hhmm(D.noon) : null, day = flowDay(D, nowIso);
   const today = rows.map(r => ({...r, at: localParts(r.t, D.tz)})).filter(r => flowDay(D, r.t) === day);
   const openStatus = new Set(D.open_status.map(norm)), closeN = norm(D.close);
@@ -145,7 +152,13 @@ function dawnState(D, rows, nowIso) {
   const open = s => !s.row && !s.pattern && !(s.sun && sunBy != null && now.min > sunBy);
   const left = [];                                 // the batch is one entry, at its first step's place (her words, 27 Nov 2026)
   let batch = null;
+  const items = batchItems(D, steps, saved);
+  const batchLeft = items.length ? items.some(i => !i.state) : true;
   for (const s of steps) {
+    if (s.batch && items.length) {               // with toggles, the batch is in until every item is marked
+      if (batchLeft && !batch) left.push(batch = {batch: true, p: D.batch.name, lane: "batch", members: steps.filter(x => x.batch)});
+      continue;
+    }
     if (!open(s)) continue;
     if (s.batch) {
       if (!batch) left.push(batch = {batch: true, p: D.batch.name, lane: "batch", members: steps.filter(x => x.batch)});
@@ -155,18 +168,30 @@ function dawnState(D, rows, nowIso) {
   const next = (loud.length ? loud : left).slice(0, D.next);
   const closeRow = by[closeN] || null;
   return {
-    date: day, now: now.min, steps, next, sunBy, close: closeRow, past_noon: noon != null && now.min >= noon,
+    date: day, now: now.min, steps, next, items, sunBy, close: closeRow, past_noon: noon != null && now.min >= noon,
     done: steps.filter(s => s.row).length, total: steps.length,
     list: steps.filter(s => s.row).sort((a, b) => a.row.t < b.row.t ? -1 : 1)
       .map(s => ({p: s.p, lane: s.lane, at: s.row.at.min, line: lineOf(D, s.row)})),
   };
+}
+// the batch toggles (27 Nov 2026): each item's state is what she marked, kept in the page's store; with
+// nothing marked, an item whose step already has its row reads as up
+function batchItems(D, steps, saved) {
+  if (!D.batch || !D.batch.items) return [];
+  return D.batch.items.map(it => {
+    const mark = (saved || {})[it.key] || {};
+    const step = it.step && steps.find(s => it.step.includes(" ") ? norm(s.p) === norm(it.step) : norm(s.p).split(" ")[0] === norm(it.step));
+    const stepRow = step && step.row;
+    const state = mark.state || (stepRow ? "up" : null);
+    return {...it, state, row_id: mark.row_id || null, choices: Object.keys(it.states)};
+  });
 }
 /*END LOGIC*/
 
 const $ = id => document.getElementById(id);
 const clock = m => `${(Math.floor(m / 60) % 12) || 12}:${String(m % 60).padStart(2, "0")}`;
 const ampm = m => `${clock(m)} ${m < 720 ? "AM" : "PM"}`;
-const S = {rows: [], readAt: null, mcp: null, busy: false, undo: null, base: D.base, writing: null, draft: ""};
+const S = {rows: [], readAt: null, mcp: null, db: null, busy: false, undo: null, base: D.base, writing: null, draft: "", batch: {}};
 const F = D.fields;
 S.rows = flowDay(D, new Date().toISOString()) === D.day ? D.rows.slice() : [];
 document.getElementById("label").textContent = D.label || "Dawn";
@@ -181,7 +206,7 @@ function glyph(p) { return p.split(" ")[0]; }
 function name(p) { return p.includes(" ") ? p.slice(p.indexOf(" ") + 1) : p; }
 
 function render() {
-  const st = dawnState(D, S.rows, new Date().toISOString());
+  const st = dawnState(D, S.rows, new Date().toISOString(), S.batch);
   const d = new Date(st.date + "T12:00:00Z");
   $("date").textContent = d.toLocaleDateString("en-US", {weekday: "short", day: "numeric", month: "short", timeZone: "UTC"});
   $("count").replaceChildren(document.createTextNode(String(st.done)), el("span", {text: ` of ${st.total}`}));
@@ -195,7 +220,7 @@ function render() {
   } else if (!st.next.length) {
     box.append(el("div", {class: "closed", text: D.all_in}));
   } else for (const s of st.next) {
-    if (s.batch) { box.append(batchCard(s)); continue; }
+    if (s.batch) { box.append(batchPointer(st)); continue; }
     const b = el("button", {type: "button", class: s.lane, disabled: !S.mcp || S.busy},
       [el("span", {class: "g", text: glyph(s.p)}), el("span", {text: name(s.p)})]);
     if (s.sun && st.sunBy != null) b.append(el("span", {class: "by", text: `by ${clock(st.sunBy)}`}));
@@ -203,6 +228,9 @@ function render() {
     box.append(b);
   }
   if (S.writing) box.append(wordsBox(S.writing));
+  const bb = $("batch-box");
+  bb.hidden = !(D.batch && D.batch.items);
+  if (!bb.hidden) $("batch").replaceChildren(batchToggles(st));
   const lanes = $("lanes");
   lanes.replaceChildren();
   const rows = (D.batch ? [["batch", {name: D.batch.label}]] : []).concat(Object.entries(D.lanes));
@@ -231,11 +259,66 @@ function dot(s) {
   if (!done && !s.code) b.addEventListener("click", () => start(s));
   return b;
 }
-function batchCard(s) {
-  const dots = el("div", {class: "dots"});
-  s.members.forEach(m => dots.append(dot(m)));
-  return el("div", {class: "batchcard"}, [el("div", {class: "head"}, [el("span", {class: "g", text: glyph(s.p)}),
-    el("span", {text: name(s.p)})]), dots, el("p", {text: D.batch.note})]);
+function batchPointer(st) {
+  const items = st.items, set = items.filter(i => i.state).length;
+  const b = el("button", {type: "button", class: "batch"}, [el("span", {class: "g", text: glyph(D.batch.name)}),
+    el("span", {text: name(D.batch.name)}), el("span", {class: "by", text: items.length ? `${set} of ${items.length}` : ""})]);
+  b.addEventListener("click", () => $("batch-box").scrollIntoView({behavior: "smooth", block: "start"}));
+  return b;
+}
+function batchToggles(st) {
+  const items = st.items;
+  const card = el("div", {class: "batchcard"});
+  for (const it of items) {
+    const seg = el("div", {class: "seg", role: "group"});
+    seg.setAttribute("aria-label", it.name);
+    for (const c of [null, ...it.choices]) {
+      const on = (it.state || null) === c;
+      const b = el("button", {type: "button", class: on ? "on" : "", text: c === null ? "not yet" : c,
+        disabled: S.busy || (!S.mcp && (!!(c && it.states[c]) || !!it.row_id))});
+      b.setAttribute("aria-pressed", String(on));
+      if (!on) b.addEventListener("click", () => mark(it, c));
+      seg.append(b);
+    }
+    card.append(el("div", {class: "item"}, [el("span", {class: "what", text: `${it.glyph} ${it.name}`}), seg]));
+  }
+  card.append(el("p", {text: D.batch.note}));
+  return card;
+}
+const batchKey = () => `batch/${flowDay(D, new Date().toISOString())}`;
+async function mark(it, choice) {                 // one item's toggle: its row follows its state
+  if (S.busy) return;
+  S.busy = true; note(""); render();
+  const prev = (S.batch || {})[it.key] || {};
+  let rowId = null;
+  try {
+    const baseId = (it.states[choice] || prev.row_id) && S.mcp ? await baseToday() : null;
+    if (prev.row_id && baseId) {
+      await S.mcp.callTool("Airtable", "delete_records_for_table", {baseId, tableId: D.table, recordIds: [prev.row_id]});
+      S.rows = S.rows.filter(r => r.id !== prev.row_id);
+    }
+    const spec = choice && it.states[choice];
+    if (spec && baseId) {
+      const t = new Date(); t.setSeconds(0, 0);
+      const iso = t.toISOString();
+      const res = await S.mcp.callTool("Airtable", "create_records_for_table", {baseId, tableId: D.table, typecast: false,
+        records: [{fields: {[F.title]: spec.title, [F.practice]: spec.practice, [F.status]: D.tap_status, [F.datetime]: iso, [F.details]: D.tap_details}}]});
+      rowId = ((res.payload || {}).records || [])[0]?.id || findRec(res.payload);
+      S.rows.push({id: rowId, p: spec.practice, t: iso, s: D.tap_status, title: spec.title, d: D.tap_details});
+    }
+    S.batch = {...(S.batch || {}), [it.key]: choice ? {state: choice, row_id: rowId} : {state: null, row_id: null}};
+    await saveBatch();
+  } catch (e) { note(why(e)); }
+  S.busy = false; render();
+}
+async function saveBatch() {
+  try { localStorage.setItem(batchKey(), JSON.stringify(S.batch)); } catch (e) {}
+  if (S.db) try { await S.db.doc(batchKey()).set({items: S.batch}); } catch (e) { note("The batch marks didn't save to the page; they're kept on this device."); }
+}
+async function loadBatch() {
+  try { S.batch = JSON.parse(localStorage.getItem(batchKey()) || "null") || {}; } catch (e) { S.batch = {}; }
+  if (S.db) try { const snap = await S.db.doc(batchKey()).get(); if (snap.exists) S.batch = (snap.data() || {}).items || {}; } catch (e) {}
+  render();
 }
 function start(s) {                               // a step that needs her words opens a box; any other logs now
   if (s.words) { S.writing = s; render(); const t = $("words"); if (t) t.focus(); return; }
@@ -360,6 +443,10 @@ document.addEventListener("visibilitychange", () => {
 });
 
 render();
+if (D.batch && D.batch.items) {
+  loadBatch();
+  if (window.claude && claude.use) claude.use("db").then(db => { S.db = db; if (db) loadBatch(); });
+}
 if (window.claude && claude.use) claude.use("mcp").then(m => {
   S.mcp = m;
   if (m) read(); else { note("Open this page in Claude to tap a step."); render(); }
