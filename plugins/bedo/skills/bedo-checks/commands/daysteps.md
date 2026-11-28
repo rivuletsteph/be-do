@@ -40,7 +40,7 @@ Then one line to Duet: what was filled in (counts), and anything from the inbox 
 8. **Calendar.** `calsync DAY`, its two runs, the changes made and read back.
 9. **The my day page, drafted.** The `bedo-day-ahead` skill rebuilds today's page to the day as lived so far and republishes it at the same link. It is not final: the morning makes it so.
 10. **The markers.** The 🌄 dusk flow close row carries `braid shown …` and `calsync done …`. Nobody has written it yet at this hour: write it now, status ▶️ in motion, with the two lines. It stays open until she falls asleep; an open close row does not close the flow.
-11. **🧹 chat sweep.** `how chats`, then the `chat-sweep` skill's steps 1 and 2 only: every page of `list_sessions` (mine), `chats --no-rename`, and what it does on its own. Her `ask` chats go on her list; the drive cleanup waits for her. This session needs the chat tools (`list_sessions`, `archive_session`): a session started on a schedule has none, so this step never moves to one.
+11. **🧹 chat sweep.** `how chats`, then the `chat-sweep` skill's steps 1 and 2 only: every page of `list_sessions` (mine), `chats` with renames on, and what it does on its own: each chat takes its glyph (☑️ ✖️ ▶️) before it is archived (her yes, 27 Nov 2026: rename at dusk; it runs in her flow, not on a clock). Her `ask` chats go on her list; the drive cleanup waits for her. This session needs the chat tools (`list_sessions`, `archive_session`): a session started on a schedule has none, so this step never moves to one.
 
 Then one line to Duet: her list, in plain words, so she has it before her phone goes down.
 
