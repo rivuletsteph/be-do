@@ -150,6 +150,40 @@ footer { padding-block: 30px 44px; font-size: 12.5px; color: var(--soft); }
 
 @media (max-width: 880px) { .g2, .g3, .lanes { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 480px) { .mark small { display: none; } }
+
+/* Weather: today's sky drawn, the forecast in words, and the day's hours (forecast.py) */
+.weather {
+  /* its own colours, from whichever paper template it sits in */
+  --wx-warm: var(--flag, var(--next, #a8432e)); --wx-cool: var(--river, #1f5a7a);
+  --wx-soft: var(--ink-soft, var(--soft, #4c5866)); --wx-fill: var(--tint, var(--river-tint, #e2eaee));
+  --wx-rule: var(--rule, var(--line, #c3cad1));
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 24px; align-items: center;
+  padding-block: 18px; border-bottom: 1px solid var(--wx-rule); }
+.weather .wx-pic { grid-row: span 2; width: clamp(88px, 16vw, 132px); height: auto; }
+.weather h2 { font-size: clamp(22px, 3.2vw, 30px); line-height: 1.15; font-weight: 700; }
+.wx-temps { font-family: var(--label, var(--font, sans-serif)); font-weight: 600; font-size: .8em; white-space: nowrap; margin-left: 6px; }
+.wx-hi { color: var(--wx-warm); } .wx-lo { color: var(--wx-cool); margin-left: 6px; }
+.wx-detail { font-size: 16px; margin-top: 6px; }
+.wx-tonight { font-size: 15px; color: var(--wx-soft); font-style: italic; margin-top: 4px; }
+.wx-facts { font-family: var(--label, var(--font, sans-serif)); font-size: 13px; letter-spacing: .05em; text-transform: uppercase; color: var(--wx-soft); margin-top: 8px; }
+.wx-hours { grid-column: 1 / -1; margin-top: 8px; max-width: 600px; }
+.wx-chart { display: block; width: 100%; height: auto; overflow: visible; }
+.weather .source { grid-column: 1 / -1; }
+.wx-sun circle { fill: var(--wx-warm); } .wx-rays line { stroke: var(--wx-warm); stroke-width: 4; stroke-linecap: round; }
+.wx-moon { fill: var(--wx-soft); }
+.wx-cloud { fill: var(--wx-fill); stroke: var(--wx-soft); stroke-width: 3; stroke-linejoin: round; }
+.wx-back { opacity: .6; }
+.wx-drop { stroke: var(--wx-cool); stroke-width: 4; stroke-linecap: round; }
+.wx-bolt { fill: var(--wx-warm); }
+.wx-flake { fill: var(--wx-cool); font-size: 18px; }
+.wx-fog, .wx-gust { stroke: var(--wx-soft); stroke-width: 4; stroke-linecap: round; fill: none; }
+.wx-line { fill: none; stroke: var(--wx-warm); stroke-width: 3.5; stroke-linejoin: round; }
+.wx-dot { fill: var(--wx-warm); }
+.wx-bar { fill: var(--wx-cool); opacity: .35; }
+.wx-base { stroke: var(--wx-rule); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.wx-t, .wx-h { font-family: var(--label, var(--font, sans-serif)); font-size: 18px; fill: var(--ink); }
+.wx-h { fill: var(--wx-soft); } .wx-r { fill: var(--wx-cool); font-weight: 600; }
+@media (max-width: 560px) { .weather { grid-template-columns: minmax(0, 1fr); } .weather .wx-pic { grid-row: auto; } }
 </style>
 <style>
 .road{border-top:3px solid var(--river);background:linear-gradient(var(--river-tint),var(--card) 110px)}
@@ -192,6 +226,9 @@ footer { padding-block: 30px 44px; font-size: 12.5px; color: var(--soft); }
 </header>
 <main class="wrap">
   <div class="flags"><span class="flag">{{the day's flag: weather, a vote, a deadline}}</span></div>
+
+  <!-- Weather: paste forecast.py's band here as it printed it; leave it out when forecast.py exits 1 -->
+  {{weather band}}
 
   <section class="part" id="news">
     <div class="head"><h2>News</h2><span class="n">{{window}} · about {{n}} minutes</span></div>

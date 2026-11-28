@@ -81,6 +81,12 @@ def main():
     ROWS[-1]['deliverable'] = 'https://example.invalid/the-day'
     assert myday.today_link(ROWS, TODAY, local, 'https://example.invalid/living')['url'] == 'https://example.invalid/the-day'
     assert myday.today_link(ROWS, TODAY + dt.timedelta(days=1), local) == dict(url=None, row=None)
+    # yesterday's look ahead row, written this morning: its datetime says yesterday, so it is not today's
+    late = row('look ahead — yesterday, built as lived', '', status='◉ done', practice='👁️ look ahead',
+               when='2026-03-03T23:57:00Z', created='2026-03-04T13:36:00Z', deliverable='https://example.invalid/yesterday')
+    assert myday.today_link([late], TODAY, local) == dict(url=None, row=None)
+    assert myday.today_link([late], TODAY - dt.timedelta(days=1), local)['url'] == 'https://example.invalid/yesterday'
+    assert myday.today_link(ROWS + [late], TODAY, local)['url'] == 'https://example.invalid/the-day'
     # the ledger: a step finished long before the read still counts, and only once
     old = row('⚡ finished long ago', A, status='✅ done', end='2025-12-01T08:00:00Z', created='2025-12-01T08:00:00Z')
     card2, whole2 = myday.build(ROWS, LATEST, OPEN_IDS, lambda r: False, TODAY, DRIVES, {'map_end': '2026-12-31'}, local,

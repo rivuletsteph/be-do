@@ -52,6 +52,8 @@ STREAM = [
     row(4, 'd', '✅ done', '2026-09-23T20:00:00.000Z', link('ev4', 'me@m'), spent=3600),
     # dropped, and the user already moved its event to the dropped calendar
     row(5, 'e', '✖️ dropped', '2026-09-23T22:00:00.000Z', link('ev5', 'me@m')),
+    # a 15-minute row at the start of a three-day stay (20 Nov 2026): prefix only, the stay keeps its days
+    row(6, 'f', '✅ done', '2026-09-23T13:25:00.000Z', link('ev6', 'fam@g'), end='2026-09-23T13:40:00.000Z'),
 ]
 EVENTS = [
     ev('me@gmail.com', 'ev1', '⬜🏭Example check-in', '2026-09-23T09:00:00-05:00', '2026-09-23T10:00:00-05:00'),
@@ -59,6 +61,7 @@ EVENTS = [
     ev('fam@group.calendar.google.com', 'ev3', 'Example appointment', '2026-09-30T14:00:00-05:00', '2026-09-30T15:00:00-05:00'),
     ev('me@gmail.com', 'ev4', '✔️ Example session', '2026-09-23T15:00:00-05:00', '2026-09-23T16:00:00-05:00'),
     ev('gone@group.calendar.google.com', 'ev5', '✖️Example outing', '2026-09-23T17:00:00-05:00', '2026-09-23T18:00:00-05:00'),
+    ev('fam@group.calendar.google.com', 'ev6', '⬜Example stay', '2026-09-23T08:30:00-05:00', '2026-09-25T14:00:00-05:00'),
 ]
 
 
@@ -95,10 +98,21 @@ def main():
     check('dropped takes ✖️ and keeps its times', (ch.get('b', {}).get('summary'), 'startTime' in ch.get('b', {})),
           ('✖️Example lunch', False))
     check('a row about an event does not move it', 'c' in ch, False)
+    check('an event across days takes the prefix and keeps its times (20 Nov 2026)',
+          (ch.get('f', {}).get('summary'), 'startTime' in ch.get('f', {})), ('✔️Example stay', False))
     check('a matching event is left alone', 'd' in ch, False)
     check('a dropped event still on a synced calendar is listed to move', [m['key'] for m in P.get('to_move', [])], ['b'])
     check('one already on the dropped calendar is recognised, not called deleted',
           [u['why'] for u in P['unchanged'] if u['row'] == 'row 5'], ['already on dropped'])
+    # 19 Nov 2026: the plan ends with the marker the dusk close row carries, and a my day close waits for it
+    check('the plan ends with its marker and the count of changes', P.get('marker'),
+          f"calsync done 2026-09-23 · {len(P['changes'])} changed")
+    check('a day with links waits for the plan for its marker', 'marker' in L, False)
+    none = subprocess.run([sys.executable, SYNC, '--list', '--day', '2026-09-25', '--local', w('local2.json', LOCAL),
+                           '--stream', w('w2.json', {'records': STREAM, 'metadata': {'totalRecordCount': len(STREAM)}})],
+                          capture_output=True, text=True, encoding='utf-8', env=env)
+    check('a day with nothing linked gets its marker from the list', json.loads(none.stdout or '{}').get('marker'),
+          'calsync done 2026-09-25 · nothing linked')
     # the live read (11 Nov 2026): the checks' own settings name the fields, and the rows arrive
     # already in hand, in the API's shape (`fields`), as two reads: the day, and the week's linked rows
     sys.path.insert(0, os.path.dirname(HERE))

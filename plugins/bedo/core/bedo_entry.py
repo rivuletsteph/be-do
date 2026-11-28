@@ -203,10 +203,35 @@ def notes(row, fill=None):
     if d and not d[0]:
         out.append(f'device left empty on an open action — ask in passing: laptop, Chromebook or phone for “{t}”?')
     out += synergy_now(row, ctx)
+    out += screen_time_notes(row)
     return out
 
 
 SY = FACTS['synergy']
+ST = FACTS['screen_time']
+
+
+def screen_time_notes(row):
+    """21 Nov 2026: navigation on a drive is partial screen time, not focused. A screen-time row whose
+    details name a maps app but give no partial minutes is asked, in passing, for the split."""
+    if bedo_fill.word(row.get('practice')) != ST['practice']:
+        return []
+    text = (row.get('details') or '')
+    if re.search(ST['navigation'], text, re.I) and not re.search(ST['split'], text, re.I):
+        return [f'screen time names navigation but no partial minutes — navigation while driving or riding is '
+                f'partial, not focused; ask in passing and write the split in her words ({ST["format"]}); '
+                f'the phone\'s total stays in the title']
+    return []
+
+
+def always_synergy(a, b):
+    """The always-synergy rule (facts synergy.always) a pair of rows falls under, or None."""
+    pa, pb = bedo_fill.word(a.get('practice')), bedo_fill.word(b.get('practice'))
+    for rule in SY.get('always', []):
+        x, y = ([bedo_fill.word(p) for p in side] for side in rule['pair'])
+        if (pa in x and pb in y) or (pb in x and pa in y):
+            return rule
+    return None
 
 
 def her_words(row):
@@ -250,18 +275,27 @@ def synergy_now(row, ctx):
     others = overlaps(row, ctx.day_rows)
     if not others:
         return []
+    out = []
+    for o in [o for o in others if always_synergy(row, o)]:   # always synergy: written, never asked
+        who = (o.get('title') or o.get('practice') or '?')[:50]
+        note = SY['note'].format(answer='synergizing', partner=o.get('key') or who)
+        out.append(f'two things at once with “{who}” — always synergy ({always_synergy(row, o)["why"]}): add the '
+                   f'line “{note}” at the end of her words, above the divider; never ask')
+    others = [o for o in others if not always_synergy(row, o)]
+    if not others:
+        return out
     o = others[0]
     ans, cue = synergy_from(mine)
     if not ans:
         ans, cue = synergy_from(her_words(o))
     who = (o.get('title') or o.get('practice') or '?')[:50]
     if not ans:
-        return [f'two things at once with “{who}” and her words don\'t say how they went together — ask in this '
+        return out + [f'two things at once with “{who}” and her words don\'t say how they went together — ask in this '
                 f'reply, once, while it\'s fresh: did they help each other, get in each other\'s way, both, or '
                 f'neither? No answer is fine; never ask it later. Her answer goes at the end of her words: '
                 + SY['note'].format(answer='<answer>', partner=o.get('key') or who)]
     note = SY['note'].format(answer=ans, partner=o.get('key') or who)
-    return [f'two things at once with “{who}” — her words say {ans} (“{cue}”): add the line “{note}” at the end '
+    return out + [f'two things at once with “{who}” — her words say {ans} (“{cue}”): add the line “{note}” at the end '
             f'of her words, above the divider; she corrects in passing']
 
 
@@ -395,6 +429,55 @@ def target_problems(row):
     return []
 
 
+WEEKDAYS = ('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday')
+SAID_DAY = re.compile(r"\b(the day after tomorrow|tomorrow|tonight|this evening|this afternoon|"
+                      r"(?:on |next |this )?(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday))\b", re.I)
+SAID_LATER = re.compile(r"\b(next week|next month|this weekend|later this week|over the weekend|sometime)\b", re.I)
+
+
+def said_day(text, made):
+    """The day a step's own words name, read from the day it was said (21 Nov
+    2026: friends to come by tomorrow morning, said on a Friday, was read as
+    Friday's). `made` is the local date the row was written. Tonight is that
+    day; tomorrow the next; a weekday the next one of it. The weekday it was
+    said on names no day (this Friday or next?), and neither does nothing.
+    Returns (date, the words) or None."""
+    m = SAID_DAY.search(text or '')
+    if not m or not made:
+        return None
+    w = m[1].lower()
+    if w == 'the day after tomorrow':
+        return made + dt.timedelta(days=2), m[1]
+    if w == 'tomorrow':
+        return made + dt.timedelta(days=1), m[1]
+    if w in ('tonight', 'this evening', 'this afternoon'):
+        return made, m[1]
+    n = (WEEKDAYS.index(w.split(' ')[-1]) - made.weekday()) % 7
+    return (made + dt.timedelta(days=n), m[1]) if n else None
+
+
+def step_words(row):
+    """A step's own words: its title and hers, never the [be•do] block."""
+    return f'{row.get("title") or ""}\n{her_words(row)}'
+
+
+def when_problems(row, utc_offset_hours=None):
+    """A ⬜ step whose words name its day carries that day as its target (21 Nov
+    2026), so the braid reads it on the day she meant, not the day she said it.
+    Her day is a firm one, not a made-up time. A block that already speaks of
+    the target has decided it."""
+    if (row.get('target') or row.get('status') not in OPEN_ACTIONS or row.get('status') == FACTS['status']['actions'][0]
+            or not row.get('datetime') or utc_offset_hours is None or _target_talk(row)):
+        return []
+    made = (utc(row['datetime']) + bedo_clock.Offset(utc_offset_hours)).date()   # the clock the row was said on
+    got = said_day(step_words(row), made)
+    if not got or got[0] == made:
+        return []
+    d, w = got
+    return [f'target: its words say “{w}”, said {made:%a %d %b}, so it is for {d:%a %d %b} — set the target to '
+            f'{d.isoformat()} (her day, not a made-up one), or say in the block why not']
+
+
 def key_problems(row, existing=None):
     """One row per key (12 Nov 2026). An action sat ▶️ and ✅ at once on one
     key, and a close written as a second row left the open one showing past
@@ -488,6 +571,7 @@ def problems(row, base_name=None, utc_offset_hours=None, weekly_name='w{n} be•
     out += future_problems(row, utc_offset_hours, now)
     out += key_problems(row, existing)
     out += target_problems(row)
+    out += when_problems(row, utc_offset_hours)
     out += details_problems(row.get('details'))
     prac = (row.get('practice') or '').strip()
     if not prac:

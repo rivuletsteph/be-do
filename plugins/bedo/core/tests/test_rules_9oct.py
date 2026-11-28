@@ -157,8 +157,8 @@ class DayQA(unittest.TestCase):
         text = Q.render(items, DAY, rows, -5)
         filled = text.split('— skip any')[0].splitlines()[1:]
         self.assertTrue(filled and all('ESTIMATED FROM CONTEXT · source:' in l for l in filled
-                                       if l.strip()[:1].isdigit()))
-        self.assertIn('dayqa shown 2026-10-08', text)
+                                       if l.strip()[:1].isdigit() and '. due · ' not in l))   # a due line is hers to answer
+        self.assertIn('braid shown 2026-10-08', text)
 
     def test_what_each_check_proposes(self):
         items = Q.run(self.day(), DAY, -5, {}, typical={'cycling': 40},

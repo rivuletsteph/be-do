@@ -367,19 +367,22 @@ contents never pass through the chat.
    flow page's input and its plan, never published. Each day has one my day page, named like that
    day's my day chat — the build prints it as `page.title` and puts it in the
    page's `<title>` (`▶️🔆1028 💧 Wed 𖡎 W44 my day`). The build also reads
-   today's ◉ 👁️ look ahead row and prints `page.url` and `page.row`:
-   - **`page.url` set** — the day's page exists: republish to that link, in
-     place. The draft, the final, and every later piece of the day (its rows
-     and photos, the close) go to this one link.
-   - **`page.url` empty** — the first publish of the day: publish a new
-     artifact (favicon 👁️), then write its link to the look ahead row's
-     `deliverable` (`page.row`; if the row isn't written yet, write it with the
-     link in it). That row is where every later build finds the link.
+   today's ◉ 👁️ look ahead row and prints `page.url`, `page.standing` and `page.row`.
+   **Every build through the day publishes only to `page.standing`** (her words, 20 Nov 2026: I only want to see one
+   page. I only want to check one page. This replaces the 18 Nov rule that every build went to both links; she saw
+   three cards in one day: the day's page, then the standing page twice). `page.standing` is `artifact_url` in the
+   settings, the old single living page that her browser opens at start; it is never a day's own, and the build never
+   takes it for one. The draft, the final, every later piece of the day (its rows and photos) go there, in place,
+   and nowhere else. The publish tool asks for a read of a page before its first publish in a chat: read
+   `page.standing` once, then publish. **The day's own link, `page.url`, is published once, at the dusk close's last
+   rebuild, for the record:** `page.url` set, republish to it in place; empty, publish a new artifact (favicon 👁️)
+   and write its link to the look ahead row's `deliverable` (`page.row`; if the row isn't written yet, write it with
+   the link in it). Its link stays on that row. `page.standing` empty (no `artifact_url` in the settings): publish to
+   `page.url` as the day's page, as before.
    **Every publish declares `capabilities: {downloads: true}`** (261106_download, her word 7 Nov 2026): the page's
    *download this page* button saves it as one .html, photos and all, through the viewer's own save prompt; without
    the capability the button falls back to a plain browser download, which the claude.ai frame may block.
-   `artifact_url` in the settings is the old single living page; it is never a
-   day's own, and the build ignores it as one. No Drive copy each time: the
+   No Drive copy each time: the
    pages are exported at the desktop (her word, 28 Oct 2026).
 7. **Log the step**: the ◉ 👁️ look ahead row, dawn, with the day's page as its
    deliverable and one `[be•do]` line naming the three, the gaps and the clashes.
@@ -388,11 +391,14 @@ contents never pass through the chat.
 
 The my day page is the only page she sees (her words, 8 Nov 2026: all I want to see moving forward is my day, and when I am wrapping up the day I want the quest linked to it). Once the
 day is over, the my day page is rebuilt one last time to **the whole day as
-lived**: `fetch`; then **read the calendars again** — `list_calendars` saved to
+lived**. **First, the day's chat sweep** (her words, 18 Nov 2026: the chat sweep needs to happen before the my day
+gets built): every branch of the day (`↳MMDD.n`) has written its session entry and closed — run `chats`, then the
+`branches` line of `close --date … --sessions …` — so its time is in the stream the page is built from. Monday 16 Nov's
+page was built with the map branch still open and showed nothing of her hour in it. Then `fetch`; then **read the calendars again** — `list_calendars` saved to
 `cal/calendars.json`, then `list_events` for each calendar the plan names (the
 same window and arguments `bedo_cal.py --plan` prints, each saved to `cal/<who>.json`,
 every page) — and `cal`; then `build` (with the Drive key here, so her keeper photos
-are on their cards), then republish to `page.url`. The morning's `cal.json` is never
+are on their cards), then publish to `page.standing` and, this once, to `page.url` (the day's own link, for the record). The morning's `cal.json` is never
 the day as lived (11 Nov 2026: Tuesday's day-as-lived page was built on it, and
 the evening's events were the morning's). `build` stops with a `FIX calendar` when
 `cal.json` is not today's read or is more than 90 minutes older than the last fetch
@@ -432,15 +438,23 @@ python3 <repo>/plugins/bedo/assets/quest-day/quest_page.py \
 Exit 4 means no scored row that day: build nothing and say so. **Read every line
 as him**: second person, his register, a missed quest a next-time line. A line
 carrying the scorer's reasoning is reworded in his copy only (`--row`, see
-`assets/quest-day/README.md`); the stream row is never touched. Publish to
-`quest_url`. The last rebuild then draws the link on the my day page by itself,
-whenever the day has a scored ⚔️ row.
+`assets/quest-day/README.md`); the stream row is never touched. **Each day's quest
+is its own page** (her yes, 18 Nov 2026: the shared link had moved on to Tuesday
+and taken Monday's link with it): publish it as a new artifact (icon trophy,
+`capabilities: {downloads: true}` so its download button saves it), write its link
+to that day's ⚔️ row's `deliverable`, and republish it there on any later change.
+`quest_url`, the one living page, may also carry the newest day. The last rebuild
+then draws the day's own link on the my day page by itself (the ⚔️ row's link
+first, else `quest_url`), whenever the day has a scored ⚔️ row.
 
 **Saving to Drive from the cloud** is the Drive connector's `create_file`,
 `contentMimeType` `text/html`, conversion off, into the week's folder found by
-name (created by the same rule if missing, and said so). The page passes
-through the chat, about 15k tokens for this page. A surface with no Drive tool
-skips it and says so in one line.
+name (created by the same rule if missing, and said so). Pass the page as a file
+reference, never typed: `base64Content` set to `sha256:<its sha256>:<absolute
+path>` (27 Nov 2026: a finished day with its keeper photos is about 700 KB, far
+too big to pass through the chat). Name it date-first, no emoji
+(`2026-11-26 my day Thursday Thanksgiving.html`), and read the size back. A
+surface with no Drive tool skips it and says so in one line.
 
 ## Clock and drive names
 

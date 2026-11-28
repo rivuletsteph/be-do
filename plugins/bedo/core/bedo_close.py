@@ -5,8 +5,10 @@ way, in order — QA, then the session entry, then the rename to done).
 She starts it by saying *let's end the session*, or plainly that she's done
 with the chat. Three checks, in her order:
 
-  qa      a my day chat's day carries the dayqa marker line (the dusk close
-          writes it). Any other chat: the session entry passes the entry
+  qa      a my day chat's day carries the dayqa marker line and the calsync
+          marker line (the dusk close writes both; 19 Nov 2026, her words: a lot
+          of the items on my calendar have not been checked off even though they
+          were things that I did). Any other chat: the session entry passes the entry
           check, and (her rule, 25 Oct 2026) its first line under
           `what I did` names the objective and whether it was met —
           `· objective: <what it was> — met | partly met | not met, <why>` —
@@ -17,14 +19,23 @@ with the chat. Three checks, in her order:
           (backlog 261024a, 25 Oct 2026: her time, not the session's).
           A session that opened or edited a pull request says its text passed
           the privacy check first: `· privacy: outgoing ok` (12 Nov 2026)
+          A session that published a page says where it stands: `· page: built
+          from the stream and main`, or where its fix lives, a row or a change in
+          the build (23 Nov 2026: never only on the page she is looking at)
   entry   a session entry exists: an ⚡ action row whose `chat` is this chat
   title   the chat's status glyph matches the entry: ✔️ for a window chat,
           ☑️ for ✅ done, ▶️ ⏯️ or ⏸️ for work still in motion. A my day
           chat keeps ▶️ at its dusk close and takes ✔️ the next morning,
           once she has seen its page (J8; her yes, 11 Nov 2026)
+  branches a my day chat's day closes only when every branch of that day
+          (a chat titled ↳MMDD.n) has written its session entry and closed
+          with ☑️ or ✔️ (her words, 18 Nov 2026: all of the branches for Monday
+          need to write a session entry and close, and that needs to be
+          codified). Pass the chat list with --sessions (list_sessions, mine,
+          every page); without it the check says the list is missing
 
-    python3 bedo_close.py --live --chat URL --title "TITLE" [--date YYYY-MM-DD]
-    python3 bedo_close.py --rows rows.json --chat URL --title "TITLE" [--date …]
+    python3 bedo_close.py --live --chat URL --title "TITLE" [--date YYYY-MM-DD] [--sessions page.json …]
+    python3 bedo_close.py --rows rows.json --chat URL --title "TITLE" [--date …] [--sessions page.json …]
 
 `--date` is a my day chat's own day (from its title); without it the check
 reads the rows for the chat's entry wherever they are. Exit 0 when all three
@@ -39,13 +50,24 @@ from bedo_reader import FACTS, as_rows, load_local
 
 GLYPH = FACTS['chat_status']
 WINDOWS = FACTS['window_chats']
-MARKER = FACTS['dayqa']['marker']
+MARKER = (FACTS['dayqa']['marker'],) + tuple(FACTS['dayqa'].get('old_markers') or ())   # braid shown; dayqa shown before 20 Nov
+CAL_MARKER = FACTS['calsync']['marker']
 DONE, MOVING = '✅ done', '▶️ in motion'
 
 
+BRANCH = re.compile(r'↳\d{4}\.')                 # ↳1120.1: a branch of a my day, the preflight's own marker
+DRIVE_CODE = re.compile(r'(?<![A-Za-z0-9])[A-Z]\d{1,3}\.\d{1,3}\b')   # D6.79, P03.13: a drive chat and its step
+
+
 def is_window(title):
-    t = (title or '').lower()
-    return any(w in t for w in WINDOWS)
+    """A window chat (my day, my week …) is read from what the title is, not
+    its words: a branch marker or a drive code says it is not one, whatever
+    else the title holds (9 and 21 Nov 2026: “My week page · be•do D6.79” and
+    “↳1120.1 🏆 Fri 👁️ my day page” were each told to take ✔️)."""
+    t = title or ''
+    if BRANCH.search(t) or DRIVE_CODE.search(t):
+        return False
+    return any(w in t.lower() for w in WINDOWS)
 
 
 def lead_glyph(title):
@@ -158,33 +180,104 @@ def privacy_qa(entry):
             f'(fix any hit on GitHub too), then add {PRIVACY_LINE} under `what I did`')
 
 
-def qa_done(rows, day):
-    """The dayqa marker for `day` in any row's details (the dusk close carries it)."""
-    want = f'{MARKER} {day.isoformat()}'
+PAGE = re.compile(r'claude\.ai/(?:code/)?artifact/[\w-]+')
+PAGE_LINES = ('`· page: built from the stream and main`',
+              '`· page: fix in the stream, rec…` and/or `· page: fix in the build, <pull request or commit>`')
+_PAGE_OK = re.compile(r'^·\s*page:\s*(built from the stream and main\b'
+                      r'|fix in the stream\b.*\brec\w{6,}'
+                      r'|fix in the build\b.*(github\.com/\S+|\b[0-9a-f]{7,40}\b))', re.M)
+
+
+def page_qa(entry):
+    """None, or what a session that published a page still owes (23 Nov 2026, her words:
+    fixes land in the stream and the stable build, not only on the page I'm looking at).
+    A page is only ever the stream drawn by the build on main. So a session with a page
+    says which it was: built as is, or fixed, and where the fix lives: the row it wrote
+    or the change it pushed. A page patched by hand loses the fix at its next build."""
+    text = ' '.join(str(entry.get(k) or '') for k in ('deliverable', 'details'))
+    if not PAGE.search(text):
+        return None
+    if _PAGE_OK.search(entry.get('details') or ''):
+        return None
+    return (f'this session published a page: say where it stands under `what I did`: {PAGE_LINES[0]}, or, when '
+            f'something on it was fixed, {PAGE_LINES[1]}. A fix made only on the page is redone in the row or the '
+            f'build, and the page rebuilt, before this closes')
+
+
+def qa_done(rows, day, marker=MARKER):
+    """The dayqa marker for `day` (or another check's `marker`) in any row's details (the dusk close carries it)."""
+    want = tuple(f'{m} {day.isoformat()}' for m in ((marker,) if isinstance(marker, str) else marker))
     return next((l.strip() for r in rows for l in (r.get('details') or '').splitlines() if l.strip().startswith(want)),
                 None)
 
 
-def findings(rows, chat_url, title, day=None, local=None, now=None):
+# closed: done, a window closed, dropped, or handed to a new chat with its next push (⏯️, the work carried on a row)
+CLOSED = (GLYPH['done'], GLYPH['window_closed'], GLYPH['dropped'], GLYPH['next_push'])
+
+
+def session_list(pages):
+    """Sessions from list_sessions pages as they came (bare or wrapped as {"ccr": {...}}): [{id, title}]."""
+    out = []
+    for d in pages or []:
+        d = d.get('ccr', d) if isinstance(d, dict) else d
+        out += (d.get('data') if isinstance(d, dict) else d) or []
+    return out
+
+
+def branches_qa(rows, day, sessions):
+    """[(title, what's missing)] for each branch of `day` (↳MMDD.n) that has not written its session entry
+    or not closed (18 Nov 2026: Monday's GLO2 map branch sat open with no entry, and the day page showed
+    nothing of her hour of work in it)."""
+    tag = re.compile(r'↳' + day.strftime('%m%d') + r'\.\d+')
+    chats = ' '.join(r.get('chat') or '' for r in rows)
+    out = []
+    for x in sessions:
+        t = x.get('title') or ''
+        if not tag.search(t):
+            continue
+        sid = (x.get('id') or '').strip()
+        miss = ([] if sid and sid in chats else ['its session entry']) + \
+               ([] if lead_glyph(t) in CLOSED else ['its close (☑️)'])
+        if miss:
+            out.append((t, ' and '.join(miss)))
+    return out
+
+
+def findings(rows, chat_url, title, day=None, local=None, now=None, sessions=None):
     """[(ok, what, why)] in her order: qa, entry, title."""
     local = local or {}
     out = []
     entry = session_entry(rows, chat_url)
 
     if day:
-        line = qa_done(rows, day)
-        out.append((bool(line), 'QA', line or f'run `dayqa {day.isoformat()}`, write what she accepts, '
-                                               f'and put its last line in the dusk close row'))
+        line, cal = qa_done(rows, day), qa_done(rows, day, CAL_MARKER)
+        owed = ([] if line else [f'run the 🔀 braid (`dayqa {day.isoformat()}`), write what she accepts, '
+                                 f'and put its last line in the dusk close row']) + \
+               ([] if cal else [f'run `calsync {day.isoformat()}`, make its changes on the calendar, '
+                                f'and put its marker line in the dusk close row'])
+        out.append((not owed, 'QA', '; '.join(owed) or f'{line} · {cal}'))
     elif entry:
         clock = None if bedo_clock.problem(local) else local   # time_zone, per instant; None skips the clock rules
         p = problems(entry, None, clock, local.get('weekly_name', 'w{n} be•do'))
         ok, why = (True, 'the session entry passes the entry check') if is_window(title) else objective_qa(entry)
         gaps = None if is_window(title) else stretches_qa(entry, clock)
         private = privacy_qa(entry)
-        issues = p + ([] if ok else [why]) + ([gaps] if gaps else []) + ([private] if private else [])
+        paged = None if is_window(title) else page_qa(entry)
+        issues = (p + ([] if ok else [why]) + ([gaps] if gaps else []) + ([private] if private else [])
+                  + ([paged] if paged else []))
         out.append((not issues, 'QA', '; '.join(issues) or why))
     else:
         out.append((False, 'QA', 'nothing to check yet — the session entry comes next, then this runs on it'))
+
+    if day and is_window(title) and sessions is not None:
+        if sessions == 'missing':
+            out.append((False, 'branches', 'pass the chat list (--sessions, every page of list_sessions mine) so '
+                                           "the day's branches can be checked"))
+        else:
+            left = branches_qa(rows, day, sessions)
+            out.append((not left, 'branches', 'every branch of the day wrote its entry and closed' if not left else
+                        '; '.join(f'“{t}” needs {m}' for t, m in left) +
+                        ' — message each to write its entry and close, carrying what is still open'))
 
     if entry:
         out.append((True, 'session entry', f'{entry.get("key") or "?"} · {entry.get("status")} · {entry.get("title")}'))
@@ -250,6 +343,7 @@ def main():
     ap.add_argument('--date', help="a my day chat's own day, YYYY-MM-DD")
     ap.add_argument('--live', action='store_true')
     ap.add_argument('--rows', help='a read of the rows, as rows (logical names) or a dump')
+    ap.add_argument('--sessions', action='append', help='a page of list_sessions (mine), as it came; give every page')
     a = ap.parse_args()
     local = load_local()
     day = dt.date.fromisoformat(a.date) if a.date else None
@@ -263,7 +357,10 @@ def main():
         sys.exit('give --live, or --rows')
     # the local clock, for a my day chat: its own night keeps ▶️, the morning after wants ✔️
     now = None if bedo_clock.problem(local) else bedo_clock.now_local(local)
-    found = findings(rows, a.chat, a.title, day, local, now)
+    # a my day chat's close always checks its branches: without the list it says the list is missing
+    sessions = (session_list([json.load(open(f, encoding='utf-8')) for f in a.sessions]) if a.sessions
+                else 'missing' if day and is_window(a.title) else None)
+    found = findings(rows, a.chat, a.title, day, local, now, sessions)
     print(render(a.title, found))
     sys.exit(0 if all(ok for ok, _, _ in found) else 1)
 

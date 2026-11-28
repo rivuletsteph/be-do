@@ -57,7 +57,12 @@ the QA's own work, done before her list is shown, never asked of her:
             event, or its own words — is proposed closed at that row's time,
             the row named as the evidence. On 30 Oct three steps stayed open
             for days that the stream had already closed (a book finished
-            Monday, notes posted Thursday, the data checked Tuesday)
+            Monday, notes posted Thursday, the data checked Tuesday). Since
+            20 Nov a ✅ row whose block names the step's key closes it too, and
+            one uncommon word is enough on a shared drive
+  due       every step meant for the day that nothing closed gets one line —
+            done, moved or dropped — with the likely answer the day's rows give
+            (20 Nov 2026: the job of the retired ⚡ action check)
 
     python3 bedo_dayqa.py --live --date 2026-10-09 [--json]
     python3 bedo_dayqa.py --day day.json [--catalog practices.json] [--rhythms rhythms.json]
@@ -74,6 +79,7 @@ import bedo_people as PP
 import bedo_categorize as BC
 import bedo_dayaudit as BD
 import bedo_body as BB
+import bedo_drive_check as DC
 
 Q = FACTS['dayqa']
 SRC = Q['sources']
@@ -84,6 +90,7 @@ DIVIDER = FACTS['divider']
 MOVE = {FL.word(p) for p in Q['movement_practices']}
 NOTES = {FL.word(p) for p in Q['note_practices']}
 LOCATION = FL.word(FACTS['practice']['location'])
+SPAN_WORDS = {FL.word(p) for p in (FACTS.get('fill') or {}).get('span_practices') or ()} | {LOCATION, 'travel'}
 NAMES = ('datetime', 'end', 'time_spent', 'status', 'title', 'details', 'practice', 'person',
          'mentioned', 'wellness', 'device', 'rhythm', 'photo', 'key', 'attention',
          'calendar_event', 'photo_checked', 'photo_links', 'target', 'chat', 'waiting_on')
@@ -136,6 +143,7 @@ def todo(check, line, rows=()):
 
 # ── what the day's own records hold (30 Oct 2026) ───────────────────────
 DONE_MARKS = tuple(Q.get('calendar_done_marks') or ('✔️', '✔', '✅'))
+DROP_MARKS = tuple(Q.get('calendar_drop_marks') or ('✖️', '✖'))   # an event she moved to dropped, or titled it so
 READ_MARK = Q.get('journal_read_mark') or 'Pulled out'
 JOURNAL = 'journal'
 EID = re.compile(r'[?&]eid=([\w-]+)')
@@ -252,10 +260,57 @@ def photos(rows, files, off, day, me=''):
 OPEN_ST = tuple(FACTS['status']['actions'][1:3])                            # ⬜ intention, ▶️ in motion: not a potential
 DONE_ST = (FACTS['status']['actions'][3], FACTS['status']['logs'][1])          # ✅ done, ◉ done
 DONE_WORDS = re.compile(Q.get('done_words') or r'\b(finished|done|sent|posted|shared|submitted|completed|closed|filed|'
-                        r'booked|paid|cancel+ed|checked|verified|replied|emailed|built)\b', re.I)
+                        r'booked|paid|cancel+ed|checked|verified|replied|emailed|built|'
+                        # 26 Nov 2026 (her words: there's a lot of things on my list that already happened, like
+                        # the microwave install): a row saying a thing arrived or was put in is a doing too
+                        r'installed|delivered|arrived|fixed|repaired|attended|returned|registered|picked up)\b', re.I)
+PASSED_DAYS = Q.get('due_passed_event_days') or 7
+EVENT_ROW = Q.get('event_row_words') or '[be•do] From the calendar at the look ahead'   # day_ahead.py's own words on an event's row   # how far back a calendared step that passed is still closed
 STOP = set(Q.get('reconcile_stop') or ())
 NOT_EVIDENCE = {FL.word(p) for p in Q.get('reconcile_not_evidence') or ()}
 COMMON = Q.get('reconcile_common') or 4      # a word in this many titles names nothing in particular (a name)
+KEY_RE = re.compile(r'(?<![\d_])(\d{6}_\d{4}[a-z]?)(?![\w])')
+DECIDED = re.compile(Q.get('due_decided_words') or r'\b(another night|another day|instead|cancel+ed|cancel|postponed?|'
+                     r'rescheduled?|moved|pushed|not going|won\'t|didn\'t|tomorrow|next week|stay(?:ed|ing)? (?:home|there|over))\b', re.I)
+
+
+def _key_day(k):
+    m = re.match(r'(\d{2})(\d{2})(\d{2})_', k or '')
+    return dt.date(2000 + int(m[1]), int(m[2]), int(m[3])) if m else None
+
+
+_STILL = re.compile(r'\b(stays? open|still open|not (?:yet )?(?:done|built|closed)|left open|remains open)\b')
+
+
+def _cited(r):
+    """The keys a row's details name besides its own: the rows its block says it answers."""
+    own = (r.get('key') or '').split(' ')[0]
+    # a line that says a step is still open names it without answering it (23 Nov 2026: a session entry's
+    # "the build row (261122_1429) stays open" was read as that row done, and the braid proposed closing it)
+    said, still = [], False
+    for line in (r.get('details') or '').splitlines():
+        t = line.strip().lower()
+        if t in ('still open', 'what i did') or t.startswith('———'):
+            still = t == 'still open'
+            continue
+        if not still and not _STILL.search(t):
+            said.append(line)
+    return {k for k in KEY_RE.findall('\n'.join(said)) if k != own}
+
+
+def _drive(r):
+    v = r.get('rhythm')
+    if isinstance(v, (list, tuple)):
+        v = v[0] if v else None
+    return (v or '').strip() or None
+
+
+def _when(v):
+    """A target as UTC, a bare date read as that date's noon, so it stays on its day."""
+    if not v:
+        return None
+    t = utc(v)
+    return t if t.tzinfo else t.replace(hour=12, tzinfo=dt.timezone.utc)
 
 
 def _sig(t):
@@ -274,9 +329,16 @@ def _shared(a, b):
     return out
 
 
-def reconcile(rows, opens, off):
+def reconcile(rows, opens, off, system=None, broad=()):
     """Reconciling the stream (28 Oct 2026, her word): an open step a row of the
-    day shows done is proposed closed at that row's time, the row named."""
+    day shows done is proposed closed at that row's time, the row named.
+
+    20 Nov 2026 (her words: you suck at reconciling what I actually did with the
+    tasks … you need to be smarter about it): a ✅ row whose block names the
+    step's key closes it, just under the same key; and one uncommon word is
+    enough when the two rows share a drive (be•do's own drive excepted: its
+    sessions share their words, and a ♒ rhythm in `broad` is a whole area of
+    her life, not a drive)."""
     def evidence(r):     # something finished: a closed action or event, or a row saying it was done
         pw = FL.word(r.get('practice'))
         if not r.get('datetime') or pw in NOT_EVIDENCE or pw.split(' ')[-1] in NOT_EVIDENCE:   # someone's quest, his highlight
@@ -284,8 +346,16 @@ def reconcile(rows, opens, off):
         if r.get('status') == DONE_ST[0]:
             return True
         return r.get('status') in (DONE_ST[1], FACTS['status']['ad_hoc']) and bool(DONE_WORDS.search(r.get('title') or ''))
-    lived = [r for r in rows if evidence(r)]
-    df = collections.Counter(w for r in list(opens) + list(rows) for w in _sig(r.get('title')))
+    # an estimated fill only echoes other rows' titles: never evidence (26 Nov 2026)
+    lived = [r for r in rows if evidence(r) and not (r.get('title') or '').endswith('(estimated)')]
+    open_keys = {o.get('key') for o in opens if o.get('key') and o.get('status') in OPEN_ST}
+    day_of = lambda r: (_key_day(r.get('key')) or (_local_day(utc(r['datetime']), off) if r.get('datetime') else None))
+    # a word's commonness counts real rows only: an estimated fill and a highlight or glimmer echo other rows'
+    # titles, so on Wed 25 Nov “microwave” read as common and the install never closed (26 Nov 2026)
+    echo = lambda r: (r.get('title') or '').endswith('(estimated)') or FL.word(r.get('practice')) in NOT_EVIDENCE
+    # and over the day's own rows, each once: open steps pile up around one subject (four microwave rows were open
+    # on 25 Nov), and the more there were, the less any could close. A name is common in the day's rows (I11 holds)
+    df = collections.Counter(w for r in {r.get('id'): r for r in rows if not echo(r)}.values() for w in _sig(r.get('title')))
     rare = lambda ws: {w for w in ws if df[w] < COMMON}
     out, seen = [], set()
     for o in opens:
@@ -293,8 +363,10 @@ def reconcile(rows, opens, off):
             continue
         seen.add(o.get('id'))
         made = utc(o['datetime']) if o.get('datetime') else None
-        ahead = utc(o['target']) if o.get('target') else None
+        ahead = _when(o.get('target'))
         mine = rare(_sig(o.get('title')))
+        drive = _drive(o)
+        drive = None if drive in broad else drive
         best = None
         for r in lived:
             if r.get('id') == o.get('id'):
@@ -306,23 +378,238 @@ def reconcile(rows, opens, off):
                 if o.get('status') == OPEN_ST[-1]:
                     best = None; break    # a ▶️ chain closed by its own ✅ row is closed (I5, 11 Nov 2026): nothing to propose
                 why, rank = 'the same key', 0
+            elif (o.get('status') == OPEN_ST[0] and o.get('key') and o['key'] in _cited(r)
+                  and r.get('status') == DONE_ST[0] and day_of(r) == _local_day(t, off)
+                  and len(_cited(r) & open_keys) == 1
+                  and ((drive and drive == _drive(r)) or _shared(mine, rare(_sig(r.get('title')))))):
+                # 20 Nov 2026: that day's own ✅ work, its block naming the one ⬜ step it answers. A row
+                # carried from earlier only mentions what it names (a long errand's block: still out,
+                # waiting on …), a block naming several open steps is a hub, not an answer, a row on
+                # another drive sharing none of its words cites it in passing, and a ▶️ step is
+                # answered a session at a time
+                why, rank = 'named in its block', 1
             elif o.get('calendar_event') and r.get('calendar_event') and o['calendar_event'] == r['calendar_event']:
-                why, rank = 'the same event', 1
+                why, rank = 'the same event', 2
             else:
                 both = _shared(mine, rare(_sig(r.get('title'))))
-                if len(both) < 2 or (ahead and t < ahead - dt.timedelta(days=1)):
+                same = bool(drive) and drive != system and drive == _drive(r)
+                named = both - _shared(both, _sig(drive)) if same else both   # the drive's own name says only the drive
+                if len(named) < (1 if same else 2) or (ahead and t < ahead - dt.timedelta(days=1)):
                     continue                  # words alone don't close a step still days from its date
-                why, rank = 'its words: ' + ', '.join(sorted(both)), 2
+                why, rank = ('the same drive, ' if same else '') + 'its words: ' + ', '.join(sorted(both)), 3
             if best is None or (rank, -t.timestamp()) < (best[2], -best[1].timestamp()):
                 best = (r, t, rank, why)
         if best:
             r, t, _, why = best
             key = f' ({r["key"]})' if r.get('key') else ''
             line = (f'close “{_t(o)}” ✅ at {_clock(t, off)} — “{_t(r)}”{key}, {why}')
-            out.append(fill('reconcile', line, SRC['stream'],
-                            patch={'id': o['id'], 'fields': {'status': DONE_ST[0], 'end': _z(t)},
-                                   'week': o.get('_week')},
-                            note=f'[be•do] Closed from the stream: “{_t(r)}”{key}, {_clock(t, off)} — {why}.'))
+            f = fill('reconcile', line, SRC['stream'],
+                     patch={'id': o['id'], 'fields': {'status': DONE_ST[0], 'end': _z(t)},
+                            'week': o.get('_week')},
+                     note=f'[be•do] Closed from the stream: “{_t(r)}”{key}, {_clock(t, off)} — {why}.')
+            # settled by the record (26 Nov 2026, her words: too damn many decisions for a busy day): the same key,
+            # or three uncommon words in common, is written, then told, never asked
+            # only for a step meant for that same day: approving a repair shares three words with getting the car
+            # running again and is not it (26 Nov 2026)
+            meant = _meant(o, off)[0]
+            if best[2] == 0 or (why.count(',') >= 2 and _local_day(t, off) == (
+                    _local_day(meant, off) if meant else (_local_day(made, off) if made else None))):
+                f['tell'] = True
+            out.append(f)
+    return out
+
+
+def _local_day(t, off):
+    return (t + dt.timedelta(hours=off)).date()
+
+
+def _meant(o, off):
+    """The day a step is meant for: its target, else the day its own words name
+    (21 Nov 2026: “come by tomorrow morning”, said on a Friday, is Saturday's).
+    (when, timed, said): `when` is None for a step with no day at all; `said`
+    is True for words like next week, which name no one day."""
+    if o.get('target'):
+        return _when(o['target']), 'T' in str(o['target']), False
+    made = _local_day(utc(o['datetime']), off) if o.get('datetime') else None
+    words = E.step_words(o)
+    got = E.said_day(words, made)
+    if got:
+        return dt.datetime.combine(got[0], dt.time(12), dt.timezone.utc) - dt.timedelta(hours=off), False, True
+    return None, False, bool(E.SAID_LATER.search(words))
+
+
+def due(rows, opens, off, day, closed=(), events=(), broad=()):
+    """Every step meant for the day that nothing closed gets one line: done,
+    moved or dropped (20 Nov 2026, when the ⚡ action check was retired: its job
+    is the QA's now). The likely answer is named when the day's rows give one.
+
+    21 Nov 2026 (her words: the reconciliation isn't working well … you didn't
+    even ask me): a ⬜ step made on the day with no date is meant for the day
+    too, unless its own words name another; and a day they name (tomorrow, a
+    weekday) is read from the day it was said. Where the record settles it (her
+    calendar's done mark, a done row of it, a Timeline stay at it), the line is
+    written, then told (`tell`), never asked: her rule of that morning, these
+    obvious things waste my time. Only a step with no time to anchor a stay
+    stays hers to accept when a stay is all there is."""
+    seen, out = set(closed), []
+    now = {r.get('id'): r for r in rows}           # the day's own copy wins: last week's ⬜ may be this week's ✅
+    for o in list(rows) + [o for o in opens or () if o.get('id') not in now]:
+        if o.get('status') not in OPEN_ST or o.get('id') in seen:
+            continue
+        tgt, timed, said = _meant(o, off)
+        made = utc(o['datetime']) if o.get('datetime') else None
+        undated = tgt is None
+        if undated:
+            # made today, ⬜, no date and no words naming a later one: it was meant for today
+            if (said or o.get('status') != OPEN_ST[0] or not made or _local_day(made, off) != day
+                    or not (E.is_action(o) or o.get('key'))):
+                continue
+        elif _local_day(tgt, off) != day:
+            # 26 Nov 2026 (her words: a lot of things on my list already happened, like … the TIAER meeting): a
+            # step tied to her calendar whose day passed with no braid to close it. Still on her calendar and not
+            # moved to dropped, it happened: written, then told, never asked
+            gone = (day - _local_day(tgt, off)).days
+            # only a row that stands for the event itself (the look ahead writes one per event); a step linked
+            # to a work block is still a step: the block passing doesn't do it
+            if (0 < gone <= PASSED_DAYS and o.get('calendar_event') and o.get('status') == OPEN_ST[0]
+                    and EVENT_ROW in (o.get('details') or '')
+                    and not any(_same_event(o['calendar_event'], e) and (e.get('summary') or '').startswith(DROP_MARKS)
+                                for e in events or ())):
+                seen.add(o.get('id'))
+                end = next((_event_at(e.get('end')) for e in events or () if _same_event(o['calendar_event'], e)), None) or tgt
+                f = fill('due', f'“{_t(o)}” was on your calendar {_local_day(tgt, off):%a} {_local_day(tgt, off).day} {_local_day(tgt, off):%b}: done — it passed and '
+                         'nothing says it didn’t happen. Written, then told', SRC['calendar'],
+                         patch={'id': o['id'], 'fields': {'status': DONE_ST[0], 'end': _z(end)}, 'week': o.get('_week')},
+                         note='[be•do] Done: its calendar event passed and nothing said it didn’t happen. '
+                              'Written and told at a later braid (26 Nov 2026).')
+                f['tell'] = True
+                out.append(f)
+            continue
+        seen.add(o.get('id'))
+        at = f' at {_clock(tgt, off)}' if timed else ''
+        drive, mine = _drive(o), _sig(o.get('title'))
+        def kin(r, n=1, wide=False):     # a change may be said on her rhythm; a done row needs the drive itself
+            both = _shared(mine, _sig(r.get('title')))
+            return len(both) >= 2 or (len(both) >= n and bool(drive) and drive == _drive(r)
+                                      and (wide or drive not in broad))
+        later = lambda r: r.get('datetime') and r.get('id') != o.get('id') and (not made or utc(r['datetime']) >= made)
+        head = (f'“{_t(o)}” was made today with no date' if undated else
+                f'“{_t(o)}” was for today{at}' + (' (its words say so)' if said else ''))
+        # a later row saying it changed: moved or dropped, hers to say which
+        said_ = [r for r in rows if later(r) and kin(r, wide=True) and r.get('status') not in DONE_ST[:1] + OPEN_ST
+                 and DECIDED.search(r.get('title') or '')]     # a ✅ row is a doing, not a change
+        if said_:
+            r = said_[-1]
+            out.append(ask('due', f'{head}: moved or dropped? “{_t(r)}” at {_clock(utc(r["datetime"]), off)} says it changed'))
+            continue
+        # a done row about it at that time, or the calendar's own done mark, or a Timeline stay
+        hit, sure = None, True
+        for e in events or ():
+            if o.get('calendar_event') and _same_event(o['calendar_event'], e) and (e.get('summary') or '').startswith(DONE_MARKS):
+                b = _event_at(e.get('end'))
+                if b:
+                    hit = (b, f'your calendar marks it done', SRC['calendar'])
+        span = lambda r: FL.word(r.get('practice')) in SPAN_WORDS
+        done = lambda r: r.get('status') == DONE_ST[0] or (r.get('status') in DONE_ST
+                                                            and FL.word(r.get('practice')) not in NOT_EVIDENCE)
+        if not hit:              # a step with no time: any row of the day after it was made
+            near = (lambda r: True) if not timed else (lambda r: abs(utc(r['datetime']) - tgt) <= dt.timedelta(minutes=60) or (
+                r.get('end') and utc(r['datetime']) <= tgt <= utc(r['end'])))
+            mid = tgt if timed else made
+            close_by = sorted((r for r in rows if later(r) and near(r) and _local_day(utc(r['datetime']), off) == day
+                               and (kin(r) or (span(r) and _shared(mine, _sig(r.get('title')))))),   # a stay or a drive: the place's name
+                              key=lambda r: abs(utc(r['datetime']) - mid))
+            did = next((r for r in close_by if done(r) and not span(r)), None)     # not a stay: so a row in its words
+            stay = next((r for r in close_by if span(r)), None)
+            if did:
+                hit = (utc(did.get('end') or did['datetime']), f'“{_t(did)}” ✅ at {_clock(utc(did["datetime"]), off)}'
+                       + (f', and “{_t(stay)}” at {_clock(utc(stay["datetime"]), off)}' if stay else ''), SRC['stream'])
+            elif stay:
+                hit = (utc(stay.get('end') or stay['datetime']), f'“{_t(stay)}” at {_clock(utc(stay["datetime"]), off)}',
+                       SRC['timeline'])
+                sure = timed                  # a stay at its time settles it; a stay with no time to meet is hers to say
+        if hit:
+            t, why, src = hit
+            patch = {'id': o['id'], 'fields': {'status': DONE_ST[0], 'end': _z(t)}, 'week': o.get('_week')}
+            if sure:
+                f = fill('due', f'{head}: done — {why}. Written, then told', src, patch=patch,
+                         note=f'[be•do] Done on the day, from the record: {why}. Written and told at the braid (her rule, 21 Nov 2026).')
+                f['tell'] = True
+                out.append(f)
+            else:
+                out.append(fill('due', f'{head}: likely done — {why}; or say moved or dropped', src, patch=patch,
+                                note=f'[be•do] Done on the day, she said at the braid: {why}.'))
+        else:
+            out.append(ask('due', f'{head}: done, moved or dropped?'))
+    return out
+
+
+DRIVE_TYPES = ('♐ drive', '♎ destination')
+TOGETHER = ('reconcile', 'due', 'calendar', 'drives')     # one heading over them, at the top of her list (20 Nov 2026)
+
+
+def drives(rows, opens, off, day, B, closing=(), system=None, milestone=None):
+    """How the day's actions moved her drives (20 Nov 2026, her words: how did the
+    steps that were taken today actually move toward my drives, my goals? … I
+    really want that built in to this process every day). For each drive the
+    day's ✅ actions touched: one line of what moved, read against its goal; a
+    🪨 milestone proposed when a step lands something big; the goal asked for in
+    one line when the drive has none; and what is left when little is."""
+    milestone = milestone or FACTS['practice']['milestone']
+    closing = dict(closing)                       # id → the reconcile or due line closing it
+    done = [r for r in rows if r.get('status') == DONE_ST[0] and r.get('datetime')
+            and _local_day(utc(r.get('end') or r['datetime']), off) == day]
+    done += [o for o in opens or () if o.get('id') in closing and o.get('id') not in {r.get('id') for r in done}]
+    by = collections.OrderedDict()
+    for r in sorted(done, key=lambda r: r.get('end') or r['datetime']):
+        k = DC.resolve(_drive(r), B)
+        if k and B[k]['type'] in DRIVE_TYPES and k != system:
+            by.setdefault(k, []).append(r)
+    marked = {DC.resolve(_drive(r), B) for r in rows if FL.word(r.get('practice')) == FL.word(milestone)}
+    every = {r.get('id'): r for r in list(opens or ()) + list(rows)}
+    out = []
+    for k, rs in by.items():
+        b = B[k]
+        left = [o for o in every.values() if o.get('status') in OPEN_ST and o.get('id') not in closing
+                and DC.resolve(_drive(o), B) == k]
+        mins = sum(DC.minutes(r, None) for r in rs if r.get('id') not in closing)
+        names = '; '.join(f'“{_t(r)}”' + (' (if you accept it above)' if r.get('id') in closing else '') for r in rs)
+        goal = b['goal'].splitlines()[0][:80] if b['goal'] else None
+        line = (f'{k}: {len(rs)} action{"s" if len(rs) > 1 else ""} closed — {names}'
+                + (f', {mins:.0f} min' if mins else '') + f' · {len(left)} open'
+                + (f' · goal: {goal}' if goal else ''))
+        out.append({'check': 'drives', 'kind': 'moved', 'line': line, 'drive': k})
+        # a step that lands something big: the drive's last open one, an action carried a month or more, or the goal's words
+        gw = _sig(b['goal']) - _sig(k) if b['goal'] else set()     # the drive's own name says only the drive
+        for r in rs:
+            made = _key_day(r.get('key')) or (_local_day(utc(r['datetime']), off) if r.get('datetime') else day)
+            carried = (day - made).days >= (Q.get('milestone_after_days') or 30) \
+                and FL.word(r.get('practice')) == 'action'      # an ⚡ action, not a meeting row from the calendar
+            why = ('its last open step' if not left else
+                   f'carried since {made.day} {made:%b}' if carried else
+                   'the step its goal names' if len(_shared(gw, _sig(r.get('title')) - _sig(k))) >= 2 else None)
+            if not why or k in marked:
+                continue
+            said = [p.strip() for p in her_words(r).strip().split('\n')
+                    if p.strip() and not p.strip().startswith(('·', '-', '•', '*', '>'))]     # her sentence, not a list
+            said = [p for p in said if len(p.split()) >= 5] or said         # a sentence, not a heading (still open:)
+            words = said[-1] if said and len(said[-1].split()) >= 5 else _t(r)
+            t = utc(r.get('end') or r['datetime']) if r.get('id') not in closing else utc(closing[r['id']])
+            out.append(fill('drives', f'🪨 a milestone on {k}: “{_t(r)}”, {why} — in your words: {words[:90]}',
+                            SRC['stream'], new={
+                                'datetime': _z(t), 'status': FACTS['status']['logs'][0], 'practice': milestone,
+                                'title': f'{milestone.split(" ")[0]} {re.sub(r"^[^\w]+", "", _t(r))}', 'rhythm': k,
+                                'details': f'{words}\n{DIVIDER}\n[be•do] Proposed at the day QA: {why} on {k} '
+                                           f'({r.get("key") or r.get("id")}).'}))
+            marked.add(k)
+        if not b['goal']:
+            out.append(ask('drives', f'{k} has no goal yet: what does done look like? Your words become its goal'))
+        elif not left:
+            out.append(ask('drives', f'nothing is open on {k}: is its goal met (the drive done), '
+                                     f'or what is the one step left (it becomes an open action)?'))
+        if len(left) == 1:
+            out.append({'check': 'drives', 'kind': 'moved', 'drive': k,
+                        'line': f'{k}: one step left — “{_t(left[0])}”'})
     return out
 
 
@@ -739,6 +1026,10 @@ def synergy(rows, off, history=()):
                 a = noted.group(1).lower()
                 out.append({'check': 'synergy', 'kind': 'notice', 'answer': a,
                             'line': f'{pair}: {SY["say"][a]}'})
+            elif E.always_synergy(r, o):            # always synergy (facts synergy.always): written, never asked
+                note = SY['note'].format(answer='synergizing', partner=_partner(o))
+                out.append(fill('synergy', f'{pair}: synergizing, always — {E.always_synergy(r, o)["why"]} — {SY["say"]["synergizing"]}',
+                                SRC['rule'], patch={'id': r.get('id'), 'append_her_words': note}, note=note))
             elif ans:
                 note = SY['note'].format(answer=ans, partner=_partner(other))
                 out.append(fill('synergy', f'{pair}: {ans}, from your words (“{cue}”) — {SY["say"][ans]}',
@@ -788,8 +1079,9 @@ def categorized(rows, day, local, cat_ctx, sessions=None):
 
 
 def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=None, history=(),
-        events=None, files=None, lb=None, opens=None, cat_ctx=None, sessions=None, body=None):
+        events=None, files=None, lb=None, opens=None, cat_ctx=None, sessions=None, body=None, drive_b=None):
     ctx = ctx or FL.Context(day_rows=rows, local=local)
+    broad = {k for k, b in (drive_b or {}).items() if b['type'] not in DRIVE_TYPES}   # ♒ rhythms: an area, not a drive
     pre = []
     if cat_ctx is not None:
         pre, rows = categorized(rows, day, {**(lb or {}), **local}, cat_ctx, sessions)
@@ -800,7 +1092,14 @@ def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=N
         + journals(rows, off) \
         + (photos(rows, files, off, day, (local.get('people') or {}).get('self') or '') if files is not None else []) \
         + painted(rows, day, {**local, 'utc_offset_hours': off}, lb) \
-        + (reconcile(rows, opens, off) if opens else [])
+        + (reconcile(rows, opens, off, local.get('system_rhythm'), broad) if opens else [])
+    closed = {i['patch']['id'] for i in first if (i.get('patch') or {}).get('fields', {}).get('status')}
+    first += due(rows, opens, off, day, closed, events_from(events) if events is not None else (), broad)
+    if drive_b:
+        closing = {i['patch']['id']: i['patch']['fields']['end'] for i in first
+                   if i['check'] in ('reconcile', 'due') and (i.get('patch') or {}).get('fields', {}).get('end')}
+        first += drives(rows, opens, off, day, drive_b, closing, local.get('system_rhythm'),
+                        next((n for n in catalog_names if FL.word(n) == 'milestone'), None))
     first = pre + first
     items = first + (meals(rows, off, (local.get('people') or {}).values())
              + movement(rows, off, day, local, catalog_names, typical)
@@ -816,9 +1115,10 @@ def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=N
     # ate, moved and who she was with, one item each; the bookkeeping — device,
     # wellness, partial attention — one item per kind, accepted at once. Then the
     # few questions, wrong data first; a stretch with no clue is counted, never asked.
-    order = ['reconcile', 'calendar', 'meals', 'movement', 'people', 'gaps', 'synergy', 'overlaps', 'plans', 'device', 'spans']
+    order = ['reconcile', 'due', 'calendar', 'drives', 'meals', 'movement', 'people', 'gaps', 'synergy', 'overlaps', 'plans', 'device', 'spans']
     rank = lambda i: order.index(i['check']) if i['check'] in order else len(order)
-    fills = [i for i in items if i['kind'] == 'fill']
+    tells = [i for i in items if i.get('tell')]       # written, then told: never on her list (21 Nov 2026)
+    fills = [i for i in items if i['kind'] == 'fill' and not i.get('tell')]
     batched = []
     for check, what in (('overlaps', 'partial attention where two things happened at once'),
                         ('synergy', 'two things at once, synergy or competition read from your words'),
@@ -841,28 +1141,49 @@ def run(rows, day, off, local, ctx=None, index=None, catalog_names=(), typical=N
                     'or leave them: ' + '; '.join(i['line'].split('“', 1)[-1].split('”')[0][:40] for i in nodev[:4])
                     + (' …' if len(nodev) > 4 else '')}]
     asks.sort(key=lambda i: -('spans' == i['check']))
-    items = ([i for i in items if i['kind'] == 'do'] + sorted(fills + batched, key=rank) + asks
+    # a step meant for today is answered near the top (20 Nov 2026: the action check's job), never an if-you-want
+    kept = {id(i) for i in fills}
+    main = sorted([i for i in items if id(i) in kept or i['kind'] == 'moved'
+                   or (i['kind'] == 'ask' and i['check'] in ('due', 'drives'))] + batched, key=rank)
+    asks = [i for i in asks if i['check'] not in ('due', 'drives')]
+    items = ([i for i in items if i['kind'] == 'do'] + tells + main + asks
              + [i for i in items if i['kind'] == 'open']
              + [i for i in items if i['kind'] in ('notice', 'count')])
-    for i, it in enumerate(i for i in items if i['kind'] in ('fill', 'ask')):
+    for i, it in enumerate(i for i in items if i['kind'] in ('fill', 'ask') and not i.get('tell')):
         it['n'] = i + 1
     return items
 
 
 def render(items, day, rows, off, now_local=None):
     (lack, n), long_ = gate(rows, off)
-    fills = [i for i in items if i['kind'] == 'fill']
-    asks = [i for i in items if i['kind'] == 'ask']
+    tells = [i for i in items if i.get('tell')]
+    fills = [i for i in items if i['kind'] == 'fill' and not i.get('tell')]
+    dues = [i for i in items if i['kind'] == 'ask' and i['check'] in ('due', 'drives')]
+    main = [i for i in items if (i['kind'] in ('fill', 'moved') and not i.get('tell')) or i in dues]
+    asks = [i for i in items if i['kind'] == 'ask' and i not in dues]
     open_ = [i for i in items if i['kind'] == 'open']
     seen = [i for i in items if i['kind'] == 'notice']
     todo_ = [i for i in items if i['kind'] == 'do']
     lines = []
     if todo_:
-        lines.append(f'first, for the QA itself — {len(todo_)} to do before her list is shown, then run dayqa again:')
+        lines.append(f'first, for the braid itself — {len(todo_)} to do before her list is shown, then run dayqa again:')
         lines += [f'  · {i["check"]} · {i["line"]}' for i in todo_]
-    lines.append(f'dayqa · {day:%a %d %b} — {len(fills)} to accept' + (f', {len(asks)} if you want' if asks else ''))
-    for i in fills:
-        lines.append(f'  {i["n"]}. {i["check"]} · {i["line"]} · {EST} · source: {i["source"]}')
+    if tells:   # her rule, 21 Nov 2026: obvious closes are written, then told in one line, never asked
+        lines.append(f'written, then told — {len(tells)} the record settles: write each through entry, '
+                     'then tell her in one line, never ask:')
+        lines += [f'  ✓ {i["check"]} · {i["line"]} · source: {i["source"]}' for i in tells]
+    lines.append(f'{Q.get("together_heading") or "dayqa"} · {day:%a %d %b} — {len(fills)} to accept' + (f', {len(dues)} to answer' if dues else '')
+                 + (f', {len(asks)} if you want' if asks else ''))
+    top = [i for i in main if i['check'] in TOGETHER]
+    if top:
+        lines.append('  the threads — your actions and your drives:')
+    for k, i in enumerate(main):
+        if top and k == len(top):
+            lines.append('  the rest of the day:')
+        if i['kind'] == 'moved':
+            lines.append(f'     ↳ {i["line"]}')
+            continue
+        lines.append(f'  {i["n"]}. {i["check"]} · {i["line"]}' + ('' if i['kind'] == 'ask' else f' · {EST} · source: {i["source"]}'))
     if asks:
         lines.append('  if you want — skip any of these and the day stands as it is:')
         lines += [f'  {i["n"]}. {i["check"]} · {i["line"]}' for i in asks]
@@ -888,6 +1209,17 @@ def marker(day, n, now_local=None):
 
 
 # ── reads ───────────────────────────────────────────────────────────────
+def drive_buckets(recs, local):
+    """The active rhythms with their goals, for the drives lines; None when her
+    settings don't name the goal and status fields of a read keyed by field id."""
+    DC.RF.update({k: v for k, v in (local.get('rhythms_fields') or {}).items() if k in DC.RF})
+    if any(k.startswith('fld') for r in recs[:1] for k in cells(r)) and not all(
+            DC.RF[k].startswith('fld') for k in ('name', 'type', 'status', 'goal')):
+        print('dayqa: the drives lines need goal, type and status in rhythms_fields (her settings)', file=sys.stderr)
+        return None
+    return DC.buckets(recs)
+
+
 def connections_index(recs, local):
     cf = local.get('connections_fields') or {}
     people = []
@@ -958,7 +1290,8 @@ def main(argv=None):
         cat = complete(read_catalog(air, L), 'catalog')
         b = L.get('bases') or {}
         if b.get('rhythms'):
-            rh = complete(air.dump(*b['rhythms'], by_id=bool(L.get('rhythms_fields')), ttl=SLOW), 'rhythms')
+            # read by field name: the drives lines need each drive's goal, type and status (20 Nov 2026)
+            rh = complete(air.dump(*b['rhythms'], ttl=SLOW), 'rhythms')
         if b.get('connections'):
             con = complete(air.dump(*b['connections'], by_id=bool(L.get('connections_fields')), ttl=SLOW), 'connections')
         # last week, for her usuals and the pairs she has answered before
@@ -973,7 +1306,15 @@ def main(argv=None):
         this = L.get('weekly_name', 'w{n} be•do').format(n=week_number(day))
         opens = [dict(r, _week=this) for r in as_rows(complete(air.dump(names_[this], L['stream_table'], formula=cond,
                                                                           by_id=True), this), fields)]
-        opens += [dict(r, _week=prev) for r in hist if r.get('status') in OPEN_ST]
+        # last week's open copies, only where this week's base doesn't hold the row (I15: the live copy wins).
+        # 26 Nov 2026: twelve steps moved to Wed 2 Dec in w48 were asked again as due Wed 25 Nov, from w47's copies
+        old = [r for r in hist if r.get('status') in OPEN_ST and r.get('id') not in {o.get('id') for o in opens}]
+        here = set()
+        for i in range(0, len(old), 40):
+            ids = [r['id'] for r in old[i:i + 40]]
+            f = 'OR(' + ', '.join(f"RECORD_ID()='{x}'" for x in ids) + ')'
+            here |= {r.get('id') for r in air.records(names_[this], L['stream_table'], formula=f, by_id=True)}
+        opens += [dict(r, _week=prev) for r in old if r.get('id') not in here]
     elif a.day:
         src = a.day
         cat = complete(a.catalog, 'catalog') if a.catalog else None
@@ -1007,11 +1348,11 @@ def main(argv=None):
             body = None
     items = run(rows, day, off, L, ctx, connections_index(con, L) if con else None, names,
                 catalog_typical(cat, L) if cat else None, hist, events, files, lb, opens, cat_ctx, cat_ctx.sessions,
-                body or None)
+                body or None, drive_buckets(rh, L) if rh else None)
     now_local = now + dt.timedelta(hours=offset_hours(L, now))
     if a.json:
         print(json.dumps({'day': day.isoformat(), 'items': items,
-                          'marker': marker(day, sum(i['kind'] == 'fill' for i in items), now_local)},
+                          'marker': marker(day, sum(i['kind'] == 'fill' and not i.get('tell') for i in items), now_local)},
                          ensure_ascii=False, indent=1))
     else:
         print(render(items, day, rows, off, now_local))
