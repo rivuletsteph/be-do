@@ -253,6 +253,30 @@ def main():
                                                        for r in recs],
                                            'metadata': {'totalRecordCount': len(recs)}}
 
+    # ── who and where, for the my day page (28 Nov 2026, her words: I haven't seen a sociogram on the my day in a long
+    # time. After that, add geography to the my day too): the connections table (who is in which circle) and the places
+    # table (each 📍 stay's place, and its coordinates), found by name, fields by name, every day. The circle field's
+    # own order of choices is the order the circles are drawn in. A base the token can't see is left out, never a stop.
+    allb = air.bases()
+    for name in ('connections', 'places'):
+        if name == 'places' and 'ideas_places.json' in files:      # a Saturday has read it already
+            files['named_places.json'] = files['ideas_places.json']
+            continue
+        base = allb.get(name)
+        tmeta = next((t for t in air.tables(base) if t['name'] == name), None) if base else None
+        if not tmeta:
+            continue
+        byid = {f['id']: f['name'] for f in tmeta['fields']}
+        recs = air.records(base, tmeta['id'], list(byid))
+        meta = {'totalRecordCount': len(recs)}
+        circ = next((f for f in tmeta['fields'] if f['name'] in ('circle', 'circles')), None)
+        if circ and (circ.get('options') or {}).get('choices'):
+            meta['circle_order'] = [c['name'] for c in circ['options']['choices']]
+        files[f'named_{name}.json'] = {'records': [{'id': r['id'], 'fields': {byid.get(k, k): v for k, v in
+                                                                              (r.get('fields') or {}).items()}}
+                                                   for r in recs],
+                                       'metadata': meta}
+
     # ── write only once every read has finished (I11) ──
     os.makedirs(a.out, exist_ok=True)
     for fn, d in files.items():

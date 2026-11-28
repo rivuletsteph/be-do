@@ -268,6 +268,17 @@ hers named for one) or a full day by `full_day_hours` / `full_day_events`. A lig
 due that day: *every step, by rhythm*, the flow, the easiest next steps under *not on today's calendar*, and be•do's
 three unless she picked them. What is set for a time today stays.
 
+**Who was in your day, and where you were** (28 Nov 2026, her words: I haven't seen a sociogram on the my day in a
+long time. After that, add geography to the my day too. Those are both important). The sociogram had been drawn only on
+the day behind, retired 8 Nov, so nothing drew it after. Two cards now sit under today's wheel (`who_where.py`, read from
+the same rows). *Who*: everyone she was with or in touch with (the `person` field of the rows she lived), grouped by
+their first circle in the connections table, in the circle field's own order, and sized by how many of the day's rows
+they shared; who came up with them (`mentioned`) hangs off them; who is still ahead today (an open step timed later, an
+event's people) is dashed. *Where*: the day's 📍 stays, longest first, each with its time, who with and what she did
+there, a place added that day starred; today's calendar places still ahead after them; the time on the road. The map
+draws once the places base holds coordinates for two places or more (none had them on 28 Nov). A finished day with no
+stay says home all day, by the record (no rows for home, 5 Nov). Both tables are read by name in the fetch, every day.
+
 **NOW and NEXT lead whenever there is a `--plan`**, at any hour and on any day not yet over. **Could go together closes
 the page** (her words: *it needs to go down at the bottom*), below everything but the download button, on the phone and
 the computer alike.

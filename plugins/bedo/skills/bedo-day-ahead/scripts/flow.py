@@ -1385,9 +1385,29 @@ def build(D, rows, rhythms_read, L, behind_dir):
                                nx=((p.get('move') or {}).get('step')), links=(p.get('move') or {}).get('links') or [])
                           for p in (D.get('pareto_more') or [])]
     data['groups'] = groups_of(rows, F, L)
+    # who and where (28 Nov 2026, her words: I haven't seen a sociogram on the my day in a long time. After that, add
+    # geography to the my day too. Those are both important): the day's sociogram, ahead and behind, and where she was
+    # and is going, from the same rows (who_where.py)
+    data['who'], data['where'] = who_where_of(today, rows, F, off, L, data['schedule'])
     data['baseflow'] = dict(week=week, parts=[dict(name=k, value=t[k]) for k in keys if t[k] is not None],
                             missing=[k for k in keys if t[k] is None])
     return data
+
+
+def who_where_of(today, rows, F, off, L, schedule):
+    """(DATA.who, DATA.where): either is None when the day has nothing to draw. The connections and places tables come
+    from the fetch, read by name (`_connections`, `_places_all`); without them the sociogram has no circles and the
+    stays keep the names on their rows."""
+    import who_where
+    now = L.get('_now') or (dt.datetime.now(dt.timezone.utc) + off).replace(tzinfo=None)
+    conn = L.get('_connections') or {}
+    people = who_where.People(conn.get('records'), L.get('circle_order') or (conn.get('metadata') or {}).get('circle_order'))
+    who = who_where.who_of(rows, F, off, today, people, L.get('self_person') or '', schedule, now)
+    where = who_where.where_of(rows, F, off, today, (L.get('_places_all') or {}).get('records'), schedule, now,
+                               location=L.get('location_practice') or 'location', home_names=L.get('home_names') or ('home',),
+                               me=L.get('self_person') or '',
+                               skip_rhythms=set(L.get('hide_drives') or []) | {L.get('system_rhythm') or 'be•do'})
+    return who, where
 
 
 def groups_of(rows, F, L):
@@ -1512,6 +1532,10 @@ def main():
     for nm in ('stories', 'places'):
         pth = os.path.join(dd, f'ideas_{nm}.json')
         L[f'_{nm}'] = json.load(open(pth, encoding='utf-8')).get('records') if os.path.exists(pth) else None
+    # who and where: the connections and places tables, read by name every day (bedo_fetch, 28 Nov 2026)
+    for nm, key in (('connections', '_connections'), ('places', '_places_all')):
+        pth = os.path.join(dd, f'named_{nm}.json')
+        L[key] = json.load(open(pth, encoding='utf-8')) if os.path.exists(pth) else None
     data = build(D, rows, rhythms_read, L, a.behind)
     L['_day'] = data['day']
     data['plan'] = plan_items(a.plan, rows, L)
