@@ -1,4 +1,4 @@
-# `dawn`
+# `dawn` (and `dawn --flow dusk`)
 
 **What:** the dawn page (27 Nov 2026). Her dawn flow as four lanes in the wellness wheel colors (heart, body, mind, spirit, from the catalog's `wellness`), the next three steps as buttons, and the steps done in the order done, each with its time and a line from its row. During dawn, Duet hands her its link once, in place of the remaining line. The noon backstop and the flow's self-close stay as they are.
 
@@ -13,5 +13,7 @@ bash run_checks.sh dawn --out dawn.html
 ```
 
 It prints `page.title`, `page.file`, `page.standing` and `page.capabilities`. Publish `page.file` with exactly those capabilities: to `page.standing` (the settings row's `dawn_url`) in place, or, when that is empty, as a new artifact (icon `sunrise`) whose link then goes on the row as `dawn_url`. Her rows reach the page through her connector, so the first tap after a publish may ask her once to allow Airtable for the page.
+
+**The dusk page** (27 Nov 2026, her ask that evening) is the same page for the dusk flow, built with `--flow dusk` and published to `dusk_url` (icon `sunset`). Its settings are `dusk_page` in the facts, over `dawn_page`: the steps a Code run writes (🪐, 🗺️ map check, 📱 screen time, 📧 inbox, 🔀 braid, ⚔️ his quest) fill when the run writes them and are never buttons; ⭐ highlight and 🌟 his highlight open a box for her words, which go above the divider (⭐ as ● log); 💊 evening pills is one tap writing both rows, each with her default from the settings row; 🌬️ evening breaths and 🌌 evening blessing show last and are never offered as next. **The batch** has its own section: Timeline, ring stress, recordings, digital wellbeing and photos, each toggled as it goes up to the Drive folder (her words: there needs to be a toggle for not uploaded, uploaded, no activity). Timeline takes *stayed home* and recordings take *none*; a state with a row writes it (stayed home is the evening's 🗺️ map check, recordings up or none the ⏺️ recorder check) so the dusk run skips what is settled, and an upload alone writes no row, because the run reads the folder. The marks live in the page's own store (`db`), one document an evening, so the dusk page publishes with `db` too. Rows before 5 AM belong to the evening before, and the page says the evening closes when she falls asleep.
 
 **Its rows go through `sweep`** at the dusk close like any row written outside a check (J17).

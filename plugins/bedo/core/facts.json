@@ -465,6 +465,31 @@
   "tap_line": "[be•do] tapped on the dawn page.",
   "undo_seconds": 10,
   "reread_after_seconds": 60,
-  "sunrise_days": 14
+  "sunrise_days": 14,
+  "title": "Dawn flow", "label": "Dawn", "url_key": "dawn_url", "icon": "sunrise",
+  "code": [], "words": [], "status_of": {}, "day_starts": "00:00", "batch": null,
+  "all_in": "Your steps are all in. The flow closes itself."
+ },
+ "dusk_page": {
+  "about": "The dusk page (27 Nov 2026, her ask the same evening): the dawn page's twin for the dusk flow. Anything not named here comes from dawn_page. Code's steps fill when a run writes them and are never buttons; a step that needs her words opens a box to write them; 💊 evening pills is one button that writes both rows; evening breaths and blessing show last and are never offered as next. Rows before day_starts belong to the evening before.",
+  "title": "Dusk flow", "label": "Dusk", "url_key": "dusk_url", "icon": "sunset",
+  "leave_off": [],
+  "code": ["🪐", "🗺️ map check", "📱 screen time", "📧 clear gmail inbox", "🔀 braid", "⚔️"],
+  "words": ["⭐ highlight", "🌟"],
+  "status_of": {"⭐ highlight": "● log"},
+  "day_starts": "05:00",
+  "batch": {"name": "📸 the batch", "label": "batch", "steps": ["🗺️ map check", "📱 screen time", "🪐", "⏺️ recorder check"],
+   "note": "Mark each as it goes up to the Drive folder. Photos last: once they're up, tell Duet, and the dusk run fills the rest.",
+   "items": [
+    {"key": "timeline", "glyph": "🗺️", "name": "Timeline", "step": "🗺️ map check", "states": {"up": null, "stayed home": {"practice": "🗺️ map check", "title": "🗺️ map check: stayed home, no Timeline"}}},
+    {"key": "stress", "glyph": "🪐", "name": "ring stress", "step": "🪐", "states": {"up": null}},
+    {"key": "recordings", "glyph": "⏺️", "name": "recordings", "step": "⏺️ recorder check", "states": {"up": {"practice": "⏺️ recorder check", "title": "⏺️ recorder check: recordings uploaded"}, "none": {"practice": "⏺️ recorder check", "title": "⏺️ recorder check: no recordings today"}}},
+    {"key": "wellbeing", "glyph": "📱", "name": "digital wellbeing", "step": "📱 screen time", "states": {"up": null}},
+    {"key": "photos", "glyph": "📸", "name": "photos", "step": null, "states": {"up": null}}
+   ],
+   "items_about": "27 Nov 2026, her words: if I could click on the things that I uploaded to the drive folder … there needs to be a toggle for not uploaded, uploaded, no activity - for recordings, the timeline (some days I don't leave the house). A state with a row writes it (stayed home is the evening's map check; recordings up or none is the recorder check), so the dusk run skips what is settled; an upload alone writes no row: the run reads the folder. The toggles are kept in the page's own store, one document an evening.",
+   "about": "27 Nov 2026, her words: I do want to see the batch items grouped since I normally do those all at once. One card in Next and one row above the lanes."},
+  "tap_line": "[be•do] tapped on the dusk page.",
+  "all_in": "Your steps are all in. The evening closes when you fall asleep."
  }
 }
